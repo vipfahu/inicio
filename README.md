@@ -10,4 +10,4 @@ Carpeta `vipfahu/` = raíz del sitio. Sitio estático publicado en Netlify: http
 
 Los datos de Normativa viven en Supabase; `data/normativa/catalogo.js` es el respaldo estático.
 
-Última generación: 2026-09-07T16:41:10.275Z
+Última generación: 2026-09-07T18:35:01.265Z

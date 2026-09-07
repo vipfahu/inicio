@@ -18,7 +18,7 @@
 </script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="./support.js?v=1788799270275"></script>
+<script src="./support.js?v=1788806101265"></script>
 </head>
 <body>
 <x-dc>
@@ -27,6 +27,40 @@
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700;800&amp;family=Spectral:ital,wght@0,400;0,600;1,400&amp;family=IBM+Plex+Mono:wght@400;600&amp;display=swap" rel="stylesheet">
 <style>
 body{margin:0;background:#F6F4EF}a{color:#007E80}a:hover{color:#EF7A00}input:focus,select:focus{outline:none;border-color:#00A0A0}
+@media screen and (max-width:1260px){
+  table{min-width:0 !important;table-layout:auto}
+  table th,table td{padding-left:9px !important;padding-right:9px !important;white-space:normal !important}
+  table td:nth-child(2){min-width:0 !important}
+  table td span[style*="text-transform"]{white-space:nowrap !important}
+  table th:nth-child(8),table td:nth-child(8),table th:nth-child(10),table td:nth-child(10){display:none}
+}
+@media screen and (max-width:900px){
+  table th:nth-child(5),table td:nth-child(5){display:none}
+}
+@media screen and (min-width:1001px) and (max-width:1260px){
+  [style*="250px minmax"]{grid-template-columns:clamp(190px,18vw,250px) minmax(0,1fr) !important}
+  aside[style*="border-right"]{padding:30px 16px 60px !important}
+}
+@media screen and (max-width:1000px){
+  [style*="250px minmax"]{grid-template-columns:minmax(0,1fr) !important}
+  aside[style*="border-right"]{border-right:none !important;border-bottom:1px solid #E8E4DA !important;padding:22px clamp(20px,4vw,44px) 24px !important;display:grid !important;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:4px 22px;align-items:start}
+  [data-fac]{min-width:0}
+  [data-fac] > div:last-child{margin-bottom:0 !important}
+  [data-fac="programa"]{grid-row:span 2}
+  [data-fbtn]{display:flex !important;grid-column:1 / -1;margin-bottom:12px}
+  aside[data-plegado="1"] [data-fac],aside[data-plegado="1"] > p{display:none}
+  aside[data-plegado="1"] [data-fac="periodo"]{display:block}
+  [data-fac="periodo"] > div:last-child{display:grid !important;grid-template-columns:1fr 1fr;gap:10px 14px;align-items:end}
+  [data-fac="periodo"] > div:last-child > div:last-child{grid-column:1 / -1;padding-top:0 !important}
+  [data-fac="programa"] > div:last-child{max-height:132px;overflow-y:auto}
+  header img{height:52px !important}
+  main > div[style*="#1F6F70"]{padding:16px 20px 14px !important;margin-bottom:16px !important}
+  main > div[style*="#1F6F70"] h2{font-size:18px !important}
+  main > div[style*="#1F6F70"] [style*="30px IBM Plex Mono"]{font-size:23px !important}
+  main[style*="padding:30px"],main[style*="padding: 30px"]{padding-top:18px !important}
+  aside[style*="border-right"] > p{grid-column:1 / -1;margin-top:4px !important}
+  aside[style*="border-right"] > sc-if,aside[style*="border-right"] > button{grid-column:1 / -1}
+}
 @media screen and (max-width:760px){
   header [style*="gap: 14px"],header [style*="gap:14px"]{flex-wrap:wrap !important;width:100%}
   header input{width:100% !important}
@@ -63,42 +97,63 @@ body{margin:0;background:#F6F4EF}a{color:#007E80}a:hover{color:#EF7A00}input:foc
     </div>
   </header>
 
-  <div style="display:grid;grid-template-columns:250px minmax(0,1fr);gap:0;max-width:1200px;margin:0 auto">
-    <aside style="border-right:1px solid #E8E4DA;padding:30px 22px 60px">
+  <div style="display:grid;grid-template-columns:250px minmax(0,1fr);gap:0;max-width:1440px;margin:0 auto">
+    <aside data-plegado="{{ filtrosPlegado }}" style="border-right:1px solid #E8E4DA;padding:30px 22px 60px">
+      <button onClick="{{ toggleFiltros }}" data-fbtn="1" style="display:none;cursor:pointer;border:1.5px solid #E0DCD0;background:#fff;color:#007E80;border-radius:9px;padding:10px 14px;font:600 12px Archivo,sans-serif;width:100%;justify-content:space-between;align-items:center;gap:8px">{{ filtrosLabel }}</button>
+      <div data-fac="periodo">
       <div style="font:700 10px Archivo,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#8A8272;margin-bottom:10px">Semestre</div>
-      <div style="display:flex;flex-direction:column;gap:4px;margin-bottom:26px">
-        <sc-for list="{{ periodos }}" as="p" hint-placeholder-count="2">
-          <button onClick="{{ p.pick }}" style="cursor:pointer;border:none;text-align:left;border-radius:8px;padding:9px 11px;background:{{ p.bg }};color:{{ p.fg }};font:600 13px Archivo,sans-serif;display:flex;justify-content:space-between;align-items:center;gap:8px" style-hover="background:#EEF6F6">
-            <span>{{ p.etiqueta }}</span>
-            <span style="font:600 10px Archivo,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:{{ p.badgeFg }};background:{{ p.badgeBg }};border-radius:999px;padding:3px 8px">{{ p.badge }}</span>
-          </button>
-        </sc-for>
+      <div style="background:#fff;border:1px solid #E8E4DA;border-radius:10px;padding:12px;margin-bottom:26px;display:flex;flex-direction:column;gap:10px">
+        <label style="display:flex;flex-direction:column;gap:5px">
+          <span style="font:600 10px Archivo,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#8A8272">Periodo</span>
+          <select value="{{ selSem }}" onChange="{{ setSelSem }}" style="width:100%;box-sizing:border-box;padding:9px 11px;border:1.5px solid #E0DCD0;border-radius:8px;font:600 12.5px Archivo,sans-serif;background:#FAF9F5;color:#3A4450;cursor:pointer">
+            <sc-for list="{{ opcSem }}" as="o" hint-placeholder-count="2"><option value="{{ o.value }}">{{ o.label }}</option></sc-for>
+          </select>
+        </label>
+        <label style="display:flex;flex-direction:column;gap:5px">
+          <span style="font:600 10px Archivo,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#8A8272">Año</span>
+          <select value="{{ selAnio }}" onChange="{{ setSelAnio }}" style="width:100%;box-sizing:border-box;padding:9px 11px;border:1.5px solid #E0DCD0;border-radius:8px;font:600 12.5px Archivo,sans-serif;background:#FAF9F5;color:#3A4450;cursor:pointer">
+            <sc-for list="{{ opcAnio }}" as="o" hint-placeholder-count="2"><option value="{{ o.value }}">{{ o.label }}</option></sc-for>
+          </select>
+        </label>
+        <div style="display:flex;align-items:center;gap:8px;padding-top:2px">
+          <span style="font:600 9.5px Archivo,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:{{ perBadgeFg }};background:{{ perBadgeBg }};border-radius:999px;padding:4px 9px">{{ perBadge }}</span>
+          <span style="font:400 11.5px Spectral,serif;color:#8A8272">{{ perNota }}</span>
+        </div>
       </div>
+      </div>
+      <div data-fac="programa">
       <div style="font:700 10px Archivo,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#8A8272;margin-bottom:10px">Programa que ofrece</div>
-      <div style="display:flex;flex-direction:column;gap:2px;margin-bottom:26px">
+      <div style="background:#fff;border:1px solid #E8E4DA;border-radius:10px;padding:8px;margin-bottom:26px;display:flex;flex-direction:column;gap:2px">
         <sc-for list="{{ facProgramas }}" as="f" hint-placeholder-count="6">
           <button onClick="{{ f.pick }}" style="cursor:pointer;border:none;text-align:left;border-radius:7px;padding:7px 10px;background:{{ f.bg }};color:{{ f.fg }};font:400 12.5px Spectral,serif;display:flex;justify-content:space-between;gap:8px;line-height:1.3" style-hover="background:#EEF6F6">
             <span>{{ f.name }}</span><span style="font:600 11px IBM Plex Mono,monospace;color:#8A8272;flex:none">{{ f.n }}</span>
           </button>
         </sc-for>
       </div>
+      </div>
+      <div data-fac="tipo">
       <div style="font:700 10px Archivo,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#8A8272;margin-bottom:10px">Tipo</div>
       <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:22px">
         <sc-for list="{{ facTipo }}" as="f" hint-placeholder-count="3">
           <button onClick="{{ f.pick }}" style="cursor:pointer;border:1.5px solid {{ f.border }};background:{{ f.bg }};color:{{ f.fg }};border-radius:999px;padding:6px 12px;font:600 11.5px Archivo,sans-serif">{{ f.name }}</button>
         </sc-for>
       </div>
+      </div>
+      <div data-fac="jornada">
       <div style="font:700 10px Archivo,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#8A8272;margin-bottom:10px">Jornada</div>
       <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:22px">
         <sc-for list="{{ facJornada }}" as="f" hint-placeholder-count="3">
           <button onClick="{{ f.pick }}" style="cursor:pointer;border:1.5px solid {{ f.border }};background:{{ f.bg }};color:{{ f.fg }};border-radius:999px;padding:6px 12px;font:600 11.5px Archivo,sans-serif">{{ f.name }}</button>
         </sc-for>
       </div>
+      </div>
+      <div data-fac="dia">
       <div style="font:700 10px Archivo,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#8A8272;margin-bottom:10px">Día</div>
       <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:22px">
         <sc-for list="{{ facDia }}" as="f" hint-placeholder-count="6">
           <button onClick="{{ f.pick }}" style="cursor:pointer;border:1.5px solid {{ f.border }};background:{{ f.bg }};color:{{ f.fg }};border-radius:999px;padding:6px 12px;font:600 11.5px Archivo,sans-serif">{{ f.name }}</button>
         </sc-for>
+      </div>
       </div>
       <sc-if value="{{ hayFiltro }}" hint-placeholder-val="{{ false }}">
         <button onClick="{{ limpiar }}" style="cursor:pointer;border:1.5px solid #E0DCD0;background:#FAF9F5;color:#007E80;border-radius:9px;padding:9px 14px;font:600 12px Archivo,sans-serif;width:100%">Limpiar filtros</button>
@@ -107,15 +162,18 @@ body{margin:0;background:#F6F4EF}a{color:#007E80}a:hover{color:#EF7A00}input:foc
     </aside>
 
     <main style="padding:30px clamp(20px,4vw,44px) 70px">
-      <div style="background:#1F6F70;border-radius:16px;padding:26px 28px 24px;margin-bottom:28px;color:#fff">
-        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:16px;flex-wrap:wrap;margin-bottom:18px">
+      <div style="background:#1F6F70;border-radius:16px;padding:22px 28px 20px;margin-bottom:22px;color:#fff">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:16px">
           <div>
             <div style="font:700 10px Archivo,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.6)">Panorama de la oferta</div>
             <h2 style="font:800 22px Archivo,sans-serif;margin:4px 0 0;letter-spacing:-.01em">{{ periodoEtiqueta }}</h2>
           </div>
-          <span style="font:400 12.5px Spectral,serif;color:rgba(255,255,255,.7)">{{ panoramaNota }}</span>
+          <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+            <span style="font:400 12.5px Spectral,serif;color:rgba(255,255,255,.7)">{{ panoramaNota }}</span>
+            <button onClick="{{ togglePanorama }}" style="cursor:pointer;border:1px solid rgba(255,255,255,.4);background:{{ panoramaBg }};color:{{ panoramaFg }};border-radius:999px;padding:7px 14px;font:600 11.5px Archivo,sans-serif;white-space:nowrap;transition:background .2s" style-hover="background:#fff;color:#1F6F70">{{ panoramaLabel }}</button>
+          </div>
         </div>
-        <div style="display:grid;grid-template-columns:repeat(4, minmax(0,1fr));gap:16px;padding-bottom:22px;border-bottom:1px solid rgba(255,255,255,.12)">
+        <div style="display:grid;grid-template-columns:repeat(4, minmax(0,1fr));gap:16px">
           <sc-for list="{{ kpis }}" as="k" hint-placeholder-count="4">
             <div>
               <div style="font:600 30px IBM Plex Mono,monospace;line-height:1;color:{{ k.color }}">{{ k.n }}</div>
@@ -123,7 +181,8 @@ body{margin:0;background:#F6F4EF}a{color:#007E80}a:hover{color:#EF7A00}input:foc
             </div>
           </sc-for>
         </div>
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:18px">
+        <sc-if value="{{ panoramaAbierto }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:20px;padding-top:20px;border-top:1px solid rgba(255,255,255,.12)">
           <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
             <span style="font:700 10px Archivo,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.5);margin-right:6px">Medir por</span>
             <sc-for list="{{ metricas }}" as="m" hint-placeholder-count="3">
@@ -193,6 +252,7 @@ body{margin:0;background:#F6F4EF}a{color:#007E80}a:hover{color:#EF7A00}input:foc
             </sc-for>
           </div>
         </div>
+        </sc-if>
       </div>
 
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:12px;flex-wrap:wrap">
@@ -208,7 +268,7 @@ body{margin:0;background:#F6F4EF}a{color:#007E80}a:hover{color:#EF7A00}input:foc
       <sc-if value="{{ esMatriz }}" hint-placeholder-val="{{ false }}">
         <div style="background:#fff;border:1px solid #E8E4DA;border-radius:14px;overflow:hidden">
           <div style="overflow-x:auto">
-            <table style="width:100%;min-width:1080px;border-collapse:collapse;font:400 12px Archivo,sans-serif;color:#3A4450">
+            <table style="width:100%;min-width:920px;border-collapse:collapse;font:400 11.5px Archivo,sans-serif;color:#3A4450">
               <thead>
                 <tr style="background:#F6F4EF">
                   <sc-for list="{{ matCols }}" as="h" hint-placeholder-count="10">
@@ -316,7 +376,7 @@ body{margin:0;background:#F6F4EF}a{color:#007E80}a:hover{color:#EF7A00}input:foc
 </x-dc>
 <script type="text/x-dc" data-dc-script>
 class Component extends DCLogic {
-  state = { q: "", periodo: null, programa: null, unidad: null, tipo: null, jornada: null, dia: null, metrica: "cursos", open: {}, pag: 1, fuente: "cargando", periodos: [], cursos: [], vista: (typeof localStorage !== "undefined" && localStorage.getItem("cf_vista")) || "lista", sortKey: "programa", sortDir: 1 };
+  state = { q: "", periodo: null, programa: null, unidad: null, tipo: null, jornada: null, dia: null, metrica: "cursos", open: {}, pag: 1, fuente: "cargando", periodos: [], cursos: [], vista: (typeof localStorage !== "undefined" && localStorage.getItem("cf_vista")) || (typeof window !== "undefined" && window.innerWidth <= 760 ? "lista" : "matriz"), sortKey: "programa", sortDir: 1, panorama: false, filtros: false };
   POR = 12;
 
   tip(e, html) {
@@ -337,14 +397,14 @@ class Component extends DCLogic {
 
   async componentDidMount() {
     try {
-      const m = await import("./data/cursos/catalogo.js?v=1788799270275");
+      const m = await import("./data/cursos/catalogo.js?v=1788806101265");
       this.estatico = { periodos: m.PERIODOS, cursos: m.CURSOS };
       this.aplicar(this.estatico, "estatico");
     } catch (e) { console.warn("catálogo estático no disponible", e); }
     try {
       const [lib, cfg] = await Promise.all([
         import("https://esm.sh/@supabase/supabase-js@2"),
-        import("./data/supabase/config.js?v=1788799270275")
+        import("./data/supabase/config.js?v=1788806101265")
       ]);
       const sb = lib.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY);
       const [p, c] = await Promise.all([
@@ -368,6 +428,20 @@ class Component extends DCLogic {
   }
 
   norm(t) { return (t || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""); }
+
+  irA(dim, valor) {
+    const ps = this.state.periodos, act = ps.find(x => x.id === this.state.periodo);
+    const sem = dim === "semestre" ? valor : (act ? act.semestre : null);
+    const anio = dim === "anio" ? valor : (act ? act.anio : null);
+    let p = ps.find(x => x.semestre === sem && x.anio === anio);
+    if (!p) {
+      // respeta la dimensión que el usuario acaba de cambiar
+      const mismos = ps.filter(x => x[dim] === valor);
+      if (dim === "semestre") p = mismos.sort((a, b) => Math.abs(a.anio - anio) - Math.abs(b.anio - anio) || b.anio - a.anio)[0];
+      else p = mismos.sort((a, b) => Math.abs(a.semestre - sem) - Math.abs(b.semestre - sem))[0];
+    }
+    if (p) this.setState({ periodo: p.id, pag: 1, open: {}, programa: null, unidad: null, tipo: null, jornada: null, dia: null });
+  }
 
   renderVals() {
     const st = this.state;
@@ -450,21 +524,37 @@ class Component extends DCLogic {
       limpiar: () => this.setState({ q: "", programa: null, unidad: null, tipo: null, jornada: null, dia: null, pag: 1 }),
       hayFiltro: !!(st.q || st.programa || st.unidad || st.tipo || st.jornada || st.dia),
       tipOff: () => this.tipOff(),
+      filtrosPlegado: st.filtros ? "0" : "1",
+      toggleFiltros: () => this.setState(s => ({ filtros: !s.filtros })),
+      filtrosLabel: st.filtros ? "Ocultar filtros ▴" : "Más filtros: programa, tipo, jornada, día ▾",
       metricas: Object.entries(MET).map(([id, m]) => ({ label: m.label, pick: () => this.setState({ metrica: id }), bg: st.metrica === id ? "#fff" : "transparent", fg: st.metrica === id ? T : "rgba(255,255,255,.8)", border: st.metrica === id ? "#fff" : "rgba(255,255,255,.35)" })),
       metricaLabel: met.label,
+      panoramaAbierto: st.panorama,
+      togglePanorama: () => this.setState(s => ({ panorama: !s.panorama })),
+      panoramaLabel: st.panorama ? "Ocultar gráficos ▴" : "Ver gráficos ▾",
+      panoramaBg: st.panorama ? "#fff" : "transparent", panoramaFg: st.panorama ? T : "#fff",
       graficoNota: st.programa || st.unidad || st.tipo || st.jornada || st.dia ? "Filtro activo: " + [st.programa, st.unidad, st.tipo, st.jornada, st.dia].filter(Boolean).join(" · ") : "Pasa el cursor para ver el detalle; clic para filtrar el listado",
       heatDias: HD.map(d => ({ label: d.slice(0, 3).toUpperCase(), fg: st.dia === d ? "#EF7A00" : "rgba(255,255,255,.6)", pick: set("dia", d) })),
       heatFilas: HJ.map(j => ({ label: j, fg: st.jornada === j ? "#EF7A00" : "rgba(255,255,255,.75)", pick: set("jornada", j), cells: HD.map(d => heatCell(d, j)) })),
       stacks,
       fuenteNota: st.fuente === "vivo" ? "Datos actualizados por el Vicedecanato en tiempo real." : st.fuente === "estatico" ? "Mostrando el catálogo de respaldo del repositorio." : "Cargando la oferta…",
       actualizadoNota: st.fuente === "vivo" ? "Oferta gestionada desde el Panel de actualización" : "",
-      periodos: st.periodos.map(p => {
-        const on = p.id === st.periodo;
-        return { etiqueta: p.etiqueta, pick: () => this.setState({ periodo: p.id, pag: 1, open: {}, programa: null }),
-          bg: on ? T : "transparent", fg: on ? "#fff" : "#3A4450",
-          badge: p.vigente ? "Vigente" : p.estado === "cerrado" ? "Histórico" : "Publicado",
-          badgeBg: on ? "rgba(255,255,255,.18)" : p.vigente ? "#FCEBD9" : "#EFECE4", badgeFg: on ? "#fff" : p.vigente ? NAR : "#8A8272" };
+      opcSem: [1, 2].filter(s => st.periodos.some(p => p.semestre === s)).map(s => {
+        const enEsteAnio = periodoObj && st.periodos.some(p => p.semestre === s && p.anio === periodoObj.anio);
+        return { value: String(s), label: (s === 1 ? "I" : "II") + " Semestre" + (enEsteAnio || !periodoObj ? "" : " (otro año)") };
       }),
+      opcAnio: [...new Set(st.periodos.map(p => p.anio))].sort((a, b) => b - a).map(a => {
+        const conEsteSem = periodoObj && st.periodos.some(p => p.anio === a && p.semestre === periodoObj.semestre);
+        return { value: String(a), label: String(a) + (conEsteSem || !periodoObj ? "" : " (otro semestre)") };
+      }),
+      selSem: periodoObj ? String(periodoObj.semestre) : "",
+      selAnio: periodoObj ? String(periodoObj.anio) : "",
+      setSelSem: e => this.irA("semestre", +e.target.value),
+      setSelAnio: e => this.irA("anio", +e.target.value),
+      perBadge: periodoObj ? (periodoObj.vigente ? "Vigente" : periodoObj.estado === "cerrado" ? "Histórico" : "Publicado") : "Sin registro",
+      perBadgeBg: periodoObj && periodoObj.vigente ? "#FCEBD9" : "#EFECE4",
+      perBadgeFg: periodoObj && periodoObj.vigente ? NAR : "#8A8272",
+      perNota: periodoObj ? `${delPeriodo.length} ${delPeriodo.length === 1 ? "curso" : "cursos"}` : "Sin oferta registrada",
       facProgramas: Object.entries(progs).sort((a, b) => a[0].localeCompare(b[0])).map(([name, v]) => {
         const on = st.programa === name;
         return { name, n: v.n, pick: set("programa", name), bg: on ? "#E4F2F2" : "transparent", fg: on ? T : "#3A4450" };
