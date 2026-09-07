@@ -18,7 +18,7 @@
 </script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="./support.js?v=1788816478796"></script>
+<script src="./support.js?v=1788818358071"></script>
 </head>
 <body>
 <x-dc>
@@ -117,9 +117,9 @@ body{margin:0;background:#F1EFE8}a{color:#007E80}a:hover{color:#EF7A00}input:foc
       <sc-if value="{{ tabOferta }}" hint-placeholder-val="{{ true }}">
         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:18px">
           <span style="font:700 10px Archivo,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#8A8272;margin-right:4px">Semestre</span>
-          <sc-for list="{{ periodosSel }}" as="p" hint-placeholder-count="2">
-            <button onClick="{{ p.pick }}" style="cursor:pointer;border:1.5px solid {{ p.border }};background:{{ p.bg }};color:{{ p.fg }};border-radius:999px;padding:7px 14px;font:600 12px Archivo,sans-serif;display:flex;gap:8px;align-items:center">{{ p.etiqueta }}<span style="font:600 9.5px Archivo,sans-serif;letter-spacing:.06em;text-transform:uppercase;opacity:.75">{{ p.estado }}</span></button>
-          </sc-for>
+          <select value="{{ periodoActual }}" onChange="{{ setPeriodo }}" style="padding:9px 12px;border:1.5px solid #E0DCD0;border-radius:9px;font:600 12.5px Archivo,sans-serif;background:#fff;color:#3A4450;min-width:min(260px,100%)">
+            <sc-for list="{{ periodosSel }}" as="p" hint-placeholder-count="2"><option value="{{ p.id }}">{{ p.etiqueta }}</option></sc-for>
+          </select>
         </div>
         <sc-if value="{{ sinPeriodo }}" hint-placeholder-val="{{ false }}">
           <div style="background:#fff;border:1px dashed #D9D3C4;border-radius:14px;padding:30px;text-align:center;font:400 13.5px/1.6 Spectral,serif;color:#5A6470">Aún no hay semestres. Créalos en la pestaña <strong>Semestres</strong> o importa la matriz inicial.</div>
@@ -546,7 +546,7 @@ class Component extends DCLogic {
   async componentDidMount() {
     this.setState({ form: { ...this.VACIO } });
     try {
-      const [lib, cfg] = await Promise.all([import("https://esm.sh/@supabase/supabase-js@2"), import("./data/supabase/config.js?v=1788816478796")]);
+      const [lib, cfg] = await Promise.all([import("https://esm.sh/@supabase/supabase-js@2"), import("./data/supabase/config.js?v=1788818358071")]);
       this.sb = lib.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY);
       this.sb.auth.onAuthStateChange((_e, s) => this.aplicarSesion(s));
       const { data } = await this.sb.auth.getSession();
@@ -740,7 +740,7 @@ class Component extends DCLogic {
 
   async importar() {
     try {
-      const { PERIODOS, CURSOS } = await import("./data/cursos/catalogo.js?v=1788816478796");
+      const { PERIODOS, CURSOS } = await import("./data/cursos/catalogo.js?v=1788818358071");
       const rp = await this.sb.from("cf_periodos").upsert(PERIODOS.map(p => ({ id: p.id, anio: p.anio, semestre: p.semestre, etiqueta: p.etiqueta, estado: p.estado, vigente: p.vigente })), { onConflict: "id" });
       if (rp.error) throw rp.error;
       const filas = CURSOS.map(({ id, ...c }) => c);
@@ -925,7 +925,9 @@ class Component extends DCLogic {
       invitar: () => this.invitar(),
       hayAviso: !!st.aviso, aviso: st.aviso, avisoFg: st.avisoTipo === "err" ? "#B0483A" : "#2F6B4F", avisoBg: st.avisoTipo === "err" ? "#F9EBE8" : "#E7F3EB",
 
-      periodosSel: st.periodos.map(p => { const on = p.id === st.periodo; return { etiqueta: p.etiqueta, estado: p.vigente ? "vigente" : p.estado, pick: () => this.setState({ periodo: p.id, pag: 1, editId: null, form: { ...this.VACIO } }), bg: on ? "#007E80" : "#fff", fg: on ? "#fff" : "#3A4450", border: on ? "#007E80" : "#E0DCD0" }; }),
+      periodoActual: st.periodo || "",
+      setPeriodo: e => this.setState({ periodo: e.target.value, pag: 1, editId: null, form: { ...this.VACIO } }),
+      periodosSel: st.periodos.map(p => ({ id: p.id, etiqueta: `${p.etiqueta} · ${p.vigente ? "vigente" : p.estado}` })),
       sinPeriodo: st.periodos.length === 0, conPeriodo: st.periodos.length > 0,
       perEtiqueta: perObj ? perObj.etiqueta : "", nCursos: delPer.length, nCupos: sum(delPer, "cupos"),
       puedeImportar: !!admin && st.cursos.length === 0, importar: () => this.importar(),

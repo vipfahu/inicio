@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<script>
+(function(){
+  function lock(){
+    document.body && document.body.removeAttribute('data-dc-editor-on');
+    document.querySelectorAll('[contenteditable="true"]').forEach(function(el){ el.setAttribute('contenteditable','false'); });
+  }
+  document.addEventListener('DOMContentLoaded', function(){
+    lock();
+    new MutationObserver(lock).observe(document.documentElement, {attributes:true, subtree:true, attributeFilter:['data-dc-editor-on','contenteditable']});
+  });
+})();
+</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js?v=1788818358071"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700;800&amp;family=Spectral:ital,wght@0,400;0,600;1,400&amp;family=IBM+Plex+Mono:wght@400;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F1EFE8}a{color:#007E80}a:hover{color:#EF7A00}input:focus,textarea:focus,select:focus{outline:none;border-color:#00A0A0}
+@media screen and (max-width:760px){
+  [style*="420px"],[style*="380px"]{grid-template-columns:minmax(0,1fr) !important}
+  [style*="1fr 1fr"]{grid-template-columns:minmax(0,1fr) !important}
+  [style*="repeat(3,"]{grid-template-columns:minmax(0,1fr) !important}
+  [style*="repeat(3,"] > *{grid-column:auto !important}
+  [style*="200px 1fr"],[style*="150px 120px"],[style*="90px 44px"],[style*="56px minmax"]{grid-template-columns:minmax(0,1fr) !important;gap:6px !important}
+  [style*="200px 1fr"] > *,[style*="150px 120px"] > *,[style*="90px 44px"] > *{text-align:left !important;justify-self:start !important}
+  button,select,input,textarea{min-height:44px}
+  nav button{min-height:48px;padding:14px 14px !important}
+}
+@media screen and (max-width:1120px){
+  [style*="420px"]{grid-template-columns:minmax(0,1fr) !important}
+  [style*="position: sticky"],[style*="position:sticky"]{position:static !important}
+}
+</style>
+</helmet>
+<div style="min-height:100vh;font-family:Spectral,serif;color:#3A4450">
+
+  <sc-if value="{{ vistaAcceso }}" hint-placeholder-val="{{ true }}">
+    <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px">
+      <div style="width:100%;max-width:420px">
+        <div style="text-align:center;margin-bottom:22px">
+          <img src="assets/logo-fahu.png" alt="Facultad de Humanidades USACH" style="height:104px;width:auto;display:block;margin:0 auto 14px">
+          <div style="font:800 17px Archivo,sans-serif;color:#2F6B4F">Trayectorias Académicas</div>
+          <div style="font:400 12.5px Archivo,sans-serif;color:#8A8272;margin-top:4px">Facultad de Humanidades · Vicedecanato de Investigación y Postgrado</div>
+        </div>
+        <div style="background:#fff;border:1px solid #E8E4DA;border-radius:16px;padding:26px">
+          <h1 style="font:800 16px Archivo,sans-serif;margin:0 0 4px;color:#3A4450">{{ accesoTitulo }}</h1>
+          <p style="font:400 12.5px/1.55 Spectral,serif;color:#8A8272;margin:0 0 18px">{{ accesoNota }}</p>
+          <div style="display:flex;flex-direction:column;gap:11px">
+            <sc-if value="{{ modoRegistro }}" hint-placeholder-val="{{ false }}">
+              <input value="{{ lNombre }}" onChange="{{ setLNombre }}" placeholder="Nombre y apellido" style="box-sizing:border-box;width:100%;padding:11px 14px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5">
+            </sc-if>
+            <input value="{{ lCorreo }}" onChange="{{ setLCorreo }}" type="email" autoComplete="username" placeholder="correo@usach.cl" style="box-sizing:border-box;width:100%;padding:11px 14px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5">
+            <input value="{{ lClave }}" onChange="{{ setLClave }}" onKeyDown="{{ enterAcceso }}" type="password" autoComplete="current-password" placeholder="Contraseña" style="box-sizing:border-box;width:100%;padding:11px 14px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5">
+            <sc-if value="{{ hayError }}" hint-placeholder-val="{{ false }}">
+              <div style="font:600 12px/1.45 Archivo,sans-serif;color:#B0483A;background:#F9EBE8;border-radius:8px;padding:10px 12px">{{ err }}</div>
+            </sc-if>
+            <button onClick="{{ acceder }}" style="cursor:pointer;border:none;background:#2F6B4F;color:#fff;border-radius:9px;padding:13px;font:700 13.5px Archivo,sans-serif">{{ accesoBoton }}</button>
+          </div>
+          <div style="margin:16px 0 0;padding-top:15px;border-top:1px solid #F0EDE4;display:flex;flex-direction:column;gap:8px;align-items:flex-start">
+            <button onClick="{{ cambiarModo }}" style="cursor:pointer;border:none;background:none;padding:0;font:600 12px Archivo,sans-serif;color:#007E80">{{ cambiarModoLabel }}</button>
+            <p style="font:italic 400 11.5px/1.5 Spectral,serif;color:#8A8272;margin:0">Esta plataforma contiene datos personales y respaldos internos: el acceso se limita a las cuentas autorizadas por el Vicedecanato.</p>
+          </div>
+        </div>
+        <div style="text-align:center;margin-top:14px">
+          <a href="../index.html" style="font:600 12px Archivo,sans-serif;text-decoration:none">← Gestión de Información VIP</a>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ vistaEstado }}" hint-placeholder-val="{{ false }}">
+    <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px">
+      <div style="width:100%;max-width:460px;background:#fff;border:1px solid #E8E4DA;border-radius:16px;padding:26px;text-align:center">
+        <div style="font:800 16px Archivo,sans-serif;color:#3A4450;margin-bottom:8px">{{ estadoTitulo }}</div>
+        <p style="font:400 13px/1.55 Spectral,serif;color:#5A6470;margin:0 0 16px">{{ estadoNota }}</p>
+        <sc-if value="{{ estadoConSalir }}" hint-placeholder-val="{{ false }}">
+          <button onClick="{{ salir }}" style="cursor:pointer;border:1.5px solid #E0DCD0;background:#FAF9F5;color:#007E80;border-radius:9px;padding:9px 16px;font:600 12.5px Archivo,sans-serif">Cerrar sesión</button>
+        </sc-if>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ vistaPanel }}" hint-placeholder-val="{{ false }}">
+    <header style="background:#3A4450;padding:14px clamp(20px,5vw,60px);display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:14px">
+        <img src="assets/logo-fahu.png" alt="" style="height:52px;width:auto;display:block;filter:brightness(0) invert(1)">
+        <div>
+          <div style="font:800 15px Archivo,sans-serif;color:#fff">Trayectorias Académicas</div>
+          <div style="font:400 11.5px Archivo,sans-serif;color:rgba(255,255,255,.65)">Facultad de Humanidades · USACH</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+        <span style="font:600 11px Archivo,sans-serif;color:rgba(255,255,255,.75)">{{ sesionEtiqueta }}</span>
+        <a href="../index.html" style="font:600 11px Archivo,sans-serif;color:#fff;border:1px solid rgba(255,255,255,.35);border-radius:8px;padding:7px 12px;text-decoration:none" style-hover="background:rgba(255,255,255,.12)">Portal VIP</a>
+        <button onClick="{{ salir }}" style="cursor:pointer;border:1px solid rgba(255,255,255,.35);background:transparent;color:#fff;border-radius:8px;padding:7px 12px;font:600 11px Archivo,sans-serif">Salir</button>
+      </div>
+    </header>
+
+    <nav style="background:#fff;border-bottom:1px solid #E8E4DA;padding:0 clamp(20px,5vw,60px);display:flex;gap:2px;overflow-x:auto">
+      <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="4">
+        <button onClick="{{ t.pick }}" style="cursor:pointer;border:none;background:none;padding:14px 16px;font:600 13px Archivo,sans-serif;white-space:nowrap;color:{{ t.fg }};border-bottom:3px solid {{ t.line }}">{{ t.name }}</button>
+      </sc-for>
+    </nav>
+
+    <main style="max-width:1240px;margin:0 auto;padding:26px clamp(20px,5vw,60px) 80px">
+      <sc-if value="{{ hayAviso }}" hint-placeholder-val="{{ false }}">
+        <div style="font:600 12.5px/1.45 Archivo,sans-serif;color:{{ avisoFg }};background:{{ avisoBg }};border-radius:10px;padding:11px 14px;margin-bottom:18px">{{ aviso }}</div>
+      </sc-if>
+      <sc-if value="{{ baseVacia }}" hint-placeholder-val="{{ false }}">
+        <div style="background:#fff;border:1px dashed #D9D3C4;border-radius:14px;padding:26px;margin-bottom:20px;display:flex;gap:18px;align-items:center;flex-wrap:wrap">
+          <div style="flex:1;min-width:240px">
+            <div style="font:800 15px Archivo,sans-serif;color:#3A4450;margin-bottom:4px">La base está vacía</div>
+            <p style="font:400 13px/1.6 Spectral,serif;color:#5A6470;margin:0">Carga la matriz institucional normalizada —99 académicos y académicas con su modo de ingreso, jerarquías y antecedentes— ejecutando <strong>data/supabase/seed-trayectorias.sql</strong> en el editor SQL de Supabase.</p>
+          </div>
+
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ tabPanorama }}" hint-placeholder-val="{{ true }}">
+        <h2 style="font:800 20px Archivo,sans-serif;margin:0 0 6px;color:#3A4450">Panorama del cuerpo académico</h2>
+        <p style="font:400 13.5px/1.6 Spectral,serif;color:#5A6470;margin:0 0 20px;max-width:780px">Síntesis de la matriz de trayectorias: composición por jerarquía, estado de los procesos de jerarquización, antigüedad y vías de ingreso a la Universidad.</p>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:24px">
+          <sc-for list="{{ kpis }}" as="k" hint-placeholder-count="5">
+            <div style="background:#fff;border:1px solid #E8E4DA;border-radius:12px;padding:16px 18px">
+              <div style="font:600 28px IBM Plex Mono,monospace;color:{{ k.color }};line-height:1">{{ k.n }}</div>
+              <div style="font:400 12px/1.45 Archivo,sans-serif;color:#8A8272;margin-top:6px">{{ k.label }}</div>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="background:#fff;border:1px solid #E8E4DA;border-radius:14px;padding:22px 24px;margin-bottom:18px">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:16px">
+            <div style="font:700 10px Archivo,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#8A8272">Composición por jerarquía y unidad</div>
+            <div style="display:flex;gap:14px;flex-wrap:wrap">
+              <sc-for list="{{ jerLeyenda }}" as="j" hint-placeholder-count="3">
+                <span style="display:inline-flex;gap:7px;align-items:center;font:600 11.5px Archivo,sans-serif;color:#3A4450"><span style="width:11px;height:11px;border-radius:3px;background:{{ j.color }};display:block"></span>{{ j.name }} <span style="font:600 11px IBM Plex Mono,monospace;color:#8A8272">{{ j.n }}</span></span>
+              </sc-for>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:9px">
+            <sc-for list="{{ porUnidad }}" as="u" hint-placeholder-count="7">
+              <div style="display:grid;grid-template-columns:200px 1fr 90px;gap:14px;align-items:center">
+                <span style="font:600 12px Archivo,sans-serif;color:#3A4450;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ u.name }}</span>
+                <span style="display:flex;height:18px;border-radius:5px;overflow:hidden;background:#EFECE4">
+                  <sc-for list="{{ u.segs }}" as="s" hint-placeholder-count="3">
+                    <span title="{{ s.tip }}" style="display:block;height:100%;width:{{ s.w }};background:{{ s.color }}"></span>
+                  </sc-for>
+                </span>
+                <span style="font:600 11px IBM Plex Mono,monospace;color:#5A6470;text-align:right">{{ u.n }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px">
+          <div style="background:#fff;border:1px solid #E8E4DA;border-radius:14px;padding:22px 24px">
+            <div style="font:700 10px Archivo,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#8A8272;margin-bottom:14px">Estado de jerarquización</div>
+            <div style="display:flex;gap:18px;align-items:center;margin-bottom:16px">
+              <div style="flex:1">
+                <div style="font:600 30px IBM Plex Mono,monospace;color:#2F6B4F;line-height:1">{{ jerPct }}</div>
+                <div style="font:400 12px Archivo,sans-serif;color:#8A8272;margin-top:5px">con jerarquización realizada</div>
+              </div>
+              <div style="flex:1">
+                <div style="font:600 30px IBM Plex Mono,monospace;color:#C4762A;line-height:1">{{ jerPend }}</div>
+                <div style="font:400 12px Archivo,sans-serif;color:#8A8272;margin-top:5px">pendientes de jerarquizar</div>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:7px">
+              <sc-for list="{{ estadoUnidad }}" as="u" hint-placeholder-count="7">
+                <div title="{{ u.tip }}" style="display:grid;grid-template-columns:minmax(0,1fr) 90px 44px;gap:10px;align-items:center">
+                  <span style="font:400 12px Spectral,serif;color:#3A4450;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ u.name }}</span>
+                  <span style="height:9px;background:#EFECE4;border-radius:5px;overflow:hidden;display:block"><span style="display:block;height:100%;background:#2F6B4F;width:{{ u.w }}"></span></span>
+                  <span style="font:600 11px IBM Plex Mono,monospace;color:#5A6470;text-align:right">{{ u.label }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+          <div style="background:#fff;border:1px solid #E8E4DA;border-radius:14px;padding:22px 24px">
+            <div style="font:700 10px Archivo,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#8A8272;margin-bottom:14px">Modo de ingreso a la Universidad</div>
+            <div style="display:flex;flex-direction:column;gap:7px">
+              <sc-for list="{{ porModo }}" as="m" hint-placeholder-count="8">
+                <div title="{{ m.tip }}" style="display:grid;grid-template-columns:minmax(0,1fr) 90px 44px;gap:10px;align-items:center">
+                  <span style="font:400 12px Spectral,serif;color:#3A4450;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ m.name }}</span>
+                  <span style="height:9px;background:#EFECE4;border-radius:5px;overflow:hidden;display:block"><span style="display:block;height:100%;background:#1D3F5C;width:{{ m.w }}"></span></span>
+                  <span style="font:600 11px IBM Plex Mono,monospace;color:#5A6470;text-align:right">{{ m.n }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+
+        <div style="background:#fff;border:1px solid #E8E4DA;border-radius:14px;padding:22px 24px;margin-bottom:18px">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:16px">
+            <div style="font:700 10px Archivo,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#8A8272">Ingresos por año</div>
+            <div style="font:400 12px Spectral,serif;color:#8A8272">{{ ingresoRango }}</div>
+          </div>
+          <div style="display:flex;align-items:flex-end;gap:3px;height:130px;padding-bottom:4px">
+            <sc-for list="{{ porAnio }}" as="a" hint-placeholder-count="30">
+              <span title="{{ a.tip }}" style="flex:1;min-width:6px;display:flex;flex-direction:column;justify-content:flex-end;height:100%">
+                <span style="display:block;background:{{ a.color }};height:{{ a.h }};border-radius:3px 3px 0 0"></span>
+              </span>
+            </sc-for>
+          </div>
+          <div style="display:flex;gap:3px;margin-top:6px">
+            <sc-for list="{{ porAnio }}" as="a" hint-placeholder-count="30">
+              <span style="flex:1;min-width:6px;font:600 8.5px IBM Plex Mono,monospace;color:#8A8272;text-align:center;transform:rotate(-90deg);transform-origin:center;height:26px">{{ a.rot }}</span>
+            </sc-for>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-top:18px;padding-top:16px;border-top:1px solid #F0EDE4">
+            <sc-for list="{{ porDecada }}" as="d" hint-placeholder-count="4">
+              <div>
+                <div style="font:600 19px IBM Plex Mono,monospace;color:#1D3F5C">{{ d.n }}</div>
+                <div style="font:400 11.5px Archivo,sans-serif;color:#8A8272;margin-top:2px">{{ d.name }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
+          <div style="background:#fff;border:1px solid #E8E4DA;border-radius:14px;padding:22px 24px">
+            <div style="font:700 10px Archivo,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#8A8272;margin-bottom:14px">Antigüedad promedio por unidad</div>
+            <div style="display:flex;flex-direction:column;gap:7px">
+              <sc-for list="{{ antigUnidad }}" as="u" hint-placeholder-count="7">
+                <div title="{{ u.tip }}" style="display:grid;grid-template-columns:minmax(0,1fr) 90px 44px;gap:10px;align-items:center">
+                  <span style="font:400 12px Spectral,serif;color:#3A4450;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ u.name }}</span>
+                  <span style="height:9px;background:#EFECE4;border-radius:5px;overflow:hidden;display:block"><span style="display:block;height:100%;background:#5E8C6A;width:{{ u.w }}"></span></span>
+                  <span style="font:600 11px IBM Plex Mono,monospace;color:#5A6470;text-align:right">{{ u.label }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+          <div style="background:#fff;border:1px solid #E8E4DA;border-radius:14px;padding:22px 24px">
+            <div style="font:700 10px Archivo,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#8A8272;margin-bottom:6px">Del ingreso a la última jerarquización</div>
+            <p style="font:italic 400 12px/1.5 Spectral,serif;color:#8A8272;margin:0 0 14px">{{ brechaNota }}</p>
+            <div style="display:flex;flex-direction:column;gap:7px">
+              <sc-for list="{{ brecha }}" as="b" hint-placeholder-count="6">
+                <div style="display:grid;grid-template-columns:minmax(0,1fr) 90px 44px;gap:10px;align-items:center">
+                  <span style="font:400 12px Spectral,serif;color:#3A4450;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ b.name }}</span>
+                  <span style="height:9px;background:#EFECE4;border-radius:5px;overflow:hidden;display:block"><span style="display:block;height:100%;background:#C4762A;width:{{ b.w }}"></span></span>
+                  <span style="font:600 11px IBM Plex Mono,monospace;color:#5A6470;text-align:right">{{ b.label }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ tabPersonas }}" hint-placeholder-val="{{ false }}">
+        <div style="display:grid;grid-template-columns:minmax(0,1fr) 420px;gap:24px;align-items:start">
+          <section>
+            <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:14px">
+              <h2 style="font:800 19px Archivo,sans-serif;margin:0;color:#3A4450">Matriz de trayectorias <span style="font:600 12px IBM Plex Mono,monospace;color:#8A8272">{{ nFiltradas }} de {{ nTotal }}</span></h2>
+            </div>
+            <div style="background:#fff;border:1px solid #E8E4DA;border-radius:12px;padding:14px 16px;margin-bottom:14px;display:flex;flex-direction:column;gap:10px">
+              <input value="{{ q }}" onChange="{{ setQ }}" placeholder="Buscar por apellido, nombre, unidad o acta…" style="box-sizing:border-box;width:100%;padding:10px 14px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5">
+              <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px">
+                <select value="{{ fUnidad }}" onChange="{{ setFUnidad }}" style="min-width:0;padding:8px 10px;border:1.5px solid #E0DCD0;border-radius:8px;font:600 11.5px Archivo,sans-serif;background:#FAF9F5;color:#3A4450">
+                  <sc-for list="{{ unidadesOpc }}" as="o" hint-placeholder-count="8"><option>{{ o }}</option></sc-for>
+                </select>
+                <select value="{{ fJer }}" onChange="{{ setFJer }}" style="min-width:0;padding:8px 10px;border:1.5px solid #E0DCD0;border-radius:8px;font:600 11.5px Archivo,sans-serif;background:#FAF9F5;color:#3A4450">
+                  <sc-for list="{{ jerOpc }}" as="o" hint-placeholder-count="4"><option>{{ o }}</option></sc-for>
+                </select>
+                <select value="{{ fEstado }}" onChange="{{ setFEstado }}" style="min-width:0;padding:8px 10px;border:1.5px solid #E0DCD0;border-radius:8px;font:600 11.5px Archivo,sans-serif;background:#FAF9F5;color:#3A4450">
+                  <option>Todo estado de jerarquización</option><option>Realizada</option><option>No realizada</option>
+                </select>
+                <select value="{{ fModo }}" onChange="{{ setFModo }}" style="min-width:0;padding:8px 10px;border:1.5px solid #E0DCD0;border-radius:8px;font:600 11.5px Archivo,sans-serif;background:#FAF9F5;color:#3A4450">
+                  <sc-for list="{{ modoOpc }}" as="o" hint-placeholder-count="9"><option>{{ o }}</option></sc-for>
+                </select>
+              </div>
+              <label style="display:flex;align-items:center;gap:10px;font:600 12px Archivo,sans-serif;color:#5A6470;cursor:pointer">
+                <input type="checkbox" checked="{{ soloAlertas }}" onChange="{{ setSoloAlertas }}" style="width:17px;height:17px;accent-color:#C4762A">Ver solo fichas con datos o respaldos faltantes
+              </label>
+            </div>
+            <div style="background:#fff;border:1px solid #E8E4DA;border-radius:14px;overflow:hidden">
+              <sc-if value="{{ listaVacia }}" hint-placeholder-val="{{ false }}">
+                <div style="padding:30px;text-align:center;font:400 13.5px/1.6 Spectral,serif;color:#5A6470">Ninguna ficha coincide con esos filtros.</div>
+              </sc-if>
+              <sc-for list="{{ lista }}" as="p" hint-placeholder-count="10">
+                <button onClick="{{ p.abrir }}" style="width:100%;text-align:left;cursor:pointer;border:none;border-bottom:1px solid #F0EDE4;border-left:4px solid {{ p.color }};background:{{ p.bg }};display:flex;gap:14px;justify-content:space-between;align-items:flex-start;padding:13px 18px 13px 15px">
+                  <span style="min-width:0;display:block;flex:1">
+                    <span style="display:block;font:700 13.5px/1.3 Archivo,sans-serif;color:#3A4450">{{ p.nombre }}</span>
+                    <span style="display:block;font:400 12px Archivo,sans-serif;color:#8A8272;margin-top:3px">{{ p.unidad }}</span>
+                    <span style="display:block;font:400 11.5px Archivo,sans-serif;color:{{ p.estadoFg }};margin-top:4px">{{ p.estado }}</span>
+                  </span>
+                  <span style="display:flex;flex-direction:column;gap:5px;align-items:flex-end;flex:none">
+                    <span style="font:600 10px Archivo,sans-serif;letter-spacing:.05em;text-transform:uppercase;color:#fff;background:{{ p.color }};border-radius:5px;padding:4px 8px;white-space:nowrap">{{ p.jer }}</span>
+                    <span style="font:600 12px IBM Plex Mono,monospace;color:#5A6470">{{ p.anio }}</span>
+                    <sc-if value="{{ p.tieneAlertas }}" hint-placeholder-val="{{ false }}">
+                      <span style="font:600 9.5px Archivo,sans-serif;letter-spacing:.05em;text-transform:uppercase;color:#8A5A00;background:#FCEBD9;border-radius:5px;padding:3px 6px;white-space:nowrap">{{ p.nAlertas }} por revisar</span>
+                    </sc-if>
+                  </span>
+                </button>
+              </sc-for>
+            </div>
+          </section>
+
+          <aside style="position:sticky;top:16px">
+            <sc-if value="{{ sinSeleccion }}" hint-placeholder-val="{{ true }}">
+              <div style="background:#fff;border:1px dashed #D9D3C4;border-radius:14px;padding:30px;text-align:center;font:400 13.5px/1.6 Spectral,serif;color:#5A6470">Elige a una persona de la matriz para ver su trayectoria completa: ingreso, jerarquizaciones y respaldos.</div>
+            </sc-if>
+            <sc-if value="{{ haySeleccion }}" hint-placeholder-val="{{ false }}">
+              <div style="background:#fff;border:1px solid #E8E4DA;border-radius:14px;overflow:hidden">
+                <div style="background:{{ sel.color }};padding:20px 22px">
+                  <div style="font:700 10.5px Archivo,sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#fff">{{ sel.jer }}</div>
+                  <div style="font:800 18px/1.25 Archivo,sans-serif;color:#fff;margin-top:6px">{{ sel.nombre }}</div>
+                  <div style="font:600 12.5px Archivo,sans-serif;color:#fff;margin-top:5px">{{ sel.unidad }}</div>
+                </div>
+                <div style="padding:20px 22px">
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px">
+                    <sc-for list="{{ sel.datos }}" as="d" hint-placeholder-count="6">
+                      <div>
+                        <div style="font:700 9.5px Archivo,sans-serif;letter-spacing:.09em;text-transform:uppercase;color:#8A8272">{{ d.label }}</div>
+                        <div style="font:400 13px/1.45 Spectral,serif;color:#3A4450;margin-top:3px">{{ d.valor }}</div>
+                      </div>
+                    </sc-for>
+                  </div>
+
+                  <sc-if value="{{ sel.hayAlertas }}" hint-placeholder-val="{{ false }}">
+                    <div style="background:#FCEBD9;border:1px solid #F5D3B0;border-radius:10px;padding:12px 14px;margin-bottom:18px">
+                      <div style="font:700 9.5px Archivo,sans-serif;letter-spacing:.09em;text-transform:uppercase;color:#8A5A00;margin-bottom:6px">Por revisar</div>
+                      <sc-for list="{{ sel.alertas }}" as="a" hint-placeholder-count="2">
+                        <div style="font:400 12.5px/1.5 Spectral,serif;color:#7A4A00">· {{ a }}</div>
+                      </sc-for>
+                    </div>
+                  </sc-if>
+
+                  <div style="font:700 9.5px Archivo,sans-serif;letter-spacing:.09em;text-transform:uppercase;color:#8A8272;margin-bottom:10px">Trayectoria</div>
+                  <sc-if value="{{ sel.sinEventos }}" hint-placeholder-val="{{ false }}">
+                    <p style="font:italic 400 12.5px/1.5 Spectral,serif;color:#8A8272;margin:0 0 16px">Sin hitos registrados todavía.</p>
+                  </sc-if>
+                  <div style="display:flex;flex-direction:column;gap:0;margin-bottom:18px">
+                    <sc-for list="{{ sel.eventos }}" as="e" hint-placeholder-count="2">
+                      <div style="display:grid;grid-template-columns:56px minmax(0,1fr);gap:12px;padding-bottom:14px">
+                        <div style="display:flex;flex-direction:column;align-items:center;gap:5px">
+                          <span style="font:600 12px IBM Plex Mono,monospace;color:{{ e.color }}">{{ e.anio }}</span>
+                          <span style="width:10px;height:10px;border-radius:50%;background:{{ e.color }};display:block"></span>
+                          <span style="flex:1;width:2px;background:#EFECE4;display:block;min-height:10px"></span>
+                        </div>
+                        <div style="min-width:0">
+                          <div style="font:700 12.5px Archivo,sans-serif;color:#3A4450">{{ e.tipo }}<span style="font:400 12px Archivo,sans-serif;color:#8A8272"> {{ e.jerarquia }}</span></div>
+                          <div style="font:400 12.5px/1.5 Spectral,serif;color:#5A6470;margin-top:3px">{{ e.acta }}</div>
+                          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:7px;align-items:center">
+                            <sc-if value="{{ e.hayArchivo }}" hint-placeholder-val="{{ false }}">
+                              <button onClick="{{ e.verArchivo }}" style="cursor:pointer;border:1.5px solid #CFE0D5;background:#F2F7F3;color:#2F6B4F;border-radius:7px;padding:5px 10px;font:600 11px Archivo,sans-serif">Ver respaldo</button>
+                            </sc-if>
+                            <sc-if value="{{ e.hayEnlace }}" hint-placeholder-val="{{ false }}">
+                              <a href="{{ e.enlace }}" target="_blank" rel="noreferrer" style="font:600 11px Archivo,sans-serif;text-decoration:none;border:1.5px solid #E0DCD0;border-radius:7px;padding:5px 10px">Enlace externo ↗</a>
+                            </sc-if>
+                            <sc-if value="{{ e.sinRespaldo }}" hint-placeholder-val="{{ false }}">
+                              <span style="font:600 10.5px Archivo,sans-serif;color:#8A5A00;background:#FCEBD9;border-radius:6px;padding:4px 8px">Sin respaldo cargado</span>
+                            </sc-if>
+                            <sc-if value="{{ e.puedeSubir }}" hint-placeholder-val="{{ false }}">
+                              <label style="cursor:pointer;font:600 11px Archivo,sans-serif;color:#007E80;border:1.5px dashed #CFE7E7;border-radius:7px;padding:5px 10px">{{ e.subirLabel }}<input type="file" accept="application/pdf,image/*" onChange="{{ e.subir }}" style="display:none"></label>
+                            </sc-if>
+                            <sc-if value="{{ e.puedeBorrar }}" hint-placeholder-val="{{ false }}">
+                              <button onClick="{{ e.borrar }}" title="Eliminar este hito" style="cursor:pointer;border:1.5px solid #F0D5CF;background:#fff;color:#B0483A;border-radius:7px;padding:5px 9px;font:600 11px Archivo,sans-serif">✕</button>
+                            </sc-if>
+                          </div>
+                        </div>
+                      </div>
+                    </sc-for>
+                  </div>
+
+                  <sc-if value="{{ esAdmin }}" hint-placeholder-val="{{ false }}">
+                    <div style="border-top:1px solid #F0EDE4;padding-top:16px">
+                      <button onClick="{{ evToggle }}" style="cursor:pointer;border:1.5px solid #E0DCD0;background:#fff;color:#2F6B4F;border-radius:8px;padding:9px 13px;font:600 12px Archivo,sans-serif">{{ evToggleLabel }}</button>
+                      <sc-if value="{{ evAbierto }}" hint-placeholder-val="{{ false }}">
+                        <div style="display:flex;flex-direction:column;gap:9px;margin-top:12px">
+                          <select value="{{ evTipo }}" onChange="{{ setEvTipo }}" style="padding:9px 12px;border:1.5px solid #E0DCD0;border-radius:8px;font:400 12.5px Archivo,sans-serif;background:#FAF9F5;color:#3A4450">
+                            <option>Jerarquización</option><option>Ingreso</option><option>Antecedente adicional</option><option>Encasillamiento</option>
+                          </select>
+                          <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px">
+                            <input value="{{ evAnio }}" onChange="{{ setEvAnio }}" type="number" placeholder="Año" style="box-sizing:border-box;width:100%;padding:9px 12px;border:1.5px solid #E0DCD0;border-radius:8px;font:400 12.5px Archivo,sans-serif;background:#FAF9F5">
+                            <input value="{{ evFecha }}" onChange="{{ setEvFecha }}" type="date" title="Fecha exacta (opcional)" style="box-sizing:border-box;width:100%;padding:9px 12px;border:1.5px solid #E0DCD0;border-radius:8px;font:400 12.5px Archivo,sans-serif;background:#FAF9F5;color:#3A4450">
+                          </div>
+                          <select value="{{ evJer }}" onChange="{{ setEvJer }}" style="padding:9px 12px;border:1.5px solid #E0DCD0;border-radius:8px;font:400 12.5px Archivo,sans-serif;background:#FAF9F5;color:#3A4450">
+                            <option value="">Jerarquía alcanzada (opcional)</option><option>Profesor Instructor</option><option>Profesor Asistente</option><option>Profesor Asociado</option><option>Profesor Titular</option>
+                          </select>
+                          <input value="{{ evActa }}" onChange="{{ setEvActa }}" placeholder="Acta, decreto o sesión que lo respalda" style="box-sizing:border-box;width:100%;padding:9px 12px;border:1.5px solid #E0DCD0;border-radius:8px;font:400 12.5px Archivo,sans-serif;background:#FAF9F5">
+                          <input value="{{ evEnlace }}" onChange="{{ setEvEnlace }}" placeholder="Enlace externo (opcional)" style="box-sizing:border-box;width:100%;padding:9px 12px;border:1.5px solid #E0DCD0;border-radius:8px;font:400 12.5px Archivo,sans-serif;background:#FAF9F5">
+                          <button onClick="{{ evGuardar }}" style="cursor:pointer;border:none;background:#2F6B4F;color:#fff;border-radius:8px;padding:11px;font:700 12.5px Archivo,sans-serif">Agregar hito</button>
+                        </div>
+                      </sc-if>
+                    </div>
+                  </sc-if>
+                </div>
+              </div>
+            </sc-if>
+          </aside>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ tabEncasillamiento }}" hint-placeholder-val="{{ false }}">
+        <h2 style="font:800 20px Archivo,sans-serif;margin:0 0 6px;color:#3A4450">Encasillamiento</h2>
+        <p style="font:400 13.5px/1.6 Spectral,serif;color:#5A6470;margin:0 0 20px;max-width:780px">Estado del proceso según la matriz: quiénes califican, qué antecedentes ya fueron enviados por STD y qué observaciones registró la Vicerrectoría Académica.</p>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:22px">
+          <sc-for list="{{ encKpis }}" as="k" hint-placeholder-count="4">
+            <div style="background:#fff;border:1px solid #E8E4DA;border-radius:12px;padding:16px 18px">
+              <div style="font:600 28px IBM Plex Mono,monospace;color:{{ k.color }};line-height:1">{{ k.n }}</div>
+              <div style="font:400 12px/1.45 Archivo,sans-serif;color:#8A8272;margin-top:6px">{{ k.label }}</div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="background:#fff;border:1px solid #E8E4DA;border-radius:14px;overflow:hidden">
+          <div style="display:grid;grid-template-columns:minmax(0,1fr) 150px 120px;gap:12px;padding:10px 20px;background:#F6F4EF;border-bottom:1px solid #E8E4DA;font:600 10.5px Archivo,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#8A8272"><span>Académico/a</span><span>Califica</span><span>Envío</span></div>
+          <sc-for list="{{ encLista }}" as="e" hint-placeholder-count="10">
+            <div style="display:grid;grid-template-columns:minmax(0,1fr) 150px 120px;gap:12px;align-items:start;padding:12px 20px;border-bottom:1px solid #F0EDE4">
+              <div style="min-width:0">
+                <div style="font:700 13px Archivo,sans-serif;color:#3A4450">{{ e.nombre }}</div>
+                <div style="font:400 11.5px Archivo,sans-serif;color:#8A8272;margin-top:2px">{{ e.unidad }}</div>
+                <sc-if value="{{ e.hayObs }}" hint-placeholder-val="{{ false }}">
+                  <div style="font:400 12px/1.5 Spectral,serif;color:#5A6470;margin-top:5px">{{ e.obs }}</div>
+                </sc-if>
+              </div>
+              <span style="font:600 10.5px Archivo,sans-serif;letter-spacing:.05em;text-transform:uppercase;color:{{ e.cFg }};background:{{ e.cBg }};border-radius:5px;padding:4px 8px;justify-self:start">{{ e.califica }}</span>
+              <span style="font:400 11.5px/1.45 Spectral,serif;color:#5A6470">{{ e.envio }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ tabCompletitud }}" hint-placeholder-val="{{ false }}">
+        <h2 style="font:800 20px Archivo,sans-serif;margin:0 0 6px;color:#3A4450">Completitud de la matriz</h2>
+        <p style="font:400 13.5px/1.6 Spectral,serif;color:#5A6470;margin:0 0 20px;max-width:780px">Qué tan poblado está cada campo y qué fichas requieren corroboración o respaldo. Es el mapa de trabajo para completar el archivo.</p>
+        <div style="display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:24px;align-items:start">
+          <div style="background:#fff;border:1px solid #E8E4DA;border-radius:14px;padding:22px 24px">
+            <div style="font:700 10px Archivo,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#8A8272;margin-bottom:14px">Campos poblados</div>
+            <div style="display:flex;flex-direction:column;gap:9px">
+              <sc-for list="{{ campos }}" as="c" hint-placeholder-count="10">
+                <div title="{{ c.tip }}" style="display:grid;grid-template-columns:200px 1fr 90px;gap:14px;align-items:center">
+                  <span style="font:400 12.5px Spectral,serif;color:#3A4450">{{ c.name }}</span>
+                  <span style="height:10px;background:#EFECE4;border-radius:5px;overflow:hidden;display:block"><span style="display:block;height:100%;background:{{ c.color }};width:{{ c.w }}"></span></span>
+                  <span style="font:600 11px IBM Plex Mono,monospace;color:#5A6470;text-align:right">{{ c.label }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+          <div style="background:#fff;border:1px solid #E8E4DA;border-radius:14px;padding:22px 24px">
+            <div style="font:700 10px Archivo,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#8A8272;margin-bottom:14px">Pendientes más frecuentes</div>
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <sc-for list="{{ pendientes }}" as="p" hint-placeholder-count="5">
+                <div>
+                  <div style="display:flex;justify-content:space-between;gap:10px;align-items:baseline">
+                    <span style="font:400 12.5px/1.4 Spectral,serif;color:#3A4450">{{ p.name }}</span>
+                    <span style="font:600 12px IBM Plex Mono,monospace;color:#C4762A">{{ p.n }}</span>
+                  </div>
+                  <span style="display:block;height:8px;background:#EFECE4;border-radius:4px;overflow:hidden;margin-top:5px"><span style="display:block;height:100%;background:#C4762A;width:{{ p.w }}"></span></span>
+                </div>
+              </sc-for>
+            </div>
+            <button onClick="{{ verPendientes }}" style="cursor:pointer;border:1.5px solid #E0DCD0;background:#FAF9F5;color:#007E80;border-radius:8px;padding:10px 14px;font:600 12px Archivo,sans-serif;margin-top:18px;width:100%">Ver las fichas por revisar →</button>
+          </div>
+        </div>
+      </sc-if>
+    </main>
+  </sc-if>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1240,&quot;height&quot;:900}}">
+class Component extends DCLogic {
+  COLOR = { "Profesor Asistente": "#4E7C5E", "Profesor Asociado": "#2F6B4F", "Profesor Titular": "#1D3F5C", "Profesor Instructor": "#8A8272", "(Corroborar)": "#B08A3A" };
+  state = { fase: "cargando", modo: "login", perfil: null, login: { correo: "", clave: "", nombre: "" }, err: "", busy: false,
+    tab: "panorama", personas: [], eventos: [], aviso: "", avisoTipo: "ok",
+    q: "", fUnidad: "Todas las unidades", fJer: "Todas las jerarquías", fEstado: "Todo estado de jerarquización", fModo: "Todos los modos de ingreso", soloAlertas: false,
+    selId: null, evAbierto: false, ev: { tipo: "Jerarquización", anio: "", fecha: "", jerarquia: "", acta: "", enlace: "" } };
+
+  async componentDidMount() {
+    try {
+      const [lib, cfg] = await Promise.all([import("https://esm.sh/@supabase/supabase-js@2"), import("./data/supabase/config.js?v=1788818358071")]);
+      this.sb = lib.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY);
+      this.sb.auth.onAuthStateChange((_e, s) => this.aplicarSesion(s));
+      const { data } = await this.sb.auth.getSession();
+      await this.aplicarSesion(data.session);
+    } catch (e) { console.warn(e); this.setState({ fase: "error" }); }
+    window.__DC_READY = true;
+  }
+
+  async aplicarSesion(sesion) {
+    if (!sesion) { this.setState({ fase: "login", perfil: null }); return; }
+    const { data: perfil, error } = await this.sb.from("perfiles").select("*").eq("id", sesion.user.id).maybeSingle();
+    if (error && /could not find the table|PGRST205|schema cache/i.test(error.message + " " + (error.code || ""))) { this.setState({ fase: "sininstalar" }); return; }
+    if (error || !perfil) { this.setState({ fase: "sinperfil" }); return; }
+    if (!perfil.activo) { this.setState({ fase: "suspendido", perfil }); return; }
+    this.setState({ fase: "panel", perfil, err: "" });
+    this.cargar();
+  }
+
+  async cargar() {
+    const [p, e] = await Promise.all([
+      this.sb.from("tr_personas").select("*").order("ap1").order("ap2"),
+      this.sb.from("tr_eventos").select("*").order("anio", { ascending: true })
+    ]);
+    if (p.error && /could not find the table|PGRST205|schema cache|does not exist/i.test(p.error.message)) { this.setState({ fase: "sininstalar" }); return; }
+    this.setState({ personas: p.data || [], eventos: e.data || [] });
+  }
+
+  async anota(accion, detalle) {
+    const r = await this.sb.from("actividad").insert({ correo: this.state.perfil ? this.state.perfil.correo : "", accion: "TR: " + accion, detalle: detalle || "" });
+    if (r.error) console.warn("actividad", r.error.message);
+  }
+
+  avisar(t, tipo) { this.setState({ aviso: t, avisoTipo: tipo || "ok" }); clearTimeout(this._av); this._av = setTimeout(() => this.setState({ aviso: "" }), 5000); }
+
+  traducir(m) {
+    const t = String(m || "");
+    if (/invalid login credentials/i.test(t)) return "Correo o contraseña incorrectos.";
+    if (/email not confirmed/i.test(t)) return "Debes confirmar tu correo antes de entrar.";
+    if (/rate limit|too many/i.test(t)) return "Demasiados intentos. Espera unos minutos.";
+    if (/tr_personas|tr_eventos/i.test(t) && /could not find|does not exist|schema cache/i.test(t)) return "Faltan las tablas: ejecuta data/supabase/setup-trayectorias.sql en Supabase.";
+    if (/could not find the table|schema cache|relation .* does not exist/i.test(t)) return "La base aún no está instalada: ejecuta data/supabase/setup-trayectorias.sql en Supabase.";
+    if (/row-level security|permission denied/i.test(t)) return "Tu cuenta no tiene permiso para esta operación (solo administradores editan).";
+    if (/bucket.*not found/i.test(t)) return "Falta el depósito de respaldos: ejecuta setup-trayectorias.sql en Supabase.";
+    if (/password/i.test(t) && /short|least/i.test(t)) return "La contraseña es demasiado corta (mínimo 8 caracteres).";
+    if (/no tiene invitación/i.test(t)) return "Ese correo no está autorizado. Pide a una persona administradora que lo agregue.";
+    if (/signups? (are )?not allowed|signup is disabled/i.test(t)) return "El registro está desactivado en el servicio de datos (Authentication ▸ Allow new users to sign up).";
+    return t;
+  }
+
+  async acceder() {
+    const { correo, clave, nombre } = this.state.login;
+    if (!correo || !clave) { this.setState({ err: "Escribe tu correo y contraseña." }); return; }
+    this.setState({ busy: true, err: "" });
+    let error;
+    if (this.state.modo === "registro") {
+      const r = await this.sb.auth.signUp({ email: correo.trim(), password: clave, options: { data: { nombre: (nombre || "").trim() } } });
+      error = r.error;
+      if (!error && r.data && r.data.user && !r.data.session) { this.setState({ busy: false, modo: "login", err: "Cuenta creada. Confirma tu correo y vuelve a entrar." }); return; }
+    } else {
+      const r = await this.sb.auth.signInWithPassword({ email: correo.trim(), password: clave });
+      error = r.error;
+    }
+    this.setState({ busy: false });
+    if (error) this.setState({ err: this.traducir(error.message) });
+  }
+
+  async guardarEvento() {
+    const st = this.state, ev = st.ev;
+    if (!st.selId) return;
+    if (!ev.acta && !ev.anio && !ev.fecha) { this.avisar("Indica al menos el año o el acta del hito.", "err"); return; }
+    const fila = { persona: st.selId, tipo: ev.tipo, anio: ev.anio ? parseInt(ev.anio, 10) : (ev.fecha ? +ev.fecha.slice(0, 4) : null),
+      fecha: ev.fecha || null, jerarquia: ev.jerarquia || null, acta: ev.acta || null, enlace: ev.enlace || null };
+    const r = await this.sb.from("tr_eventos").insert(fila);
+    if (r.error) { this.avisar("No se pudo guardar: " + this.traducir(r.error.message), "err"); return; }
+    const p = st.personas.find(x => x.id === st.selId) || {};
+    await this.anota("Nuevo hito", `${ev.tipo} · ${p.ap1 || ""} ${p.nombres || ""}`);
+    this.avisar("Hito agregado a la trayectoria.");
+    this.setState({ evAbierto: false, ev: { tipo: "Jerarquización", anio: "", fecha: "", jerarquia: "", acta: "", enlace: "" } });
+    this.cargar();
+  }
+
+  async subirRespaldo(evento, file) {
+    if (!file) return;
+    const ext = (file.name.split(".").pop() || "pdf").toLowerCase();
+    const ruta = `persona-${evento.persona}/hito-${evento.id}-${Date.now()}.${ext}`;
+    this.avisar("Subiendo respaldo…");
+    const up = await this.sb.storage.from("trayectorias").upload(ruta, file, { upsert: true, contentType: file.type || "application/pdf" });
+    if (up.error) { this.avisar("No se pudo subir: " + this.traducir(up.error.message), "err"); return; }
+    const r = await this.sb.from("tr_eventos").update({ archivo: ruta }).eq("id", evento.id);
+    if (r.error) { this.avisar("Se subió el archivo pero no se pudo asociar: " + this.traducir(r.error.message), "err"); return; }
+    await this.anota("Respaldo cargado", `${evento.tipo} · ${file.name}`);
+    this.avisar("Respaldo cargado y asociado al hito.");
+    this.cargar();
+  }
+
+  async verRespaldo(evento) {
+    const { data, error } = await this.sb.storage.from("trayectorias").createSignedUrl(evento.archivo, 3600);
+    if (error) { this.avisar("No se pudo abrir el respaldo: " + this.traducir(error.message), "err"); return; }
+    window.open(data.signedUrl, "_blank", "noreferrer");
+  }
+
+  async borrarEvento(evento) {
+    if (!confirm("¿Eliminar este hito de la trayectoria?")) return;
+    const r = await this.sb.from("tr_eventos").delete().eq("id", evento.id);
+    if (r.error) { this.avisar("No se pudo eliminar: " + this.traducir(r.error.message), "err"); return; }
+    await this.anota("Hito eliminado", `${evento.tipo} · ${evento.acta || evento.anio || ""}`);
+    this.cargar();
+  }
+
+  alertas(p, evs) {
+    const a = [];
+    if (!p.anio_ingreso) a.push("Sin año de ingreso registrado");
+    if ((p.jer_provisoria || "").includes("Corroborar")) a.push("Jerarquía provisoria por corroborar");
+    if (/sin informaci|corroborar/i.test(p.modo_ingreso || "")) a.push("Modo de ingreso sin información o por corroborar");
+    if (!evs.some(e => e.tipo === "Ingreso" && (e.enlace || e.archivo))) a.push("Sin respaldo del ingreso");
+    if (p.estado_jer === "Realizada" && !evs.some(e => e.tipo === "Jerarquización" && (e.acta || e.enlace || e.archivo))) a.push("Jerarquización realizada sin acta ni respaldo");
+    if (!p.fuente) a.push("Sin fuente de información del ingreso");
+    return a;
+  }
+
+  renderVals() {
+    const st = this.state, admin = !!(st.perfil && st.perfil.rol === "administrador");
+    const col = j => this.COLOR[j] || "#8A8272";
+    const norm = t => (t || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    const evsDe = id => st.eventos.filter(e => e.persona === id);
+    const nombreDe = p => `${p.ap1} ${p.ap2}, ${p.nombres}`.replace(/\s+,/, ",").trim();
+    const pct = (a, b) => (b ? Math.round(a / b * 100) : 0) + "%";
+    const HOY = 2026;
+
+    const personas = st.personas;
+    const alertasDe = {}; personas.forEach(p => { alertasDe[p.id] = this.alertas(p, evsDe(p.id)); });
+
+    const unidades = [...new Set(personas.map(p => p.unidad).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+    const jerarquias = ["Profesor Asistente", "Profesor Asociado", "Profesor Titular"];
+    const modos = [...new Set(personas.map(p => p.modo_ingreso).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+
+    const q = norm(st.q).trim();
+    const filtradas = personas.filter(p =>
+      (st.fUnidad === "Todas las unidades" || p.unidad === st.fUnidad) &&
+      (st.fJer === "Todas las jerarquías" || p.jer_actual === st.fJer) &&
+      (st.fEstado === "Todo estado de jerarquización" || p.estado_jer === st.fEstado) &&
+      (st.fModo === "Todos los modos de ingreso" || p.modo_ingreso === st.fModo) &&
+      (!st.soloAlertas || (alertasDe[p.id] || []).length > 0) &&
+      (!q || norm([p.ap1, p.ap2, p.nombres, p.unidad, p.fuente, p.rango].join(" ")).includes(q)));
+
+    const cuenta = (arr, k) => { const m = {}; arr.forEach(x => { const v = x[k] || "Sin dato"; m[v] = (m[v] || 0) + 1; }); return Object.entries(m).sort((a, b) => b[1] - a[1]); };
+    const nJer = {}; jerarquias.forEach(j => { nJer[j] = personas.filter(p => p.jer_actual === j).length; });
+    const realizadas = personas.filter(p => p.estado_jer === "Realizada").length;
+    const conAnio = personas.filter(p => p.anio_ingreso);
+    const antigProm = conAnio.length ? Math.round(conAnio.reduce((a, p) => a + (HOY - p.anio_ingreso), 0) / conAnio.length) : 0;
+    const conAlerta = personas.filter(p => (alertasDe[p.id] || []).length > 0).length;
+
+    const porUnidad = unidades.map(u => {
+      const ps = personas.filter(p => p.unidad === u), n = ps.length;
+      const segs = jerarquias.map(j => { const k = ps.filter(p => p.jer_actual === j).length; return k ? { w: pct(k, n), color: col(j), tip: `${u} · ${j}: ${k}` } : null; }).filter(Boolean);
+      return { name: u.replace(/^Departamento de /, "Dpto. ").replace(/^Escuela de /, "Esc. "), n, segs };
+    }).sort((a, b) => b.n - a.n);
+
+    const estadoUnidad = unidades.map(u => {
+      const ps = personas.filter(p => p.unidad === u), r = ps.filter(p => p.estado_jer === "Realizada").length;
+      return { name: u.replace(/^Departamento de /, "Dpto. ").replace(/^Escuela de /, "Esc. "), w: pct(r, ps.length), label: `${r}/${ps.length}`, tip: `${u}: ${r} de ${ps.length} con jerarquización realizada` };
+    }).sort((a, b) => parseInt(b.w) - parseInt(a.w));
+
+    const modoCuenta = cuenta(personas, "modo_ingreso");
+    const maxModo = Math.max(1, ...modoCuenta.map(x => x[1]));
+    const porModo = modoCuenta.map(([name, n]) => ({ name, n, w: pct(n, maxModo), tip: `${name}: ${n} personas (${pct(n, personas.length)})` }));
+
+    const anios = conAnio.map(p => p.anio_ingreso);
+    const a0 = anios.length ? Math.min(...anios) : 0, a1 = anios.length ? Math.max(...anios) : 0;
+    const serie = [];
+    for (let y = a0; y <= a1; y++) serie.push({ y, n: anios.filter(x => x === y).length });
+    const maxAnio = Math.max(1, ...serie.map(s => s.n));
+    const porAnio = serie.map(s => ({ h: s.n ? Math.max(4, Math.round(s.n / maxAnio * 100)) + "%" : "2px",
+      color: s.n ? (s.y >= 2020 ? "#2F6B4F" : s.y >= 2010 ? "#5E8C6A" : "#1D3F5C") : "#E5E1D4",
+      rot: s.y % 5 === 0 ? String(s.y) : "", tip: `${s.y}: ${s.n} ${s.n === 1 ? "ingreso" : "ingresos"}` }));
+    const decadas = {};
+    anios.forEach(y => { const d = Math.floor(y / 10) * 10; decadas[d] = (decadas[d] || 0) + 1; });
+    const porDecada = Object.entries(decadas).sort((a, b) => a[0] - b[0]).map(([d, n]) => ({ name: `Ingresos ${d}–${+d + 9}`, n }));
+
+    const antigUnidad = unidades.map(u => {
+      const ps = personas.filter(p => p.unidad === u && p.anio_ingreso);
+      const prom = ps.length ? ps.reduce((a, p) => a + (HOY - p.anio_ingreso), 0) / ps.length : 0;
+      return { name: u.replace(/^Departamento de /, "Dpto. ").replace(/^Escuela de /, "Esc. "), prom, label: prom ? prom.toFixed(1) + " a" : "—", tip: `${u}: ${prom.toFixed(1)} años de antigüedad promedio (${ps.length} personas con año registrado)` };
+    }).sort((a, b) => b.prom - a.prom);
+    const maxAntig = Math.max(1, ...antigUnidad.map(x => x.prom));
+    antigUnidad.forEach(x => { x.w = pct(x.prom, maxAntig); });
+
+    const conBrecha = personas.map(p => {
+      const j = evsDe(p.id).filter(e => e.tipo === "Jerarquización" && e.anio).map(e => e.anio);
+      if (!p.anio_ingreso || !j.length) return null;
+      const ult = Math.max(...j);
+      return { name: nombreDe(p), años: Math.max(0, ult - p.anio_ingreso) };
+    }).filter(Boolean).sort((a, b) => b.años - a.años);
+    const maxBrecha = Math.max(1, ...conBrecha.map(x => x.años));
+    const brecha = conBrecha.slice(0, 8).map(x => ({ name: x.name, w: pct(x.años, maxBrecha), label: x.años + " a" }));
+
+    const campoDefs = [["Año de ingreso", p => !!p.anio_ingreso], ["Modo de ingreso definido", p => p.modo_ingreso && !/sin informaci|corroborar/i.test(p.modo_ingreso)],
+      ["Fuente del ingreso", p => !!p.fuente], ["Respaldo del ingreso", p => evsDe(p.id).some(e => e.tipo === "Ingreso" && (e.enlace || e.archivo))],
+      ["Jerarquía provisoria", p => p.jer_provisoria && !/corroborar/i.test(p.jer_provisoria)], ["Jerarquía actual", p => !!p.jer_actual],
+      ["Acta de jerarquización", p => evsDe(p.id).some(e => e.tipo === "Jerarquización" && e.acta)],
+      ["Respaldo de jerarquización", p => evsDe(p.id).some(e => e.tipo === "Jerarquización" && (e.enlace || e.archivo))],
+      ["Rango contractual", p => !!p.rango], ["Encasillamiento definido", p => !!p.califica_encasillamiento],
+      ["Antecedentes enviados por STD", p => !!p.enviado_encasillamiento]];
+    const campos = campoDefs.map(([name, fn]) => { const n = personas.filter(fn).length, r = personas.length ? n / personas.length : 0;
+      return { name, w: pct(n, personas.length), label: `${n}/${personas.length}`, color: r > .8 ? "#2F6B4F" : r > .5 ? "#5E8C6A" : "#C4762A", tip: `${name}: ${n} de ${personas.length} (${pct(n, personas.length)})` }; });
+
+    const tipos = {};
+    personas.forEach(p => (alertasDe[p.id] || []).forEach(a => { tipos[a] = (tipos[a] || 0) + 1; }));
+    const maxPend = Math.max(1, ...Object.values(tipos));
+    const pendientes = Object.entries(tipos).sort((a, b) => b[1] - a[1]).map(([name, n]) => ({ name, n, w: pct(n, maxPend) }));
+
+    const califica = v => { const t = (v || "").toLowerCase(); return t === "sí" || t === "si" ? "Sí" : t === "planta" ? "Planta" : t === "no" ? "No" : "Sin definir"; };
+    const encPersonas = personas.filter(p => califica(p.califica_encasillamiento) !== "No");
+    const encKpis = [
+      { n: personas.filter(p => califica(p.califica_encasillamiento) === "Sí").length, label: "califican para encasillamiento", color: "#2F6B4F" },
+      { n: personas.filter(p => califica(p.califica_encasillamiento) === "Planta").length, label: "ya en planta", color: "#1D3F5C" },
+      { n: personas.filter(p => p.enviado_encasillamiento).length, label: "con antecedentes enviados por STD", color: "#C4762A" },
+      { n: personas.filter(p => califica(p.califica_encasillamiento) === "Sí" && !p.enviado_encasillamiento).length, label: "califican y aún sin envío", color: "#B0483A" }
+    ];
+    const encLista = encPersonas.map(p => { const c = califica(p.califica_encasillamiento); return {
+      nombre: nombreDe(p), unidad: p.unidad, califica: c,
+      cFg: c === "Sí" ? "#1F5C3E" : c === "Planta" ? "#1D3F5C" : "#8A5A00", cBg: c === "Sí" ? "#E7F3EB" : c === "Planta" ? "#E7EEF5" : "#FCEBD9",
+      envio: p.enviado_encasillamiento || "Sin envío registrado",
+      hayObs: !!p.obs_encasillamiento, obs: p.obs_encasillamiento }; })
+      .sort((a, b) => (a.envio === "Sin envío registrado" ? 0 : 1) - (b.envio === "Sin envío registrado" ? 0 : 1) || a.nombre.localeCompare(b.nombre));
+
+    const selP = personas.find(p => p.id === st.selId);
+    let sel = null;
+    if (selP) {
+      const evs = evsDe(selP.id).slice().sort((a, b) => (a.anio || 9999) - (b.anio || 9999));
+      const runFmt = selP.run ? String(selP.run).replace(/\B(?=(\d{3})+(?!\d))/g, ".") + "-" + (selP.dv || "") : "Sin RUN";
+      const runVis = admin ? runFmt : runFmt.replace(/^(\d+\.\d+)\..*(-.)$/, "$1.***$2");
+      const ult = evs.filter(e => e.tipo === "Jerarquización" && (e.anio || e.acta)).slice(-1)[0];
+      sel = {
+        color: col(selP.jer_actual), jer: selP.jer_actual || "Sin jerarquía", nombre: nombreDe(selP), unidad: selP.unidad,
+        datos: [
+          { label: "RUN", valor: runVis },
+          { label: "Rango contractual", valor: selP.rango || "—" },
+          { label: "Año de ingreso", valor: selP.anio_ingreso ? `${selP.anio_ingreso} · ${HOY - selP.anio_ingreso} años` : "Sin registrar" },
+          { label: "Jerarquía provisoria", valor: selP.jer_provisoria || "—" },
+          { label: "Estado de jerarquización", valor: selP.estado_jer || "—" },
+          { label: "Última jerarquización", valor: ult ? (ult.anio ? String(ult.anio) : "Año sin registrar") : "Sin registro" },
+          { label: "Modo de ingreso", valor: selP.modo_ingreso || "—" },
+          { label: "Encasillamiento", valor: califica(selP.califica_encasillamiento) + (selP.enviado_encasillamiento ? " · enviado" : "") }
+        ].concat(selP.enviado_encasillamiento ? [{ label: "Envío a encasillamiento", valor: selP.enviado_encasillamiento }] : [])
+          .concat(selP.obs_encasillamiento ? [{ label: "Observación del proceso", valor: selP.obs_encasillamiento }] : [])
+          .concat(selP.observaciones ? [{ label: "Observaciones", valor: selP.observaciones }] : []),
+        alertas: alertasDe[selP.id] || [], hayAlertas: (alertasDe[selP.id] || []).length > 0,
+        sinEventos: evs.length === 0,
+        eventos: evs.map(e => ({
+          anio: e.anio || (e.fecha ? e.fecha.slice(0, 4) : "—"), tipo: e.tipo, jerarquia: e.jerarquia || "",
+          color: e.tipo === "Ingreso" ? "#8A8272" : col(e.jerarquia || selP.jer_actual),
+          acta: e.acta || e.nota || "Sin acta registrada",
+          hayArchivo: !!e.archivo, verArchivo: () => this.verRespaldo(e),
+          hayEnlace: !!e.enlace, enlace: e.enlace,
+          sinRespaldo: !e.archivo && !e.enlace,
+          puedeSubir: admin, subirLabel: e.archivo ? "Reemplazar archivo" : "Cargar respaldo",
+          subir: ev => { const f = ev.target.files && ev.target.files[0]; ev.target.value = ""; this.subirRespaldo(e, f); },
+          puedeBorrar: admin, borrar: () => this.borrarEvento(e)
+        }))
+      };
+    }
+
+    const pest = [["panorama", "Panorama"], ["personas", "Matriz de personas"], ["encasillamiento", "Encasillamiento"], ["completitud", "Completitud"]];
+
+    return {
+      vistaAcceso: st.fase === "login", vistaPanel: st.fase === "panel",
+      vistaEstado: ["cargando", "error", "sinperfil", "suspendido", "sininstalar"].includes(st.fase),
+      estadoTitulo: st.fase === "cargando" ? "Conectando…" : st.fase === "error" ? "Sin conexión con el servicio de datos" : st.fase === "sininstalar" ? "Falta instalar las tablas" : st.fase === "suspendido" ? "Cuenta suspendida" : "Cuenta sin permisos",
+      estadoNota: st.fase === "cargando" ? "Verificando la sesión." : st.fase === "error" ? "Revisa que el proyecto de datos esté activo." : st.fase === "sininstalar" ? "Ejecuta una vez data/supabase/setup-trayectorias.sql en el editor SQL de Supabase y vuelve a entrar." : st.fase === "suspendido" ? "Tu acceso fue suspendido por una persona administradora." : "Tu cuenta no tiene perfil en el sistema VIP. Pide que autoricen tu correo desde el panel de Cursos o de Normativa.",
+      estadoConSalir: ["sinperfil", "suspendido", "sininstalar"].includes(st.fase),
+      lCorreo: st.login.correo, lClave: st.login.clave, lNombre: st.login.nombre,
+      setLCorreo: e => this.setState(s => ({ login: { ...s.login, correo: e.target.value } })),
+      setLClave: e => this.setState(s => ({ login: { ...s.login, clave: e.target.value } })),
+      setLNombre: e => this.setState(s => ({ login: { ...s.login, nombre: e.target.value } })),
+      enterAcceso: e => { if (e.key === "Enter") this.acceder(); },
+      acceder: () => this.acceder(), accesoBoton: st.busy ? "Un momento…" : st.modo === "registro" ? "Crear cuenta" : "Entrar",
+      modoRegistro: st.modo === "registro",
+      accesoTitulo: st.modo === "registro" ? "Crear mi contraseña" : "Iniciar sesión",
+      accesoNota: st.modo === "registro" ? "Usa el correo autorizado por el Vicedecanato y define una contraseña de al menos 8 caracteres." : "Usa la misma cuenta del sistema de Gestión de Información VIP.",
+      cambiarModo: () => this.setState(s => ({ modo: s.modo === "registro" ? "login" : "registro", err: "" })),
+      cambiarModoLabel: st.modo === "registro" ? "← Ya tengo contraseña" : "Primera vez: crear mi contraseña",
+      hayError: !!st.err, err: st.err, salir: () => this.sb.auth.signOut(),
+      sesionEtiqueta: st.perfil ? `${st.perfil.nombre || st.perfil.correo} · ${admin ? "Administrador/a" : "Consulta"}` : "",
+      esAdmin: admin,
+      tabs: pest.map(([id, name]) => ({ name, fg: st.tab === id ? "#2F6B4F" : "#8A8272", line: st.tab === id ? "#EF7A00" : "transparent", pick: () => this.setState({ tab: id }) })),
+      tabPanorama: st.tab === "panorama", tabPersonas: st.tab === "personas", tabEncasillamiento: st.tab === "encasillamiento", tabCompletitud: st.tab === "completitud",
+      hayAviso: !!st.aviso, aviso: st.aviso, avisoFg: st.avisoTipo === "err" ? "#B0483A" : "#2F6B4F", avisoBg: st.avisoTipo === "err" ? "#F9EBE8" : "#E7F3EB",
+      baseVacia: personas.length === 0,
+
+      kpis: [
+        { n: personas.length, label: "académicos y académicas en la matriz", color: "#1D3F5C" },
+        { n: unidades.length, label: "departamentos y escuelas", color: "#2F6B4F" },
+        { n: pct(realizadas, personas.length), label: "con jerarquización realizada", color: "#5E8C6A" },
+        { n: antigProm ? antigProm + " años" : "—", label: "antigüedad promedio en la Universidad", color: "#C4762A" },
+        { n: conAlerta, label: "fichas con datos o respaldos por completar", color: "#B0483A" }
+      ],
+      jerLeyenda: jerarquias.map(j => ({ name: j.replace("Profesor ", ""), n: nJer[j], color: col(j) })),
+      porUnidad, estadoUnidad, porModo, porAnio, porDecada, antigUnidad, brecha,
+      jerPct: pct(realizadas, personas.length), jerPend: personas.length - realizadas,
+      ingresoRango: anios.length ? `${a0}–${a1} · ${conAnio.length} de ${personas.length} con año registrado` : "Sin datos",
+      brechaNota: conBrecha.length ? `Solo ${conBrecha.length} fichas tienen año de jerarquización registrado; se muestran las de mayor brecha.` : "Aún no hay fichas con año de jerarquización registrado.",
+      campos, pendientes, verPendientes: () => this.setState({ tab: "personas", soloAlertas: true }),
+      encKpis, encLista,
+
+      nTotal: personas.length, nFiltradas: filtradas.length, listaVacia: filtradas.length === 0,
+      q: st.q, setQ: e => this.setState({ q: e.target.value }),
+      fUnidad: st.fUnidad, setFUnidad: e => this.setState({ fUnidad: e.target.value }), unidadesOpc: ["Todas las unidades", ...unidades],
+      fJer: st.fJer, setFJer: e => this.setState({ fJer: e.target.value }), jerOpc: ["Todas las jerarquías", ...jerarquias],
+      fEstado: st.fEstado, setFEstado: e => this.setState({ fEstado: e.target.value }),
+      fModo: st.fModo, setFModo: e => this.setState({ fModo: e.target.value }), modoOpc: ["Todos los modos de ingreso", ...modos],
+      soloAlertas: st.soloAlertas, setSoloAlertas: e => this.setState({ soloAlertas: e.target.checked }),
+      lista: filtradas.map(p => ({
+        nombre: nombreDe(p), unidad: p.unidad, jer: (p.jer_actual || "—").replace("Profesor ", ""), color: col(p.jer_actual),
+        estado: p.estado_jer === "Realizada" ? "Jerarquización realizada" : "Jerarquización pendiente",
+        estadoFg: p.estado_jer === "Realizada" ? "#2F6B4F" : "#C4762A",
+        anio: p.anio_ingreso || "—", bg: st.selId === p.id ? "#F2F7F3" : "#fff",
+        tieneAlertas: (alertasDe[p.id] || []).length > 0, nAlertas: (alertasDe[p.id] || []).length,
+        abrir: () => this.setState({ selId: p.id, evAbierto: false })
+      })),
+      sinSeleccion: !sel, haySeleccion: !!sel, sel: sel || {},
+      evAbierto: st.evAbierto, evToggle: () => this.setState(s => ({ evAbierto: !s.evAbierto })),
+      evToggleLabel: st.evAbierto ? "Cerrar formulario" : "Agregar un hito a la trayectoria",
+      evTipo: st.ev.tipo, evAnio: st.ev.anio, evFecha: st.ev.fecha, evJer: st.ev.jerarquia, evActa: st.ev.acta, evEnlace: st.ev.enlace,
+      setEvTipo: e => this.setState(s => ({ ev: { ...s.ev, tipo: e.target.value } })),
+      setEvAnio: e => this.setState(s => ({ ev: { ...s.ev, anio: e.target.value } })),
+      setEvFecha: e => this.setState(s => ({ ev: { ...s.ev, fecha: e.target.value } })),
+      setEvJer: e => this.setState(s => ({ ev: { ...s.ev, jerarquia: e.target.value } })),
+      setEvActa: e => this.setState(s => ({ ev: { ...s.ev, acta: e.target.value } })),
+      setEvEnlace: e => this.setState(s => ({ ev: { ...s.ev, enlace: e.target.value } })),
+      evGuardar: () => this.guardarEvento()
+    };
+  }
+}
+
+</script>
+</body>
+</html>

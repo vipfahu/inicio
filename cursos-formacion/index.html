@@ -18,7 +18,7 @@
 </script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="./support.js?v=1788816478796"></script>
+<script src="./support.js?v=1788818358071"></script>
 </head>
 <body>
 <x-dc>
@@ -397,14 +397,14 @@ class Component extends DCLogic {
 
   async componentDidMount() {
     try {
-      const m = await import("./data/cursos/catalogo.js?v=1788816478796");
+      const m = await import("./data/cursos/catalogo.js?v=1788818358071");
       this.estatico = { periodos: m.PERIODOS, cursos: m.CURSOS };
       this.aplicar(this.estatico, "estatico");
     } catch (e) { console.warn("catálogo estático no disponible", e); }
     try {
       const [lib, cfg] = await Promise.all([
         import("https://esm.sh/@supabase/supabase-js@2"),
-        import("./data/supabase/config.js?v=1788816478796")
+        import("./data/supabase/config.js?v=1788818358071")
       ]);
       const sb = lib.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY);
       const [p, c] = await Promise.all([
