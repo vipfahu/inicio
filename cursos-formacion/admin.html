@@ -18,7 +18,7 @@
 </script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="./support.js?v=1788798708702"></script>
+<script src="./support.js?v=1788816478796"></script>
 </head>
 <body>
 <x-dc>
@@ -49,9 +49,12 @@ body{margin:0;background:#F1EFE8}a{color:#007E80}a:hover{color:#EF7A00}input:foc
           <div style="font:400 12.5px Archivo,sans-serif;color:#8A8272;margin-top:4px">Cursos de Formación Multidisciplinar · FAHU e IDEA</div>
         </div>
         <div style="background:#fff;border:1px solid #E8E4DA;border-radius:16px;padding:26px 26px 24px">
-          <h1 style="font:800 16px Archivo,sans-serif;margin:0 0 4px;color:#3A4450">Iniciar sesión</h1>
-          <p style="font:400 12.5px/1.55 Spectral,serif;color:#8A8272;margin:0 0 18px">Usa la misma cuenta del sistema de Gestión de Información VIP (autorizada por el Vicedecanato).</p>
+          <h1 style="font:800 16px Archivo,sans-serif;margin:0 0 4px;color:#3A4450">{{ accesoTitulo }}</h1>
+          <p style="font:400 12.5px/1.55 Spectral,serif;color:#8A8272;margin:0 0 18px">{{ accesoNota }}</p>
           <div style="display:flex;flex-direction:column;gap:11px">
+            <sc-if value="{{ modoRegistro }}" hint-placeholder-val="{{ false }}">
+              <input value="{{ lNombre }}" onChange="{{ setLNombre }}" placeholder="Nombre y apellido" style="box-sizing:border-box;width:100%;padding:11px 14px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5">
+            </sc-if>
             <input value="{{ lCorreo }}" onChange="{{ setLCorreo }}" type="email" autoComplete="username" placeholder="correo@usach.cl" style="box-sizing:border-box;width:100%;padding:11px 14px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5">
             <input value="{{ lClave }}" onChange="{{ setLClave }}" onKeyDown="{{ enterAcceso }}" type="password" autoComplete="current-password" placeholder="Contraseña" style="box-sizing:border-box;width:100%;padding:11px 14px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5">
             <sc-if value="{{ hayError }}" hint-placeholder-val="{{ false }}">
@@ -59,7 +62,10 @@ body{margin:0;background:#F1EFE8}a{color:#007E80}a:hover{color:#EF7A00}input:foc
             </sc-if>
             <button onClick="{{ acceder }}" style="cursor:pointer;border:none;background:#007E80;color:#fff;border-radius:9px;padding:13px;font:700 13.5px Archivo,sans-serif">{{ accesoBoton }}</button>
           </div>
-          <p style="font:italic 400 11.5px/1.5 Spectral,serif;color:#8A8272;margin:16px 0 0;padding-top:15px;border-top:1px solid #F0EDE4">Las cuentas se crean e invitan desde el panel de Normativa Postgrados (pestaña Usuarios).</p>
+          <div style="margin:16px 0 0;padding-top:15px;border-top:1px solid #F0EDE4;display:flex;flex-direction:column;gap:8px;align-items:flex-start">
+            <button onClick="{{ cambiarModo }}" style="cursor:pointer;border:none;background:none;padding:0;font:600 12px Archivo,sans-serif;color:#007E80">{{ cambiarModoLabel }}</button>
+            <p style="font:italic 400 11.5px/1.5 Spectral,serif;color:#8A8272;margin:0">Las cuentas las autoriza una persona administradora en la pestaña <strong>Cuentas</strong> de este panel (o en el de Normativa Postgrados).</p>
+          </div>
         </div>
         <div style="text-align:center;margin-top:14px">
           <a href="index.html" style="font:600 12px Archivo,sans-serif;text-decoration:none">← Volver a la oferta pública</a>
@@ -127,7 +133,9 @@ body{margin:0;background:#F1EFE8}a{color:#007E80}a:hover{color:#EF7A00}input:foc
                 <sc-if value="{{ puedeImportar }}" hint-placeholder-val="{{ false }}">
                   <button onClick="{{ importar }}" style="cursor:pointer;border:1.5px solid #E0DCD0;background:#fff;color:#007E80;border-radius:8px;padding:8px 12px;font:600 12px Archivo,sans-serif">Importar matriz inicial (94 cursos)</button>
                 </sc-if>
-                <button onClick="{{ duplicar }}" title="Copia los cursos de otro semestre a este para editarlos" style="cursor:pointer;border:1.5px solid #E0DCD0;background:#fff;color:#007E80;border-radius:8px;padding:8px 12px;font:600 12px Archivo,sans-serif">Copiar desde otro semestre…</button>
+                <sc-if value="{{ esAdmin }}" hint-placeholder-val="{{ false }}">
+                  <button onClick="{{ duplicar }}" title="Copia los cursos de otro semestre a este para editarlos" style="cursor:pointer;border:1.5px solid #E0DCD0;background:#fff;color:#007E80;border-radius:8px;padding:8px 12px;font:600 12px Archivo,sans-serif">Copiar desde otro semestre…</button>
+                </sc-if>
               </div>
             </div>
             <sc-if value="{{ dupAbierto }}" hint-placeholder-val="{{ false }}">
@@ -139,6 +147,9 @@ body{margin:0;background:#F1EFE8}a{color:#007E80}a:hover{color:#EF7A00}input:foc
                 <button onClick="{{ dupConfirmar }}" style="cursor:pointer;border:none;background:#EF7A00;color:#fff;border-radius:8px;padding:9px 14px;font:700 12px Archivo,sans-serif">Copiar</button>
                 <button onClick="{{ dupCerrar }}" style="cursor:pointer;border:none;background:transparent;color:#8A5A00;padding:9px 6px;font:600 12px Archivo,sans-serif">Cancelar</button>
               </div>
+            </sc-if>
+            <sc-if value="{{ hayAlcance }}" hint-placeholder-val="{{ false }}">
+              <div style="background:#E4F2F2;border:1px solid #C9E4E4;border-radius:12px;padding:12px 16px;margin-bottom:14px;font:400 12.5px/1.55 Spectral,serif;color:#1F5C5E">{{ alcanceTexto }}</div>
             </sc-if>
             <div style="background:#fff;border:1px solid #E8E4DA;border-radius:12px;padding:14px 16px;margin-bottom:14px;display:flex;flex-direction:column;gap:10px">
               <input value="{{ bq }}" onChange="{{ setBq }}" placeholder="Buscar por curso, profesor/a, programa o unidad…" style="box-sizing:border-box;width:100%;padding:10px 14px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5">
@@ -171,8 +182,12 @@ body{margin:0;background:#F1EFE8}a{color:#007E80}a:hover{color:#EF7A00}input:foc
                   </div>
                   <span style="font:600 12px IBM Plex Mono,monospace;color:#EF7A00;text-align:right">{{ c.cupos }}</span>
                   <div style="display:flex;gap:6px;justify-content:flex-end">
-                    <button onClick="{{ c.editar }}" style="cursor:pointer;border:1.5px solid #E0DCD0;background:#fff;color:#007E80;border-radius:7px;padding:6px 9px;font:600 11px Archivo,sans-serif">Editar</button>
-                    <button onClick="{{ c.borrar }}" style="cursor:pointer;border:1.5px solid #F0D5CF;background:#fff;color:#B0483A;border-radius:7px;padding:6px 9px;font:600 11px Archivo,sans-serif">✕</button>
+                    <sc-if value="{{ c.puede }}" hint-placeholder-val="{{ true }}">
+                      <button onClick="{{ c.editar }}" style="cursor:pointer;border:1.5px solid #E0DCD0;background:#fff;color:#007E80;border-radius:7px;padding:6px 9px;font:600 11px Archivo,sans-serif">Editar</button>
+                    </sc-if>
+                    <sc-if value="{{ c.puede }}" hint-placeholder-val="{{ true }}">
+                      <button onClick="{{ c.borrar }}" style="cursor:pointer;border:1.5px solid #F0D5CF;background:#fff;color:#B0483A;border-radius:7px;padding:6px 9px;font:600 11px Archivo,sans-serif">✕</button>
+                    </sc-if>
                   </div>
                 </div>
               </sc-for>
@@ -191,15 +206,18 @@ body{margin:0;background:#F1EFE8}a{color:#007E80}a:hover{color:#EF7A00}input:foc
               <h2 style="font:800 15px Archivo,sans-serif;margin:0;color:#3A4450">{{ formTitulo }}</h2>
               <sc-if value="{{ editando }}" hint-placeholder-val="{{ false }}"><button onClick="{{ cancelar }}" style="cursor:pointer;border:none;background:none;padding:0;font:600 12px Archivo,sans-serif;color:#8A8272">Cancelar</button></sc-if>
             </div>
+            <sc-if value="{{ noPuedeEditar }}" hint-placeholder-val="{{ false }}">
+              <p style="font:400 13px/1.6 Spectral,serif;color:#5A6470;margin:0;background:#FBF6EC;border:1px solid #F0E4C8;border-radius:10px;padding:14px 16px">Tu cuenta todavía no tiene programas asignados, así que no puedes agregar ni editar cursos. Pide a una persona administradora que te asocie a un programa en la pestaña <strong>Cuentas</strong>.</p>
+            </sc-if>
+            <sc-if value="{{ puedeEditar }}" hint-placeholder-val="{{ true }}">
             <div style="display:flex;flex-direction:column;gap:10px">
               <input value="{{ fNombre }}" onChange="{{ setF.nombre_curso }}" placeholder="Nombre del curso ofrecido *" style="box-sizing:border-box;width:100%;padding:10px 13px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5">
               <select value="{{ fPrograma }}" onChange="{{ setF.programa }}" style="padding:10px 12px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5;color:#3A4450">
                 <option value="">Programa que ofrece *</option>
                 <sc-for list="{{ programasOpc }}" as="o" hint-placeholder-count="5"><option>{{ o }}</option></sc-for>
-                <option value="__otro__">Otro programa (escribir)</option>
               </select>
-              <sc-if value="{{ fProgramaOtro }}" hint-placeholder-val="{{ false }}">
-                <input value="{{ fProgramaTexto }}" onChange="{{ setF.programa_texto }}" placeholder="Nombre del programa" style="box-sizing:border-box;width:100%;padding:10px 13px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5">
+              <sc-if value="{{ esAdmin }}" hint-placeholder-val="{{ false }}">
+                <p style="font:italic 400 11.5px/1.5 Spectral,serif;color:#8A8272;margin:-2px 0 0">Los programas se crean, renombran y eliminan en la pestaña <strong>Programas</strong>.</p>
               </sc-if>
               <input value="{{ fUnidad }}" onChange="{{ setF.unidad }}" placeholder="Unidad académica (Departamento, Escuela, IDEA)" style="box-sizing:border-box;width:100%;padding:10px 13px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5">
               <input value="{{ fAsig }}" onChange="{{ setF.nombre_asignatura }}" placeholder="Asignatura del plan (p. ej. Electivo I)" style="box-sizing:border-box;width:100%;padding:10px 13px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5">
@@ -237,6 +255,7 @@ body{margin:0;background:#F1EFE8}a{color:#007E80}a:hover{color:#EF7A00}input:foc
               </label>
               <button onClick="{{ guardar }}" style="cursor:pointer;border:none;background:#007E80;color:#fff;border-radius:9px;padding:12px;font:700 13.5px Archivo,sans-serif;margin-top:4px">{{ guardarLabel }}</button>
             </div>
+            </sc-if>
           </aside>
         </div>
         </sc-if>
@@ -280,6 +299,158 @@ body{margin:0;background:#F1EFE8}a{color:#007E80}a:hover{color:#EF7A00}input:foc
             <p style="font:400 12px/1.5 Spectral,serif;color:#8A8272;margin:0 0 12px">Se crea como <strong>borrador</strong>. Luego copia la oferta del semestre anterior, edítala y publícala.</p>
             <button onClick="{{ crearPeriodo }}" style="cursor:pointer;border:none;background:#007E80;color:#fff;border-radius:9px;padding:12px;font:700 13.5px Archivo,sans-serif;width:100%">Crear semestre</button>
           </aside>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ tabProgramas }}" hint-placeholder-val="{{ false }}">
+        <div style="display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:26px;align-items:start">
+          <section>
+            <h2 style="font:800 19px Archivo,sans-serif;margin:0 0 6px;color:#3A4450">Programas de postgrado</h2>
+            <p style="font:400 13.5px/1.6 Spectral,serif;color:#5A6470;margin:0 0 16px">Este catálogo alimenta el selector de programas de cada curso y la asignación de editores. Al <strong>renombrar</strong> un programa, el nuevo nombre se aplica a todos sus cursos en todos los semestres. Un programa <strong>desactivado</strong> se conserva en el historial pero no aparece para cursos nuevos; para eliminarlo no debe quedar ningún curso a su nombre.</p>
+            <sc-if value="{{ sinTablaProgramas }}" hint-placeholder-val="{{ false }}">
+              <div style="background:#F9EDE9;border:1px solid #E8CFC8;border-radius:12px;padding:14px 18px;margin-bottom:16px;font:400 12.5px/1.55 Archivo,sans-serif;color:#8A3D2E">Falta instalar el catálogo: ejecuta una vez <strong>data/supabase/migracion-programas-cuentas.sql</strong> en el editor SQL de Supabase.</div>
+            </sc-if>
+            <div style="background:#fff;border:1px solid #E8E4DA;border-radius:14px;overflow:hidden">
+              <sc-if value="{{ sinProgramas }}" hint-placeholder-val="{{ false }}">
+                <div style="padding:30px;text-align:center;font:400 13.5px/1.6 Spectral,serif;color:#5A6470">Aún no hay programas en el catálogo. Créalos con el formulario de la derecha.</div>
+              </sc-if>
+              <sc-for list="{{ progLista }}" as="p" hint-placeholder-count="4">
+                <div style="display:grid;grid-template-columns:minmax(0,1fr) 120px 90px;gap:14px;align-items:center;padding:13px 20px;border-bottom:1px solid #F0EDE4;background:{{ p.bg }}">
+                  <div style="min-width:0">
+                    <sc-if value="{{ p.editando }}" hint-placeholder-val="{{ false }}">
+                      <div style="display:flex;flex-direction:column;gap:8px">
+                        <input value="{{ progNombre }}" onChange="{{ setProgNombre }}" placeholder="Nombre del programa" style="box-sizing:border-box;width:100%;padding:9px 12px;border:1.5px solid #E0DCD0;border-radius:8px;font:400 13px Archivo,sans-serif;background:#FAF9F5">
+                        <input value="{{ progUnidad }}" onChange="{{ setProgUnidad }}" placeholder="Unidad académica" style="box-sizing:border-box;width:100%;padding:9px 12px;border:1.5px solid #E0DCD0;border-radius:8px;font:400 12.5px Archivo,sans-serif;background:#FAF9F5">
+                        <div style="display:flex;gap:8px">
+                          <button onClick="{{ progGuardar }}" style="cursor:pointer;border:none;background:#007E80;color:#fff;border-radius:7px;padding:7px 13px;font:700 11.5px Archivo,sans-serif">Guardar</button>
+                          <button onClick="{{ progCancelar }}" style="cursor:pointer;border:none;background:none;color:#8A8272;padding:7px 4px;font:600 11.5px Archivo,sans-serif">Cancelar</button>
+                        </div>
+                      </div>
+                    </sc-if>
+                    <sc-if value="{{ p.viendo }}" hint-placeholder-val="{{ true }}">
+                      <div>
+                        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+                          <span style="font:700 13.5px/1.3 Archivo,sans-serif;color:#3A4450">{{ p.nombre }}</span>
+                          <sc-if value="{{ p.inactivo }}" hint-placeholder-val="{{ false }}"><span style="font:600 9.5px Archivo,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#8A3D2E;background:#F9EDE9;border-radius:5px;padding:3px 7px">Desactivado</span></sc-if>
+                        </div>
+                        <div style="font:400 12px Archivo,sans-serif;color:#8A8272;margin-top:3px">{{ p.sub }}</div>
+                        <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">
+                          <button onClick="{{ p.editar }}" style="cursor:pointer;border:1.5px solid #E0DCD0;background:#fff;color:#007E80;border-radius:6px;padding:5px 10px;font:600 11px Archivo,sans-serif">Renombrar</button>
+                          <button onClick="{{ p.alternar }}" style="cursor:pointer;border:1.5px solid #E0DCD0;background:#fff;color:#5A6470;border-radius:6px;padding:5px 10px;font:600 11px Archivo,sans-serif">{{ p.alternarLabel }}</button>
+                        </div>
+                      </div>
+                    </sc-if>
+                  </div>
+                  <span style="font:600 11px IBM Plex Mono,monospace;color:#8A8272;text-align:right">{{ p.n }} cursos</span>
+                  <div style="display:flex;justify-content:flex-end">
+                    <button onClick="{{ p.borrar }}" title="{{ p.borrarTitulo }}" style="cursor:pointer;border:1.5px solid #F0D5CF;background:#fff;color:#B0483A;border-radius:7px;padding:6px 9px;font:600 11px Archivo,sans-serif">Eliminar</button>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </section>
+          <aside style="background:#fff;border:1px solid #E8E4DA;border-radius:14px;padding:20px">
+            <h2 style="font:800 15px Archivo,sans-serif;margin:0 0 12px;color:#3A4450">Nuevo programa</h2>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <input value="{{ npNombre }}" onChange="{{ setNpNombre }}" placeholder="Nombre del programa *" style="box-sizing:border-box;width:100%;padding:10px 13px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5">
+              <input value="{{ npUnidad }}" onChange="{{ setNpUnidad }}" placeholder="Unidad académica (Departamento, Escuela, IDEA)" style="box-sizing:border-box;width:100%;padding:10px 13px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5">
+              <button onClick="{{ crearPrograma }}" style="cursor:pointer;border:none;background:#007E80;color:#fff;border-radius:9px;padding:12px;font:700 13.5px Archivo,sans-serif">Agregar programa</button>
+            </div>
+          </aside>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ tabCuentas }}" hint-placeholder-val="{{ false }}">
+        <h2 style="font:800 19px Archivo,sans-serif;margin:0 0 6px;color:#3A4450">Cuentas y permisos</h2>
+        <p style="font:400 13.5px/1.6 Spectral,serif;color:#5A6470;margin:0 0 20px;max-width:840px">Las personas <strong>administradoras</strong> gestionan programas, semestres, cuentas y toda la oferta. Las <strong>editoras</strong> agregan, editan y eliminan cursos solo de los programas que se les asignen. Las cuentas son las mismas del sistema de Gestión de Información VIP.</p>
+        <sc-if value="{{ sinTablaProgramas }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#F9EDE9;border:1px solid #E8CFC8;border-radius:12px;padding:14px 18px;margin-bottom:18px;font:400 12.5px/1.55 Archivo,sans-serif;color:#8A3D2E">Para asignar programas a un editor/a falta ejecutar <strong>data/supabase/migracion-programas-cuentas.sql</strong> en Supabase.</div>
+        </sc-if>
+        <div style="display:flex;flex-direction:column;gap:26px;max-width:960px">
+          <section>
+            <h3 style="font:800 15px Archivo,sans-serif;margin:0 0 12px;color:#3A4450">Personas con acceso <span style="font:600 11px IBM Plex Mono,monospace;color:#8A8272">{{ nUsers }}</span></h3>
+            <div style="background:#fff;border:1px solid #E8E4DA;border-radius:14px;overflow:hidden">
+              <sc-for list="{{ users }}" as="u" hint-placeholder-count="3">
+                <div style="display:grid;grid-template-columns:minmax(0,1fr) 150px 120px;gap:14px;align-items:start;padding:14px 20px;border-bottom:1px solid #F0EDE4">
+                  <div style="min-width:0">
+                    <div style="font:700 13.5px Archivo,sans-serif;color:#3A4450">{{ u.nombre }}</div>
+                    <div style="font:400 12px Archivo,sans-serif;color:#8A8272;margin-top:2px">{{ u.correo }} · {{ u.estado }}</div>
+                    <sc-if value="{{ u.esEditor }}" hint-placeholder-val="{{ true }}">
+                      <div style="margin-top:9px">
+                        <div style="font:700 9.5px Archivo,sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#8A8272;margin-bottom:6px">Programas que puede editar</div>
+                        <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+                          <sc-for list="{{ u.programas }}" as="a" hint-placeholder-count="1">
+                            <span style="display:inline-flex;gap:6px;align-items:center;font:600 10.5px Archivo,sans-serif;color:#007E80;background:#E4F2F2;border-radius:6px;padding:4px 6px 4px 8px">{{ a.nombre }}<button onClick="{{ a.quitar }}" title="Quitar este programa" style="cursor:pointer;border:none;background:none;color:#1F5C5E;padding:0 2px;font:700 11px Archivo,sans-serif">✕</button></span>
+                          </sc-for>
+                          <sc-if value="{{ u.sinProgramas }}" hint-placeholder-val="{{ false }}">
+                            <span style="font:italic 400 12px Spectral,serif;color:#B0483A">Sin programas: aún no puede editar cursos.</span>
+                          </sc-if>
+                        </div>
+                        <select value="{{ u.porAsignar }}" onChange="{{ u.asignar }}" style="margin-top:8px;padding:7px 10px;border:1.5px solid #E0DCD0;border-radius:8px;font:600 11.5px Archivo,sans-serif;background:#FAF9F5;color:#3A4450;max-width:100%">
+                          <option value="">Asignar un programa…</option>
+                          <sc-for list="{{ u.opciones }}" as="o" hint-placeholder-count="3"><option value="{{ o.id }}">{{ o.nombre }}</option></sc-for>
+                        </select>
+                      </div>
+                    </sc-if>
+                    <sc-if value="{{ u.esAdmin }}" hint-placeholder-val="{{ false }}">
+                      <div style="font:italic 400 12px Spectral,serif;color:#5A6470;margin-top:8px">Acceso completo: programas, semestres, cuentas y todos los cursos.</div>
+                    </sc-if>
+                  </div>
+                  <select value="{{ u.rol }}" onChange="{{ u.setRol }}" disabled="{{ u.bloqueado }}" style="padding:8px 10px;border:1.5px solid #E0DCD0;border-radius:8px;font:600 11.5px Archivo,sans-serif;background:#FAF9F5;color:#3A4450">
+                    <option value="editor">Editor/a</option>
+                    <option value="administrador">Administrador/a</option>
+                  </select>
+                  <div style="display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap">
+                    <button onClick="{{ u.alternar }}" disabled="{{ u.bloqueado }}" style="cursor:pointer;border:1.5px solid #E0DCD0;background:#fff;color:#5A6470;border-radius:7px;padding:6px 9px;font:600 11px Archivo,sans-serif">{{ u.alternarLabel }}</button>
+                    <sc-if value="{{ u.puedeQuitar }}" hint-placeholder-val="{{ false }}">
+                      <button onClick="{{ u.quitar }}" style="cursor:pointer;border:1.5px solid #F0D5CF;background:#fff;color:#B0483A;border-radius:7px;padding:6px 9px;font:600 11px Archivo,sans-serif">Quitar</button>
+                    </sc-if>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </section>
+
+          <sc-if value="{{ hayInvitaciones }}" hint-placeholder-val="{{ false }}">
+            <section>
+              <h3 style="font:800 15px Archivo,sans-serif;margin:0 0 12px;color:#3A4450">Invitaciones pendientes <span style="font:600 11px IBM Plex Mono,monospace;color:#8A8272">{{ nInv }}</span></h3>
+              <div style="background:#fff;border:1px solid #E8E4DA;border-radius:14px;overflow:hidden">
+                <sc-for list="{{ invitaciones }}" as="i" hint-placeholder-count="1">
+                  <div style="display:grid;grid-template-columns:minmax(0,1fr) 150px 120px;gap:14px;align-items:center;padding:13px 20px;border-bottom:1px solid #F0EDE4">
+                    <div style="min-width:0">
+                      <div style="font:700 13px Archivo,sans-serif;color:#3A4450">{{ i.nombre }}</div>
+                      <div style="font:400 12px Archivo,sans-serif;color:#8A8272;margin-top:2px">{{ i.correo }}</div>
+                      <div style="font:400 12px Spectral,serif;color:#5A6470;margin-top:4px">{{ i.programasTexto }}</div>
+                    </div>
+                    <span style="font:600 11.5px Archivo,sans-serif;color:#5A6470">{{ i.rol }}</span>
+                    <div style="display:flex;justify-content:flex-end">
+                      <button onClick="{{ i.borrar }}" style="cursor:pointer;border:1.5px solid #F0D5CF;background:#fff;color:#B0483A;border-radius:7px;padding:6px 9px;font:600 11px Archivo,sans-serif">Anular</button>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+            </section>
+          </sc-if>
+
+          <section style="background:#fff;border:1px solid #E8E4DA;border-radius:14px;padding:22px 24px;max-width:460px">
+            <h3 style="font:800 15px Archivo,sans-serif;margin:0 0 4px;color:#3A4450">Autorizar una cuenta nueva</h3>
+            <p style="font:italic 400 12px/1.45 Spectral,serif;color:#8A8272;margin:0 0 16px">Se autoriza el correo; la persona crea su propia contraseña desde la pantalla de acceso con la opción «Primera vez».</p>
+            <div style="display:flex;flex-direction:column;gap:11px">
+              <input value="{{ uNombre }}" onChange="{{ setUNombre }}" placeholder="Nombre y apellido" style="box-sizing:border-box;width:100%;padding:10px 13px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5">
+              <input value="{{ uCorreo }}" onChange="{{ setUCorreo }}" type="email" placeholder="correo@usach.cl *" style="box-sizing:border-box;width:100%;padding:10px 13px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5">
+              <select value="{{ uRol }}" onChange="{{ setURol }}" style="padding:10px 12px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5;color:#3A4450">
+                <option value="editor">Editor/a de un programa</option>
+                <option value="administrador">Administrador/a</option>
+              </select>
+              <sc-if value="{{ uEsEditor }}" hint-placeholder-val="{{ true }}">
+                <select value="{{ uPrograma }}" onChange="{{ setUPrograma }}" style="padding:10px 12px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5;color:#3A4450">
+                  <option value="">Programa que podrá editar…</option>
+                  <sc-for list="{{ uProgramasOpc }}" as="o" hint-placeholder-count="3"><option value="{{ o.id }}">{{ o.nombre }}</option></sc-for>
+                </select>
+              </sc-if>
+              <button onClick="{{ invitar }}" style="cursor:pointer;border:none;background:#007E80;color:#fff;border-radius:9px;padding:12px;font:700 13.5px Archivo,sans-serif">Autorizar cuenta</button>
+            </div>
+          </section>
         </div>
       </sc-if>
 
@@ -361,17 +532,21 @@ body{margin:0;background:#F1EFE8}a{color:#007E80}a:hover{color:#EF7A00}input:foc
 </x-dc>
 <script type="text/x-dc" data-dc-script>
 class Component extends DCLogic {
-  VACIO = { nombre_curso: "", programa: "", programa_texto: "", unidad: "", nombre_asignatura: "", profesor: "", descriptor: "", tipo: "", jornada: "", modalidad: "", dia: "", hora_inicio: "", hora_fin: "", sala: "", cupos: "", sct: "", semestre_programa: "", codigo_plan: "", codigo_asignatura: "", resolucion: "", contacto: "", comentarios: "", vigente: true };
-  state = { fase: "cargando", perfil: null, login: { correo: "", clave: "" }, err: "", busy: false, tab: "oferta",
+  VACIO = { nombre_curso: "", programa: "", unidad: "", nombre_asignatura: "", profesor: "", descriptor: "", tipo: "", jornada: "", modalidad: "", dia: "", hora_inicio: "", hora_fin: "", sala: "", cupos: "", sct: "", semestre_programa: "", codigo_plan: "", codigo_asignatura: "", resolucion: "", contacto: "", comentarios: "", vigente: true };
+  state = { fase: "cargando", modo: "login", perfil: null, login: { correo: "", clave: "", nombre: "" }, err: "", busy: false, tab: "oferta",
     periodos: [], cursos: [], actividad: [], actError: "", periodo: null, form: null, editId: null,
     bq: "", bPrograma: "Todos los programas", bTipo: "Todos los tipos", bVig: "Vigentes y no vigentes", pag: 1,
-    aviso: "", avisoTipo: "ok", dupAbierto: false, dupOrigen: "", npAnio: String(new Date().getFullYear()), npSem: "1" };
+    aviso: "", avisoTipo: "ok", dupAbierto: false, dupOrigen: "", npAnio: String(new Date().getFullYear()), npSem: "1",
+    programas: [], sinTablaProgramas: false, progEditId: null, progNombre: "", progUnidad: "",
+    npNombre: "", npUnidad: "",
+    perfiles: [], invitaciones: [], asignaciones: [], invitProgramas: [],
+    uform: { nombre: "", correo: "", rol: "editor", programa: "" } };
   POR = 20;
 
   async componentDidMount() {
     this.setState({ form: { ...this.VACIO } });
     try {
-      const [lib, cfg] = await Promise.all([import("https://esm.sh/@supabase/supabase-js@2"), import("./data/supabase/config.js?v=1788798708702")]);
+      const [lib, cfg] = await Promise.all([import("https://esm.sh/@supabase/supabase-js@2"), import("./data/supabase/config.js?v=1788816478796")]);
       this.sb = lib.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY);
       this.sb.auth.onAuthStateChange((_e, s) => this.aplicarSesion(s));
       const { data } = await this.sb.auth.getSession();
@@ -391,15 +566,28 @@ class Component extends DCLogic {
   }
 
   async cargar() {
-    const [p, c, a] = await Promise.all([
+    const admin = this.state.perfil && this.state.perfil.rol === "administrador";
+    const t = [
       this.sb.from("cf_periodos").select("*").order("anio", { ascending: false }).order("semestre", { ascending: false }),
       this.sb.from("cf_cursos").select("*").order("programa").order("nombre_curso"),
-      this.sb.from("actividad").select("*").ilike("accion", "CF:%").order("fecha", { ascending: false }).limit(50)
-    ]);
+      this.sb.from("actividad").select("*").ilike("accion", "CF:%").order("fecha", { ascending: false }).limit(50),
+      this.sb.from("cf_programas").select("*").order("nombre"),
+      this.sb.from("cf_asignaciones").select("*")
+    ];
+    if (admin) {
+      t.push(this.sb.from("perfiles").select("*").order("nombre"));
+      t.push(this.sb.from("invitaciones").select("*").order("correo"));
+      t.push(this.sb.from("cf_invit_programas").select("*"));
+    }
+    const r = await Promise.all(t);
+    const [p, c, a, pr, asg] = r;
     if (p.error && /could not find the table|PGRST205|schema cache|does not exist/i.test(p.error.message)) { this.setState({ fase: "sininstalar" }); return; }
     const periodos = p.data || [];
     this.setState(s => ({ periodos, cursos: c.data || [], actividad: a.data || [],
       actError: a.error ? this.traducir(a.error.message) : "",
+      programas: pr.data || [], sinTablaProgramas: !!pr.error, asignaciones: asg.data || [],
+      perfiles: admin ? (r[5].data || []) : [], invitaciones: admin ? (r[6].data || []) : [],
+      invitProgramas: admin ? (r[7].data || []) : [],
       periodo: s.periodo && periodos.some(x => x.id === s.periodo) ? s.periodo : ((periodos.find(x => x.vigente) || periodos[0] || {}).id || null) }));
   }
 
@@ -416,25 +604,118 @@ class Component extends DCLogic {
     if (/email not confirmed/i.test(t)) return "Debes confirmar tu correo antes de entrar.";
     if (/rate limit|too many/i.test(t)) return "Demasiados intentos. Espera unos minutos.";
     if (/could not find the table|schema cache|relation .* does not exist|does not exist/i.test(t)) return "Faltan las tablas de cursos: ejecuta data/supabase/setup-cursos.sql en Supabase.";
-    if (/row-level security|permission denied/i.test(t)) return "Tu cuenta no tiene permiso para esta operación.";
+    if (/cf_programas|cf_asignaciones|cf_invit_programas|cf_puede/i.test(t) && /could not find|does not exist|schema cache/i.test(t)) return "Falta instalar el catálogo de programas: ejecuta data/supabase/migracion-programas-cuentas.sql en Supabase.";
+    if (/row-level security|permission denied/i.test(t)) return "Tu cuenta no tiene permiso para esta operación (revisa el rol y los programas asignados).";
+    if (/duplicate key/i.test(t) && /programa/i.test(t)) return "Ya existe un programa con ese nombre.";
     if (/duplicate key/i.test(t)) return "Ese semestre ya existe.";
+    if (/password/i.test(t) && /short|least/i.test(t)) return "La contraseña es demasiado corta (mínimo 8 caracteres).";
+    if (/signups? (are )?not allowed|signup is disabled/i.test(t)) return "El registro está desactivado en el servicio de datos. Una persona administradora debe activarlo en Supabase (Authentication ▸ Allow new users to sign up).";
+    if (/no tiene invitación/i.test(t)) return "Ese correo no está autorizado. Pide a una persona administradora que lo agregue en la pestaña Cuentas.";
     return t;
   }
 
   async acceder() {
-    const { correo, clave } = this.state.login;
+    const { correo, clave, nombre } = this.state.login;
     if (!correo || !clave) { this.setState({ err: "Escribe tu correo y contraseña." }); return; }
     this.setState({ busy: true, err: "" });
-    const { error } = await this.sb.auth.signInWithPassword({ email: correo.trim(), password: clave });
+    let error;
+    if (this.state.modo === "registro") {
+      const r = await this.sb.auth.signUp({ email: correo.trim(), password: clave, options: { data: { nombre: (nombre || "").trim() } } });
+      error = r.error;
+      if (!error && r.data && r.data.user && !r.data.session) {
+        this.setState({ busy: false, modo: "login", err: "Cuenta creada. Confirma tu correo y vuelve a entrar." });
+        return;
+      }
+    } else {
+      const r = await this.sb.auth.signInWithPassword({ email: correo.trim(), password: clave });
+      error = r.error;
+    }
     this.setState({ busy: false });
     if (error) this.setState({ err: this.traducir(error.message) });
+  }
+
+  // ---- programas -------------------------------------------------
+  async crearPrograma() {
+    const nombre = this.state.npNombre.trim(), unidad = this.state.npUnidad.trim();
+    if (!nombre) { this.avisar("Escribe el nombre del programa.", "err"); return; }
+    const r = await this.sb.from("cf_programas").insert({ nombre, unidad: unidad || null });
+    if (r.error) { this.avisar("No se pudo crear: " + this.traducir(r.error.message), "err"); return; }
+    await this.anota("Nuevo programa", nombre);
+    this.avisar(`«${nombre}» agregado al catálogo.`);
+    this.setState({ npNombre: "", npUnidad: "" });
+    this.cargar();
+  }
+
+  async guardarPrograma() {
+    const st = this.state, p = st.programas.find(x => x.id === st.progEditId);
+    if (!p) return;
+    const nombre = st.progNombre.trim(), unidad = st.progUnidad.trim();
+    if (!nombre) { this.avisar("El nombre no puede quedar vacío.", "err"); return; }
+    const n = st.cursos.filter(c => c.programa === p.nombre).length;
+    if (nombre !== p.nombre && n > 0 && !confirm(`El nuevo nombre se aplicará también a los ${n} cursos registrados como «${p.nombre}». ¿Continuar?`)) return;
+    const r = await this.sb.from("cf_programas").update({ nombre, unidad: unidad || null }).eq("id", p.id);
+    if (r.error) { this.avisar("No se pudo guardar: " + this.traducir(r.error.message), "err"); return; }
+    await this.anota("Programa editado", nombre === p.nombre ? nombre : `${p.nombre} → ${nombre}`);
+    this.avisar(nombre === p.nombre ? "Programa actualizado." : `Renombrado a «${nombre}»${n ? ` y aplicado a ${n} cursos` : ""}.`);
+    this.setState({ progEditId: null, progNombre: "", progUnidad: "" });
+    this.cargar();
+  }
+
+  async alternarPrograma(p) {
+    const r = await this.sb.from("cf_programas").update({ activo: !p.activo }).eq("id", p.id);
+    if (r.error) { this.avisar("No se pudo actualizar: " + this.traducir(r.error.message), "err"); return; }
+    await this.anota("Programa", `${p.nombre} → ${p.activo ? "desactivado" : "activo"}`);
+    this.cargar();
+  }
+
+  async borrarPrograma(p, n) {
+    if (n > 0) { this.avisar(`«${p.nombre}» tiene ${n} cursos registrados. Elimínalos o traslada esos cursos antes, o desactiva el programa.`, "err"); return; }
+    if (!confirm(`¿Eliminar «${p.nombre}» del catálogo de programas?`)) return;
+    const r = await this.sb.from("cf_programas").delete().eq("id", p.id);
+    if (r.error) { this.avisar("No se pudo eliminar: " + this.traducir(r.error.message), "err"); return; }
+    await this.anota("Programa eliminado", p.nombre);
+    this.avisar("Programa eliminado.");
+    this.cargar();
+  }
+
+  // ---- cuentas ---------------------------------------------------
+  async invitar() {
+    const u = this.state.uform, correo = u.correo.trim().toLowerCase();
+    if (!correo) { this.avisar("Escribe el correo de la persona.", "err"); return; }
+    if (u.rol === "editor" && !u.programa) { this.avisar("Elige el programa que podrá editar.", "err"); return; }
+    const r = await this.sb.from("invitaciones").upsert({ correo, nombre: u.nombre.trim(), rol: u.rol });
+    if (r.error) { this.avisar("No se pudo autorizar: " + this.traducir(r.error.message), "err"); return; }
+    if (u.rol === "editor" && u.programa) {
+      const ri = await this.sb.from("cf_invit_programas").upsert({ correo, programa_id: Number(u.programa) });
+      if (ri.error) { this.avisar("Cuenta autorizada, pero no se pudo reservar el programa: " + this.traducir(ri.error.message), "err"); }
+    }
+    const prog = (this.state.programas.find(p => p.id === Number(u.programa)) || {}).nombre;
+    await this.anota("Cuenta autorizada", `${correo} como ${u.rol}${prog ? " · " + prog : ""}`);
+    this.avisar("Correo autorizado. La persona ya puede crear su contraseña.");
+    this.setState({ uform: { nombre: "", correo: "", rol: "editor", programa: "" } });
+    this.cargar();
+  }
+
+  async asignarPrograma(u, programaId) {
+    const r = await this.sb.from("cf_asignaciones").upsert({ perfil: u.id, programa_id: Number(programaId) });
+    if (r.error) { this.avisar("No se pudo asignar: " + this.traducir(r.error.message), "err"); return; }
+    const prog = (this.state.programas.find(p => p.id === Number(programaId)) || {}).nombre || "";
+    await this.anota("Asignación de programa", `${u.correo} → ${prog}`);
+    this.avisar(`${u.nombre || u.correo} ya puede editar «${prog}».`);
+    this.cargar();
+  }
+
+  async quitarPrograma(u, programaId, nombre) {
+    const r = await this.sb.from("cf_asignaciones").delete().eq("perfil", u.id).eq("programa_id", programaId);
+    if (r.error) { this.avisar("No se pudo quitar: " + this.traducir(r.error.message), "err"); return; }
+    await this.anota("Asignación retirada", `${u.correo} ✕ ${nombre}`);
+    this.cargar();
   }
 
   limpiarFila(f) {
     const num = v => v === "" || v == null ? null : (isFinite(+v) ? Math.round(+v) : null);
     const txt = v => (v || "").trim() || null;
-    const programa = f.programa === "__otro__" ? txt(f.programa_texto) : txt(f.programa);
-    return { programa, nombre_curso: txt(f.nombre_curso), unidad: txt(f.unidad), nombre_asignatura: txt(f.nombre_asignatura), profesor: txt(f.profesor), descriptor: txt(f.descriptor),
+    return { programa: txt(f.programa), nombre_curso: txt(f.nombre_curso), unidad: txt(f.unidad), nombre_asignatura: txt(f.nombre_asignatura), profesor: txt(f.profesor), descriptor: txt(f.descriptor),
       tipo: txt(f.tipo), jornada: txt(f.jornada), modalidad: txt(f.modalidad), dia: txt(f.dia), hora_inicio: txt(f.hora_inicio), hora_fin: txt(f.hora_fin), sala: txt(f.sala),
       cupos: num(f.cupos), sct: num(f.sct), semestre_programa: num(f.semestre_programa), codigo_plan: num(f.codigo_plan), codigo_asignatura: num(f.codigo_asignatura),
       resolucion: txt(f.resolucion), contacto: txt(f.contacto), comentarios: txt(f.comentarios), vigente: !!f.vigente };
@@ -443,6 +724,7 @@ class Component extends DCLogic {
   async guardar() {
     const st = this.state, fila = this.limpiarFila(st.form);
     if (!fila.nombre_curso || !fila.programa) { this.avisar("El nombre del curso y el programa son obligatorios.", "err"); return; }
+    if (!this.misProgramas().incluye(fila.programa)) { this.avisar("Solo puedes registrar cursos en los programas que tienes asignados.", "err"); return; }
     if (!st.periodo) { this.avisar("Selecciona un semestre.", "err"); return; }
     let r;
     if (st.editId) r = await this.sb.from("cf_cursos").update(fila).eq("id", st.editId);
@@ -458,7 +740,7 @@ class Component extends DCLogic {
 
   async importar() {
     try {
-      const { PERIODOS, CURSOS } = await import("./data/cursos/catalogo.js?v=1788798708702");
+      const { PERIODOS, CURSOS } = await import("./data/cursos/catalogo.js?v=1788816478796");
       const rp = await this.sb.from("cf_periodos").upsert(PERIODOS.map(p => ({ id: p.id, anio: p.anio, semestre: p.semestre, etiqueta: p.etiqueta, estado: p.estado, vigente: p.vigente })), { onConflict: "id" });
       if (rp.error) throw rp.error;
       const filas = CURSOS.map(({ id, ...c }) => c);
@@ -503,9 +785,25 @@ class Component extends DCLogic {
     this.cargar();
   }
 
+  misProgramas() {
+    const st = this.state, admin = st.perfil && st.perfil.rol === "administrador";
+    const cat = st.programas || [];
+    const nombres = admin || st.sinTablaProgramas
+      ? (cat.length ? cat.map(p => p.nombre) : [...new Set(st.cursos.map(c => c.programa).filter(Boolean))])
+      : st.asignaciones.filter(a => st.perfil && a.perfil === st.perfil.id)
+          .map(a => (cat.find(p => p.id === a.programa_id) || {}).nombre).filter(Boolean);
+    return { nombres, todo: !!(admin || st.sinTablaProgramas), incluye: n => admin || st.sinTablaProgramas || nombres.includes(n) };
+  }
+
   renderVals() {
     const st = this.state, admin = st.perfil && st.perfil.rol === "administrador";
     const f = st.form || this.VACIO;
+    const alcance = this.misProgramas();
+    const cat = st.programas || [];
+    const catActivos = cat.filter(p => p.activo !== false);
+    const nCursosDe = n => st.cursos.filter(c => c.programa === n).length;
+    const puedeEditar = admin || st.sinTablaProgramas || alcance.nombres.length > 0;
+    const tabActual = admin ? st.tab : (["oferta", "stats", "act"].includes(st.tab) ? st.tab : "oferta");
     const norm = t => (t || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
     const delPer = st.cursos.filter(c => c.periodo === st.periodo);
     const q = norm(st.bq).trim();
@@ -527,7 +825,7 @@ class Component extends DCLogic {
     const porPer = st.periodos.map(p => { const cs = st.cursos.filter(c => c.periodo === p.id); return { name: p.etiqueta, n: cs.length, cupos: sum(cs, "cupos") }; });
     const maxPer = Math.max(1, ...porPer.map(x => Math.max(x.n, x.cupos)));
     const fmtFecha = d => { try { return new Date(d).toLocaleString("es-CL", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }); } catch (e) { return d; } };
-    const pestañas = [["oferta", "Oferta por semestre"], ["periodos", "Semestres"], ["stats", "Estadísticas"], ["act", "Actividad"]];
+    const pestañas = [["oferta", "Oferta por semestre"], admin && ["programas", "Programas"], admin && ["periodos", "Semestres"], admin && ["cuentas", "Cuentas"], ["stats", "Estadísticas"], ["act", "Actividad"]].filter(Boolean);
     const perObj = st.periodos.find(p => p.id === st.periodo);
 
     return {
@@ -536,22 +834,101 @@ class Component extends DCLogic {
       estadoTitulo: st.fase === "cargando" ? "Conectando…" : st.fase === "error" ? "Sin conexión con el servicio de datos" : st.fase === "sininstalar" ? "Falta instalar las tablas de cursos" : st.fase === "suspendido" ? "Cuenta suspendida" : "Cuenta sin permisos",
       estadoNota: st.fase === "cargando" ? "Verificando la sesión." : st.fase === "error" ? "Revisa que el proyecto de datos esté activo." : st.fase === "sininstalar" ? "Ejecuta una vez data/supabase/setup-cursos.sql (y luego seed-cursos.sql) en el editor SQL de Supabase y vuelve a entrar." : st.fase === "suspendido" ? "Tu acceso fue suspendido por una persona administradora." : "Tu cuenta no tiene perfil en el sistema VIP. Pide que autoricen tu correo desde el panel de Normativa Postgrados.",
       estadoConSalir: ["sinperfil", "suspendido", "sininstalar"].includes(st.fase),
-      lCorreo: st.login.correo, lClave: st.login.clave,
+      lCorreo: st.login.correo, lClave: st.login.clave, lNombre: st.login.nombre,
+      modoRegistro: st.modo === "registro",
+      accesoTitulo: st.modo === "registro" ? "Crear mi contraseña" : "Iniciar sesión",
+      accesoNota: st.modo === "registro" ? "Usa el mismo correo que autorizó el Vicedecanato y define una contraseña de al menos 8 caracteres." : "Usa la misma cuenta del sistema de Gestión de Información VIP.",
+      cambiarModo: () => this.setState(s => ({ modo: s.modo === "registro" ? "login" : "registro", err: "" })),
+      cambiarModoLabel: st.modo === "registro" ? "← Ya tengo contraseña" : "Primera vez: crear mi contraseña",
       setLCorreo: e => this.setState(s => ({ login: { ...s.login, correo: e.target.value } })),
       setLClave: e => this.setState(s => ({ login: { ...s.login, clave: e.target.value } })),
+      setLNombre: e => this.setState(s => ({ login: { ...s.login, nombre: e.target.value } })),
       enterAcceso: e => { if (e.key === "Enter") this.acceder(); },
-      acceder: () => this.acceder(), accesoBoton: st.busy ? "Un momento…" : "Entrar",
+      acceder: () => this.acceder(), accesoBoton: st.busy ? "Un momento…" : st.modo === "registro" ? "Crear cuenta" : "Entrar",
       hayError: !!st.err, err: st.err,
       salir: () => this.sb.auth.signOut(),
       sesionEtiqueta: st.perfil ? `${st.perfil.nombre || st.perfil.correo} · ${admin ? "Administrador/a" : "Editor/a"}` : "",
-      tabs: pestañas.map(([id, name]) => ({ name, fg: st.tab === id ? "#007E80" : "#8A8272", line: st.tab === id ? "#EF7A00" : "transparent", pick: () => this.setState({ tab: id }) })),
-      tabOferta: st.tab === "oferta", tabPeriodos: st.tab === "periodos", tabStats: st.tab === "stats", tabAct: st.tab === "act",
+      esAdmin: !!admin, puedeEditar, noPuedeEditar: !puedeEditar,
+      hayAlcance: !admin && !st.sinTablaProgramas,
+      alcanceTexto: alcance.nombres.length
+        ? `Puedes agregar, editar y eliminar cursos de ${alcance.nombres.length === 1 ? "tu programa" : "tus programas"}: ${alcance.nombres.join(" · ")}. El resto de la oferta aparece solo para consulta.`
+        : "Tu cuenta aún no tiene programas asignados. Puedes consultar la oferta, pero no editarla: pide a una persona administradora que te asocie a un programa.",
+      tabs: pestañas.map(([id, name]) => ({ name, fg: tabActual === id ? "#007E80" : "#8A8272", line: tabActual === id ? "#EF7A00" : "transparent", pick: () => this.setState({ tab: id }) })),
+      tabOferta: tabActual === "oferta", tabPeriodos: tabActual === "periodos", tabStats: tabActual === "stats", tabAct: tabActual === "act",
+      tabProgramas: tabActual === "programas", tabCuentas: tabActual === "cuentas",
+
+      sinTablaProgramas: !!st.sinTablaProgramas, sinProgramas: !st.sinTablaProgramas && cat.length === 0,
+      progNombre: st.progNombre, setProgNombre: e => this.setState({ progNombre: e.target.value }),
+      progUnidad: st.progUnidad, setProgUnidad: e => this.setState({ progUnidad: e.target.value }),
+      progGuardar: () => this.guardarPrograma(), progCancelar: () => this.setState({ progEditId: null, progNombre: "", progUnidad: "" }),
+      progLista: cat.map(p => { const n = nCursosDe(p.nombre), eds = st.asignaciones.filter(a => a.programa_id === p.id).length; return {
+        nombre: p.nombre, n, inactivo: p.activo === false, bg: st.progEditId === p.id ? "#FBF6EC" : "#fff",
+        editando: st.progEditId === p.id, viendo: st.progEditId !== p.id,
+        sub: [p.unidad || "Sin unidad informada", eds ? `${eds} ${eds === 1 ? "editor/a asignado/a" : "editores asignados"}` : "sin editores asignados"].join(" · "),
+        editar: () => this.setState({ progEditId: p.id, progNombre: p.nombre, progUnidad: p.unidad || "" }),
+        alternar: () => this.alternarPrograma(p), alternarLabel: p.activo === false ? "Activar" : "Desactivar",
+        borrar: () => this.borrarPrograma(p, n), borrarTitulo: n ? `Tiene ${n} cursos registrados: primero elimina o traslada esos cursos` : "Eliminar del catálogo" }; }),
+      npNombre: st.npNombre, setNpNombre: e => this.setState({ npNombre: e.target.value }),
+      npUnidad: st.npUnidad, setNpUnidad: e => this.setState({ npUnidad: e.target.value }),
+      crearPrograma: () => this.crearPrograma(),
+
+      nUsers: st.perfiles.length,
+      users: st.perfiles.map(u => {
+        const mias = st.asignaciones.filter(a => a.perfil === u.id).map(a => cat.find(p => p.id === a.programa_id)).filter(Boolean);
+        const esEd = u.rol !== "administrador", yo = !!(st.perfil && u.id === st.perfil.id);
+        return { nombre: u.nombre || "(sin nombre)", correo: u.correo, rol: u.rol, estado: u.activo ? "Activo" : "Suspendido",
+          esEditor: esEd && !st.sinTablaProgramas, esAdmin: !esEd, bloqueado: yo, puedeQuitar: !yo,
+          programas: mias.map(p => ({ nombre: p.nombre, quitar: () => this.quitarPrograma(u, p.id, p.nombre) })),
+          sinProgramas: mias.length === 0, porAsignar: "",
+          opciones: catActivos.filter(p => !mias.some(m => m.id === p.id)).map(p => ({ id: p.id, nombre: p.nombre })),
+          asignar: e => { const v = e.target.value; if (v) this.asignarPrograma(u, v); },
+          alternarLabel: u.activo ? "Suspender" : "Reactivar",
+          alternar: async () => {
+            const r = await this.sb.from("perfiles").update({ activo: !u.activo }).eq("id", u.id);
+            if (r.error) { this.avisar("No se pudo cambiar el estado: " + this.traducir(r.error.message), "err"); return; }
+            await this.anota("Cuenta", `${u.correo} → ${u.activo ? "suspendida" : "reactivada"}`); this.cargar();
+          },
+          setRol: async e => {
+            const rol = e.target.value;
+            const r = await this.sb.from("perfiles").update({ rol }).eq("id", u.id);
+            if (r.error) { this.avisar("No se pudo cambiar el rol: " + this.traducir(r.error.message), "err"); return; }
+            await this.anota("Cambio de rol", `${u.correo} → ${rol}`); this.cargar();
+          },
+          quitar: async () => {
+            if (!confirm(`¿Quitar el acceso de ${u.correo}? Su cuenta queda sin perfil en el sistema VIP.`)) return;
+            const r = await this.sb.from("perfiles").delete().eq("id", u.id);
+            if (r.error) { this.avisar("No se pudo quitar: " + this.traducir(r.error.message), "err"); return; }
+            await this.anota("Cuenta eliminada", u.correo); this.avisar("Acceso retirado."); this.cargar();
+          } };
+      }),
+      hayInvitaciones: st.invitaciones.length > 0, nInv: st.invitaciones.length,
+      invitaciones: st.invitaciones.map(i => {
+        const ps = st.invitProgramas.filter(x => (x.correo || "").toLowerCase() === (i.correo || "").toLowerCase())
+          .map(x => (cat.find(p => p.id === x.programa_id) || {}).nombre).filter(Boolean);
+        return { nombre: i.nombre || "(sin nombre)", correo: i.correo,
+          rol: i.rol === "administrador" ? "Administrador/a" : "Editor/a",
+          programasTexto: i.rol === "administrador" ? "Acceso completo" : (ps.length ? "Programa: " + ps.join(" · ") : "Sin programa reservado"),
+          borrar: async () => {
+            const r = await this.sb.from("invitaciones").delete().eq("correo", i.correo);
+            if (r.error) { this.avisar("No se pudo anular: " + this.traducir(r.error.message), "err"); return; }
+            await this.sb.from("cf_invit_programas").delete().eq("correo", i.correo);
+            await this.anota("Invitación anulada", i.correo); this.cargar();
+          } };
+      }),
+      uNombre: st.uform.nombre, uCorreo: st.uform.correo, uRol: st.uform.rol, uPrograma: st.uform.programa,
+      uEsEditor: st.uform.rol === "editor" && !st.sinTablaProgramas,
+      uProgramasOpc: catActivos.map(p => ({ id: p.id, nombre: p.nombre })),
+      setUNombre: e => this.setState(s => ({ uform: { ...s.uform, nombre: e.target.value } })),
+      setUCorreo: e => this.setState(s => ({ uform: { ...s.uform, correo: e.target.value } })),
+      setURol: e => this.setState(s => ({ uform: { ...s.uform, rol: e.target.value } })),
+      setUPrograma: e => this.setState(s => ({ uform: { ...s.uform, programa: e.target.value } })),
+      invitar: () => this.invitar(),
       hayAviso: !!st.aviso, aviso: st.aviso, avisoFg: st.avisoTipo === "err" ? "#B0483A" : "#2F6B4F", avisoBg: st.avisoTipo === "err" ? "#F9EBE8" : "#E7F3EB",
 
       periodosSel: st.periodos.map(p => { const on = p.id === st.periodo; return { etiqueta: p.etiqueta, estado: p.vigente ? "vigente" : p.estado, pick: () => this.setState({ periodo: p.id, pag: 1, editId: null, form: { ...this.VACIO } }), bg: on ? "#007E80" : "#fff", fg: on ? "#fff" : "#3A4450", border: on ? "#007E80" : "#E0DCD0" }; }),
       sinPeriodo: st.periodos.length === 0, conPeriodo: st.periodos.length > 0,
       perEtiqueta: perObj ? perObj.etiqueta : "", nCursos: delPer.length, nCupos: sum(delPer, "cupos"),
-      puedeImportar: st.cursos.length === 0, importar: () => this.importar(),
+      puedeImportar: !!admin && st.cursos.length === 0, importar: () => this.importar(),
       duplicar: () => this.setState(s => ({ dupAbierto: !s.dupAbierto, dupOrigen: (s.periodos.find(p => p.id !== s.periodo) || {}).id || "" })),
       dupAbierto: st.dupAbierto, dupOrigen: st.dupOrigen, setDupOrigen: e => this.setState({ dupOrigen: e.target.value }),
       dupOpciones: st.periodos.filter(p => p.id !== st.periodo).map(p => ({ id: p.id, etiqueta: p.etiqueta })),
@@ -565,7 +942,8 @@ class Component extends DCLogic {
         programa: c.programa, tipo: c.tipo || "Sin tipo", noVigente: !c.vigente, nombre: c.nombre_curso,
         sub: [c.profesor, c.dia, c.hora_inicio ? c.hora_inicio + (c.hora_fin ? "–" + c.hora_fin : "") : null, c.sala].filter(Boolean).join(" · ") || "Sin horario informado",
         cupos: c.cupos != null ? c.cupos + " cupos" : "—", bg: st.editId === c.id ? "#FBF6EC" : "#fff",
-        editar: () => this.setState({ editId: c.id, form: { ...this.VACIO, ...Object.fromEntries(Object.keys(this.VACIO).map(k => [k, c[k] == null ? (k === "vigente" ? true : "") : c[k]])), programa: programas.includes(c.programa) ? c.programa : "__otro__", programa_texto: programas.includes(c.programa) ? "" : c.programa } }),
+        puede: alcance.incluye(c.programa),
+        editar: () => this.setState({ editId: c.id, form: { ...this.VACIO, ...Object.fromEntries(Object.keys(this.VACIO).map(k => [k, c[k] == null ? (k === "vigente" ? true : "") : c[k]])), programa: c.programa || "" } }),
         borrar: async () => {
           if (!confirm(`¿Eliminar «${c.nombre_curso}» de ${this.etiqueta(c.periodo)}?`)) return;
           const r = await this.sb.from("cf_cursos").delete().eq("id", c.id);
@@ -580,8 +958,11 @@ class Component extends DCLogic {
       formTitulo: st.editId ? "Editar curso" : "Agregar curso a " + (perObj ? perObj.etiqueta : ""),
       editando: !!st.editId, cancelar: () => this.setState({ editId: null, form: { ...this.VACIO } }),
       guardar: () => this.guardar(), guardarLabel: st.editId ? "Guardar cambios" : "Agregar a la oferta",
-      programasOpc: programas, setF,
-      fNombre: f.nombre_curso, fPrograma: f.programa, fProgramaOtro: f.programa === "__otro__", fProgramaTexto: f.programa_texto, fUnidad: f.unidad, fAsig: f.nombre_asignatura, fProfesor: f.profesor, fDescriptor: f.descriptor,
+      programasOpc: [...new Set([
+        ...(cat.length ? (alcance.todo ? catActivos.map(p => p.nombre) : alcance.nombres) : (alcance.todo ? programas : alcance.nombres)),
+        ...(f.programa ? [f.programa] : [])
+      ])].sort((a, b) => a.localeCompare(b)), setF,
+      fNombre: f.nombre_curso, fPrograma: f.programa, fUnidad: f.unidad, fAsig: f.nombre_asignatura, fProfesor: f.profesor, fDescriptor: f.descriptor,
       fTipo: f.tipo, fJornada: f.jornada, fModalidad: f.modalidad, fDia: f.dia, fHi: f.hora_inicio, fHf: f.hora_fin, fSala: f.sala, fCupos: f.cupos, fSct: f.sct, fSemProg: f.semestre_programa,
       fCodPlan: f.codigo_plan, fCodAsig: f.codigo_asignatura, fResol: f.resolucion, fContacto: f.contacto, fComentarios: f.comentarios, fVigente: !!f.vigente,
 

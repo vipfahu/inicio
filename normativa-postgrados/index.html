@@ -18,7 +18,7 @@
 </script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="./support.js?v=1788796946526"></script>
+<script src="./support.js?v=1788816478796"></script>
 </head>
 <body>
 <x-dc>
@@ -229,7 +229,7 @@ class Component extends DCLogic {
   matrizFilas = [];
   async componentDidMount() {
     try {
-      const m = await import('./data/normativa/catalogo.js?v=1788796946526');
+      const m = await import('./data/normativa/catalogo.js');
       this.docs = m.DOCS; this.matrizFilas = m.MATRIZ;
       this.forceUpdate();
     } catch (e) { console.warn('No se pudo cargar el catálogo normativo', e); }
@@ -250,7 +250,7 @@ class Component extends DCLogic {
       if (!this._sb) {
         const [lib, cfg] = await Promise.all([
           import('https://esm.sh/@supabase/supabase-js@2'),
-          import('./data/supabase/config.js?v=1788796946526')
+          import('./data/supabase/config.js')
         ]);
         this._sb = lib.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY);
       }
