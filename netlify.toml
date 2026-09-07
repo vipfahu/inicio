@@ -1,0 +1,76 @@
+# Netlify — Gestión de Información VIP · carpeta vipfahu/ (repo vipfahu/repositorio) → https://vipfahu.netlify.app
+[build]
+  publish = "."
+  command = ""
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "SAMEORIGIN"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "no-cache, must-revalidate"
+
+[[headers]]
+  for = "/*/*.html"
+  [headers.values]
+    Cache-Control = "no-cache, must-revalidate"
+
+[[headers]]
+  for = "/*/support.js"
+  [headers.values]
+    Cache-Control = "no-cache, must-revalidate"
+
+[[headers]]
+  for = "/support.js"
+  [headers.values]
+    Cache-Control = "no-cache, must-revalidate"
+
+[[headers]]
+  for = "/*/data/*"
+  [headers.values]
+    Cache-Control = "no-cache, must-revalidate"
+
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/*/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Rutas cortas por subsistema
+[[redirects]]
+  from = "/normativa"
+  to = "/normativa-postgrados/index.html"
+  status = 301
+
+[[redirects]]
+  from = "/normativa-postgrados"
+  to = "/normativa-postgrados/index.html"
+  status = 301
+
+[[redirects]]
+  from = "/admin"
+  to = "/normativa-postgrados/admin.html"
+  status = 301
+
+[[redirects]]
+  from = "/normativa/admin"
+  to = "/normativa-postgrados/admin.html"
+  status = 301
+
+# Reservadas para subsistemas futuros
+# /cursos        → /cursos-formacion/index.html
+# /trayectorias  → /trayectorias-academicas/index.html
+
+[[redirects]]
+  from = "/*"
+  to = "/404.html"
+  status = 404

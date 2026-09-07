@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<script>
+(function(){
+  function lock(){
+    document.body && document.body.removeAttribute('data-dc-editor-on');
+    document.querySelectorAll('[contenteditable="true"]').forEach(function(el){ el.setAttribute('contenteditable','false'); });
+  }
+  document.addEventListener('DOMContentLoaded', function(){
+    lock();
+    new MutationObserver(lock).observe(document.documentElement, {attributes:true, subtree:true, attributeFilter:['data-dc-editor-on','contenteditable']});
+  });
+})();
+</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js?v=1788792800295"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700;800&amp;family=Spectral:ital,wght@0,400;0,600;1,400&amp;family=IBM+Plex+Mono:wght@400;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F6F4EF}a{color:#007E80}a:hover{color:#EF7A00}input:focus{outline:none;border-color:#00A0A0}
+@media screen and (max-width:760px){
+  /* header: buscador y botón a ancho completo */
+  header [style*="display: flex"][style*="gap: 14px"]{flex-wrap:wrap !important;width:100%}
+  header input{width:100% !important}
+  /* rail de facetas sobre el listado, sin columna lateral */
+  [style*="250px minmax"]{grid-template-columns:minmax(0,1fr) !important}
+  aside[style*="border-right"]{border-right:none !important;border-bottom:1px solid #E8E4DA !important;padding:22px 20px 26px !important}
+  /* KPIs y barras del panorama a una columna doble/simple */
+  [style*="repeat(4,"]{grid-template-columns:repeat(2, minmax(0,1fr)) !important}
+  [style*="repeat(2,"]{grid-template-columns:minmax(0,1fr) !important}
+  [style*="150px minmax"]{grid-template-columns:minmax(0,1fr) 34px !important}
+  [style*="150px minmax"] > span:first-child{white-space:normal !important;grid-column:1 / -1}
+  /* matriz comparada: columnas de marcas más angostas */
+  [style*="56px 56px"]{grid-template-columns:minmax(0,1fr) 30px 30px 30px !important;gap:3px 5px !important}
+  /* filas de documentos: tipo, título y acción apilados */
+  [style*="96px minmax"]{grid-template-columns:minmax(0,1fr) !important;gap:7px !important;padding:14px 18px !important}
+  [style*="96px minmax"] > span{justify-self:start;text-align:left !important}
+  [style*="20px 136px"]{padding:4px 18px 20px 18px !important}
+}
+</style>
+</helmet>
+<div style="min-height:100vh;font-family:'Spectral',serif;color:#3A4450">
+  <div style="background:#3A4450;padding:8px clamp(24px,5vw,60px);display:flex;align-items:center;gap:10px">
+    <a href="../index.html" style="font:600 11px 'Archivo',sans-serif;color:#fff;text-decoration:none;opacity:.9" style-hover="opacity:1;color:#EF7A00">← Gestión de Información VIP</a>
+    <span style="font:400 11px 'Archivo',sans-serif;color:rgba(255,255,255,.55)">/ Normativa Postgrados</span>
+  </div>
+  <header style="background:#fff;border-bottom:1px solid #E8E4DA;padding:16px clamp(24px,5vw,60px);display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap">
+    <div onClick="{{ inicio }}" title="Volver al inicio de la plataforma" style="cursor:pointer">
+      <img src="assets/logo-fahu.png" alt="Facultad de Humanidades · Universidad de Santiago de Chile" style="display:block;height:87px;width:auto;margin-bottom:8px">
+      <span style="font:800 16px 'Archivo',sans-serif;color:#007E80">Repositorio Normativa Postgrados FAHU e IDEA</span>
+      <span style="font:400 12px 'Archivo',sans-serif;color:#8A8272;margin-left:10px">Vicedecanato de Investigación y Postgrado · FAHU USACH</span>
+    </div>
+    <div style="display:flex;gap:14px;align-items:center">
+      <input value="{{ q }}" onChange="{{ setQ }}" placeholder="Buscar en la biblioteca…" style="width:min(320px,60vw);box-sizing:border-box;padding:10px 16px;border:1.5px solid #E0DCD0;border-radius:10px;font:400 13px 'Archivo',sans-serif;background:#FAF9F5">
+      <a href="admin.html" style="font:600 11px 'Archivo',sans-serif;color:#fff;background:#EF7A00;border-radius:8px;padding:9px 14px;white-space:nowrap;text-decoration:none">Panel de actualización</a>
+    </div>
+  </header>
+  <div style="display:grid;grid-template-columns:250px minmax(0,1fr);gap:0;max-width:1200px;margin:0 auto">
+    <aside style="border-right:1px solid #E8E4DA;padding:30px 22px 60px">
+      <div style="font:700 10px 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#8A8272;margin-bottom:10px">Materia</div>
+      <div style="display:flex;flex-direction:column;gap:2px;margin-bottom:26px">
+        <sc-for list="{{ materias }}" as="t" hint-placeholder-count="6">
+          <button onClick="{{ t.pick }}" style="cursor:{{ t.cursor }};display:flex;justify-content:space-between;align-items:center;gap:8px;border:none;text-align:left;border-radius:8px;padding:8px 12px;font:600 12.5px 'Archivo',sans-serif;background:{{ t.bg }};color:{{ t.fg }}"><span>{{ t.name }}</span><span style="font:600 11px 'IBM Plex Mono',monospace;opacity:.65">{{ t.n }}</span></button>
+        </sc-for>
+      </div>
+      <div style="font:700 10px 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#8A8272;margin-bottom:10px">PROGRAMAS<br></div>
+      <select value="{{ programaSel }}" onChange="{{ setPrograma }}" style="width:100%;box-sizing:border-box;margin-bottom:26px;padding:9px 10px;border:1.5px solid #E0DCD0;border-radius:9px;font:600 12.5px 'Archivo',sans-serif;background:#FAF9F5;color:#3A4450;cursor:pointer">
+        <sc-for list="{{ programas }}" as="t" hint-placeholder-count="8">
+          <option value="{{ t.valor }}">{{ t.opcion }}</option>
+        </sc-for>
+      </select>
+      <div style="font:700 10px 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#8A8272;margin-bottom:10px">Ámbito</div>
+      <div style="display:flex;flex-direction:column;gap:2px;margin-bottom:26px">
+        <sc-for list="{{ ambitos }}" as="t" hint-placeholder-count="4">
+          <button onClick="{{ t.pick }}" style="cursor:{{ t.cursor }};display:flex;justify-content:space-between;align-items:center;gap:8px;border:none;text-align:left;border-radius:8px;padding:8px 12px;font:600 12.5px 'Archivo',sans-serif;background:{{ t.bg }};color:{{ t.fg }}"><span>{{ t.name }}</span><span style="font:600 11px 'IBM Plex Mono',monospace;opacity:.65">{{ t.n }}</span></button>
+        </sc-for>
+      </div>
+      <div style="font:700 10px 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#8A8272;margin-bottom:10px">Tipo de documento</div>
+      <div style="display:flex;flex-direction:column;gap:2px;margin-bottom:26px">
+        <sc-for list="{{ tipos }}" as="t" hint-placeholder-count="5">
+          <button onClick="{{ t.pick }}" style="cursor:{{ t.cursor }};display:flex;justify-content:space-between;align-items:center;gap:8px;border:none;text-align:left;border-radius:8px;padding:8px 12px;font:600 12.5px 'Archivo',sans-serif;background:{{ t.bg }};color:{{ t.fg }}"><span>{{ t.name }}</span><span style="font:600 11px 'IBM Plex Mono',monospace;opacity:.65">{{ t.n }}</span></button>
+        </sc-for>
+      </div>
+      <div style="font:700 10px 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#8A8272;margin-bottom:10px">Vigencia</div>
+      <div style="display:flex;flex-direction:column;gap:2px">
+        <sc-for list="{{ vigencias }}" as="t" hint-placeholder-count="5">
+          <button onClick="{{ t.pick }}" style="cursor:{{ t.cursor }};display:flex;justify-content:space-between;align-items:center;gap:8px;border:none;text-align:left;border-radius:8px;padding:8px 12px;font:600 12.5px 'Archivo',sans-serif;background:{{ t.bg }};color:{{ t.fg }}"><span>{{ t.name }}</span><span style="font:600 11px 'IBM Plex Mono',monospace;opacity:.65">{{ t.n }}</span></button>
+        </sc-for>
+      </div>
+    </aside>
+    <main style="padding:30px clamp(20px,3.5vw,44px) 80px">
+      <div style="background:#3A4450;border-radius:14px;padding:24px 26px 26px;margin-bottom:26px">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px;margin-bottom:18px">
+          <span style="font:700 13px 'Archivo',sans-serif;color:#fff;letter-spacing:.04em;text-transform:uppercase">Panorama normativo</span>
+          <sc-if value="{{ filtrado }}" hint-placeholder-val="{{ false }}">
+            <button onClick="{{ limpiar }}" style="cursor:pointer;border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.1);color:#fff;border-radius:8px;padding:7px 14px;font:600 11.5px 'Archivo',sans-serif">Ver todos los documentos ✕</button>
+          </sc-if>
+          <sc-if value="{{ noFiltrado }}" hint-placeholder-val="{{ true }}">
+            <span style="font:400 11.5px 'Spectral',serif;color:rgba(255,255,255,.55)">Síntesis de la documentación cargada · haz clic en una materia para filtrar</span>
+          </sc-if>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(4, minmax(0,1fr));gap:16px;padding-bottom:22px;border-bottom:1px solid rgba(255,255,255,.12)">
+          <sc-for list="{{ kpis }}" as="k" hint-placeholder-count="4">
+            <div>
+              <div style="font:600 22px 'IBM Plex Mono',monospace;color:#EF7A00;letter-spacing:-.02em">{{ k.n }}</div>
+              <div style="font:400 11px/1.35 'Archivo',sans-serif;color:rgba(255,255,255,.65);margin-top:2px">{{ k.lab }}</div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="font:700 10px 'Archivo',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.5);margin:20px 0 12px">Documentos por materia normativa</div>
+        <div style="display:grid;grid-template-columns:repeat(2, minmax(0,1fr));gap:7px 34px">
+          <sc-for list="{{ barras }}" as="b" hint-placeholder-count="8">
+            <button onClick="{{ b.pick }}" style="cursor:pointer;border:none;text-align:left;border-radius:6px;padding:3px 6px;margin:0 -6px;background:{{ b.bg }};display:grid;grid-template-columns:150px minmax(0,1fr) 22px;gap:10px;align-items:center" style-hover="background:rgba(255,255,255,.14)">
+              <span style="font:400 11px 'Spectral',serif;color:{{ b.fg }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ b.name }}</span>
+              <span style="height:8px;background:rgba(255,255,255,.1);border-radius:4px;overflow:hidden;display:block"><span style="height:100%;border-radius:4px;background:{{ b.color }};width:{{ b.w }};display:block"></span></span>
+              <span style="font:600 11px 'IBM Plex Mono',monospace;color:#fff;text-align:right">{{ b.n }}</span>
+            </button>
+          </sc-for>
+        </div>
+        <div style="font:700 10px 'Archivo',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.5);margin:26px 0 12px">Estructura comparada de los reglamentos generales</div>
+        <div style="display:grid;grid-template-columns:minmax(0,1fr) 56px 56px 56px;gap:3px 8px;align-items:center">
+          <span></span>
+          <sc-for list="{{ cols }}" as="k" hint-placeholder-count="3">
+            <button onClick="{{ k.pick }}" style="cursor:pointer;border:none;background:{{ k.bg }};border-radius:5px;padding:4px 0;font:600 9.5px 'Archivo',sans-serif;color:#fff;text-align:center;letter-spacing:.04em" style-hover="background:rgba(255,255,255,.22)">{{ k.lab }}</button>
+          </sc-for>
+          <sc-for list="{{ matriz }}" as="m" hint-placeholder-count="8">
+            <button onClick="{{ m.buscar }}" style="cursor:pointer;border:none;background:transparent;text-align:left;padding:0;font:400 11.5px 'Spectral',serif;color:rgba(255,255,255,.8);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" style-hover="color:#EF7A00">{{ m.name }}</button>
+            <sc-for list="{{ m.cells }}" as="c" hint-placeholder-count="3">
+              <button onClick="{{ c.pick }}" style="cursor:{{ c.cursor }};border:none;height:16px;border-radius:4px;background:{{ c.bg }};color:{{ c.fg }};font:600 9px 'Archivo',sans-serif;display:flex;align-items:center;justify-content:center;padding:0">{{ c.mark }}</button>
+            </sc-for>
+          </sc-for>
+        </div>
+        <p style="font:italic 400 11.5px/1.5 'Spectral',serif;color:rgba(255,255,255,.5);margin:14px 0 0">Haz clic en una columna o en un punto para abrir el reglamento correspondiente, o en el título de una fila para buscar esa materia en toda la biblioteca. Los tres reglamentos comparten el mismo armazón. Difieren en la actividad final de graduación: examen de calificación y tesis en doctorado, proyecto de tesis y tesis en magíster académico, proyecto y trabajo de graduación en magíster profesional.</p>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px">
+        <h1 style="font:800 22px 'Archivo',sans-serif;color:#3A4450;letter-spacing:-.01em;margin:0">Documentos</h1>
+        <span style="font:600 12px 'IBM Plex Mono',monospace;color:#8A8272">{{ count }} resultados</span>
+      </div>
+      <div style="background:#fff;border:1px solid #E8E4DA;border-radius:14px;overflow:hidden">
+        <sc-if value="{{ vacio }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:44px 24px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:12px">
+            <div style="font:700 14px 'Archivo',sans-serif;color:#3A4450">No hay documentos que coincidan con este filtro</div>
+            <p style="font:400 13px/1.55 'Spectral',serif;color:#8A8272;margin:0;max-width:380px">La biblioteca está en construcción: por ahora contiene los reglamentos generales de postgrado. Otros tipos y ámbitos se irán incorporando.</p>
+            <button onClick="{{ limpiar }}" style="cursor:pointer;border:1.5px solid #E0DCD0;background:#FAF9F5;color:#007E80;border-radius:9px;padding:9px 16px;font:600 12.5px 'Archivo',sans-serif">Limpiar filtros</button>
+          </div>
+        </sc-if>
+        <sc-for list="{{ docs }}" as="d" hint-placeholder-count="6">
+          <div style="border-bottom:1px solid #F0EDE4">
+            <div onClick="{{ d.toggle }}" style="cursor:pointer;display:grid;grid-template-columns:96px minmax(0,1fr) 90px;gap:18px;align-items:center;padding:16px 22px" style-hover="background:#FAF9F4">
+              <div style="display:flex;flex-direction:column;gap:4px">
+                <span style="font:600 10px 'Archivo',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#007E80;background:#E4F2F2;border-radius:6px;padding:5px 8px;text-align:center">{{ d.tipo }}</span>
+                <span style="font:600 9.5px 'Archivo',sans-serif;letter-spacing:.05em;text-transform:uppercase;border-radius:6px;padding:4px 6px;text-align:center;background:{{ d.vigBg }};color:{{ d.vigFg }}">{{ d.vigEstado }}</span>
+              </div>
+              <div>
+                <div style="font:700 14.5px/1.3 'Archivo',sans-serif;color:#3A4450">{{ d.titulo }}</div>
+                <div style="font:400 12px 'Archivo',sans-serif;color:#8A8272;margin-top:3px">{{ d.ref }} · {{ d.materia }}</div>
+              </div>
+              <span style="font:600 12px 'Archivo',sans-serif;color:#EF7A00;text-align:right;white-space:nowrap">{{ d.arrow }}</span>
+            </div>
+            <sc-if value="{{ d.open }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:4px 22px 20px 136px;display:flex;flex-direction:column;gap:12px">
+                <sc-if value="{{ d.vigAviso }}" hint-placeholder-val="{{ false }}">
+                  <div style="font:600 11.5px 'Archivo',sans-serif;color:#8A5A12;background:#FBF0DF;border-radius:8px;padding:8px 12px;align-self:flex-start">{{ d.vigTexto }}</div>
+                </sc-if>
+                <p style="font:400 13.5px/1.6 'Spectral',serif;color:#5A6470;margin:0;max-width:640px">{{ d.resumen }}</p>
+                <div style="display:flex;gap:10px;flex-wrap:wrap">
+                  <button onClick="{{ d.verPdf }}" style="cursor:pointer;border:none;font:600 12px 'Archivo',sans-serif;color:#fff;background:#007E80;border-radius:8px;padding:9px 14px">Ver PDF {{ d.vigVerbo }}</button>
+                  <a href="{{ d.pdf }}" target="_blank" rel="noopener" style="font:600 12px 'Archivo',sans-serif;color:#007E80;background:#E4F2F2;border-radius:8px;padding:9px 14px;text-decoration:none">Descargar ↓</a>
+                </div>
+                <sc-if value="{{ d.conSecciones }}" hint-placeholder-val="{{ true }}">
+                  <div>
+                    <div style="font:700 10px 'Archivo',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#8A8272;margin-bottom:8px">Contenido del reglamento</div>
+                    <div style="display:flex;flex-wrap:wrap;gap:6px">
+                      <sc-for list="{{ d.secciones }}" as="s" hint-placeholder-count="6">
+                        <span style="font:600 11px 'Archivo',sans-serif;color:#3A4450;background:#F1EFE8;border:1px solid #E5E1D4;border-radius:6px;padding:5px 10px">{{ s }}</span>
+                      </sc-for>
+                    </div>
+                  </div>
+                </sc-if>
+                <div>
+                  <div style="font:700 10px 'Archivo',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#8A8272;margin-bottom:6px">Historial de versiones</div>
+                  <sc-for list="{{ d.versiones }}" as="v" hint-placeholder-count="2">
+                    <div style="display:flex;gap:12px;align-items:baseline;padding:4px 0;border-bottom:1px dotted #EAE6DB">
+                      <span style="font:600 11px 'IBM Plex Mono',monospace;color:#007E80;white-space:nowrap">{{ v.v }}</span>
+                      <span style="font:400 12px 'Archivo',sans-serif;color:#8A8272;white-space:nowrap">{{ v.fecha }}</span>
+                      <span style="font:400 12.5px 'Spectral',serif;color:#5A6470">{{ v.nota }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+      <sc-if value="{{ hayPaginas }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:16px;margin-top:16px">
+          <button onClick="{{ anterior }}" style="border:none;background:none;padding:0;font:600 12.5px 'Archivo',sans-serif;{{ antEstilo }}">← Anteriores</button>
+          <span style="font:600 11.5px 'IBM Plex Mono',monospace;color:#8A8272">{{ pagTexto }} · {{ rango }}</span>
+          <button onClick="{{ siguiente }}" style="border:none;background:none;padding:0;font:600 12.5px 'Archivo',sans-serif;{{ sigEstilo }}">Siguientes →</button>
+        </div>
+      </sc-if>
+      <p style="font:italic 400 12px/1.5 'Spectral',serif;color:#8A8272;margin-top:16px">Los documentos digitalizados sin capa de texto (indicados en su ficha) se encuentran disponibles para descarga, pero su contenido no participa de la búsqueda. Nuevos documentos se incorporan desde el panel de actualización.</p>
+    </main>
+  </div>
+  <sc-if value="{{ pdfAbierto }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;background:rgba(58,68,80,.78);z-index:60;display:flex;flex-direction:column;padding:clamp(12px,3vw,34px);box-sizing:border-box">
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-bottom:12px">
+        <div style="min-width:0">
+          <div style="font:700 15px/1.3 'Archivo',sans-serif;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ pdfTitulo }}</div>
+          <div style="font:400 12px 'Archivo',sans-serif;color:rgba(255,255,255,.65);margin-top:2px">{{ pdfRef }}</div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center">
+          <a href="{{ pdfUrl }}" target="_blank" rel="noopener" style="font:600 12px 'Archivo',sans-serif;color:#3A4450;background:#fff;border-radius:8px;padding:9px 14px;text-decoration:none;white-space:nowrap">Abrir en pestaña nueva ↗</a>
+          <a href="{{ pdfUrl }}" download="{{ pdfArchivo }}" style="font:600 12px 'Archivo',sans-serif;color:#fff;background:#EF7A00;border-radius:8px;padding:9px 14px;text-decoration:none;white-space:nowrap">Descargar ↓</a>
+          <button onClick="{{ cerrarPdf }}" style="cursor:pointer;border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.12);color:#fff;border-radius:8px;padding:9px 14px;font:600 12px 'Archivo',sans-serif;white-space:nowrap">Cerrar ✕</button>
+        </div>
+      </div>
+      <iframe src="{{ pdfUrl }}" title="{{ pdfTitulo }}" style="flex:1;width:100%;border:none;border-radius:12px;background:#fff"></iframe>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { q: "", tipo: "Todos", ambito: "Todos", materia: "Todas", nivel: "Todos", programa: "Todos", vigencia: "Todas", sel: null };
+  docs = [];
+  matrizFilas = [];
+  async componentDidMount() {
+    try {
+      const m = await import('./data/normativa/catalogo.js?v=1788792800295');
+      this.docs = m.DOCS; this.matrizFilas = m.MATRIZ;
+      this.forceUpdate();
+    } catch (e) { console.warn('No se pudo cargar el catálogo normativo', e); }
+    await this.sincronizar();
+    // Las cifras del panorama se recalculan cuando la persona vuelve a la pestaña:
+    // así un documento cargado desde el panel aparece sin recargar la página.
+    this._vis = () => { if (!document.hidden) this.sincronizar(); };
+    document.addEventListener('visibilitychange', this._vis);
+    window.addEventListener('focus', this._vis);
+    this._esc = e => { if (e.key === "Escape" && this.state.pdf) this.setState({pdf: null}); };
+    window.addEventListener('keydown', this._esc);
+  }
+
+  // Si el servicio de datos tiene documentos cargados desde el panel, prevalecen
+  // sobre el catálogo estático (que queda como respaldo si el servicio no responde).
+  async sincronizar() {
+    try {
+      if (!this._sb) {
+        const [lib, cfg] = await Promise.all([
+          import('https://esm.sh/@supabase/supabase-js@2'),
+          import('./data/supabase/config.js?v=1788792800295')
+        ]);
+        this._sb = lib.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY);
+      }
+      const sb = this._sb;
+      const { data, error } = await sb.from('documentos').select('*').order('anio', { ascending: false }).order('titulo');
+      if (!error && data && data.length) {
+        this.docs = data.map(d => ({
+          id: d.id, titulo: d.titulo, tipo: d.tipo, ambito: d.ambito, materia: d.materia,
+          programa: d.programa || undefined, anio: String(d.anio || ''), ref: d.ref,
+          resumen: d.resumen, arts: d.arts || 0,
+          secciones: Array.isArray(d.secciones) ? d.secciones : [],
+          versiones: Array.isArray(d.versiones) ? d.versiones : [],
+          pdf: d.pdf || '',
+          vigencia: d.vigencia || 'Vigente', vigencia_hasta: d.vigencia_hasta || ''
+        }));
+        this.forceUpdate();
+      }
+    } catch (e) { console.info('Catálogo servido desde el archivo estático.'); }
+  }
+  componentWillUnmount() {
+    window.removeEventListener('keydown', this._esc);
+    document.removeEventListener('visibilitychange', this._vis);
+    window.removeEventListener('focus', this._vis);
+  }
+
+  VIGCOL = {"Vigente":["#E7F3EB","#2F6B4F"], "Vencida":["#FBF0DF","#8A5A12"], "Derogada":["#F5E3E0","#B0483A"], "Sin definir":["#F1EFE8","#8A8272"]};
+
+  CORTO = {
+    "Doctorado en Artes y Humanidades":"D. Artes y Humanidades",
+    "Doctorado en Estudios Americanos":"D. Estudios Americanos",
+    "Doctorado en Historia":"D. Historia",
+    "Magíster en Arte, Pensamiento y Cultura Latinoamericanos":"M. Arte, Pensamiento y Cultura",
+    "Magíster en Ciencias de la Comunicación":"M. Ciencias de la Comunicación",
+    "Magíster en Ciencias Sociales, mención Estudios de la Sociedad Civil":"M. Cs. Sociales · Sociedad Civil",
+    "Magíster en Educación, mención Currículum y Evaluación":"M. Ed. · Currículum y Evaluación",
+    "Magíster en Educación, mención Gestión y Liderazgo Educacional":"M. Ed. · Gestión y Liderazgo",
+    "Magíster en Estudios Internacionales":"M. Estudios Internacionales",
+    "Magíster en Estudios Políticos Aplicados":"M. Estudios Políticos Aplicados",
+    "Magíster en Filosofía de las Ciencias":"M. Filosofía de las Ciencias",
+    "Magíster en Historia":"M. Historia",
+    "Magíster en Lingüística":"M. Lingüística",
+    "Magíster en Literatura Latinoamericana y Chilena":"M. Literatura Latinoam. y Chilena",
+    "Magíster en Psicología Educacional":"M. Psicología Educacional"
+  };
+  facet(key, values) {
+    return values.map(v => {
+      const n = (v==="Todos"||v==="Todas") ? this.docs.length
+              : key==="vigencia" ? this.docs.filter(d => (d.vigencia||"Vigente")===v).length
+              : this.docs.filter(d => d[key]===v).length;
+      // los programas se abrevian en la barra lateral
+      const etiqueta = key === "programa" ? (this.CORTO[v] || v) : v;
+      const on = this.state[key]===v, vacio = n===0;
+      return {
+        name: etiqueta, n, valor: v,
+        opcion: v === "Todos" || v === "Todas" ? `${etiqueta} (${n})` : `${etiqueta} · ${n}`,
+        bg: on ? "#007E80" : "transparent",
+        fg: on ? "#fff" : (vacio ? "#B7B1A2" : "#3A4450"),
+        cursor: vacio ? "default" : "pointer",
+        pick: vacio ? (() => {}) : (() => this.setState({[key]: v, sel: null}))
+      };
+    });
+  }
+  renderVals() {
+    const norm = s => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+    const q = norm(this.state.q);
+    const PORPAG = 10;
+    const todos = this.docs
+      .filter(d => (this.state.tipo==="Todos"||d.tipo===this.state.tipo) &&
+                   (this.state.ambito==="Todos"||d.ambito===this.state.ambito) &&
+                   (this.state.materia==="Todas"||d.materia===this.state.materia) &&
+                   (this.state.nivel==="Todos"||d.nivel===this.state.nivel) &&
+                   (this.state.programa==="Todos"||d.programa===this.state.programa) &&
+                   (this.state.vigencia==="Todas"||(d.vigencia||"Vigente")===this.state.vigencia) &&
+                   (!q || norm(d.titulo+" "+d.resumen+" "+d.ambito+" "+d.tipo+" "+d.materia+" "+d.ref+" "+(d.programa||"")+" "+(d.secciones||[]).join(" ")).includes(q)))
+      .map(d => ({...d, open: this.state.sel===d.id, arrow: this.state.sel===d.id ? "Cerrar ✕" : "Ver ficha →",
+                  verPdf: () => this.setState({pdf: {url: d.pdf, titulo: d.titulo, ref: d.ref}}),
+                  conSecciones: (d.secciones||[]).length > 0,
+                  vigEstado: d.vigencia || "Vigente",
+                  vigVerbo: {"Vencida":"con vigencia vencida", "Derogada":"derogado", "Sin definir":"sin vigencia determinada"}[d.vigencia] || "vigente",
+                  vigBg: (this.VIGCOL[d.vigencia] || this.VIGCOL["Vigente"])[0],
+                  vigFg: (this.VIGCOL[d.vigencia] || this.VIGCOL["Vigente"])[1],
+                  vigAviso: d.vigencia && d.vigencia !== "Vigente",
+                  vigTexto: d.vigencia === "Vencida" ? ("Vigencia vencida" + (d.vigencia_hasta ? ` el ${d.vigencia_hasta}` : ""))
+                          : d.vigencia === "Derogada" ? "Documento derogado"
+                          : "Vigencia sin determinar",
+                  toggle: () => this.setState(s => ({sel: s.sel===d.id ? null : d.id}))}));
+    const sig = [this.state.q, this.state.tipo, this.state.ambito, this.state.materia, this.state.nivel, this.state.programa, this.state.vigencia].join("|");
+    if (this._sig !== undefined && this._sig !== sig) this.state.pag = 1;
+    this._sig = sig;
+    const paginas = Math.max(1, Math.ceil(todos.length / PORPAG));
+    const pag = Math.min(this.state.pag || 1, paginas);
+    const docs = todos.slice((pag-1)*PORPAG, pag*PORPAG);
+    const irA = p => this.setState({pag: p, sel: null});
+    const materias = [...new Set(this.docs.map(d => d.materia))];
+    const kpis = [
+      {n: String(this.docs.length), lab: "documentos en la biblioteca"},
+      {n: String(materias.length), lab: "materias normativas"},
+      {n: String(this.docs.reduce((a,d)=>a+(d.arts||0),0)), lab: "artículos indexados"},
+      {n: (() => {
+        const años = this.docs.map(d => parseInt(String(d.anio).slice(0,4), 10)).filter(n => n >= 1900);
+        return años.length ? `${Math.min(...años)}–${Math.max(...años)}` : "—";
+      })(), lab: "período cubierto"}
+    ];
+    const matCount = materias.map(m => ({name:m, n:this.docs.filter(d=>d.materia===m).length}))
+      .sort((a,b) => b.n-a.n);
+    const maxM = Math.max(...matCount.map(m=>m.n));
+    const paleta = ["#00A0A0","#EF7A00","#7FC6C6","#D99A2B","#8A9BAA","#00A0A0","#EF7A00","#7FC6C6","#D99A2B","#8A9BAA","#00A0A0","#EF7A00"];
+    const barras = matCount.map((m,i) => {
+      const on = this.state.materia===m.name;
+      return {...m, w: Math.round(m.n/maxM*100)+"%", color: on ? "#fff" : paleta[i % paleta.length],
+        fg: on ? "#fff" : "rgba(255,255,255,.78)",
+        bg: on ? "rgba(255,255,255,.1)" : "transparent",
+        pick: () => this.setState({materia: m.name, tipo:"Todos", ambito:"Todos", sel:null})};
+    });
+    const nivelesCols = ["Doctorado","Magíster académico","Magíster profesional"];
+    const verNivel = (nv, id) => this.setState({nivel: nv, materia:"Todas", tipo:"Todos", ambito:"Todos", q:"", sel: id});
+    const cols = nivelesCols.map((nv,i) => {
+      const on = this.state.nivel===nv;
+      return {lab: ["DOCT.","MAG. AC.","MAG. PROF."][i], on,
+        bg: on ? "rgba(255,255,255,.16)" : "transparent",
+        pick: () => verNivel(nv, i+1)};
+    });
+    const matriz = this.matrizFilas.map(r => ({
+      name: r[0],
+      buscar: () => this.setState({q: r[0], materia:"Todas", tipo:"Todos", ambito:"Todos", nivel:"Todos", sel:null}),
+      cells: [1,2,3].map(i => ({
+        on: !!r[i],
+        bg: r[i] ? (this.state.nivel===nivelesCols[i-1] ? "#EF7A00" : "#00A0A0") : "rgba(255,255,255,.09)",
+        fg: r[i] ? "#fff" : "rgba(255,255,255,.3)",
+        cursor: r[i] ? "pointer" : "default",
+        mark: r[i] ? "●" : "·",
+        pick: r[i] ? (() => verNivel(nivelesCols[i-1], i)) : (() => {})
+      }))
+    }));
+    return {
+      q: this.state.q, setQ: e => this.setState({q: e.target.value}),
+      stop: e => e.stopPropagation(),
+      inicio: () => {
+        this.setState({q:"", tipo:"Todos", ambito:"Todos", materia:"Todas", nivel:"Todos", programa:"Todos", vigencia:"Todas", sel:null, pag:1, pdf:null});
+        this.sincronizar();
+        window.scrollTo({top: 0, behavior: "smooth"});
+      },
+      docs, count: todos.length, total: this.docs.length, kpis, matriz, barras, cols,
+      hayPaginas: paginas > 1,
+      rango: ((pag-1)*PORPAG + 1) + "–" + Math.min(pag*PORPAG, todos.length) + " de " + todos.length,
+      pagTexto: "Página " + pag + " de " + paginas,
+      antHab: pag > 1, sigHab: pag < paginas,
+      antEstilo: pag > 1 ? "color:#007E80;cursor:pointer" : "color:#C4BFB2;cursor:default",
+      sigEstilo: pag < paginas ? "color:#007E80;cursor:pointer" : "color:#C4BFB2;cursor:default",
+      anterior: () => { if (pag > 1) irA(pag-1); },
+      siguiente: () => { if (pag < paginas) irA(pag+1); },
+      vacio: todos.length===0,
+      pdfAbierto: !!this.state.pdf,
+      pdfUrl: this.state.pdf ? this.state.pdf.url : "",
+      pdfTitulo: this.state.pdf ? this.state.pdf.titulo : "",
+      pdfRef: this.state.pdf ? this.state.pdf.ref : "",
+      pdfArchivo: this.state.pdf ? this.state.pdf.url.split("/").pop() : "",
+      cerrarPdf: () => this.setState({pdf: null}),
+      filtrado: this.state.materia!=="Todas" || this.state.tipo!=="Todos" || this.state.ambito!=="Todos" || this.state.nivel!=="Todos" || this.state.programa!=="Todos" || this.state.vigencia!=="Todas" || !!this.state.q,
+      noFiltrado: this.state.materia==="Todas" && this.state.tipo==="Todos" && this.state.ambito==="Todos" && this.state.nivel==="Todos" && this.state.programa==="Todos" && this.state.vigencia==="Todas" && !this.state.q,
+      limpiar: () => this.setState({q:"", tipo:"Todos", ambito:"Todos", materia:"Todas", nivel:"Todos", programa:"Todos", vigencia:"Todas", sel:null}),
+      tipos: this.facet("tipo", ["Todos","Reglamento","Resolución","Procedimiento","Lineamiento","Política","Ley","Convenio"]),
+      ambitos: this.facet("ambito", ["Todos","Nacional","Universidad","Facultad"]),
+      materias: this.facet("materia", ["Todas", ...materias]),
+      programas: this.facet("programa", ["Todos", ...[...new Set(this.docs.map(d => d.programa).filter(Boolean))].sort()]),
+      vigencias: this.facet("vigencia", ["Todas", "Vigente", "Vencida", "Derogada", "Sin definir"]),
+      programaSel: this.state.programa,
+      setPrograma: e => this.setState({programa: e.target.value, sel: null})
+    };
+  }
+}
+</script>
+</body>
+</html>
