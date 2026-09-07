@@ -66,8 +66,22 @@
   to = "/normativa-postgrados/admin.html"
   status = 301
 
-# Reservadas para subsistemas futuros
-# /cursos        → /cursos-formacion/index.html
+[[redirects]]
+  from = "/cursos"
+  to = "/cursos-formacion/index.html"
+  status = 301
+
+[[redirects]]
+  from = "/cursos-formacion"
+  to = "/cursos-formacion/index.html"
+  status = 301
+
+[[redirects]]
+  from = "/cursos/admin"
+  to = "/cursos-formacion/admin.html"
+  status = 301
+
+# Reservada para subsistema futuro
 # /trayectorias  → /trayectorias-academicas/index.html
 
 [[redirects]]

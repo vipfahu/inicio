@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<script>
+(function(){
+  function lock(){
+    document.body && document.body.removeAttribute('data-dc-editor-on');
+    document.querySelectorAll('[contenteditable="true"]').forEach(function(el){ el.setAttribute('contenteditable','false'); });
+  }
+  document.addEventListener('DOMContentLoaded', function(){
+    lock();
+    new MutationObserver(lock).observe(document.documentElement, {attributes:true, subtree:true, attributeFilter:['data-dc-editor-on','contenteditable']});
+  });
+})();
+</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js?v=1788798708702"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700;800&amp;family=Spectral:ital,wght@0,400;0,600;1,400&amp;family=IBM+Plex+Mono:wght@400;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F1EFE8}a{color:#007E80}a:hover{color:#EF7A00}input:focus,textarea:focus,select:focus{outline:none;border-color:#00A0A0}
+@media screen and (max-width:760px){
+  [style*="380px"]{grid-template-columns:minmax(0,1fr) !important}
+  [style*="1fr 1fr"]{grid-template-columns:minmax(0,1fr) !important}
+  [style*="150px 120px"],[style*="150px minmax"],[style*="120px 90px"]{grid-template-columns:minmax(0,1fr) !important;gap:6px !important}
+  [style*="150px 120px"] > *,[style*="150px minmax"] > *,[style*="120px 90px"] > *{text-align:left !important;justify-self:start !important}
+  [style*="150px 120px"][style*="text-transform"]{display:none !important}
+  button,select,input,textarea{min-height:44px}
+  nav button{min-height:48px;padding:14px 14px !important}
+}
+</style>
+</helmet>
+<div style="min-height:100vh;font-family:Spectral,serif;color:#3A4450">
+
+  <sc-if value="{{ vistaAcceso }}" hint-placeholder-val="{{ true }}">
+    <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px">
+      <div style="width:100%;max-width:420px">
+        <div style="text-align:center;margin-bottom:22px">
+          <img src="assets/logo-fahu.png" alt="Facultad de Humanidades USACH" style="height:104px;width:auto;display:block;margin:0 auto 14px">
+          <div style="font:800 17px Archivo,sans-serif;color:#007E80">Panel de actualización</div>
+          <div style="font:400 12.5px Archivo,sans-serif;color:#8A8272;margin-top:4px">Cursos de Formación Multidisciplinar · FAHU e IDEA</div>
+        </div>
+        <div style="background:#fff;border:1px solid #E8E4DA;border-radius:16px;padding:26px 26px 24px">
+          <h1 style="font:800 16px Archivo,sans-serif;margin:0 0 4px;color:#3A4450">Iniciar sesión</h1>
+          <p style="font:400 12.5px/1.55 Spectral,serif;color:#8A8272;margin:0 0 18px">Usa la misma cuenta del sistema de Gestión de Información VIP (autorizada por el Vicedecanato).</p>
+          <div style="display:flex;flex-direction:column;gap:11px">
+            <input value="{{ lCorreo }}" onChange="{{ setLCorreo }}" type="email" autoComplete="username" placeholder="correo@usach.cl" style="box-sizing:border-box;width:100%;padding:11px 14px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5">
+            <input value="{{ lClave }}" onChange="{{ setLClave }}" onKeyDown="{{ enterAcceso }}" type="password" autoComplete="current-password" placeholder="Contraseña" style="box-sizing:border-box;width:100%;padding:11px 14px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5">
+            <sc-if value="{{ hayError }}" hint-placeholder-val="{{ false }}">
+              <div style="font:600 12px/1.45 Archivo,sans-serif;color:#B0483A;background:#F9EBE8;border-radius:8px;padding:10px 12px">{{ err }}</div>
+            </sc-if>
+            <button onClick="{{ acceder }}" style="cursor:pointer;border:none;background:#007E80;color:#fff;border-radius:9px;padding:13px;font:700 13.5px Archivo,sans-serif">{{ accesoBoton }}</button>
+          </div>
+          <p style="font:italic 400 11.5px/1.5 Spectral,serif;color:#8A8272;margin:16px 0 0;padding-top:15px;border-top:1px solid #F0EDE4">Las cuentas se crean e invitan desde el panel de Normativa Postgrados (pestaña Usuarios).</p>
+        </div>
+        <div style="text-align:center;margin-top:14px">
+          <a href="index.html" style="font:600 12px Archivo,sans-serif;text-decoration:none">← Volver a la oferta pública</a>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ vistaEstado }}" hint-placeholder-val="{{ false }}">
+    <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px">
+      <div style="width:100%;max-width:440px;background:#fff;border:1px solid #E8E4DA;border-radius:16px;padding:26px;text-align:center">
+        <div style="font:800 16px Archivo,sans-serif;color:#3A4450;margin-bottom:8px">{{ estadoTitulo }}</div>
+        <p style="font:400 13px/1.55 Spectral,serif;color:#5A6470;margin:0 0 16px">{{ estadoNota }}</p>
+        <sc-if value="{{ estadoConSalir }}" hint-placeholder-val="{{ false }}">
+          <button onClick="{{ salir }}" style="cursor:pointer;border:1.5px solid #E0DCD0;background:#FAF9F5;color:#007E80;border-radius:9px;padding:9px 16px;font:600 12.5px Archivo,sans-serif">Cerrar sesión</button>
+        </sc-if>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ vistaPanel }}" hint-placeholder-val="{{ false }}">
+    <header style="background:#3A4450;padding:14px clamp(20px,5vw,60px);display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap">
+      <a href="index.html" title="Ver la oferta pública" style="display:flex;align-items:center;gap:14px;text-decoration:none">
+        <img src="assets/logo-fahu.png" alt="" style="height:52px;width:auto;display:block;filter:brightness(0) invert(1)">
+        <div>
+          <div style="font:800 15px Archivo,sans-serif;color:#fff">Panel de actualización</div>
+          <div style="font:400 11.5px Archivo,sans-serif;color:rgba(255,255,255,.65)">Cursos de Formación Multidisciplinar</div>
+        </div>
+      </a>
+      <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+        <span style="font:600 11px Archivo,sans-serif;color:rgba(255,255,255,.75)">{{ sesionEtiqueta }}</span>
+        <a href="index.html" style="font:600 11px Archivo,sans-serif;color:#fff;background:#EF7A00;border-radius:8px;padding:8px 12px;text-decoration:none" style-hover="background:#fff;color:#3A4450">Ver oferta</a>
+        <a href="../index.html" style="font:600 11px Archivo,sans-serif;color:#fff;border:1px solid rgba(255,255,255,.35);border-radius:8px;padding:7px 12px;text-decoration:none" style-hover="background:rgba(255,255,255,.12)">Portal VIP</a>
+        <button onClick="{{ salir }}" style="cursor:pointer;border:1px solid rgba(255,255,255,.35);background:transparent;color:#fff;border-radius:8px;padding:7px 12px;font:600 11px Archivo,sans-serif">Salir</button>
+      </div>
+    </header>
+
+    <nav style="background:#fff;border-bottom:1px solid #E8E4DA;padding:0 clamp(20px,5vw,60px);display:flex;gap:2px;overflow-x:auto">
+      <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="4">
+        <button onClick="{{ t.pick }}" style="cursor:pointer;border:none;background:none;padding:14px 16px;font:600 13px Archivo,sans-serif;white-space:nowrap;color:{{ t.fg }};border-bottom:3px solid {{ t.line }}">{{ t.name }}</button>
+      </sc-for>
+    </nav>
+
+    <main style="max-width:1200px;margin:0 auto;padding:26px clamp(20px,5vw,60px) 70px">
+      <sc-if value="{{ hayAviso }}" hint-placeholder-val="{{ false }}">
+        <div style="font:600 12.5px/1.45 Archivo,sans-serif;color:{{ avisoFg }};background:{{ avisoBg }};border-radius:10px;padding:11px 14px;margin-bottom:18px">{{ aviso }}</div>
+      </sc-if>
+
+      <sc-if value="{{ tabOferta }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:18px">
+          <span style="font:700 10px Archivo,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#8A8272;margin-right:4px">Semestre</span>
+          <sc-for list="{{ periodosSel }}" as="p" hint-placeholder-count="2">
+            <button onClick="{{ p.pick }}" style="cursor:pointer;border:1.5px solid {{ p.border }};background:{{ p.bg }};color:{{ p.fg }};border-radius:999px;padding:7px 14px;font:600 12px Archivo,sans-serif;display:flex;gap:8px;align-items:center">{{ p.etiqueta }}<span style="font:600 9.5px Archivo,sans-serif;letter-spacing:.06em;text-transform:uppercase;opacity:.75">{{ p.estado }}</span></button>
+          </sc-for>
+        </div>
+        <sc-if value="{{ sinPeriodo }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#fff;border:1px dashed #D9D3C4;border-radius:14px;padding:30px;text-align:center;font:400 13.5px/1.6 Spectral,serif;color:#5A6470">Aún no hay semestres. Créalos en la pestaña <strong>Semestres</strong> o importa la matriz inicial.</div>
+        </sc-if>
+        <sc-if value="{{ conPeriodo }}" hint-placeholder-val="{{ true }}">
+        <div style="display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:26px;align-items:start">
+          <section>
+            <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:14px">
+              <h2 style="font:800 19px Archivo,sans-serif;margin:0;color:#3A4450">{{ perEtiqueta }} <span style="font:600 12px IBM Plex Mono,monospace;color:#8A8272">{{ nCursos }} cursos · {{ nCupos }} cupos</span></h2>
+              <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <sc-if value="{{ puedeImportar }}" hint-placeholder-val="{{ false }}">
+                  <button onClick="{{ importar }}" style="cursor:pointer;border:1.5px solid #E0DCD0;background:#fff;color:#007E80;border-radius:8px;padding:8px 12px;font:600 12px Archivo,sans-serif">Importar matriz inicial (94 cursos)</button>
+                </sc-if>
+                <button onClick="{{ duplicar }}" title="Copia los cursos de otro semestre a este para editarlos" style="cursor:pointer;border:1.5px solid #E0DCD0;background:#fff;color:#007E80;border-radius:8px;padding:8px 12px;font:600 12px Archivo,sans-serif">Copiar desde otro semestre…</button>
+              </div>
+            </div>
+            <sc-if value="{{ dupAbierto }}" hint-placeholder-val="{{ false }}">
+              <div style="background:#FCEBD9;border:1px solid #F5D3B0;border-radius:12px;padding:14px 16px;margin-bottom:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+                <span style="font:600 12.5px Archivo,sans-serif;color:#8A5A00">Copiar a {{ perEtiqueta }} todos los cursos de</span>
+                <select value="{{ dupOrigen }}" onChange="{{ setDupOrigen }}" style="padding:8px 10px;border:1.5px solid #E0DCD0;border-radius:8px;font:600 12px Archivo,sans-serif;background:#fff;color:#3A4450">
+                  <sc-for list="{{ dupOpciones }}" as="o" hint-placeholder-count="1"><option value="{{ o.id }}">{{ o.etiqueta }}</option></sc-for>
+                </select>
+                <button onClick="{{ dupConfirmar }}" style="cursor:pointer;border:none;background:#EF7A00;color:#fff;border-radius:8px;padding:9px 14px;font:700 12px Archivo,sans-serif">Copiar</button>
+                <button onClick="{{ dupCerrar }}" style="cursor:pointer;border:none;background:transparent;color:#8A5A00;padding:9px 6px;font:600 12px Archivo,sans-serif">Cancelar</button>
+              </div>
+            </sc-if>
+            <div style="background:#fff;border:1px solid #E8E4DA;border-radius:12px;padding:14px 16px;margin-bottom:14px;display:flex;flex-direction:column;gap:10px">
+              <input value="{{ bq }}" onChange="{{ setBq }}" placeholder="Buscar por curso, profesor/a, programa o unidad…" style="box-sizing:border-box;width:100%;padding:10px 14px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5">
+              <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px">
+                <select value="{{ bPrograma }}" onChange="{{ setBPrograma }}" style="min-width:0;padding:8px 10px;border:1.5px solid #E0DCD0;border-radius:8px;font:600 11.5px Archivo,sans-serif;background:#FAF9F5;color:#3A4450">
+                  <sc-for list="{{ bProgramas }}" as="o" hint-placeholder-count="3"><option>{{ o }}</option></sc-for>
+                </select>
+                <select value="{{ bTipo }}" onChange="{{ setBTipo }}" style="min-width:0;padding:8px 10px;border:1.5px solid #E0DCD0;border-radius:8px;font:600 11.5px Archivo,sans-serif;background:#FAF9F5;color:#3A4450">
+                  <option>Todos los tipos</option><option>Electivo</option><option>Obligatorio</option>
+                </select>
+                <select value="{{ bVig }}" onChange="{{ setBVig }}" style="min-width:0;padding:8px 10px;border:1.5px solid #E0DCD0;border-radius:8px;font:600 11.5px Archivo,sans-serif;background:#FAF9F5;color:#3A4450">
+                  <option>Vigentes y no vigentes</option><option>Solo vigentes</option><option>Solo no vigentes</option>
+                </select>
+              </div>
+            </div>
+            <div style="background:#fff;border:1px solid #E8E4DA;border-radius:14px;overflow:hidden">
+              <sc-if value="{{ listaVacia }}" hint-placeholder-val="{{ false }}">
+                <div style="padding:34px;text-align:center;font:400 13.5px/1.6 Spectral,serif;color:#5A6470">No hay cursos en este semestre con ese filtro. Agrega uno con el formulario o copia la oferta de un semestre anterior.</div>
+              </sc-if>
+              <sc-for list="{{ lista }}" as="c" hint-placeholder-count="6">
+                <div style="display:grid;grid-template-columns:minmax(0,1fr) 120px 90px;gap:14px;align-items:center;padding:13px 20px;border-bottom:1px solid #F0EDE4;background:{{ c.bg }}">
+                  <div style="min-width:0">
+                    <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:4px">
+                      <span style="font:600 9.5px Archivo,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#007E80;background:#E4F2F2;border-radius:5px;padding:3px 7px">{{ c.programa }}</span>
+                      <span style="font:600 9.5px Archivo,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#5A6470;background:#EFECE4;border-radius:5px;padding:3px 7px">{{ c.tipo }}</span>
+                      <sc-if value="{{ c.noVigente }}" hint-placeholder-val="{{ false }}"><span style="font:600 9.5px Archivo,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#8A3D2E;background:#F9EDE9;border-radius:5px;padding:3px 7px">No vigente</span></sc-if>
+                    </div>
+                    <div style="font:700 13.5px/1.3 Archivo,sans-serif;color:#3A4450">{{ c.nombre }}</div>
+                    <div style="font:400 12px Archivo,sans-serif;color:#8A8272;margin-top:3px">{{ c.sub }}</div>
+                  </div>
+                  <span style="font:600 12px IBM Plex Mono,monospace;color:#EF7A00;text-align:right">{{ c.cupos }}</span>
+                  <div style="display:flex;gap:6px;justify-content:flex-end">
+                    <button onClick="{{ c.editar }}" style="cursor:pointer;border:1.5px solid #E0DCD0;background:#fff;color:#007E80;border-radius:7px;padding:6px 9px;font:600 11px Archivo,sans-serif">Editar</button>
+                    <button onClick="{{ c.borrar }}" style="cursor:pointer;border:1.5px solid #F0D5CF;background:#fff;color:#B0483A;border-radius:7px;padding:6px 9px;font:600 11px Archivo,sans-serif">✕</button>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+            <sc-if value="{{ hayPaginas }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;justify-content:center;align-items:center;gap:14px;margin-top:14px">
+                <button onClick="{{ pagPrev }}" style="cursor:pointer;border:1.5px solid #E0DCD0;background:#fff;color:#007E80;border-radius:8px;padding:8px 14px;font:600 12px Archivo,sans-serif">← Anterior</button>
+                <span style="font:600 12px IBM Plex Mono,monospace;color:#8A8272">{{ pagLabel }}</span>
+                <button onClick="{{ pagNext }}" style="cursor:pointer;border:1.5px solid #E0DCD0;background:#fff;color:#007E80;border-radius:8px;padding:8px 14px;font:600 12px Archivo,sans-serif">Siguiente →</button>
+              </div>
+            </sc-if>
+          </section>
+
+          <aside style="background:#fff;border:1px solid #E8E4DA;border-radius:14px;padding:20px;position:sticky;top:16px">
+            <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px">
+              <h2 style="font:800 15px Archivo,sans-serif;margin:0;color:#3A4450">{{ formTitulo }}</h2>
+              <sc-if value="{{ editando }}" hint-placeholder-val="{{ false }}"><button onClick="{{ cancelar }}" style="cursor:pointer;border:none;background:none;padding:0;font:600 12px Archivo,sans-serif;color:#8A8272">Cancelar</button></sc-if>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <input value="{{ fNombre }}" onChange="{{ setF.nombre_curso }}" placeholder="Nombre del curso ofrecido *" style="box-sizing:border-box;width:100%;padding:10px 13px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5">
+              <select value="{{ fPrograma }}" onChange="{{ setF.programa }}" style="padding:10px 12px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5;color:#3A4450">
+                <option value="">Programa que ofrece *</option>
+                <sc-for list="{{ programasOpc }}" as="o" hint-placeholder-count="5"><option>{{ o }}</option></sc-for>
+                <option value="__otro__">Otro programa (escribir)</option>
+              </select>
+              <sc-if value="{{ fProgramaOtro }}" hint-placeholder-val="{{ false }}">
+                <input value="{{ fProgramaTexto }}" onChange="{{ setF.programa_texto }}" placeholder="Nombre del programa" style="box-sizing:border-box;width:100%;padding:10px 13px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5">
+              </sc-if>
+              <input value="{{ fUnidad }}" onChange="{{ setF.unidad }}" placeholder="Unidad académica (Departamento, Escuela, IDEA)" style="box-sizing:border-box;width:100%;padding:10px 13px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5">
+              <input value="{{ fAsig }}" onChange="{{ setF.nombre_asignatura }}" placeholder="Asignatura del plan (p. ej. Electivo I)" style="box-sizing:border-box;width:100%;padding:10px 13px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5">
+              <input value="{{ fProfesor }}" onChange="{{ setF.profesor }}" placeholder="Profesor/a a cargo" style="box-sizing:border-box;width:100%;padding:10px 13px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5">
+              <textarea value="{{ fDescriptor }}" onChange="{{ setF.descriptor }}" placeholder="Descriptor / resultado general de aprendizaje" rows="4" style="box-sizing:border-box;width:100%;padding:10px 13px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px/1.5 Spectral,serif;background:#FAF9F5;resize:vertical"></textarea>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                <select value="{{ fTipo }}" onChange="{{ setF.tipo }}" style="padding:10px 12px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5;color:#3A4450"><option value="">Tipo</option><option>Electivo</option><option>Obligatorio</option></select>
+                <select value="{{ fJornada }}" onChange="{{ setF.jornada }}" style="padding:10px 12px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5;color:#3A4450"><option value="">Jornada</option><option>Diurna</option><option>Vespertina</option></select>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                <select value="{{ fModalidad }}" onChange="{{ setF.modalidad }}" style="padding:10px 12px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5;color:#3A4450"><option value="">Modalidad</option><option>Presencial</option><option>Online</option><option>Híbrida</option><option>Otra</option></select>
+                <select value="{{ fDia }}" onChange="{{ setF.dia }}" style="padding:10px 12px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5;color:#3A4450"><option value="">Día</option><option>Lunes</option><option>Martes</option><option>Miércoles</option><option>Jueves</option><option>Viernes</option><option>Sábado</option></select>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                <input value="{{ fHi }}" onChange="{{ setF.hora_inicio }}" type="time" title="Hora de inicio" style="box-sizing:border-box;width:100%;padding:9px 12px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5;color:#3A4450">
+                <input value="{{ fHf }}" onChange="{{ setF.hora_fin }}" type="time" title="Hora de término" style="box-sizing:border-box;width:100%;padding:9px 12px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5;color:#3A4450">
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                <input value="{{ fSala }}" onChange="{{ setF.sala }}" placeholder="Sala / lugar" style="box-sizing:border-box;width:100%;padding:10px 13px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5">
+                <input value="{{ fCupos }}" onChange="{{ setF.cupos }}" type="number" min="0" placeholder="Cupos ofrecidos" style="box-sizing:border-box;width:100%;padding:10px 13px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5">
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                <input value="{{ fSct }}" onChange="{{ setF.sct }}" type="number" min="0" placeholder="Créditos SCT" style="box-sizing:border-box;width:100%;padding:10px 13px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5">
+                <input value="{{ fSemProg }}" onChange="{{ setF.semestre_programa }}" type="number" min="1" placeholder="Semestre del plan" style="box-sizing:border-box;width:100%;padding:10px 13px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5">
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                <input value="{{ fCodPlan }}" onChange="{{ setF.codigo_plan }}" type="number" placeholder="Código plan" style="box-sizing:border-box;width:100%;padding:10px 13px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5">
+                <input value="{{ fCodAsig }}" onChange="{{ setF.codigo_asignatura }}" type="number" placeholder="Código asignatura" style="box-sizing:border-box;width:100%;padding:10px 13px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5">
+              </div>
+              <input value="{{ fResol }}" onChange="{{ setF.resolucion }}" placeholder="Resolución del plan de estudios" style="box-sizing:border-box;width:100%;padding:10px 13px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5">
+              <input value="{{ fContacto }}" onChange="{{ setF.contacto }}" type="email" placeholder="Correo de contacto" style="box-sizing:border-box;width:100%;padding:10px 13px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5">
+              <textarea value="{{ fComentarios }}" onChange="{{ setF.comentarios }}" placeholder="Comentarios (lugar, fechas, idioma…)" rows="2" style="box-sizing:border-box;width:100%;padding:10px 13px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px/1.5 Spectral,serif;background:#FAF9F5;resize:vertical"></textarea>
+              <label style="display:flex;align-items:center;gap:10px;font:600 12.5px Archivo,sans-serif;color:#3A4450;cursor:pointer;padding:4px 0">
+                <input type="checkbox" checked="{{ fVigente }}" onChange="{{ setF.vigente }}" style="width:18px;height:18px;accent-color:#007E80">Curso vigente en este semestre
+              </label>
+              <button onClick="{{ guardar }}" style="cursor:pointer;border:none;background:#007E80;color:#fff;border-radius:9px;padding:12px;font:700 13.5px Archivo,sans-serif;margin-top:4px">{{ guardarLabel }}</button>
+            </div>
+          </aside>
+        </div>
+        </sc-if>
+      </sc-if>
+
+      <sc-if value="{{ tabPeriodos }}" hint-placeholder-val="{{ false }}">
+        <div style="display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:26px;align-items:start">
+          <section>
+            <h2 style="font:800 19px Archivo,sans-serif;margin:0 0 6px;color:#3A4450">Semestres</h2>
+            <p style="font:400 13.5px/1.6 Spectral,serif;color:#5A6470;margin:0 0 16px">Cada semestre agrupa su oferta. <strong>Borrador</strong>: solo lo ve el equipo. <strong>Publicado</strong>: visible al público. <strong>Cerrado</strong>: queda como historial. Solo un semestre puede ser el <strong>vigente</strong> (el que se abre por defecto).</p>
+            <div style="background:#fff;border:1px solid #E8E4DA;border-radius:14px;overflow:hidden">
+              <sc-for list="{{ perLista }}" as="p" hint-placeholder-count="2">
+                <div style="display:grid;grid-template-columns:minmax(0,1fr) 120px 90px;gap:14px;align-items:center;padding:14px 20px;border-bottom:1px solid #F0EDE4">
+                  <div style="min-width:0">
+                    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+                      <span style="font:700 14px Archivo,sans-serif;color:#3A4450">{{ p.etiqueta }}</span>
+                      <sc-if value="{{ p.vigente }}" hint-placeholder-val="{{ false }}"><span style="font:600 9.5px Archivo,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#EF7A00;background:#FCEBD9;border-radius:5px;padding:3px 7px">Vigente</span></sc-if>
+                    </div>
+                    <div style="font:400 12px Archivo,sans-serif;color:#8A8272;margin-top:3px">{{ p.resumen }}</div>
+                    <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">
+                      <button onClick="{{ p.setBorrador }}" style="cursor:pointer;border:1.5px solid {{ p.bBorrador }};background:#fff;color:#5A6470;border-radius:6px;padding:4px 9px;font:600 11px Archivo,sans-serif">Borrador</button>
+                      <button onClick="{{ p.setPublicado }}" style="cursor:pointer;border:1.5px solid {{ p.bPublicado }};background:#fff;color:#007E80;border-radius:6px;padding:4px 9px;font:600 11px Archivo,sans-serif">Publicado</button>
+                      <button onClick="{{ p.setCerrado }}" style="cursor:pointer;border:1.5px solid {{ p.bCerrado }};background:#fff;color:#5A6470;border-radius:6px;padding:4px 9px;font:600 11px Archivo,sans-serif">Cerrado</button>
+                      <sc-if value="{{ p.noVigente }}" hint-placeholder-val="{{ false }}"><button onClick="{{ p.hacerVigente }}" style="cursor:pointer;border:1.5px solid #F5D3B0;background:#FCEBD9;color:#8A5A00;border-radius:6px;padding:4px 9px;font:600 11px Archivo,sans-serif">Marcar vigente</button></sc-if>
+                    </div>
+                  </div>
+                  <span style="font:600 11px IBM Plex Mono,monospace;color:#8A8272;text-align:right">{{ p.n }} cursos</span>
+                  <div style="display:flex;justify-content:flex-end">
+                    <button onClick="{{ p.borrar }}" style="cursor:pointer;border:1.5px solid #F0D5CF;background:#fff;color:#B0483A;border-radius:7px;padding:6px 9px;font:600 11px Archivo,sans-serif">Eliminar</button>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </section>
+          <aside style="background:#fff;border:1px solid #E8E4DA;border-radius:14px;padding:20px">
+            <h2 style="font:800 15px Archivo,sans-serif;margin:0 0 12px;color:#3A4450">Nuevo semestre</h2>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+              <input value="{{ npAnio }}" onChange="{{ setNpAnio }}" type="number" placeholder="Año" style="box-sizing:border-box;width:100%;padding:10px 13px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5">
+              <select value="{{ npSem }}" onChange="{{ setNpSem }}" style="padding:10px 12px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5;color:#3A4450"><option value="1">I Semestre</option><option value="2">II Semestre</option></select>
+            </div>
+            <p style="font:400 12px/1.5 Spectral,serif;color:#8A8272;margin:0 0 12px">Se crea como <strong>borrador</strong>. Luego copia la oferta del semestre anterior, edítala y publícala.</p>
+            <button onClick="{{ crearPeriodo }}" style="cursor:pointer;border:none;background:#007E80;color:#fff;border-radius:9px;padding:12px;font:700 13.5px Archivo,sans-serif;width:100%">Crear semestre</button>
+          </aside>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ tabStats }}" hint-placeholder-val="{{ false }}">
+        <h2 style="font:800 19px Archivo,sans-serif;margin:0 0 6px;color:#3A4450">Estadísticas de la base</h2>
+        <p style="font:400 13.5px/1.6 Spectral,serif;color:#5A6470;margin:0 0 18px">Todos los semestres registrados. La vista pública muestra las mismas cifras por semestre.</p>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:22px">
+          <sc-for list="{{ sKpis }}" as="k" hint-placeholder-count="4">
+            <div style="background:#fff;border:1px solid #E8E4DA;border-radius:12px;padding:16px 18px">
+              <div style="font:600 28px IBM Plex Mono,monospace;color:{{ k.color }};line-height:1">{{ k.n }}</div>
+              <div style="font:400 12px Archivo,sans-serif;color:#8A8272;margin-top:6px">{{ k.label }}</div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="background:#fff;border:1px solid #E8E4DA;border-radius:14px;padding:20px;margin-bottom:18px">
+          <div style="font:700 10px Archivo,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#8A8272;margin-bottom:12px">Cursos y cupos por semestre</div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <sc-for list="{{ sPorPeriodo }}" as="b" hint-placeholder-count="2">
+              <div style="display:grid;grid-template-columns:150px minmax(0,1fr) 120px;gap:12px;align-items:center">
+                <span style="font:600 12px Archivo,sans-serif;color:#3A4450">{{ b.name }}</span>
+                <span style="height:10px;background:#EFECE4;border-radius:5px;position:relative;overflow:hidden;display:block"><span style="position:absolute;left:0;top:0;height:100%;background:#EF7A00;width:{{ b.wCupos }};border-radius:5px"></span><span style="position:absolute;left:0;top:0;height:100%;background:#007E80;width:{{ b.w }};border-radius:5px"></span></span>
+                <span style="font:600 11px IBM Plex Mono,monospace;color:#5A6470;text-align:right">{{ b.n }} cursos · {{ b.cupos }} cupos</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
+          <div style="background:#fff;border:1px solid #E8E4DA;border-radius:14px;padding:20px">
+            <div style="font:700 10px Archivo,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#8A8272;margin-bottom:12px">Por programa (todos los semestres)</div>
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <sc-for list="{{ sPorPrograma }}" as="b" hint-placeholder-count="8">
+                <div title="{{ b.tip }}" style="display:grid;grid-template-columns:minmax(0,1fr) 90px 40px;gap:10px;align-items:center">
+                  <span style="font:400 12px Spectral,serif;color:#3A4450;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ b.name }}</span>
+                  <span style="height:8px;background:#EFECE4;border-radius:4px;overflow:hidden;display:block"><span style="display:block;height:100%;background:#007E80;width:{{ b.w }};border-radius:4px"></span></span>
+                  <span style="font:600 11px IBM Plex Mono,monospace;color:#5A6470;text-align:right">{{ b.n }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+          <div style="background:#fff;border:1px solid #E8E4DA;border-radius:14px;padding:20px">
+            <div style="font:700 10px Archivo,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#8A8272;margin-bottom:12px">Por unidad académica (todos los semestres)</div>
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <sc-for list="{{ sPorUnidad }}" as="b" hint-placeholder-count="6">
+                <div title="{{ b.tip }}" style="display:grid;grid-template-columns:minmax(0,1fr) 90px 40px;gap:10px;align-items:center">
+                  <span style="font:400 12px Spectral,serif;color:#3A4450;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ b.name }}</span>
+                  <span style="height:8px;background:#EFECE4;border-radius:4px;overflow:hidden;display:block"><span style="display:block;height:100%;background:#EF7A00;width:{{ b.w }};border-radius:4px"></span></span>
+                  <span style="font:600 11px IBM Plex Mono,monospace;color:#5A6470;text-align:right">{{ b.n }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ tabAct }}" hint-placeholder-val="{{ false }}">
+        <section style="max-width:760px">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin:0 0 6px">
+            <h2 style="font:800 19px Archivo,sans-serif;margin:0;color:#3A4450">Registro de actividad</h2>
+            <button type="button" onClick="{{ recargar }}" style="flex:none;font:600 12px Archivo,sans-serif;color:#007E80;background:#fff;border:1px solid #CFE7E7;border-radius:8px;padding:7px 12px;cursor:pointer">Actualizar</button>
+          </div>
+          <p style="font:400 13.5px/1.6 Spectral,serif;color:#5A6470;margin:0 0 18px">Movimientos de este subsistema (los últimos 50). Comparte el registro con Normativa Postgrados.</p>
+          <sc-if value="{{ actError }}" hint-placeholder-val="{{ false }}"><div style="background:#F9EDE9;border:1px solid #E8CFC8;border-radius:12px;padding:14px 18px;margin-bottom:16px;font:400 12.5px/1.55 Archivo,sans-serif;color:#8A3D2E">{{ actErrorTexto }}</div></sc-if>
+          <div style="background:#fff;border:1px solid #E8E4DA;border-radius:14px;overflow:hidden">
+            <div style="display:grid;grid-template-columns:150px 120px minmax(0,1fr);gap:14px;padding:10px 20px;background:#F6F4EF;border-bottom:1px solid #E8E4DA;font:600 10.5px Archivo,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#8A8272"><span>Fecha</span><span>Acción</span><span>Detalle</span></div>
+            <sc-if value="{{ sinActividad }}" hint-placeholder-val="{{ false }}"><div style="padding:26px;text-align:center;font:400 13px Spectral,serif;color:#8A8272">Sin movimientos todavía.</div></sc-if>
+            <sc-for list="{{ actividad }}" as="a" hint-placeholder-count="5">
+              <div style="display:grid;grid-template-columns:150px 120px minmax(0,1fr);gap:14px;align-items:baseline;padding:12px 20px;border-bottom:1px solid #F0EDE4">
+                <span style="font:400 11px IBM Plex Mono,monospace;color:#8A8272">{{ a.fecha }}</span>
+                <span style="font:600 11px Archivo,sans-serif;color:#007E80">{{ a.accion }}</span>
+                <span style="font:400 12.5px Spectral,serif;color:#3A4450">{{ a.detalle }}<span style="color:#8A8272"> · {{ a.correo }}</span></span>
+              </div>
+            </sc-for>
+          </div>
+        </section>
+      </sc-if>
+    </main>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  VACIO = { nombre_curso: "", programa: "", programa_texto: "", unidad: "", nombre_asignatura: "", profesor: "", descriptor: "", tipo: "", jornada: "", modalidad: "", dia: "", hora_inicio: "", hora_fin: "", sala: "", cupos: "", sct: "", semestre_programa: "", codigo_plan: "", codigo_asignatura: "", resolucion: "", contacto: "", comentarios: "", vigente: true };
+  state = { fase: "cargando", perfil: null, login: { correo: "", clave: "" }, err: "", busy: false, tab: "oferta",
+    periodos: [], cursos: [], actividad: [], actError: "", periodo: null, form: null, editId: null,
+    bq: "", bPrograma: "Todos los programas", bTipo: "Todos los tipos", bVig: "Vigentes y no vigentes", pag: 1,
+    aviso: "", avisoTipo: "ok", dupAbierto: false, dupOrigen: "", npAnio: String(new Date().getFullYear()), npSem: "1" };
+  POR = 20;
+
+  async componentDidMount() {
+    this.setState({ form: { ...this.VACIO } });
+    try {
+      const [lib, cfg] = await Promise.all([import("https://esm.sh/@supabase/supabase-js@2"), import("./data/supabase/config.js?v=1788798708702")]);
+      this.sb = lib.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY);
+      this.sb.auth.onAuthStateChange((_e, s) => this.aplicarSesion(s));
+      const { data } = await this.sb.auth.getSession();
+      await this.aplicarSesion(data.session);
+    } catch (e) { console.warn(e); this.setState({ fase: "error" }); }
+    window.__DC_READY = true;
+  }
+
+  async aplicarSesion(sesion) {
+    if (!sesion) { this.setState({ fase: "login", perfil: null }); return; }
+    const { data: perfil, error } = await this.sb.from("perfiles").select("*").eq("id", sesion.user.id).maybeSingle();
+    if (error && /could not find the table|PGRST205|schema cache/i.test(error.message + " " + (error.code || ""))) { this.setState({ fase: "sininstalar" }); return; }
+    if (error || !perfil) { this.setState({ fase: "sinperfil" }); return; }
+    if (!perfil.activo) { this.setState({ fase: "suspendido", perfil }); return; }
+    this.setState({ fase: "panel", perfil, err: "" });
+    this.cargar();
+  }
+
+  async cargar() {
+    const [p, c, a] = await Promise.all([
+      this.sb.from("cf_periodos").select("*").order("anio", { ascending: false }).order("semestre", { ascending: false }),
+      this.sb.from("cf_cursos").select("*").order("programa").order("nombre_curso"),
+      this.sb.from("actividad").select("*").ilike("accion", "CF:%").order("fecha", { ascending: false }).limit(50)
+    ]);
+    if (p.error && /could not find the table|PGRST205|schema cache|does not exist/i.test(p.error.message)) { this.setState({ fase: "sininstalar" }); return; }
+    const periodos = p.data || [];
+    this.setState(s => ({ periodos, cursos: c.data || [], actividad: a.data || [],
+      actError: a.error ? this.traducir(a.error.message) : "",
+      periodo: s.periodo && periodos.some(x => x.id === s.periodo) ? s.periodo : ((periodos.find(x => x.vigente) || periodos[0] || {}).id || null) }));
+  }
+
+  async anota(accion, detalle) {
+    const r = await this.sb.from("actividad").insert({ correo: this.state.perfil ? this.state.perfil.correo : "", accion: "CF: " + accion, detalle: detalle || "" });
+    if (r.error) console.warn("actividad", r.error.message);
+  }
+
+  avisar(t, tipo) { this.setState({ aviso: t, avisoTipo: tipo || "ok" }); clearTimeout(this._av); this._av = setTimeout(() => this.setState({ aviso: "" }), 5000); }
+
+  traducir(m) {
+    const t = String(m || "");
+    if (/invalid login credentials/i.test(t)) return "Correo o contraseña incorrectos.";
+    if (/email not confirmed/i.test(t)) return "Debes confirmar tu correo antes de entrar.";
+    if (/rate limit|too many/i.test(t)) return "Demasiados intentos. Espera unos minutos.";
+    if (/could not find the table|schema cache|relation .* does not exist|does not exist/i.test(t)) return "Faltan las tablas de cursos: ejecuta data/supabase/setup-cursos.sql en Supabase.";
+    if (/row-level security|permission denied/i.test(t)) return "Tu cuenta no tiene permiso para esta operación.";
+    if (/duplicate key/i.test(t)) return "Ese semestre ya existe.";
+    return t;
+  }
+
+  async acceder() {
+    const { correo, clave } = this.state.login;
+    if (!correo || !clave) { this.setState({ err: "Escribe tu correo y contraseña." }); return; }
+    this.setState({ busy: true, err: "" });
+    const { error } = await this.sb.auth.signInWithPassword({ email: correo.trim(), password: clave });
+    this.setState({ busy: false });
+    if (error) this.setState({ err: this.traducir(error.message) });
+  }
+
+  limpiarFila(f) {
+    const num = v => v === "" || v == null ? null : (isFinite(+v) ? Math.round(+v) : null);
+    const txt = v => (v || "").trim() || null;
+    const programa = f.programa === "__otro__" ? txt(f.programa_texto) : txt(f.programa);
+    return { programa, nombre_curso: txt(f.nombre_curso), unidad: txt(f.unidad), nombre_asignatura: txt(f.nombre_asignatura), profesor: txt(f.profesor), descriptor: txt(f.descriptor),
+      tipo: txt(f.tipo), jornada: txt(f.jornada), modalidad: txt(f.modalidad), dia: txt(f.dia), hora_inicio: txt(f.hora_inicio), hora_fin: txt(f.hora_fin), sala: txt(f.sala),
+      cupos: num(f.cupos), sct: num(f.sct), semestre_programa: num(f.semestre_programa), codigo_plan: num(f.codigo_plan), codigo_asignatura: num(f.codigo_asignatura),
+      resolucion: txt(f.resolucion), contacto: txt(f.contacto), comentarios: txt(f.comentarios), vigente: !!f.vigente };
+  }
+
+  async guardar() {
+    const st = this.state, fila = this.limpiarFila(st.form);
+    if (!fila.nombre_curso || !fila.programa) { this.avisar("El nombre del curso y el programa son obligatorios.", "err"); return; }
+    if (!st.periodo) { this.avisar("Selecciona un semestre.", "err"); return; }
+    let r;
+    if (st.editId) r = await this.sb.from("cf_cursos").update(fila).eq("id", st.editId);
+    else r = await this.sb.from("cf_cursos").insert({ ...fila, periodo: st.periodo });
+    if (r.error) { this.avisar("No se pudo guardar: " + this.traducir(r.error.message), "err"); return; }
+    await this.anota(st.editId ? "Edición de curso" : "Nuevo curso", `${fila.nombre_curso} (${fila.programa}) · ${this.etiqueta(st.periodo)}`);
+    this.avisar(st.editId ? "Curso actualizado." : "Curso agregado a la oferta.");
+    this.setState({ form: { ...this.VACIO }, editId: null });
+    this.cargar();
+  }
+
+  etiqueta(id) { const p = this.state.periodos.find(x => x.id === id); return p ? p.etiqueta : id; }
+
+  async importar() {
+    try {
+      const { PERIODOS, CURSOS } = await import("./data/cursos/catalogo.js?v=1788798708702");
+      const rp = await this.sb.from("cf_periodos").upsert(PERIODOS.map(p => ({ id: p.id, anio: p.anio, semestre: p.semestre, etiqueta: p.etiqueta, estado: p.estado, vigente: p.vigente })), { onConflict: "id" });
+      if (rp.error) throw rp.error;
+      const filas = CURSOS.map(({ id, ...c }) => c);
+      const rc = await this.sb.from("cf_cursos").insert(filas);
+      if (rc.error) throw rc.error;
+      await this.anota("Importación", `${filas.length} cursos de la matriz inicial`);
+      this.avisar(`Se importaron ${filas.length} cursos en ${PERIODOS.length} semestres.`);
+      this.cargar();
+    } catch (e) { this.avisar("No se pudo importar: " + this.traducir(e.message), "err"); }
+  }
+
+  async duplicar() {
+    const st = this.state, origen = st.dupOrigen;
+    if (!origen || origen === st.periodo) { this.avisar("Elige un semestre de origen distinto.", "err"); return; }
+    const filas = st.cursos.filter(c => c.periodo === origen).map(({ id, creado, actualizado, ...c }) => ({ ...c, periodo: st.periodo }));
+    if (!filas.length) { this.avisar("El semestre de origen no tiene cursos.", "err"); return; }
+    if (!confirm(`Se copiarán ${filas.length} cursos de ${this.etiqueta(origen)} a ${this.etiqueta(st.periodo)}. ¿Continuar?`)) return;
+    const r = await this.sb.from("cf_cursos").insert(filas);
+    if (r.error) { this.avisar("No se pudo copiar: " + this.traducir(r.error.message), "err"); return; }
+    await this.anota("Copia de oferta", `${filas.length} cursos de ${this.etiqueta(origen)} → ${this.etiqueta(st.periodo)}`);
+    this.avisar(`Se copiaron ${filas.length} cursos. Revísalos y ajusta cupos, horarios y vigencia.`);
+    this.setState({ dupAbierto: false });
+    this.cargar();
+  }
+
+  async crearPeriodo() {
+    const anio = parseInt(this.state.npAnio, 10), sem = parseInt(this.state.npSem, 10);
+    if (!anio || anio < 2000) { this.avisar("Indica un año válido.", "err"); return; }
+    const id = `${anio}-${sem}`, etiqueta = `${sem === 1 ? "I" : "II"} Semestre ${anio}`;
+    const r = await this.sb.from("cf_periodos").insert({ id, anio, semestre: sem, etiqueta, estado: "borrador", vigente: false });
+    if (r.error) { this.avisar("No se pudo crear: " + this.traducir(r.error.message), "err"); return; }
+    await this.anota("Nuevo semestre", etiqueta);
+    this.avisar(`${etiqueta} creado como borrador.`);
+    this.setState({ periodo: id, tab: "oferta" });
+    this.cargar();
+  }
+
+  async estadoPeriodo(p, cambios, texto) {
+    const r = await this.sb.from("cf_periodos").update(cambios).eq("id", p.id);
+    if (r.error) { this.avisar("No se pudo actualizar: " + this.traducir(r.error.message), "err"); return; }
+    await this.anota("Semestre", `${p.etiqueta} → ${texto}`);
+    this.cargar();
+  }
+
+  renderVals() {
+    const st = this.state, admin = st.perfil && st.perfil.rol === "administrador";
+    const f = st.form || this.VACIO;
+    const norm = t => (t || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    const delPer = st.cursos.filter(c => c.periodo === st.periodo);
+    const q = norm(st.bq).trim();
+    const filtrados = delPer.filter(c =>
+      (st.bPrograma === "Todos los programas" || c.programa === st.bPrograma) &&
+      (st.bTipo === "Todos los tipos" || c.tipo === st.bTipo) &&
+      (st.bVig === "Vigentes y no vigentes" || (st.bVig === "Solo vigentes") === !!c.vigente) &&
+      (!q || norm([c.nombre_curso, c.profesor, c.programa, c.unidad, c.nombre_asignatura].join(" ")).includes(q)));
+    const totalPag = Math.max(1, Math.ceil(filtrados.length / this.POR));
+    const pag = Math.min(Math.max(1, st.pag), totalPag);
+    const visibles = filtrados.slice((pag - 1) * this.POR, pag * this.POR);
+    const programas = [...new Set(st.cursos.map(c => c.programa).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+    const sum = (arr, k) => arr.reduce((a, c) => a + (c[k] || 0), 0);
+    const setF = {}; Object.keys(this.VACIO).forEach(k => { setF[k] = e => { const v = k === "vigente" ? e.target.checked : e.target.value; this.setState(s => ({ form: { ...s.form, [k]: v } })); }; });
+    const agg = (arr, k) => { const m = {}; arr.forEach(c => { const v = c[k] || "Sin dato"; const o = m[v] || (m[v] = { n: 0, cupos: 0 }); o.n++; o.cupos += c.cupos || 0; }); return Object.entries(m).sort((a, b) => b[1].n - a[1].n); };
+    const pct = (a, b) => b ? Math.round(a / b * 100) + "%" : "0%";
+    const aP = agg(st.cursos, "programa"), aU = agg(st.cursos, "unidad");
+    const maxP = Math.max(1, ...aP.map(x => x[1].n)), maxU = Math.max(1, ...aU.map(x => x[1].n));
+    const porPer = st.periodos.map(p => { const cs = st.cursos.filter(c => c.periodo === p.id); return { name: p.etiqueta, n: cs.length, cupos: sum(cs, "cupos") }; });
+    const maxPer = Math.max(1, ...porPer.map(x => Math.max(x.n, x.cupos)));
+    const fmtFecha = d => { try { return new Date(d).toLocaleString("es-CL", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }); } catch (e) { return d; } };
+    const pestañas = [["oferta", "Oferta por semestre"], ["periodos", "Semestres"], ["stats", "Estadísticas"], ["act", "Actividad"]];
+    const perObj = st.periodos.find(p => p.id === st.periodo);
+
+    return {
+      vistaAcceso: st.fase === "login", vistaPanel: st.fase === "panel",
+      vistaEstado: ["cargando", "error", "sinperfil", "suspendido", "sininstalar"].includes(st.fase),
+      estadoTitulo: st.fase === "cargando" ? "Conectando…" : st.fase === "error" ? "Sin conexión con el servicio de datos" : st.fase === "sininstalar" ? "Falta instalar las tablas de cursos" : st.fase === "suspendido" ? "Cuenta suspendida" : "Cuenta sin permisos",
+      estadoNota: st.fase === "cargando" ? "Verificando la sesión." : st.fase === "error" ? "Revisa que el proyecto de datos esté activo." : st.fase === "sininstalar" ? "Ejecuta una vez data/supabase/setup-cursos.sql (y luego seed-cursos.sql) en el editor SQL de Supabase y vuelve a entrar." : st.fase === "suspendido" ? "Tu acceso fue suspendido por una persona administradora." : "Tu cuenta no tiene perfil en el sistema VIP. Pide que autoricen tu correo desde el panel de Normativa Postgrados.",
+      estadoConSalir: ["sinperfil", "suspendido", "sininstalar"].includes(st.fase),
+      lCorreo: st.login.correo, lClave: st.login.clave,
+      setLCorreo: e => this.setState(s => ({ login: { ...s.login, correo: e.target.value } })),
+      setLClave: e => this.setState(s => ({ login: { ...s.login, clave: e.target.value } })),
+      enterAcceso: e => { if (e.key === "Enter") this.acceder(); },
+      acceder: () => this.acceder(), accesoBoton: st.busy ? "Un momento…" : "Entrar",
+      hayError: !!st.err, err: st.err,
+      salir: () => this.sb.auth.signOut(),
+      sesionEtiqueta: st.perfil ? `${st.perfil.nombre || st.perfil.correo} · ${admin ? "Administrador/a" : "Editor/a"}` : "",
+      tabs: pestañas.map(([id, name]) => ({ name, fg: st.tab === id ? "#007E80" : "#8A8272", line: st.tab === id ? "#EF7A00" : "transparent", pick: () => this.setState({ tab: id }) })),
+      tabOferta: st.tab === "oferta", tabPeriodos: st.tab === "periodos", tabStats: st.tab === "stats", tabAct: st.tab === "act",
+      hayAviso: !!st.aviso, aviso: st.aviso, avisoFg: st.avisoTipo === "err" ? "#B0483A" : "#2F6B4F", avisoBg: st.avisoTipo === "err" ? "#F9EBE8" : "#E7F3EB",
+
+      periodosSel: st.periodos.map(p => { const on = p.id === st.periodo; return { etiqueta: p.etiqueta, estado: p.vigente ? "vigente" : p.estado, pick: () => this.setState({ periodo: p.id, pag: 1, editId: null, form: { ...this.VACIO } }), bg: on ? "#007E80" : "#fff", fg: on ? "#fff" : "#3A4450", border: on ? "#007E80" : "#E0DCD0" }; }),
+      sinPeriodo: st.periodos.length === 0, conPeriodo: st.periodos.length > 0,
+      perEtiqueta: perObj ? perObj.etiqueta : "", nCursos: delPer.length, nCupos: sum(delPer, "cupos"),
+      puedeImportar: st.cursos.length === 0, importar: () => this.importar(),
+      duplicar: () => this.setState(s => ({ dupAbierto: !s.dupAbierto, dupOrigen: (s.periodos.find(p => p.id !== s.periodo) || {}).id || "" })),
+      dupAbierto: st.dupAbierto, dupOrigen: st.dupOrigen, setDupOrigen: e => this.setState({ dupOrigen: e.target.value }),
+      dupOpciones: st.periodos.filter(p => p.id !== st.periodo).map(p => ({ id: p.id, etiqueta: p.etiqueta })),
+      dupConfirmar: () => this.duplicar(), dupCerrar: () => this.setState({ dupAbierto: false }),
+      bq: st.bq, setBq: e => this.setState({ bq: e.target.value, pag: 1 }),
+      bPrograma: st.bPrograma, setBPrograma: e => this.setState({ bPrograma: e.target.value, pag: 1 }), bProgramas: ["Todos los programas", ...programas],
+      bTipo: st.bTipo, setBTipo: e => this.setState({ bTipo: e.target.value, pag: 1 }),
+      bVig: st.bVig, setBVig: e => this.setState({ bVig: e.target.value, pag: 1 }),
+      listaVacia: filtrados.length === 0,
+      lista: visibles.map(c => ({
+        programa: c.programa, tipo: c.tipo || "Sin tipo", noVigente: !c.vigente, nombre: c.nombre_curso,
+        sub: [c.profesor, c.dia, c.hora_inicio ? c.hora_inicio + (c.hora_fin ? "–" + c.hora_fin : "") : null, c.sala].filter(Boolean).join(" · ") || "Sin horario informado",
+        cupos: c.cupos != null ? c.cupos + " cupos" : "—", bg: st.editId === c.id ? "#FBF6EC" : "#fff",
+        editar: () => this.setState({ editId: c.id, form: { ...this.VACIO, ...Object.fromEntries(Object.keys(this.VACIO).map(k => [k, c[k] == null ? (k === "vigente" ? true : "") : c[k]])), programa: programas.includes(c.programa) ? c.programa : "__otro__", programa_texto: programas.includes(c.programa) ? "" : c.programa } }),
+        borrar: async () => {
+          if (!confirm(`¿Eliminar «${c.nombre_curso}» de ${this.etiqueta(c.periodo)}?`)) return;
+          const r = await this.sb.from("cf_cursos").delete().eq("id", c.id);
+          if (r.error) { this.avisar("No se pudo eliminar: " + this.traducir(r.error.message), "err"); return; }
+          await this.anota("Eliminación de curso", `${c.nombre_curso} · ${this.etiqueta(c.periodo)}`);
+          this.avisar("Curso eliminado."); this.cargar();
+        }
+      })),
+      hayPaginas: totalPag > 1, pagLabel: `${pag} / ${totalPag}`,
+      pagPrev: () => this.setState({ pag: Math.max(1, pag - 1) }), pagNext: () => this.setState({ pag: Math.min(totalPag, pag + 1) }),
+
+      formTitulo: st.editId ? "Editar curso" : "Agregar curso a " + (perObj ? perObj.etiqueta : ""),
+      editando: !!st.editId, cancelar: () => this.setState({ editId: null, form: { ...this.VACIO } }),
+      guardar: () => this.guardar(), guardarLabel: st.editId ? "Guardar cambios" : "Agregar a la oferta",
+      programasOpc: programas, setF,
+      fNombre: f.nombre_curso, fPrograma: f.programa, fProgramaOtro: f.programa === "__otro__", fProgramaTexto: f.programa_texto, fUnidad: f.unidad, fAsig: f.nombre_asignatura, fProfesor: f.profesor, fDescriptor: f.descriptor,
+      fTipo: f.tipo, fJornada: f.jornada, fModalidad: f.modalidad, fDia: f.dia, fHi: f.hora_inicio, fHf: f.hora_fin, fSala: f.sala, fCupos: f.cupos, fSct: f.sct, fSemProg: f.semestre_programa,
+      fCodPlan: f.codigo_plan, fCodAsig: f.codigo_asignatura, fResol: f.resolucion, fContacto: f.contacto, fComentarios: f.comentarios, fVigente: !!f.vigente,
+
+      perLista: st.periodos.map(p => { const cs = st.cursos.filter(c => c.periodo === p.id); const b = e => p.estado === e ? "#007E80" : "#E0DCD0"; return {
+        etiqueta: p.etiqueta, vigente: p.vigente, noVigente: !p.vigente, n: cs.length,
+        resumen: `${p.estado === "borrador" ? "Borrador (solo equipo)" : p.estado === "publicado" ? "Publicado (visible al público)" : "Cerrado (historial)"} · ${sum(cs, "cupos")} cupos`,
+        bBorrador: b("borrador"), bPublicado: b("publicado"), bCerrado: b("cerrado"),
+        setBorrador: () => this.estadoPeriodo(p, { estado: "borrador" }, "borrador"),
+        setPublicado: () => this.estadoPeriodo(p, { estado: "publicado" }, "publicado"),
+        setCerrado: () => this.estadoPeriodo(p, { estado: "cerrado", vigente: false }, "cerrado"),
+        hacerVigente: () => this.estadoPeriodo(p, { vigente: true, estado: p.estado === "borrador" ? "publicado" : p.estado }, "vigente"),
+        borrar: async () => {
+          if (!confirm(`¿Eliminar ${p.etiqueta} y sus ${cs.length} cursos? Esta acción no se puede deshacer.`)) return;
+          const r = await this.sb.from("cf_periodos").delete().eq("id", p.id);
+          if (r.error) { this.avisar("No se pudo eliminar: " + this.traducir(r.error.message), "err"); return; }
+          await this.anota("Semestre eliminado", `${p.etiqueta} (${cs.length} cursos)`); this.cargar();
+        } }; }),
+      npAnio: st.npAnio, setNpAnio: e => this.setState({ npAnio: e.target.value }), npSem: st.npSem, setNpSem: e => this.setState({ npSem: e.target.value }),
+      crearPeriodo: () => this.crearPeriodo(),
+
+      sKpis: [
+        { n: st.cursos.length, label: "cursos registrados", color: "#007E80" }, { n: sum(st.cursos, "cupos"), label: "cupos ofrecidos en total", color: "#EF7A00" },
+        { n: st.periodos.length, label: "semestres", color: "#3A4450" }, { n: programas.length, label: "programas que han ofrecido", color: "#3A4450" }
+      ],
+      sPorPeriodo: porPer.map(x => ({ ...x, w: pct(x.n, maxPer), wCupos: pct(x.cupos, maxPer) })),
+      sPorPrograma: aP.map(([name, v]) => ({ name, n: v.n, w: pct(v.n, maxP), tip: `${name}: ${v.n} cursos · ${v.cupos} cupos` })),
+      sPorUnidad: aU.map(([name, v]) => ({ name, n: v.n, w: pct(v.n, maxU), tip: `${name}: ${v.n} cursos · ${v.cupos} cupos` })),
+
+      recargar: () => this.cargar(), actError: !!st.actError, actErrorTexto: "No se pudo leer el registro: " + st.actError,
+      sinActividad: st.actividad.length === 0 && !st.actError,
+      actividad: st.actividad.map(a => ({ fecha: fmtFecha(a.fecha), accion: (a.accion || "").replace(/^CF:\s*/, ""), detalle: a.detalle, correo: a.correo }))
+    };
+  }
+}
+</script>
+</body>
+</html>

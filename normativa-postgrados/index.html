@@ -18,7 +18,7 @@
 </script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="./support.js?v=1788796383195"></script>
+<script src="./support.js?v=1788796946526"></script>
 </head>
 <body>
 <x-dc>
@@ -56,9 +56,9 @@ body{margin:0;background:#F6F4EF}a{color:#007E80}a:hover{color:#EF7A00}input:foc
 </style>
 </helmet>
 <div style="min-height:100vh;font-family:Spectral,serif;color:#3A4450">
-  <div style="background:#3A4450;padding:8px clamp(24px,5vw,60px);display:flex;align-items:center;gap:10px">
-    <a href="../index.html" style="font:600 11px Archivo,sans-serif;color:#fff;text-decoration:none;opacity:.9" style-hover="opacity:1;color:#EF7A00">← Gestión de Información VIP</a>
-    <span style="font:400 11px Archivo,sans-serif;color:rgba(255,255,255,.55)">/ Normativa Postgrados</span>
+  <div style="background:#3A4450;padding:12px clamp(24px,5vw,60px);display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+    <a href="../index.html" style="display:inline-flex;align-items:center;gap:8px;min-height:40px;box-sizing:border-box;padding:9px 16px;border-radius:8px;background:#EF7A00;color:#fff;font:700 12.5px Archivo,sans-serif;letter-spacing:.01em;text-decoration:none" style-hover="background:#fff;color:#3A4450"><span style="font:700 14px Archivo,sans-serif;line-height:1">←</span>Gestión de Información VIP</a>
+    <span style="font:600 12px Archivo,sans-serif;color:rgba(255,255,255,.75)">/ Normativa Postgrados</span>
   </div>
   <header style="background:#fff;border-bottom:1px solid #E8E4DA;padding:16px clamp(24px,5vw,60px);display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap">
     <div onClick="{{ inicio }}" title="Volver al inicio de la plataforma" style="cursor:pointer">
@@ -229,7 +229,7 @@ class Component extends DCLogic {
   matrizFilas = [];
   async componentDidMount() {
     try {
-      const m = await import('./data/normativa/catalogo.js?v=1788796383195');
+      const m = await import('./data/normativa/catalogo.js?v=1788796946526');
       this.docs = m.DOCS; this.matrizFilas = m.MATRIZ;
       this.forceUpdate();
     } catch (e) { console.warn('No se pudo cargar el catálogo normativo', e); }
@@ -250,7 +250,7 @@ class Component extends DCLogic {
       if (!this._sb) {
         const [lib, cfg] = await Promise.all([
           import('https://esm.sh/@supabase/supabase-js@2'),
-          import('./data/supabase/config.js?v=1788796383195')
+          import('./data/supabase/config.js?v=1788796946526')
         ]);
         this._sb = lib.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY);
       }

@@ -4,9 +4,10 @@ Carpeta `vipfahu/` = raíz del sitio. Sitio estático publicado en Netlify: http
 
 - `index.html` — portal de entrada a los subsistemas.
 - `normativa-postgrados/` — Normativa Postgrados (`index.html` público, `admin.html` panel de actualización, `data/`, `support.js`, `assets/`).
-- `cursos-formacion/`, `trayectorias-academicas/` — subsistemas futuros (por construir).
-- `netlify.toml` — cabeceras, caché y rutas cortas (`/normativa`, `/admin`).
+- `cursos-formacion/` — Cursos de Formación Multidisciplinar (`index.html` oferta pública por semestre + estadísticas, `admin.html` panel, `data/`, `support.js`, `assets/`).
+- `trayectorias-academicas/` — subsistema futuro (por construir).
+- `netlify.toml` — cabeceras, caché y rutas cortas (`/normativa`, `/admin`, `/cursos`, `/cursos/admin`).
 
 Los datos de Normativa viven en Supabase; `data/normativa/catalogo.js` es el respaldo estático.
 
-Última generación: 2026-09-07T15:53:03.195Z
+Última generación: 2026-09-07T16:41:10.275Z

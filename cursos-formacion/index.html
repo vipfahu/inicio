@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<script>
+(function(){
+  function lock(){
+    document.body && document.body.removeAttribute('data-dc-editor-on');
+    document.querySelectorAll('[contenteditable="true"]').forEach(function(el){ el.setAttribute('contenteditable','false'); });
+  }
+  document.addEventListener('DOMContentLoaded', function(){
+    lock();
+    new MutationObserver(lock).observe(document.documentElement, {attributes:true, subtree:true, attributeFilter:['data-dc-editor-on','contenteditable']});
+  });
+})();
+</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js?v=1788799270275"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700;800&amp;family=Spectral:ital,wght@0,400;0,600;1,400&amp;family=IBM+Plex+Mono:wght@400;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F6F4EF}a{color:#007E80}a:hover{color:#EF7A00}input:focus,select:focus{outline:none;border-color:#00A0A0}
+@media screen and (max-width:760px){
+  header [style*="gap: 14px"],header [style*="gap:14px"]{flex-wrap:wrap !important;width:100%}
+  header input{width:100% !important}
+  [style*="250px minmax"]{grid-template-columns:minmax(0,1fr) !important}
+  aside[style*="border-right"]{border-right:none !important;border-bottom:1px solid #E8E4DA !important;padding:22px 20px 26px !important}
+  [style*="repeat(4,"]{grid-template-columns:repeat(2, minmax(0,1fr)) !important}
+  [style*="repeat(2,"]{grid-template-columns:minmax(0,1fr) !important}
+  [style*="170px minmax"]{grid-template-columns:minmax(0,1fr) 34px !important}
+  [style*="170px minmax"] > span:first-child{white-space:normal !important;grid-column:1 / -1}
+  [style*="64px repeat(5,"]{grid-template-columns:48px repeat(5, minmax(0,1fr)) !important;gap:3px !important}
+  [style*="minmax(0,1fr) 110px"],[style*="minmax(0px, 1fr) 110px"]{grid-template-columns:minmax(0,1fr) !important}
+  [style*="1.6fr"],[style*="1fr 1fr"]{grid-template-columns:minmax(0,1fr) !important}
+  header a,button,select{min-height:44px}
+  header a{display:flex !important;align-items:center;justify-content:center}
+}
+</style>
+</helmet>
+<div style="min-height:100vh;font-family:Spectral,serif;color:#3A4450">
+  <div style="background:#3A4450;padding:12px clamp(24px,5vw,60px);display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+    <a href="../index.html" style="display:inline-flex;align-items:center;gap:8px;min-height:40px;box-sizing:border-box;padding:9px 16px;border-radius:8px;background:#EF7A00;color:#fff;font:700 12.5px Archivo,sans-serif;text-decoration:none" style-hover="background:#fff;color:#3A4450"><span style="font:700 14px Archivo,sans-serif;line-height:1">←</span>Gestión de Información VIP</a>
+    <span style="font:600 12px Archivo,sans-serif;color:rgba(255,255,255,.75)">/ Cursos de Formación Multidisciplinar</span>
+  </div>
+  <header style="background:#fff;border-bottom:1px solid #E8E4DA;padding:16px clamp(24px,5vw,60px);display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap">
+    <div onClick="{{ inicio }}" style="display:flex;align-items:center;gap:16px;cursor:pointer">
+      <img src="assets/logo-fahu.png" alt="Facultad de Humanidades USACH" style="display:block;height:72px;width:auto">
+      <div>
+        <div style="font:800 17px Archivo,sans-serif;color:#007E80">Cursos de Formación Multidisciplinar</div>
+        <div style="font:400 12px Archivo,sans-serif;color:#8A8272;margin-top:2px">Oferta de postgrado abierta entre programas · FAHU e IDEA</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:14px;align-items:center">
+      <input value="{{ q }}" onChange="{{ setQ }}" placeholder="Buscar curso, profesor/a o tema…" style="width:min(320px,60vw);box-sizing:border-box;padding:10px 16px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5;color:#3A4450">
+      <a href="admin.html" style="font:600 11px Archivo,sans-serif;color:#fff;background:#EF7A00;border-radius:8px;padding:9px 14px;white-space:nowrap;text-decoration:none" style-hover="background:#007E80">Panel de actualización</a>
+    </div>
+  </header>
+
+  <div style="display:grid;grid-template-columns:250px minmax(0,1fr);gap:0;max-width:1200px;margin:0 auto">
+    <aside style="border-right:1px solid #E8E4DA;padding:30px 22px 60px">
+      <div style="font:700 10px Archivo,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#8A8272;margin-bottom:10px">Semestre</div>
+      <div style="display:flex;flex-direction:column;gap:4px;margin-bottom:26px">
+        <sc-for list="{{ periodos }}" as="p" hint-placeholder-count="2">
+          <button onClick="{{ p.pick }}" style="cursor:pointer;border:none;text-align:left;border-radius:8px;padding:9px 11px;background:{{ p.bg }};color:{{ p.fg }};font:600 13px Archivo,sans-serif;display:flex;justify-content:space-between;align-items:center;gap:8px" style-hover="background:#EEF6F6">
+            <span>{{ p.etiqueta }}</span>
+            <span style="font:600 10px Archivo,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:{{ p.badgeFg }};background:{{ p.badgeBg }};border-radius:999px;padding:3px 8px">{{ p.badge }}</span>
+          </button>
+        </sc-for>
+      </div>
+      <div style="font:700 10px Archivo,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#8A8272;margin-bottom:10px">Programa que ofrece</div>
+      <div style="display:flex;flex-direction:column;gap:2px;margin-bottom:26px">
+        <sc-for list="{{ facProgramas }}" as="f" hint-placeholder-count="6">
+          <button onClick="{{ f.pick }}" style="cursor:pointer;border:none;text-align:left;border-radius:7px;padding:7px 10px;background:{{ f.bg }};color:{{ f.fg }};font:400 12.5px Spectral,serif;display:flex;justify-content:space-between;gap:8px;line-height:1.3" style-hover="background:#EEF6F6">
+            <span>{{ f.name }}</span><span style="font:600 11px IBM Plex Mono,monospace;color:#8A8272;flex:none">{{ f.n }}</span>
+          </button>
+        </sc-for>
+      </div>
+      <div style="font:700 10px Archivo,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#8A8272;margin-bottom:10px">Tipo</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:22px">
+        <sc-for list="{{ facTipo }}" as="f" hint-placeholder-count="3">
+          <button onClick="{{ f.pick }}" style="cursor:pointer;border:1.5px solid {{ f.border }};background:{{ f.bg }};color:{{ f.fg }};border-radius:999px;padding:6px 12px;font:600 11.5px Archivo,sans-serif">{{ f.name }}</button>
+        </sc-for>
+      </div>
+      <div style="font:700 10px Archivo,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#8A8272;margin-bottom:10px">Jornada</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:22px">
+        <sc-for list="{{ facJornada }}" as="f" hint-placeholder-count="3">
+          <button onClick="{{ f.pick }}" style="cursor:pointer;border:1.5px solid {{ f.border }};background:{{ f.bg }};color:{{ f.fg }};border-radius:999px;padding:6px 12px;font:600 11.5px Archivo,sans-serif">{{ f.name }}</button>
+        </sc-for>
+      </div>
+      <div style="font:700 10px Archivo,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#8A8272;margin-bottom:10px">Día</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:22px">
+        <sc-for list="{{ facDia }}" as="f" hint-placeholder-count="6">
+          <button onClick="{{ f.pick }}" style="cursor:pointer;border:1.5px solid {{ f.border }};background:{{ f.bg }};color:{{ f.fg }};border-radius:999px;padding:6px 12px;font:600 11.5px Archivo,sans-serif">{{ f.name }}</button>
+        </sc-for>
+      </div>
+      <sc-if value="{{ hayFiltro }}" hint-placeholder-val="{{ false }}">
+        <button onClick="{{ limpiar }}" style="cursor:pointer;border:1.5px solid #E0DCD0;background:#FAF9F5;color:#007E80;border-radius:9px;padding:9px 14px;font:600 12px Archivo,sans-serif;width:100%">Limpiar filtros</button>
+      </sc-if>
+      <p style="font:italic 400 11.5px/1.5 Spectral,serif;color:#8A8272;margin:22px 0 0">{{ fuenteNota }}</p>
+    </aside>
+
+    <main style="padding:30px clamp(20px,4vw,44px) 70px">
+      <div style="background:#1F6F70;border-radius:16px;padding:26px 28px 24px;margin-bottom:28px;color:#fff">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:16px;flex-wrap:wrap;margin-bottom:18px">
+          <div>
+            <div style="font:700 10px Archivo,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.6)">Panorama de la oferta</div>
+            <h2 style="font:800 22px Archivo,sans-serif;margin:4px 0 0;letter-spacing:-.01em">{{ periodoEtiqueta }}</h2>
+          </div>
+          <span style="font:400 12.5px Spectral,serif;color:rgba(255,255,255,.7)">{{ panoramaNota }}</span>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(4, minmax(0,1fr));gap:16px;padding-bottom:22px;border-bottom:1px solid rgba(255,255,255,.12)">
+          <sc-for list="{{ kpis }}" as="k" hint-placeholder-count="4">
+            <div>
+              <div style="font:600 30px IBM Plex Mono,monospace;line-height:1;color:{{ k.color }}">{{ k.n }}</div>
+              <div style="font:400 12px Archivo,sans-serif;color:rgba(255,255,255,.7);margin-top:6px">{{ k.label }}</div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:18px">
+          <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+            <span style="font:700 10px Archivo,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.5);margin-right:6px">Medir por</span>
+            <sc-for list="{{ metricas }}" as="m" hint-placeholder-count="3">
+              <button onClick="{{ m.pick }}" style="cursor:pointer;border:1px solid {{ m.border }};background:{{ m.bg }};color:{{ m.fg }};border-radius:999px;padding:5px 12px;font:600 11px Archivo,sans-serif;transition:background .2s">{{ m.label }}</button>
+            </sc-for>
+          </div>
+          <span style="font:italic 400 11.5px Spectral,serif;color:rgba(255,255,255,.6)">{{ graficoNota }}</span>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(2, minmax(0,1fr));gap:22px 34px;margin-top:16px">
+          <div>
+            <div style="font:700 10px Archivo,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.5);margin:0 0 12px">{{ metricaLabel }} por programa</div>
+            <div style="display:flex;flex-direction:column;gap:4px">
+              <sc-for list="{{ barProg }}" as="b" hint-placeholder-count="8">
+                <button onClick="{{ b.pick }}" onMouseMove="{{ b.over }}" onMouseLeave="{{ tipOff }}" style="cursor:pointer;border:none;text-align:left;border-radius:6px;padding:4px 6px;margin:0 -6px;background:{{ b.bg }};display:grid;grid-template-columns:170px minmax(0,1fr) 34px;gap:10px;align-items:center;opacity:{{ b.op }};transition:opacity .25s,background .2s" style-hover="background:rgba(255,255,255,.12)">
+                  <span style="font:400 11px Spectral,serif;color:{{ b.fg }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ b.name }}</span>
+                  <span style="height:10px;background:rgba(255,255,255,.1);border-radius:4px;overflow:hidden;display:block;position:relative"><span style="position:absolute;left:0;top:0;height:100%;border-radius:4px;background:{{ b.color }};width:{{ b.w }};transition:width .45s cubic-bezier(.2,.7,.2,1)"></span></span>
+                  <span style="font:600 11px IBM Plex Mono,monospace;color:#fff;text-align:right">{{ b.n }}</span>
+                </button>
+              </sc-for>
+            </div>
+          </div>
+          <div>
+            <div style="font:700 10px Archivo,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.5);margin:0 0 12px">{{ metricaLabel }} por unidad académica</div>
+            <div style="display:flex;flex-direction:column;gap:4px">
+              <sc-for list="{{ barUnidad }}" as="b" hint-placeholder-count="6">
+                <button onClick="{{ b.pick }}" onMouseMove="{{ b.over }}" onMouseLeave="{{ tipOff }}" style="cursor:pointer;border:none;text-align:left;border-radius:6px;padding:4px 6px;margin:0 -6px;background:{{ b.bg }};display:grid;grid-template-columns:170px minmax(0,1fr) 34px;gap:10px;align-items:center;opacity:{{ b.op }};transition:opacity .25s,background .2s" style-hover="background:rgba(255,255,255,.12)">
+                  <span style="font:400 11px Spectral,serif;color:{{ b.fg }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ b.name }}</span>
+                  <span style="height:10px;background:rgba(255,255,255,.1);border-radius:4px;overflow:hidden;display:block;position:relative"><span style="position:absolute;left:0;top:0;height:100%;border-radius:4px;background:{{ b.color }};width:{{ b.w }};transition:width .45s cubic-bezier(.2,.7,.2,1)"></span></span>
+                  <span style="font:600 11px IBM Plex Mono,monospace;color:#fff;text-align:right">{{ b.n }}</span>
+                </button>
+              </sc-for>
+            </div>
+            <div style="font:700 10px Archivo,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.5);margin:22px 0 10px">Distribución semanal · día × jornada</div>
+            <div style="display:grid;grid-template-columns:64px repeat(5, minmax(0,1fr));gap:4px;align-items:center">
+              <span></span>
+              <sc-for list="{{ heatDias }}" as="d" hint-placeholder-count="5">
+                <button onClick="{{ d.pick }}" style="cursor:pointer;border:none;background:transparent;padding:2px 0;font:600 10px Archivo,sans-serif;letter-spacing:.04em;color:{{ d.fg }};text-align:center" style-hover="color:#EF7A00">{{ d.label }}</button>
+              </sc-for>
+              <sc-for list="{{ heatFilas }}" as="r" hint-placeholder-count="2">
+                <button onClick="{{ r.pick }}" style="cursor:pointer;border:none;background:transparent;padding:0;font:600 10px Archivo,sans-serif;color:{{ r.fg }};text-align:left" style-hover="color:#EF7A00">{{ r.label }}</button>
+                <sc-for list="{{ r.cells }}" as="c" hint-placeholder-count="5">
+                  <button onClick="{{ c.pick }}" onMouseMove="{{ c.over }}" onMouseLeave="{{ tipOff }}" style="cursor:pointer;border:2px solid {{ c.border }};background:{{ c.bg }};color:{{ c.fg }};border-radius:7px;height:34px;font:600 12px IBM Plex Mono,monospace;transition:background .3s,transform .15s" style-hover="transform:scale(1.06)">{{ c.n }}</button>
+                </sc-for>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:22px">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:8px">
+            <span style="font:700 10px Archivo,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.5)">Composición de la oferta</span>
+            <span style="font:400 11px Archivo,sans-serif;color:rgba(255,255,255,.6)">Clic en un segmento para filtrar</span>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(2, minmax(0,1fr));gap:14px 34px">
+            <sc-for list="{{ stacks }}" as="s" hint-placeholder-count="2">
+              <div>
+                <div style="display:flex;height:22px;border-radius:6px;overflow:hidden;gap:2px">
+                  <sc-for list="{{ s.segs }}" as="g" hint-placeholder-count="2">
+                    <button onClick="{{ g.pick }}" onMouseMove="{{ g.over }}" onMouseLeave="{{ tipOff }}" title="{{ g.title }}" style="cursor:pointer;border:none;padding:0;background:{{ g.color }};width:{{ g.w }};min-width:0;opacity:{{ g.op }};transition:width .45s cubic-bezier(.2,.7,.2,1),opacity .25s;font:600 10.5px Archivo,sans-serif;color:{{ g.fg }};overflow:hidden;white-space:nowrap" style-hover="filter:brightness(1.12)">{{ g.inLabel }}</button>
+                  </sc-for>
+                </div>
+                <div style="display:flex;gap:14px;margin-top:8px;flex-wrap:wrap">
+                  <sc-for list="{{ s.segs }}" as="g" hint-placeholder-count="2">
+                    <button onClick="{{ g.pick }}" style="cursor:pointer;border:none;background:transparent;padding:0;display:flex;align-items:center;gap:6px;font:400 11px Archivo,sans-serif;color:{{ g.legFg }}" style-hover="color:#fff"><span style="width:10px;height:10px;border-radius:3px;background:{{ g.color }};display:inline-block"></span>{{ g.label }} <span style="font:600 11px IBM Plex Mono,monospace">{{ g.n }}</span></button>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:12px;flex-wrap:wrap">
+        <h1 style="font:800 22px Archivo,sans-serif;color:#3A4450;letter-spacing:-.01em;margin:0">Cursos ofrecidos</h1>
+        <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+          <span style="font:600 12px IBM Plex Mono,monospace;color:#8A8272">{{ count }} {{ cursosPal }} · {{ cuposCount }} {{ cuposPal }}</span>
+          <div style="display:flex;border:1.5px solid #E0DCD0;border-radius:8px;overflow:hidden">
+            <button onClick="{{ verLista }}" style="cursor:pointer;border:none;padding:7px 12px;font:600 11.5px Archivo,sans-serif;background:{{ vistaListaBg }};color:{{ vistaListaFg }}">Fichas</button>
+            <button onClick="{{ verMatriz }}" style="cursor:pointer;border:none;border-left:1.5px solid #E0DCD0;padding:7px 12px;font:600 11.5px Archivo,sans-serif;background:{{ vistaMatrizBg }};color:{{ vistaMatrizFg }}">Matriz</button>
+          </div>
+        </div>
+      </div>
+      <sc-if value="{{ esMatriz }}" hint-placeholder-val="{{ false }}">
+        <div style="background:#fff;border:1px solid #E8E4DA;border-radius:14px;overflow:hidden">
+          <div style="overflow-x:auto">
+            <table style="width:100%;min-width:1080px;border-collapse:collapse;font:400 12px Archivo,sans-serif;color:#3A4450">
+              <thead>
+                <tr style="background:#F6F4EF">
+                  <sc-for list="{{ matCols }}" as="h" hint-placeholder-count="10">
+                    <th onClick="{{ h.sort }}" style="cursor:pointer;text-align:left;padding:10px 12px;font:600 10px Archivo,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:{{ h.fg }};border-bottom:1px solid #E8E4DA;white-space:nowrap;user-select:none">{{ h.label }}{{ h.flecha }}</th>
+                  </sc-for>
+                </tr>
+              </thead>
+              <tbody>
+                <sc-for list="{{ matFilas }}" as="r" hint-placeholder-count="10">
+                  <tr onClick="{{ r.toggle }}" style="cursor:pointer;background:{{ r.bg }}" style-hover="background:#FAF9F5">
+                    <td style="padding:9px 12px;border-bottom:1px solid #F0EDE4;font:600 11px Archivo,sans-serif;color:#007E80;max-width:200px">{{ r.programa }}</td>
+                    <td style="padding:9px 12px;border-bottom:1px solid #F0EDE4;font:600 12.5px/1.3 Archivo,sans-serif;color:#3A4450;min-width:240px">{{ r.nombre }}<sc-if value="{{ r.noVigente }}" hint-placeholder-val="{{ false }}"><span style="margin-left:6px;font:600 9px Archivo,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#8A3D2E;background:#F9EDE9;border-radius:4px;padding:2px 5px;vertical-align:middle">No vigente</span></sc-if></td>
+                    <td style="padding:9px 12px;border-bottom:1px solid #F0EDE4;color:#5A6470">{{ r.profesor }}</td>
+                    <td style="padding:9px 12px;border-bottom:1px solid #F0EDE4;white-space:nowrap"><span style="font:600 9.5px Archivo,sans-serif;letter-spacing:.05em;text-transform:uppercase;color:{{ r.tipoFg }};background:{{ r.tipoBg }};border-radius:5px;padding:3px 7px">{{ r.tipo }}</span></td>
+                    <td style="padding:9px 12px;border-bottom:1px solid #F0EDE4;color:#5A6470;white-space:nowrap">{{ r.jornada }}</td>
+                    <td style="padding:9px 12px;border-bottom:1px solid #F0EDE4;color:#5A6470;white-space:nowrap">{{ r.dia }}</td>
+                    <td style="padding:9px 12px;border-bottom:1px solid #F0EDE4;font:500 11.5px IBM Plex Mono,monospace;color:#3A4450;white-space:nowrap">{{ r.horario }}</td>
+                    <td style="padding:9px 12px;border-bottom:1px solid #F0EDE4;color:#5A6470">{{ r.sala }}</td>
+                    <td style="padding:9px 12px;border-bottom:1px solid #F0EDE4;font:600 12px IBM Plex Mono,monospace;color:#EF7A00;text-align:right">{{ r.cupos }}</td>
+                    <td style="padding:9px 12px;border-bottom:1px solid #F0EDE4;font:500 11.5px IBM Plex Mono,monospace;color:#5A6470;text-align:right">{{ r.sct }}</td>
+                  </tr>
+                  <sc-if value="{{ r.open }}" hint-placeholder-val="{{ false }}">
+                    <tr style="background:#FBFAF7">
+                      <td colSpan="10" style="padding:12px 16px 16px;border-bottom:1px solid #E8E4DA">
+                        <div style="font:700 9.5px Archivo,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#8A8272;margin-bottom:6px">Descriptor · {{ r.unidad }}</div>
+                        <p style="font:400 13px/1.55 Spectral,serif;color:#3A4450;margin:0;max-width:900px;text-wrap:pretty">{{ r.descriptor }}</p>
+                        <sc-if value="{{ r.hayComentario }}" hint-placeholder-val="{{ false }}"><p style="font:italic 400 12px/1.5 Spectral,serif;color:#5A6470;margin:8px 0 0">{{ r.comentarios }}</p></sc-if>
+                      </td>
+                    </tr>
+                  </sc-if>
+                </sc-for>
+              </tbody>
+            </table>
+          </div>
+          <sc-if value="{{ vacio }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:34px;text-align:center;font:700 14px Archivo,sans-serif;color:#3A4450">No hay cursos que coincidan con este filtro</div>
+          </sc-if>
+          <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:10px 16px;background:#F6F4EF;border-top:1px solid #E8E4DA;font:400 11.5px Archivo,sans-serif;color:#8A8272">
+            <span>Clic en un encabezado para ordenar · clic en una fila para ver el descriptor</span>
+            <span>{{ count }} cursos · {{ cuposCount }} cupos · {{ matSct }} SCT</span>
+          </div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ esLista }}" hint-placeholder-val="{{ true }}">
+      <div style="background:#fff;border:1px solid #E8E4DA;border-radius:14px;overflow:hidden">
+        <sc-if value="{{ vacio }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:44px 24px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:12px">
+            <div style="font:700 14px Archivo,sans-serif;color:#3A4450">No hay cursos que coincidan con este filtro</div>
+            <button onClick="{{ limpiar }}" style="cursor:pointer;border:1.5px solid #E0DCD0;background:#FAF9F5;color:#007E80;border-radius:9px;padding:9px 16px;font:600 12.5px Archivo,sans-serif">Limpiar filtros</button>
+          </div>
+        </sc-if>
+        <sc-for list="{{ cursos }}" as="c" hint-placeholder-count="6">
+          <div style="border-bottom:1px solid #F0EDE4">
+            <div onClick="{{ c.toggle }}" style="cursor:pointer;display:grid;grid-template-columns:minmax(0,1fr) 110px;gap:18px;align-items:start;padding:16px 22px" style-hover="background:#FAF9F5">
+              <div style="min-width:0">
+                <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:6px">
+                  <span style="font:600 10px Archivo,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#007E80;background:#E4F2F2;border-radius:6px;padding:4px 8px">{{ c.programa }}</span>
+                  <span style="font:600 10px Archivo,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:{{ c.tipoFg }};background:{{ c.tipoBg }};border-radius:6px;padding:4px 8px">{{ c.tipo }}</span>
+                  <sc-if value="{{ c.noVigente }}" hint-placeholder-val="{{ false }}"><span style="font:600 10px Archivo,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#8A3D2E;background:#F9EDE9;border-radius:6px;padding:4px 8px">No vigente</span></sc-if>
+                </div>
+                <div style="font:700 15px/1.3 Archivo,sans-serif;color:#3A4450;text-wrap:pretty">{{ c.nombre }}</div>
+                <div style="font:400 12.5px Archivo,sans-serif;color:#5A6470;margin-top:4px">{{ c.profesor }}<span style="color:#8A8272"> · {{ c.horarioLinea }}</span></div>
+              </div>
+              <div style="text-align:right;display:flex;flex-direction:column;gap:3px;align-items:flex-end">
+                <span style="font:600 16px IBM Plex Mono,monospace;color:#EF7A00">{{ c.cupos }}</span>
+                <span style="font:400 10.5px Archivo,sans-serif;color:#8A8272">{{ c.cuposLabel }}</span>
+                <span style="font:600 12px Archivo,sans-serif;color:#007E80;margin-top:6px">{{ c.arrow }}</span>
+              </div>
+            </div>
+            <sc-if value="{{ c.open }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:4px 22px 22px 22px;display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:24px">
+                <div>
+                  <div style="font:700 10px Archivo,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#8A8272;margin-bottom:8px">Descriptor · Resultado de aprendizaje</div>
+                  <p style="font:400 13.5px/1.6 Spectral,serif;color:#3A4450;margin:0;text-wrap:pretty">{{ c.descriptor }}</p>
+                  <sc-if value="{{ c.hayComentario }}" hint-placeholder-val="{{ false }}"><p style="font:italic 400 12.5px/1.5 Spectral,serif;color:#5A6470;margin:12px 0 0">{{ c.comentarios }}</p></sc-if>
+                </div>
+                <div style="background:#F6F4EF;border-radius:12px;padding:14px 16px;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px 14px;align-content:start">
+                  <sc-for list="{{ c.ficha }}" as="f" hint-placeholder-count="6">
+                    <div style="min-width:0">
+                      <div style="font:600 9.5px Archivo,sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#8A8272">{{ f.k }}</div>
+                      <div lang="es" style="font:600 12.5px Archivo,sans-serif;color:#3A4450;margin-top:2px;overflow-wrap:break-word;hyphens:auto">{{ f.v }}</div>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+      </sc-if>
+      <sc-if value="{{ hayPaginas }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;justify-content:center;align-items:center;gap:14px;margin-top:18px">
+          <button onClick="{{ pagPrev }}" style="cursor:pointer;border:1.5px solid #E0DCD0;background:#fff;color:#007E80;border-radius:8px;padding:8px 14px;font:600 12px Archivo,sans-serif">← Anterior</button>
+          <span style="font:600 12px IBM Plex Mono,monospace;color:#8A8272">{{ pagLabel }}</span>
+          <button onClick="{{ pagNext }}" style="cursor:pointer;border:1.5px solid #E0DCD0;background:#fff;color:#007E80;border-radius:8px;padding:8px 14px;font:600 12px Archivo,sans-serif">Siguiente →</button>
+        </div>
+      </sc-if>
+    </main>
+  </div>
+  <footer style="border-top:1px solid #E8E4DA;padding:18px clamp(24px,5vw,60px);font:400 12px Archivo,sans-serif;color:#8A8272;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap">
+    <span>Vicedecanato de Investigación y Postgrado · Facultad de Humanidades · Universidad de Santiago de Chile</span>
+    <span>{{ actualizadoNota }}</span>
+  </footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { q: "", periodo: null, programa: null, unidad: null, tipo: null, jornada: null, dia: null, metrica: "cursos", open: {}, pag: 1, fuente: "cargando", periodos: [], cursos: [], vista: (typeof localStorage !== "undefined" && localStorage.getItem("cf_vista")) || "lista", sortKey: "programa", sortDir: 1 };
+  POR = 12;
+
+  tip(e, html) {
+    let t = document.getElementById("dc-tip");
+    if (!t) {
+      t = document.createElement("div"); t.id = "dc-tip";
+      t.style.cssText = "position:fixed;z-index:9999;display:none;pointer-events:none;background:#3A4450;color:#fff;border-radius:8px;padding:8px 11px;font:400 12px/1.45 Archivo,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.25);max-width:260px";
+      document.body.appendChild(t);
+    }
+    t.innerHTML = html; t.style.display = "block";
+    const w = t.offsetWidth, h = t.offsetHeight;
+    let x = e.clientX + 14, y = e.clientY + 16;
+    if (x + w > window.innerWidth - 8) x = e.clientX - w - 14;
+    if (y + h > window.innerHeight - 8) y = e.clientY - h - 12;
+    t.style.left = x + "px"; t.style.top = y + "px";
+  }
+  tipOff() { const t = document.getElementById("dc-tip"); if (t) t.style.display = "none"; }
+
+  async componentDidMount() {
+    try {
+      const m = await import("./data/cursos/catalogo.js?v=1788799270275");
+      this.estatico = { periodos: m.PERIODOS, cursos: m.CURSOS };
+      this.aplicar(this.estatico, "estatico");
+    } catch (e) { console.warn("catálogo estático no disponible", e); }
+    try {
+      const [lib, cfg] = await Promise.all([
+        import("https://esm.sh/@supabase/supabase-js@2"),
+        import("./data/supabase/config.js?v=1788799270275")
+      ]);
+      const sb = lib.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY);
+      const [p, c] = await Promise.all([
+        sb.from("cf_periodos").select("*").order("anio", {ascending: false}).order("semestre", {ascending: false}),
+        sb.from("cf_cursos").select("*").order("programa").order("nombre_curso")
+      ]);
+      if (p.error || c.error) throw (p.error || c.error);
+      if (p.data && p.data.length) this.aplicar({ periodos: p.data, cursos: c.data || [] }, "vivo");
+      else this.setState({ fuente: this.estatico ? "estatico" : "vacio" });
+    } catch (e) {
+      console.warn("Supabase no disponible, se usa el catálogo estático", e);
+      this.setState({ fuente: this.estatico ? "estatico" : "vacio" });
+    }
+    window.__DC_READY = true;
+  }
+
+  aplicar(d, fuente) {
+    const periodos = [...d.periodos].sort((a, b) => (b.anio - a.anio) || (b.semestre - a.semestre));
+    const vig = periodos.find(p => p.vigente) || periodos[0];
+    this.setState(s => ({ periodos, cursos: d.cursos, fuente, periodo: s.periodo && periodos.some(p => p.id === s.periodo) ? s.periodo : (vig ? vig.id : null) }));
+  }
+
+  norm(t) { return (t || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""); }
+
+  renderVals() {
+    const st = this.state;
+    const T = "#1F6F70", NAR = "#EF7A00";
+    const periodoObj = st.periodos.find(p => p.id === st.periodo);
+    const delPeriodo = st.cursos.filter(c => c.periodo === st.periodo);
+    const q = this.norm(st.q).trim();
+    const filtrados = delPeriodo.filter(c =>
+      (!st.programa || c.programa === st.programa) &&
+      (!st.unidad || (c.unidad || "Sin unidad informada") === st.unidad) &&
+      (!st.tipo || c.tipo === st.tipo) &&
+      (!st.jornada || c.jornada === st.jornada) &&
+      (!st.dia || c.dia === st.dia) &&
+      (!q || this.norm([c.nombre_curso, c.nombre_asignatura, c.profesor, c.descriptor, c.programa, c.unidad, c.sala].join(" ")).includes(q)));
+    const esMatriz = st.vista === "matriz";
+    const totalPag = esMatriz ? 1 : Math.max(1, Math.ceil(filtrados.length / this.POR));
+    const pag = Math.min(Math.max(1, st.pag), totalPag);
+    const DIAORD = { Lunes: 1, Martes: 2, "Miércoles": 3, Jueves: 4, Viernes: 5, "Sábado": 6 };
+    const sortVal = c => { const k = st.sortKey; if (k === "dia") return DIAORD[c.dia] || 9; if (k === "horario") return c.hora_inicio || "99"; if (k === "cupos" || k === "sct") return c[k] == null ? -1 : c[k]; return this.norm(c[k] || ""); };
+    const ordenados = [...filtrados].sort((a, b) => { const va = sortVal(a), vb = sortVal(b); const r = typeof va === "number" ? va - vb : String(va).localeCompare(String(vb)); return (r || this.norm(a.nombre_curso).localeCompare(this.norm(b.nombre_curso))) * st.sortDir; });
+    const setVista = v => () => { try { localStorage.setItem("cf_vista", v); } catch (e) {} this.setState({ vista: v, pag: 1 }); };
+    const MATCOLS = [["programa", "Programa"], ["nombre_curso", "Curso"], ["profesor", "Profesor/a"], ["tipo", "Tipo"], ["jornada", "Jornada"], ["dia", "Día"], ["horario", "Horario"], ["sala", "Sala"], ["cupos", "Cupos"], ["sct", "SCT"]];
+    const visibles = filtrados.slice((pag - 1) * this.POR, pag * this.POR);
+    const sum = (arr, k) => arr.reduce((a, c) => a + (c[k] || 0), 0);
+    const count = (arr, k) => { const m = {}; arr.forEach(c => { const v = c[k]; if (v) m[v] = (m[v] || 0) + 1; }); return m; };
+    const set = (k, v) => () => this.setState(s => ({ [k]: s[k] === v ? null : v, pag: 1 }));
+    const chip = (name, k, disp) => {
+      const on = st[k] === name;
+      return { name: disp || name, pick: set(k, name), bg: on ? T : "#fff", fg: on ? "#fff" : "#3A4450", border: on ? T : "#E0DCD0" };
+    };
+    // stats (sobre el periodo completo, no filtrado)
+    const MET = { cursos: { label: "Cursos", get: c => 1 }, cupos: { label: "Cupos", get: c => c.cupos || 0 }, sct: { label: "Créditos SCT", get: c => c.sct || 0 } };
+    const met = MET[st.metrica] || MET.cursos;
+    const acc = (m, k, c) => { const p = m[k] || (m[k] = { n: 0, cupos: 0, sct: 0, v: 0, elect: 0 }); p.n++; p.cupos += c.cupos || 0; p.sct += c.sct || 0; p.v += met.get(c); if (c.tipo === "Electivo") p.elect++; };
+    const progs = {}; delPeriodo.forEach(c => acc(progs, c.programa, c));
+    const unis = {}; delPeriodo.forEach(c => acc(unis, c.unidad || "Sin unidad informada", c));
+    const maxP = Math.max(1, ...Object.values(progs).map(p => p.v));
+    const maxU = Math.max(1, ...Object.values(unis).map(p => p.v));
+    const tipos = count(delPeriodo, "tipo"), jorn = count(delPeriodo, "jornada"), dias = count(delPeriodo, "dia"), mods = count(delPeriodo, "modalidad");
+    const DIAS = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+    const pct = (a, b) => b ? Math.round(a / b * 100) + "%" : "—";
+    const tipHtml = (name, p) => `<strong>${name}</strong><br>${p.n} cursos · ${p.cupos} cupos · ${p.sct} SCT<br><span style="opacity:.75">${p.elect} electivos · ${p.n - p.elect} obligatorios</span>`;
+    const barRow = (name, p, k, color) => {
+      const on = st[k] === name, dim = st[k] && !on;
+      return { name, n: p.v, w: pct(p.v, k === "programa" ? maxP : maxU), color, op: dim ? .45 : 1,
+        pick: set(k, name), bg: on ? "rgba(255,255,255,.16)" : "transparent", fg: on ? "#fff" : "rgba(255,255,255,.85)",
+        over: e => this.tip(e, tipHtml(name, p) + `<br><span style="opacity:.6">Clic para ${on ? "quitar el filtro" : "filtrar"}</span>`) };
+    };
+    // heatmap día × jornada
+    const HD = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"], HJ = ["Diurna", "Vespertina"];
+    const heat = {}; let heatMax = 1;
+    delPeriodo.forEach(c => { if (c.dia && c.jornada) { const k = c.dia + "|" + c.jornada; heat[k] = (heat[k] || 0) + 1; heatMax = Math.max(heatMax, heat[k]); } });
+    const heatCell = (d, j) => {
+      const n = heat[d + "|" + j] || 0, on = st.dia === d && st.jornada === j, a = n ? 0.18 + 0.72 * (n / heatMax) : 0.05;
+      return { n: n || "·", bg: on ? "#EF7A00" : `rgba(255,255,255,${a.toFixed(2)})`, fg: on ? "#fff" : (a > .55 ? "#1F6F70" : "rgba(255,255,255,.9)"), border: on ? "#fff" : "transparent",
+        pick: () => this.setState(s => (s.dia === d && s.jornada === j) ? { dia: null, jornada: null, pag: 1 } : { dia: d, jornada: j, pag: 1 }),
+        over: e => this.tip(e, `<strong>${d} · ${j}</strong><br>${n} ${n === 1 ? "curso" : "cursos"}${n ? "<br><span style=\"opacity:.6\">Clic para filtrar</span>" : ""}`) };
+    };
+    // barras apiladas de composición
+    const stack = (label, k, opciones, colores) => {
+      const total = delPeriodo.length || 1;
+      const segs = opciones.map(([val, disp], i) => {
+        const n = delPeriodo.filter(c => (c[k] || "Sin dato") === val).length, on = st[k] === val, dim = st[k] && !on;
+        return { label: disp, n, w: pct(n, total), color: colores[i], fg: i === 0 ? "#1F6F70" : "#fff", op: dim ? .4 : 1, legFg: on ? "#fff" : "rgba(255,255,255,.7)",
+          inLabel: n / total > .18 ? `${disp} ${pct(n, total)}` : "", title: `${disp}: ${n}`,
+          pick: val === "Sin dato" ? () => {} : set(k, val),
+          over: e => this.tip(e, `<strong>${label}: ${disp}</strong><br>${n} de ${delPeriodo.length} cursos (${pct(n, total)})`) };
+      }).filter(s => s.n > 0);
+      return { label, segs };
+    };
+    const stacks = [
+      stack("Tipo", "tipo", [["Electivo", "Electivos"], ["Obligatorio", "Obligatorios"], ["Sin dato", "Sin tipo"]], ["#fff", "#EF7A00", "rgba(255,255,255,.25)"]),
+      stack("Jornada", "jornada", [["Diurna", "Diurna"], ["Vespertina", "Vespertina"], ["Sin dato", "Sin jornada"]], ["#8FD3D3", "#EF7A00", "rgba(255,255,255,.25)"])
+    ];
+    const hm = c => c.hora_inicio ? (c.hora_inicio + (c.hora_fin ? "–" + c.hora_fin : "")) : (c.modulo ? "Módulo " + c.modulo : "Horario por confirmar");
+
+    return {
+      q: st.q, setQ: e => this.setState({ q: e.target.value, pag: 1 }),
+      inicio: () => this.setState({ q: "", programa: null, unidad: null, tipo: null, jornada: null, dia: null, pag: 1, open: {} }),
+      limpiar: () => this.setState({ q: "", programa: null, unidad: null, tipo: null, jornada: null, dia: null, pag: 1 }),
+      hayFiltro: !!(st.q || st.programa || st.unidad || st.tipo || st.jornada || st.dia),
+      tipOff: () => this.tipOff(),
+      metricas: Object.entries(MET).map(([id, m]) => ({ label: m.label, pick: () => this.setState({ metrica: id }), bg: st.metrica === id ? "#fff" : "transparent", fg: st.metrica === id ? T : "rgba(255,255,255,.8)", border: st.metrica === id ? "#fff" : "rgba(255,255,255,.35)" })),
+      metricaLabel: met.label,
+      graficoNota: st.programa || st.unidad || st.tipo || st.jornada || st.dia ? "Filtro activo: " + [st.programa, st.unidad, st.tipo, st.jornada, st.dia].filter(Boolean).join(" · ") : "Pasa el cursor para ver el detalle; clic para filtrar el listado",
+      heatDias: HD.map(d => ({ label: d.slice(0, 3).toUpperCase(), fg: st.dia === d ? "#EF7A00" : "rgba(255,255,255,.6)", pick: set("dia", d) })),
+      heatFilas: HJ.map(j => ({ label: j, fg: st.jornada === j ? "#EF7A00" : "rgba(255,255,255,.75)", pick: set("jornada", j), cells: HD.map(d => heatCell(d, j)) })),
+      stacks,
+      fuenteNota: st.fuente === "vivo" ? "Datos actualizados por el Vicedecanato en tiempo real." : st.fuente === "estatico" ? "Mostrando el catálogo de respaldo del repositorio." : "Cargando la oferta…",
+      actualizadoNota: st.fuente === "vivo" ? "Oferta gestionada desde el Panel de actualización" : "",
+      periodos: st.periodos.map(p => {
+        const on = p.id === st.periodo;
+        return { etiqueta: p.etiqueta, pick: () => this.setState({ periodo: p.id, pag: 1, open: {}, programa: null }),
+          bg: on ? T : "transparent", fg: on ? "#fff" : "#3A4450",
+          badge: p.vigente ? "Vigente" : p.estado === "cerrado" ? "Histórico" : "Publicado",
+          badgeBg: on ? "rgba(255,255,255,.18)" : p.vigente ? "#FCEBD9" : "#EFECE4", badgeFg: on ? "#fff" : p.vigente ? NAR : "#8A8272" };
+      }),
+      facProgramas: Object.entries(progs).sort((a, b) => a[0].localeCompare(b[0])).map(([name, v]) => {
+        const on = st.programa === name;
+        return { name, n: v.n, pick: set("programa", name), bg: on ? "#E4F2F2" : "transparent", fg: on ? T : "#3A4450" };
+      }),
+      facTipo: ["Electivo", "Obligatorio"].map(t => chip(t, "tipo")),
+      facJornada: ["Diurna", "Vespertina"].map(t => chip(t, "jornada")),
+      facDia: DIAS.filter(d => dias[d]).map(d => chip(d, "dia")),
+      periodoEtiqueta: periodoObj ? periodoObj.etiqueta : "—",
+      panoramaNota: periodoObj ? (periodoObj.vigente ? "Oferta en curso · disponible para estudiantes de otros programas" : "Registro histórico de la oferta") : "",
+      kpis: [
+        { n: delPeriodo.length, label: "cursos ofrecidos", color: "#fff" },
+        { n: sum(delPeriodo, "cupos"), label: "cupos para otros programas", color: NAR },
+        { n: Object.keys(progs).length, label: "programas que ofrecen", color: "#8FD3D3" },
+        { n: Object.keys(unis).filter(u => u !== "Sin unidad informada").length, label: "unidades académicas", color: "#8FD3D3" }
+      ],
+      barProg: Object.entries(progs).sort((a, b) => b[1].v - a[1].v).map(([name, v]) => barRow(name, v, "programa", "#fff")),
+      barUnidad: Object.entries(unis).sort((a, b) => b[1].v - a[1].v).map(([name, v]) => barRow(name, v, "unidad", "#8FD3D3")),
+      count: filtrados.length, cuposCount: sum(filtrados, "cupos"), matSct: sum(filtrados, "sct"),
+      cursosPal: filtrados.length === 1 ? "curso" : "cursos", cuposPal: sum(filtrados, "cupos") === 1 ? "cupo" : "cupos",
+      vacio: filtrados.length === 0 && st.fuente !== "cargando",
+      esMatriz, esLista: !esMatriz,
+      verLista: setVista("lista"), verMatriz: setVista("matriz"),
+      vistaListaBg: esMatriz ? "#fff" : T, vistaListaFg: esMatriz ? "#3A4450" : "#fff",
+      vistaMatrizBg: esMatriz ? T : "#fff", vistaMatrizFg: esMatriz ? "#fff" : "#3A4450",
+      matCols: MATCOLS.map(([k, label]) => ({ label, fg: st.sortKey === k ? T : "#8A8272", flecha: st.sortKey === k ? (st.sortDir === 1 ? " ▲" : " ▼") : "",
+        sort: () => this.setState(s => ({ sortKey: k, sortDir: s.sortKey === k ? -s.sortDir : 1 })) })),
+      matFilas: ordenados.map(c => {
+        const open = !!st.open[c.id];
+        return { programa: c.programa, nombre: c.nombre_curso, noVigente: c.vigente === false, profesor: c.profesor || "—",
+          tipo: c.tipo || "—", tipoFg: c.tipo === "Obligatorio" ? "#8A5A00" : "#3A4450", tipoBg: c.tipo === "Obligatorio" ? "#FCEBD9" : "#EFECE4",
+          jornada: c.jornada || "—", dia: c.dia || "—", horario: c.hora_inicio ? c.hora_inicio + (c.hora_fin ? "–" + c.hora_fin : "") : (c.modulo ? "Mód. " + c.modulo : "—"),
+          sala: c.sala || "—", cupos: c.cupos != null ? c.cupos : "—", sct: c.sct != null ? c.sct : "—",
+          open, bg: open ? "#FBF6EC" : "#fff", toggle: () => this.setState(s => ({ open: { ...s.open, [c.id]: !s.open[c.id] } })),
+          unidad: c.unidad || "Unidad no informada", descriptor: c.descriptor || "Sin descriptor informado.", hayComentario: !!c.comentarios, comentarios: c.comentarios || "" };
+      }),
+      cursos: visibles.map(c => {
+        const open = !!st.open[c.id];
+        return {
+          programa: c.programa, tipo: c.tipo || "Sin tipo", tipoFg: c.tipo === "Obligatorio" ? "#8A5A00" : "#3A4450", tipoBg: c.tipo === "Obligatorio" ? "#FCEBD9" : "#EFECE4",
+          noVigente: c.vigente === false,
+          nombre: c.nombre_curso, profesor: c.profesor || "Docente por confirmar",
+          horarioLinea: [c.dia, hm(c), c.jornada].filter(Boolean).join(" · "),
+          cupos: c.cupos != null ? c.cupos : "—", cuposLabel: c.cupos === 1 ? "cupo" : "cupos",
+          arrow: open ? "Cerrar ▴" : "Ver ficha ▾", open,
+          toggle: () => this.setState(s => ({ open: { ...s.open, [c.id]: !s.open[c.id] } })),
+          descriptor: c.descriptor || "Sin descriptor informado.",
+          hayComentario: !!c.comentarios, comentarios: c.comentarios || "",
+          ficha: [
+            ["Asignatura", c.nombre_asignatura || "—"], ["Unidad", c.unidad || "—"],
+            ["Jornada", c.jornada || "—"], ["Modalidad", c.modalidad || "—"],
+            ["Día y horario", [c.dia, hm(c)].filter(Boolean).join(" · ") || "—"], ["Sala", c.sala || "—"],
+            ["Créditos SCT", c.sct != null ? String(c.sct) : "—"], ["Semestre del plan", c.semestre_programa != null ? String(c.semestre_programa) : "—"],
+            ["Código asignatura", c.codigo_asignatura || "—"], ["Contacto", c.contacto || "—"]
+          ].map(([k, v]) => ({ k, v }))
+        };
+      }),
+      hayPaginas: totalPag > 1, pagLabel: `${pag} / ${totalPag}`,
+      pagPrev: () => this.setState({ pag: Math.max(1, pag - 1) }),
+      pagNext: () => this.setState({ pag: Math.min(totalPag, pag + 1) })
+    };
+  }
+}
+</script>
+</body>
+</html>
