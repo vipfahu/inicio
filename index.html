@@ -18,7 +18,7 @@
 </script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="./support.js?v=1788795397013"></script>
+<script src="./support.js?v=1788796264341"></script>
 </head>
 <body>
 <x-dc>
@@ -27,68 +27,73 @@
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700;800&amp;family=Spectral:ital,wght@0,400;0,600;1,400&amp;family=IBM+Plex+Mono:wght@400;600&amp;display=swap" rel="stylesheet">
 <style>
 body{margin:0;background:#F6F4EF}a{color:#007E80}a:hover{color:#EF7A00}
-@media screen and (max-width:760px){[style*="repeat(3,"]{grid-template-columns:1fr !important}}
+@media screen and (max-width:760px){
+  [style*="repeat(3,"]{grid-template-columns:minmax(0,1fr) !important}
+  [style*="repeat(3,"] > *{min-height:0 !important}
+  header img{height:56px !important}
+  a[style*="border-radius:8px"],a[style*="border-radius: 8px"]{min-height:44px;display:flex !important;align-items:center}
+}
 </style>
 </helmet>
-<div style="min-height:100vh;display:flex;flex-direction:column;font-family:'Spectral',Georgia,serif;color:#3A4450">
+<div style="min-height:100vh;display:flex;flex-direction:column;font-family:Spectral,Georgia,serif;color:#3A4450">
   <header style="background:#fff;border-bottom:1px solid #E8E4DA;padding:18px clamp(24px,5vw,60px);display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap">
     <div style="display:flex;align-items:center;gap:18px">
       <img src="assets/logo-fahu.png" alt="Facultad de Humanidades · Universidad de Santiago de Chile" style="display:block;height:72px;width:auto">
       <div>
-        <div style="font:800 17px 'Archivo',sans-serif;color:#007E80">Gestión de Información VIP</div>
-        <div style="font:400 12px 'Archivo',sans-serif;color:#8A8272;margin-top:2px">Vicedecanato de Investigación y Postgrado · FAHU USACH</div>
+        <div style="font:800 17px Archivo,sans-serif;color:#007E80">Gestión de Información VIP</div>
+        <div style="font:400 12px Archivo,sans-serif;color:#8A8272;margin-top:2px">Vicedecanato de Investigación y Postgrado · FAHU USACH</div>
       </div>
     </div>
-    <a href="normativa-postgrados/admin.html" style="font:600 11px 'Archivo',sans-serif;color:#3A4450;background:#F6F4EF;border:1px solid #E0DCD0;border-radius:8px;padding:9px 14px;white-space:nowrap;text-decoration:none" style-hover="border-color:#00A0A0;color:#007E80">Acceso equipo VIP</a>
+    <a href="normativa-postgrados/admin.html" style="font:600 11px Archivo,sans-serif;color:#3A4450;background:#F6F4EF;border:1px solid #E0DCD0;border-radius:8px;padding:9px 14px;white-space:nowrap;text-decoration:none" style-hover="border-color:#00A0A0;color:#007E80">Acceso equipo VIP</a>
   </header>
 
   <main style="flex:1;width:100%;max-width:1080px;margin:0 auto;padding:clamp(40px,7vw,84px) clamp(24px,5vw,60px) 64px;box-sizing:border-box">
     <div style="max-width:640px;margin-bottom:44px">
-      <div style="font:600 11px 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#EF7A00;margin-bottom:14px">Subsistemas de información</div>
-      <h1 style="font:800 clamp(30px,4.2vw,44px)/1.1 'Archivo',sans-serif;color:#3A4450;margin:0 0 16px;letter-spacing:-.01em;text-wrap:pretty">Información de postgrado, ordenada y accesible</h1>
-      <p style="font:400 16.5px/1.6 'Spectral',serif;color:#5A6470;margin:0;text-wrap:pretty">Un solo punto de entrada a las plataformas que el Vicedecanato mantiene para programas, estudiantes y equipos académicos de la Facultad de Humanidades y el IDEA.</p>
+      <div style="font:600 11px Archivo,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#EF7A00;margin-bottom:14px">Subsistemas de información</div>
+      <h1 style="font:800 clamp(30px,4.2vw,44px)/1.1 Archivo,sans-serif;color:#3A4450;margin:0 0 16px;letter-spacing:-.01em;text-wrap:pretty">Información de postgrado, ordenada y accesible</h1>
+      <p style="font:400 16.5px/1.6 Spectral,serif;color:#5A6470;margin:0;text-wrap:pretty">Un solo punto de entrada a las plataformas que el Vicedecanato mantiene para programas, estudiantes y equipos académicos de la Facultad de Humanidades y el IDEA.</p>
     </div>
 
     <div style="display:grid;grid-template-columns:repeat(3, minmax(0,1fr));gap:20px">
       <a href="normativa-postgrados/index.html" style="display:flex;flex-direction:column;gap:18px;background:#fff;border:1px solid #E8E4DA;border-top:4px solid #00A0A0;border-radius:14px;padding:26px 26px 24px;text-decoration:none;color:inherit;min-height:250px;box-sizing:border-box;transition:transform .15s,box-shadow .15s" style-hover="transform:translateY(-3px);box-shadow:0 12px 32px rgba(58,68,80,.10)">
         <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
-          <span style="font:600 12px 'IBM Plex Mono',monospace;color:#8A8272">01</span>
-          <span style="font:600 10.5px 'Archivo',sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#007E80;background:#E6F4F4;border-radius:999px;padding:5px 10px">Disponible</span>
+          <span style="font:600 12px IBM Plex Mono,monospace;color:#8A8272">01</span>
+          <span style="font:600 10.5px Archivo,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#007E80;background:#E6F4F4;border-radius:999px;padding:5px 10px">Disponible</span>
         </div>
         <div style="flex:1">
-          <h2 style="font:800 20px/1.2 'Archivo',sans-serif;color:#3A4450;margin:0 0 10px">Normativa Postgrados</h2>
-          <p style="font:400 14px/1.55 'Spectral',serif;color:#5A6470;margin:0;text-wrap:pretty">Repositorio de reglamentos, resoluciones y lineamientos que rigen los programas de postgrado FAHU e IDEA, con buscador, filtros por materia y vigencia, y visor de PDF.</p>
+          <h2 style="font:800 20px/1.2 Archivo,sans-serif;color:#3A4450;margin:0 0 10px">Normativa Postgrados</h2>
+          <p style="font:400 14px/1.55 Spectral,serif;color:#5A6470;margin:0;text-wrap:pretty">Repositorio de reglamentos, resoluciones y lineamientos que rigen los programas de postgrado FAHU e IDEA, con buscador, filtros por materia y vigencia, y visor de PDF.</p>
         </div>
-        <span style="font:600 12.5px 'Archivo',sans-serif;color:#EF7A00">Ingresar →</span>
+        <span style="font:600 12.5px Archivo,sans-serif;color:#EF7A00">Ingresar →</span>
       </a>
 
       <div style="display:flex;flex-direction:column;gap:18px;background:#FBFAF7;border:1px dashed #D9D3C4;border-top:4px solid #D9D3C4;border-radius:14px;padding:26px 26px 24px;min-height:250px;box-sizing:border-box">
         <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
-          <span style="font:600 12px 'IBM Plex Mono',monospace;color:#8A8272">02</span>
-          <span style="font:600 10.5px 'Archivo',sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#8A8272;background:#EFECE4;border-radius:999px;padding:5px 10px">En desarrollo</span>
+          <span style="font:600 12px IBM Plex Mono,monospace;color:#8A8272">02</span>
+          <span style="font:600 10.5px Archivo,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#8A8272;background:#EFECE4;border-radius:999px;padding:5px 10px">En desarrollo</span>
         </div>
         <div style="flex:1">
-          <h2 style="font:800 20px/1.2 'Archivo',sans-serif;color:#5A6470;margin:0 0 10px">Cursos de Formación Multidisciplinar de Postgrados</h2>
-          <p style="font:400 14px/1.55 'Spectral',serif;color:#8A8272;margin:0;text-wrap:pretty">Oferta de cursos transversales entre programas: catálogo por semestre, cupos y requisitos de inscripción.</p>
+          <h2 style="font:800 20px/1.2 Archivo,sans-serif;color:#5A6470;margin:0 0 10px">Cursos de Formación Multidisciplinar de Postgrados</h2>
+          <p style="font:400 14px/1.55 Spectral,serif;color:#8A8272;margin:0;text-wrap:pretty">Oferta de cursos transversales entre programas: catálogo por semestre, cupos y requisitos de inscripción.</p>
         </div>
-        <span style="font:600 12.5px 'Archivo',sans-serif;color:#8A8272">Próximamente</span>
+        <span style="font:600 12.5px Archivo,sans-serif;color:#8A8272">Próximamente</span>
       </div>
 
       <div style="display:flex;flex-direction:column;gap:18px;background:#FBFAF7;border:1px dashed #D9D3C4;border-top:4px solid #D9D3C4;border-radius:14px;padding:26px 26px 24px;min-height:250px;box-sizing:border-box">
         <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
-          <span style="font:600 12px 'IBM Plex Mono',monospace;color:#8A8272">03</span>
-          <span style="font:600 10.5px 'Archivo',sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#8A8272;background:#EFECE4;border-radius:999px;padding:5px 10px">En desarrollo</span>
+          <span style="font:600 12px IBM Plex Mono,monospace;color:#8A8272">03</span>
+          <span style="font:600 10.5px Archivo,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#8A8272;background:#EFECE4;border-radius:999px;padding:5px 10px">En desarrollo</span>
         </div>
         <div style="flex:1">
-          <h2 style="font:800 20px/1.2 'Archivo',sans-serif;color:#5A6470;margin:0 0 10px">Trayectorias Académicas</h2>
-          <p style="font:400 14px/1.55 'Spectral',serif;color:#8A8272;margin:0;text-wrap:pretty">Seguimiento de la trayectoria de estudiantes de postgrado: avance curricular, tesis, graduación y articulación entre programas.</p>
+          <h2 style="font:800 20px/1.2 Archivo,sans-serif;color:#5A6470;margin:0 0 10px">Trayectorias Académicas</h2>
+          <p style="font:400 14px/1.55 Spectral,serif;color:#8A8272;margin:0;text-wrap:pretty">Seguimiento de la trayectoria de estudiantes de postgrado: avance curricular, tesis, graduación y articulación entre programas.</p>
         </div>
-        <span style="font:600 12.5px 'Archivo',sans-serif;color:#8A8272">Próximamente</span>
+        <span style="font:600 12.5px Archivo,sans-serif;color:#8A8272">Próximamente</span>
       </div>
     </div>
   </main>
 
-  <footer style="border-top:1px solid #E8E4DA;padding:18px clamp(24px,5vw,60px);display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;font:400 12px 'Archivo',sans-serif;color:#8A8272">
+  <footer style="border-top:1px solid #E8E4DA;padding:18px clamp(24px,5vw,60px);display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;font:400 12px Archivo,sans-serif;color:#8A8272">
     <span>Vicedecanato de Investigación y Postgrado · Facultad de Humanidades · Universidad de Santiago de Chile</span>
     <span>vipfahu.netlify.app</span>
   </footer>

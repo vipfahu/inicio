@@ -18,7 +18,7 @@
 </script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="./support.js?v=1788795397013"></script>
+<script src="./support.js?v=1788796383195"></script>
 </head>
 <body>
 <x-dc>
@@ -45,154 +45,147 @@ body{margin:0;background:#F6F4EF}a{color:#007E80}a:hover{color:#EF7A00}input:foc
   [style*="96px minmax"]{grid-template-columns:minmax(0,1fr) !important;gap:7px !important;padding:14px 18px !important}
   [style*="96px minmax"] > span{justify-self:start;text-align:left !important}
   [style*="20px 136px"]{padding:4px 18px 20px 18px !important}
+  /* área táctil mínima */
+  header a,button{min-height:44px}
+  header a{display:flex !important;align-items:center;justify-content:center}
+  /* visor de PDF: cabecera apilada y alto útil */
+  [style*="flex-end"][style*="space-between"]{flex-direction:column !important;align-items:stretch !important}
+  [style*="flex-end"][style*="space-between"] > div:last-child{flex-wrap:wrap}
+  iframe,object,embed{min-height:60vh}
 }
 </style>
 </helmet>
-<div style="min-height:100vh;font-family:'Spectral',serif;color:#3A4450">
+<div style="min-height:100vh;font-family:Spectral,serif;color:#3A4450">
   <div style="background:#3A4450;padding:8px clamp(24px,5vw,60px);display:flex;align-items:center;gap:10px">
-    <a href="../index.html" style="font:600 11px 'Archivo',sans-serif;color:#fff;text-decoration:none;opacity:.9" style-hover="opacity:1;color:#EF7A00">← Gestión de Información VIP</a>
-    <span style="font:400 11px 'Archivo',sans-serif;color:rgba(255,255,255,.55)">/ Normativa Postgrados</span>
+    <a href="../index.html" style="font:600 11px Archivo,sans-serif;color:#fff;text-decoration:none;opacity:.9" style-hover="opacity:1;color:#EF7A00">← Gestión de Información VIP</a>
+    <span style="font:400 11px Archivo,sans-serif;color:rgba(255,255,255,.55)">/ Normativa Postgrados</span>
   </div>
   <header style="background:#fff;border-bottom:1px solid #E8E4DA;padding:16px clamp(24px,5vw,60px);display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap">
     <div onClick="{{ inicio }}" title="Volver al inicio de la plataforma" style="cursor:pointer">
       <img src="assets/logo-fahu.png" alt="Facultad de Humanidades · Universidad de Santiago de Chile" style="display:block;height:87px;width:auto;margin-bottom:8px">
-      <span style="font:800 16px 'Archivo',sans-serif;color:#007E80">Repositorio Normativa Postgrados FAHU e IDEA</span>
-      <span style="font:400 12px 'Archivo',sans-serif;color:#8A8272;margin-left:10px">Vicedecanato de Investigación y Postgrado · FAHU USACH</span>
+      <span style="font:800 16px Archivo,sans-serif;color:#007E80">Repositorio Normativa Postgrados FAHU e IDEA</span>
+      <span style="font:400 12px Archivo,sans-serif;color:#8A8272;margin-left:10px">Vicedecanato de Investigación y Postgrado · FAHU USACH</span>
     </div>
     <div style="display:flex;gap:14px;align-items:center">
-      <input value="{{ q }}" onChange="{{ setQ }}" placeholder="Buscar en la biblioteca…" style="width:min(320px,60vw);box-sizing:border-box;padding:10px 16px;border:1.5px solid #E0DCD0;border-radius:10px;font:400 13px 'Archivo',sans-serif;background:#FAF9F5">
-      <a href="admin.html" style="font:600 11px 'Archivo',sans-serif;color:#fff;background:#EF7A00;border-radius:8px;padding:9px 14px;white-space:nowrap;text-decoration:none">Panel de actualización</a>
+      <input value="{{ q }}" onChange="{{ setQ }}" placeholder="Buscar en la biblioteca…" style="width:min(320px,60vw);box-sizing:border-box;padding:10px 16px;border:1.5px solid #E0DCD0;border-radius:10px;font:400 13px Archivo,sans-serif;background:#FAF9F5">
+      <a href="admin.html" style="font:600 11px Archivo,sans-serif;color:#fff;background:#EF7A00;border-radius:8px;padding:9px 14px;white-space:nowrap;text-decoration:none">Panel de actualización</a>
     </div>
   </header>
   <div style="display:grid;grid-template-columns:250px minmax(0,1fr);gap:0;max-width:1200px;margin:0 auto">
     <aside style="border-right:1px solid #E8E4DA;padding:30px 22px 60px">
-      <div style="font:700 10px 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#8A8272;margin-bottom:10px">Materia</div>
+      <div style="font:700 10px Archivo,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#8A8272;margin-bottom:10px">Materia</div>
       <div style="display:flex;flex-direction:column;gap:2px;margin-bottom:26px">
         <sc-for list="{{ materias }}" as="t" hint-placeholder-count="6">
-          <button onClick="{{ t.pick }}" style="cursor:{{ t.cursor }};display:flex;justify-content:space-between;align-items:center;gap:8px;border:none;text-align:left;border-radius:8px;padding:8px 12px;font:600 12.5px 'Archivo',sans-serif;background:{{ t.bg }};color:{{ t.fg }}"><span>{{ t.name }}</span><span style="font:600 11px 'IBM Plex Mono',monospace;opacity:.65">{{ t.n }}</span></button>
+          <button onClick="{{ t.pick }}" style="cursor:{{ t.cursor }};display:flex;justify-content:space-between;align-items:center;gap:8px;border:none;text-align:left;border-radius:8px;padding:8px 12px;font:600 12.5px Archivo,sans-serif;background:{{ t.bg }};color:{{ t.fg }}"><span>{{ t.name }}</span><span style="font:600 11px IBM Plex Mono,monospace;opacity:.65">{{ t.n }}</span></button>
         </sc-for>
       </div>
-      <div style="font:700 10px 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#8A8272;margin-bottom:10px">PROGRAMAS<br></div>
-      <select value="{{ programaSel }}" onChange="{{ setPrograma }}" style="width:100%;box-sizing:border-box;margin-bottom:26px;padding:9px 10px;border:1.5px solid #E0DCD0;border-radius:9px;font:600 12.5px 'Archivo',sans-serif;background:#FAF9F5;color:#3A4450;cursor:pointer">
+      <div style="font:700 10px Archivo,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#8A8272;margin-bottom:10px">PROGRAMAS<br></div>
+      <select value="{{ programaSel }}" onChange="{{ setPrograma }}" style="width:100%;box-sizing:border-box;margin-bottom:26px;padding:9px 10px;border:1.5px solid #E0DCD0;border-radius:9px;font:600 12.5px Archivo,sans-serif;background:#FAF9F5;color:#3A4450;cursor:pointer">
         <sc-for list="{{ programas }}" as="t" hint-placeholder-count="8">
           <option value="{{ t.valor }}">{{ t.opcion }}</option>
         </sc-for>
       </select>
-      <div style="font:700 10px 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#8A8272;margin-bottom:10px">Ámbito</div>
+      <div style="font:700 10px Archivo,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#8A8272;margin-bottom:10px">Ámbito</div>
       <div style="display:flex;flex-direction:column;gap:2px;margin-bottom:26px">
         <sc-for list="{{ ambitos }}" as="t" hint-placeholder-count="4">
-          <button onClick="{{ t.pick }}" style="cursor:{{ t.cursor }};display:flex;justify-content:space-between;align-items:center;gap:8px;border:none;text-align:left;border-radius:8px;padding:8px 12px;font:600 12.5px 'Archivo',sans-serif;background:{{ t.bg }};color:{{ t.fg }}"><span>{{ t.name }}</span><span style="font:600 11px 'IBM Plex Mono',monospace;opacity:.65">{{ t.n }}</span></button>
+          <button onClick="{{ t.pick }}" style="cursor:{{ t.cursor }};display:flex;justify-content:space-between;align-items:center;gap:8px;border:none;text-align:left;border-radius:8px;padding:8px 12px;font:600 12.5px Archivo,sans-serif;background:{{ t.bg }};color:{{ t.fg }}"><span>{{ t.name }}</span><span style="font:600 11px IBM Plex Mono,monospace;opacity:.65">{{ t.n }}</span></button>
         </sc-for>
       </div>
-      <div style="font:700 10px 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#8A8272;margin-bottom:10px">Tipo de documento</div>
+      <div style="font:700 10px Archivo,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#8A8272;margin-bottom:10px">Tipo de documento</div>
       <div style="display:flex;flex-direction:column;gap:2px;margin-bottom:26px">
         <sc-for list="{{ tipos }}" as="t" hint-placeholder-count="5">
-          <button onClick="{{ t.pick }}" style="cursor:{{ t.cursor }};display:flex;justify-content:space-between;align-items:center;gap:8px;border:none;text-align:left;border-radius:8px;padding:8px 12px;font:600 12.5px 'Archivo',sans-serif;background:{{ t.bg }};color:{{ t.fg }}"><span>{{ t.name }}</span><span style="font:600 11px 'IBM Plex Mono',monospace;opacity:.65">{{ t.n }}</span></button>
+          <button onClick="{{ t.pick }}" style="cursor:{{ t.cursor }};display:flex;justify-content:space-between;align-items:center;gap:8px;border:none;text-align:left;border-radius:8px;padding:8px 12px;font:600 12.5px Archivo,sans-serif;background:{{ t.bg }};color:{{ t.fg }}"><span>{{ t.name }}</span><span style="font:600 11px IBM Plex Mono,monospace;opacity:.65">{{ t.n }}</span></button>
         </sc-for>
       </div>
-      <div style="font:700 10px 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#8A8272;margin-bottom:10px">Vigencia</div>
+      <div style="font:700 10px Archivo,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#8A8272;margin-bottom:10px">Vigencia</div>
       <div style="display:flex;flex-direction:column;gap:2px">
         <sc-for list="{{ vigencias }}" as="t" hint-placeholder-count="5">
-          <button onClick="{{ t.pick }}" style="cursor:{{ t.cursor }};display:flex;justify-content:space-between;align-items:center;gap:8px;border:none;text-align:left;border-radius:8px;padding:8px 12px;font:600 12.5px 'Archivo',sans-serif;background:{{ t.bg }};color:{{ t.fg }}"><span>{{ t.name }}</span><span style="font:600 11px 'IBM Plex Mono',monospace;opacity:.65">{{ t.n }}</span></button>
+          <button onClick="{{ t.pick }}" style="cursor:{{ t.cursor }};display:flex;justify-content:space-between;align-items:center;gap:8px;border:none;text-align:left;border-radius:8px;padding:8px 12px;font:600 12.5px Archivo,sans-serif;background:{{ t.bg }};color:{{ t.fg }}"><span>{{ t.name }}</span><span style="font:600 11px IBM Plex Mono,monospace;opacity:.65">{{ t.n }}</span></button>
         </sc-for>
       </div>
     </aside>
     <main style="padding:30px clamp(20px,3.5vw,44px) 80px">
       <div style="background:#3A4450;border-radius:14px;padding:24px 26px 26px;margin-bottom:26px">
         <div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px;margin-bottom:18px">
-          <span style="font:700 13px 'Archivo',sans-serif;color:#fff;letter-spacing:.04em;text-transform:uppercase">Panorama normativo</span>
+          <span style="font:700 13px Archivo,sans-serif;color:#fff;letter-spacing:.04em;text-transform:uppercase">Panorama normativo</span>
           <sc-if value="{{ filtrado }}" hint-placeholder-val="{{ false }}">
-            <button onClick="{{ limpiar }}" style="cursor:pointer;border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.1);color:#fff;border-radius:8px;padding:7px 14px;font:600 11.5px 'Archivo',sans-serif">Ver todos los documentos ✕</button>
+            <button onClick="{{ limpiar }}" style="cursor:pointer;border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.1);color:#fff;border-radius:8px;padding:7px 14px;font:600 11.5px Archivo,sans-serif">Ver todos los documentos ✕</button>
           </sc-if>
           <sc-if value="{{ noFiltrado }}" hint-placeholder-val="{{ true }}">
-            <span style="font:400 11.5px 'Spectral',serif;color:rgba(255,255,255,.55)">Síntesis de la documentación cargada · haz clic en una materia para filtrar</span>
+            <span style="font:400 11.5px Spectral,serif;color:rgba(255,255,255,.55)">Síntesis de la documentación cargada · haz clic en una materia para filtrar</span>
           </sc-if>
         </div>
         <div style="display:grid;grid-template-columns:repeat(4, minmax(0,1fr));gap:16px;padding-bottom:22px;border-bottom:1px solid rgba(255,255,255,.12)">
           <sc-for list="{{ kpis }}" as="k" hint-placeholder-count="4">
             <div>
-              <div style="font:600 22px 'IBM Plex Mono',monospace;color:#EF7A00;letter-spacing:-.02em">{{ k.n }}</div>
-              <div style="font:400 11px/1.35 'Archivo',sans-serif;color:rgba(255,255,255,.65);margin-top:2px">{{ k.lab }}</div>
+              <div style="font:600 22px IBM Plex Mono,monospace;color:#EF7A00;letter-spacing:-.02em">{{ k.n }}</div>
+              <div style="font:400 11px/1.35 Archivo,sans-serif;color:rgba(255,255,255,.65);margin-top:2px">{{ k.lab }}</div>
             </div>
           </sc-for>
         </div>
-        <div style="font:700 10px 'Archivo',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.5);margin:20px 0 12px">Documentos por materia normativa</div>
+        <div style="font:700 10px Archivo,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.5);margin:20px 0 12px">Documentos por materia normativa</div>
         <div style="display:grid;grid-template-columns:repeat(2, minmax(0,1fr));gap:7px 34px">
           <sc-for list="{{ barras }}" as="b" hint-placeholder-count="8">
             <button onClick="{{ b.pick }}" style="cursor:pointer;border:none;text-align:left;border-radius:6px;padding:3px 6px;margin:0 -6px;background:{{ b.bg }};display:grid;grid-template-columns:150px minmax(0,1fr) 22px;gap:10px;align-items:center" style-hover="background:rgba(255,255,255,.14)">
-              <span style="font:400 11px 'Spectral',serif;color:{{ b.fg }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ b.name }}</span>
+              <span style="font:400 11px Spectral,serif;color:{{ b.fg }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ b.name }}</span>
               <span style="height:8px;background:rgba(255,255,255,.1);border-radius:4px;overflow:hidden;display:block"><span style="height:100%;border-radius:4px;background:{{ b.color }};width:{{ b.w }};display:block"></span></span>
-              <span style="font:600 11px 'IBM Plex Mono',monospace;color:#fff;text-align:right">{{ b.n }}</span>
+              <span style="font:600 11px IBM Plex Mono,monospace;color:#fff;text-align:right">{{ b.n }}</span>
             </button>
           </sc-for>
         </div>
-        <div style="font:700 10px 'Archivo',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.5);margin:26px 0 12px">Estructura comparada de los reglamentos generales</div>
-        <div style="display:grid;grid-template-columns:minmax(0,1fr) 56px 56px 56px;gap:3px 8px;align-items:center">
-          <span></span>
-          <sc-for list="{{ cols }}" as="k" hint-placeholder-count="3">
-            <button onClick="{{ k.pick }}" style="cursor:pointer;border:none;background:{{ k.bg }};border-radius:5px;padding:4px 0;font:600 9.5px 'Archivo',sans-serif;color:#fff;text-align:center;letter-spacing:.04em" style-hover="background:rgba(255,255,255,.22)">{{ k.lab }}</button>
-          </sc-for>
-          <sc-for list="{{ matriz }}" as="m" hint-placeholder-count="8">
-            <button onClick="{{ m.buscar }}" style="cursor:pointer;border:none;background:transparent;text-align:left;padding:0;font:400 11.5px 'Spectral',serif;color:rgba(255,255,255,.8);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" style-hover="color:#EF7A00">{{ m.name }}</button>
-            <sc-for list="{{ m.cells }}" as="c" hint-placeholder-count="3">
-              <button onClick="{{ c.pick }}" style="cursor:{{ c.cursor }};border:none;height:16px;border-radius:4px;background:{{ c.bg }};color:{{ c.fg }};font:600 9px 'Archivo',sans-serif;display:flex;align-items:center;justify-content:center;padding:0">{{ c.mark }}</button>
-            </sc-for>
-          </sc-for>
-        </div>
-        <p style="font:italic 400 11.5px/1.5 'Spectral',serif;color:rgba(255,255,255,.5);margin:14px 0 0">Haz clic en una columna o en un punto para abrir el reglamento correspondiente, o en el título de una fila para buscar esa materia en toda la biblioteca. Los tres reglamentos comparten el mismo armazón. Difieren en la actividad final de graduación: examen de calificación y tesis en doctorado, proyecto de tesis y tesis en magíster académico, proyecto y trabajo de graduación en magíster profesional.</p>
       </div>
       <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px">
-        <h1 style="font:800 22px 'Archivo',sans-serif;color:#3A4450;letter-spacing:-.01em;margin:0">Documentos</h1>
-        <span style="font:600 12px 'IBM Plex Mono',monospace;color:#8A8272">{{ count }} resultados</span>
+        <h1 style="font:800 22px Archivo,sans-serif;color:#3A4450;letter-spacing:-.01em;margin:0">Documentos</h1>
+        <span style="font:600 12px IBM Plex Mono,monospace;color:#8A8272">{{ count }} resultados</span>
       </div>
       <div style="background:#fff;border:1px solid #E8E4DA;border-radius:14px;overflow:hidden">
         <sc-if value="{{ vacio }}" hint-placeholder-val="{{ false }}">
           <div style="padding:44px 24px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:12px">
-            <div style="font:700 14px 'Archivo',sans-serif;color:#3A4450">No hay documentos que coincidan con este filtro</div>
-            <p style="font:400 13px/1.55 'Spectral',serif;color:#8A8272;margin:0;max-width:380px">La biblioteca está en construcción: por ahora contiene los reglamentos generales de postgrado. Otros tipos y ámbitos se irán incorporando.</p>
-            <button onClick="{{ limpiar }}" style="cursor:pointer;border:1.5px solid #E0DCD0;background:#FAF9F5;color:#007E80;border-radius:9px;padding:9px 16px;font:600 12.5px 'Archivo',sans-serif">Limpiar filtros</button>
+            <div style="font:700 14px Archivo,sans-serif;color:#3A4450">No hay documentos que coincidan con este filtro</div>
+            <p style="font:400 13px/1.55 Spectral,serif;color:#8A8272;margin:0;max-width:380px">La biblioteca está en construcción: por ahora contiene los reglamentos generales de postgrado. Otros tipos y ámbitos se irán incorporando.</p>
+            <button onClick="{{ limpiar }}" style="cursor:pointer;border:1.5px solid #E0DCD0;background:#FAF9F5;color:#007E80;border-radius:9px;padding:9px 16px;font:600 12.5px Archivo,sans-serif">Limpiar filtros</button>
           </div>
         </sc-if>
         <sc-for list="{{ docs }}" as="d" hint-placeholder-count="6">
           <div style="border-bottom:1px solid #F0EDE4">
             <div onClick="{{ d.toggle }}" style="cursor:pointer;display:grid;grid-template-columns:96px minmax(0,1fr) 90px;gap:18px;align-items:center;padding:16px 22px" style-hover="background:#FAF9F4">
               <div style="display:flex;flex-direction:column;gap:4px">
-                <span style="font:600 10px 'Archivo',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#007E80;background:#E4F2F2;border-radius:6px;padding:5px 8px;text-align:center">{{ d.tipo }}</span>
-                <span style="font:600 9.5px 'Archivo',sans-serif;letter-spacing:.05em;text-transform:uppercase;border-radius:6px;padding:4px 6px;text-align:center;background:{{ d.vigBg }};color:{{ d.vigFg }}">{{ d.vigEstado }}</span>
+                <span style="font:600 10px Archivo,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#007E80;background:#E4F2F2;border-radius:6px;padding:5px 8px;text-align:center">{{ d.tipo }}</span>
+                <span style="font:600 9.5px Archivo,sans-serif;letter-spacing:.05em;text-transform:uppercase;border-radius:6px;padding:4px 6px;text-align:center;background:{{ d.vigBg }};color:{{ d.vigFg }}">{{ d.vigEstado }}</span>
               </div>
               <div>
-                <div style="font:700 14.5px/1.3 'Archivo',sans-serif;color:#3A4450">{{ d.titulo }}</div>
-                <div style="font:400 12px 'Archivo',sans-serif;color:#8A8272;margin-top:3px">{{ d.ref }} · {{ d.materia }}</div>
+                <div style="font:700 14.5px/1.3 Archivo,sans-serif;color:#3A4450">{{ d.titulo }}</div>
+                <div style="font:400 12px Archivo,sans-serif;color:#8A8272;margin-top:3px">{{ d.ref }} · {{ d.materia }}</div>
               </div>
-              <span style="font:600 12px 'Archivo',sans-serif;color:#EF7A00;text-align:right;white-space:nowrap">{{ d.arrow }}</span>
+              <span style="font:600 12px Archivo,sans-serif;color:#EF7A00;text-align:right;white-space:nowrap">{{ d.arrow }}</span>
             </div>
             <sc-if value="{{ d.open }}" hint-placeholder-val="{{ false }}">
               <div style="padding:4px 22px 20px 136px;display:flex;flex-direction:column;gap:12px">
                 <sc-if value="{{ d.vigAviso }}" hint-placeholder-val="{{ false }}">
-                  <div style="font:600 11.5px 'Archivo',sans-serif;color:#8A5A12;background:#FBF0DF;border-radius:8px;padding:8px 12px;align-self:flex-start">{{ d.vigTexto }}</div>
+                  <div style="font:600 11.5px Archivo,sans-serif;color:#8A5A12;background:#FBF0DF;border-radius:8px;padding:8px 12px;align-self:flex-start">{{ d.vigTexto }}</div>
                 </sc-if>
-                <p style="font:400 13.5px/1.6 'Spectral',serif;color:#5A6470;margin:0;max-width:640px">{{ d.resumen }}</p>
+                <p style="font:400 13.5px/1.6 Spectral,serif;color:#5A6470;margin:0;max-width:640px">{{ d.resumen }}</p>
                 <div style="display:flex;gap:10px;flex-wrap:wrap">
-                  <button onClick="{{ d.verPdf }}" style="cursor:pointer;border:none;font:600 12px 'Archivo',sans-serif;color:#fff;background:#007E80;border-radius:8px;padding:9px 14px">Ver PDF {{ d.vigVerbo }}</button>
-                  <a href="{{ d.pdf }}" target="_blank" rel="noopener" style="font:600 12px 'Archivo',sans-serif;color:#007E80;background:#E4F2F2;border-radius:8px;padding:9px 14px;text-decoration:none">Descargar ↓</a>
+                  <button onClick="{{ d.verPdf }}" style="cursor:pointer;border:none;font:600 12px Archivo,sans-serif;color:#fff;background:#007E80;border-radius:8px;padding:9px 14px">Ver PDF {{ d.vigVerbo }}</button>
+                  <a href="{{ d.pdf }}" target="_blank" rel="noopener" style="font:600 12px Archivo,sans-serif;color:#007E80;background:#E4F2F2;border-radius:8px;padding:9px 14px;text-decoration:none">Descargar ↓</a>
                 </div>
                 <sc-if value="{{ d.conSecciones }}" hint-placeholder-val="{{ true }}">
                   <div>
-                    <div style="font:700 10px 'Archivo',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#8A8272;margin-bottom:8px">Contenido del reglamento</div>
+                    <div style="font:700 10px Archivo,sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#8A8272;margin-bottom:8px">Contenido del reglamento</div>
                     <div style="display:flex;flex-wrap:wrap;gap:6px">
                       <sc-for list="{{ d.secciones }}" as="s" hint-placeholder-count="6">
-                        <span style="font:600 11px 'Archivo',sans-serif;color:#3A4450;background:#F1EFE8;border:1px solid #E5E1D4;border-radius:6px;padding:5px 10px">{{ s }}</span>
+                        <span style="font:600 11px Archivo,sans-serif;color:#3A4450;background:#F1EFE8;border:1px solid #E5E1D4;border-radius:6px;padding:5px 10px">{{ s }}</span>
                       </sc-for>
                     </div>
                   </div>
                 </sc-if>
                 <div>
-                  <div style="font:700 10px 'Archivo',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#8A8272;margin-bottom:6px">Historial de versiones</div>
+                  <div style="font:700 10px Archivo,sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#8A8272;margin-bottom:6px">Historial de versiones</div>
                   <sc-for list="{{ d.versiones }}" as="v" hint-placeholder-count="2">
                     <div style="display:flex;gap:12px;align-items:baseline;padding:4px 0;border-bottom:1px dotted #EAE6DB">
-                      <span style="font:600 11px 'IBM Plex Mono',monospace;color:#007E80;white-space:nowrap">{{ v.v }}</span>
-                      <span style="font:400 12px 'Archivo',sans-serif;color:#8A8272;white-space:nowrap">{{ v.fecha }}</span>
-                      <span style="font:400 12.5px 'Spectral',serif;color:#5A6470">{{ v.nota }}</span>
+                      <span style="font:600 11px IBM Plex Mono,monospace;color:#007E80;white-space:nowrap">{{ v.v }}</span>
+                      <span style="font:400 12px Archivo,sans-serif;color:#8A8272;white-space:nowrap">{{ v.fecha }}</span>
+                      <span style="font:400 12.5px Spectral,serif;color:#5A6470">{{ v.nota }}</span>
                     </div>
                   </sc-for>
                 </div>
@@ -203,25 +196,25 @@ body{margin:0;background:#F6F4EF}a{color:#007E80}a:hover{color:#EF7A00}input:foc
       </div>
       <sc-if value="{{ hayPaginas }}" hint-placeholder-val="{{ false }}">
         <div style="display:flex;justify-content:space-between;align-items:center;gap:16px;margin-top:16px">
-          <button onClick="{{ anterior }}" style="border:none;background:none;padding:0;font:600 12.5px 'Archivo',sans-serif;{{ antEstilo }}">← Anteriores</button>
-          <span style="font:600 11.5px 'IBM Plex Mono',monospace;color:#8A8272">{{ pagTexto }} · {{ rango }}</span>
-          <button onClick="{{ siguiente }}" style="border:none;background:none;padding:0;font:600 12.5px 'Archivo',sans-serif;{{ sigEstilo }}">Siguientes →</button>
+          <button onClick="{{ anterior }}" style="border:none;background:none;padding:0;font:600 12.5px Archivo,sans-serif;{{ antEstilo }}">← Anteriores</button>
+          <span style="font:600 11.5px IBM Plex Mono,monospace;color:#8A8272">{{ pagTexto }} · {{ rango }}</span>
+          <button onClick="{{ siguiente }}" style="border:none;background:none;padding:0;font:600 12.5px Archivo,sans-serif;{{ sigEstilo }}">Siguientes →</button>
         </div>
       </sc-if>
-      <p style="font:italic 400 12px/1.5 'Spectral',serif;color:#8A8272;margin-top:16px">Los documentos digitalizados sin capa de texto (indicados en su ficha) se encuentran disponibles para descarga, pero su contenido no participa de la búsqueda. Nuevos documentos se incorporan desde el panel de actualización.</p>
+      <p style="font:italic 400 12px/1.5 Spectral,serif;color:#8A8272;margin-top:16px">Los documentos digitalizados sin capa de texto (indicados en su ficha) se encuentran disponibles para descarga, pero su contenido no participa de la búsqueda. Nuevos documentos se incorporan desde el panel de actualización.</p>
     </main>
   </div>
   <sc-if value="{{ pdfAbierto }}" hint-placeholder-val="{{ false }}">
     <div style="position:fixed;inset:0;background:rgba(58,68,80,.78);z-index:60;display:flex;flex-direction:column;padding:clamp(12px,3vw,34px);box-sizing:border-box">
       <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-bottom:12px">
         <div style="min-width:0">
-          <div style="font:700 15px/1.3 'Archivo',sans-serif;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ pdfTitulo }}</div>
-          <div style="font:400 12px 'Archivo',sans-serif;color:rgba(255,255,255,.65);margin-top:2px">{{ pdfRef }}</div>
+          <div style="font:700 15px/1.3 Archivo,sans-serif;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ pdfTitulo }}</div>
+          <div style="font:400 12px Archivo,sans-serif;color:rgba(255,255,255,.65);margin-top:2px">{{ pdfRef }}</div>
         </div>
         <div style="display:flex;gap:10px;align-items:center">
-          <a href="{{ pdfUrl }}" target="_blank" rel="noopener" style="font:600 12px 'Archivo',sans-serif;color:#3A4450;background:#fff;border-radius:8px;padding:9px 14px;text-decoration:none;white-space:nowrap">Abrir en pestaña nueva ↗</a>
-          <a href="{{ pdfUrl }}" download="{{ pdfArchivo }}" style="font:600 12px 'Archivo',sans-serif;color:#fff;background:#EF7A00;border-radius:8px;padding:9px 14px;text-decoration:none;white-space:nowrap">Descargar ↓</a>
-          <button onClick="{{ cerrarPdf }}" style="cursor:pointer;border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.12);color:#fff;border-radius:8px;padding:9px 14px;font:600 12px 'Archivo',sans-serif;white-space:nowrap">Cerrar ✕</button>
+          <a href="{{ pdfUrl }}" target="_blank" rel="noopener" style="font:600 12px Archivo,sans-serif;color:#3A4450;background:#fff;border-radius:8px;padding:9px 14px;text-decoration:none;white-space:nowrap">Abrir en pestaña nueva ↗</a>
+          <a href="{{ pdfUrl }}" download="{{ pdfArchivo }}" style="font:600 12px Archivo,sans-serif;color:#fff;background:#EF7A00;border-radius:8px;padding:9px 14px;text-decoration:none;white-space:nowrap">Descargar ↓</a>
+          <button onClick="{{ cerrarPdf }}" style="cursor:pointer;border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.12);color:#fff;border-radius:8px;padding:9px 14px;font:600 12px Archivo,sans-serif;white-space:nowrap">Cerrar ✕</button>
         </div>
       </div>
       <iframe src="{{ pdfUrl }}" title="{{ pdfTitulo }}" style="flex:1;width:100%;border:none;border-radius:12px;background:#fff"></iframe>
@@ -236,7 +229,7 @@ class Component extends DCLogic {
   matrizFilas = [];
   async componentDidMount() {
     try {
-      const m = await import('./data/normativa/catalogo.js?v=1788795397013');
+      const m = await import('./data/normativa/catalogo.js?v=1788796383195');
       this.docs = m.DOCS; this.matrizFilas = m.MATRIZ;
       this.forceUpdate();
     } catch (e) { console.warn('No se pudo cargar el catálogo normativo', e); }
@@ -257,7 +250,7 @@ class Component extends DCLogic {
       if (!this._sb) {
         const [lib, cfg] = await Promise.all([
           import('https://esm.sh/@supabase/supabase-js@2'),
-          import('./data/supabase/config.js?v=1788795397013')
+          import('./data/supabase/config.js?v=1788796383195')
         ]);
         this._sb = lib.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY);
       }

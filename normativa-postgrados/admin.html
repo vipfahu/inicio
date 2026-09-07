@@ -18,50 +18,66 @@
 </script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="./support.js?v=1788795397013"></script>
+<script src="./support.js?v=1788796264341"></script>
 </head>
 <body>
 <x-dc>
 <helmet>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700;800&family=Spectral:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
-<style>body{margin:0;background:#F1EFE8}a{color:#007E80}a:hover{color:#EF7A00}input:focus,textarea:focus,select:focus{outline:none;border-color:#00A0A0}</style>
+<style>
+body{margin:0;background:#F1EFE8}a{color:#007E80}a:hover{color:#EF7A00}input:focus,textarea:focus,select:focus{outline:none;border-color:#00A0A0}
+@media screen and (max-width:760px){
+  /* dos columnas (listado + formulario) a una sola */
+  [style*="360px"]{grid-template-columns:minmax(0,1fr) !important}
+  /* pares de campos del formulario apilados */
+  [style*="1fr 1fr"]{grid-template-columns:minmax(0,1fr) !important}
+  /* filas de tabla (usuarios, invitaciones, programas, actividad) apiladas */
+  [style*="130px 110px"],[style*="130px 80px"],[style*="110px 90px"],[style*="150px 120px"]{grid-template-columns:minmax(0,1fr) !important;gap:6px !important}
+  [style*="130px 110px"] > *,[style*="130px 80px"] > *,[style*="110px 90px"] > *,[style*="150px 120px"] > *{text-align:left !important;justify-self:start !important}
+  /* área táctil mínima en botones y controles */
+  button,select,input,textarea{min-height:44px}
+  nav button{min-height:48px;padding:14px 14px !important}
+  /* cabecera de tabla innecesaria al apilar */
+  [style*="150px 120px"][style*="text-transform"]{display:none !important}
+}
+</style>
 </helmet>
-<div style="min-height:100vh;font-family:'Spectral',serif;color:#3A4450">
+<div style="min-height:100vh;font-family:Spectral,serif;color:#3A4450">
 
   <sc-if value="{{ vistaAcceso }}" hint-placeholder-val="{{ true }}">
     <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px">
       <div style="width:100%;max-width:420px">
         <div style="text-align:center;margin-bottom:22px">
           <img src="assets/logo-fahu.png" alt="Facultad de Humanidades USACH" style="height:104px;width:auto;display:block;margin:0 auto 14px">
-          <div style="font:800 17px 'Archivo',sans-serif;color:#007E80">Panel de actualización</div>
-          <div style="font:400 12.5px 'Archivo',sans-serif;color:#8A8272;margin-top:4px">Biblioteca Normativa de Postgrado · FAHU e IDEA</div>
+          <div style="font:800 17px Archivo,sans-serif;color:#007E80">Panel de actualización</div>
+          <div style="font:400 12.5px Archivo,sans-serif;color:#8A8272;margin-top:4px">Biblioteca Normativa de Postgrado · FAHU e IDEA</div>
         </div>
         <div style="background:#fff;border:1px solid #E8E4DA;border-radius:16px;padding:26px 26px 24px">
-          <h1 style="font:800 16px 'Archivo',sans-serif;margin:0 0 4px;color:#3A4450">{{ accesoTitulo }}</h1>
-          <p style="font:400 12.5px/1.55 'Spectral',serif;color:#8A8272;margin:0 0 18px">{{ accesoNota }}</p>
+          <h1 style="font:800 16px Archivo,sans-serif;margin:0 0 4px;color:#3A4450">{{ accesoTitulo }}</h1>
+          <p style="font:400 12.5px/1.55 Spectral,serif;color:#8A8272;margin:0 0 18px">{{ accesoNota }}</p>
           <div style="display:flex;flex-direction:column;gap:11px">
             <sc-if value="{{ modoRegistro }}" hint-placeholder-val="{{ false }}">
-              <input value="{{ lNombre }}" onChange="{{ setLNombre }}" placeholder="Nombre y apellido" style="box-sizing:border-box;width:100%;padding:11px 14px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px 'Archivo',sans-serif;background:#FAF9F5">
+              <input value="{{ lNombre }}" onChange="{{ setLNombre }}" placeholder="Nombre y apellido" style="box-sizing:border-box;width:100%;padding:11px 14px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5">
             </sc-if>
-            <input value="{{ lCorreo }}" onChange="{{ setLCorreo }}" type="email" autoComplete="username" placeholder="correo@usach.cl" style="box-sizing:border-box;width:100%;padding:11px 14px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px 'Archivo',sans-serif;background:#FAF9F5">
-            <input value="{{ lClave }}" onChange="{{ setLClave }}" onKeyDown="{{ enterAcceso }}" type="password" autoComplete="current-password" placeholder="Contraseña" style="box-sizing:border-box;width:100%;padding:11px 14px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px 'Archivo',sans-serif;background:#FAF9F5">
+            <input value="{{ lCorreo }}" onChange="{{ setLCorreo }}" type="email" autoComplete="username" placeholder="correo@usach.cl" style="box-sizing:border-box;width:100%;padding:11px 14px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5">
+            <input value="{{ lClave }}" onChange="{{ setLClave }}" onKeyDown="{{ enterAcceso }}" type="password" autoComplete="current-password" placeholder="Contraseña" style="box-sizing:border-box;width:100%;padding:11px 14px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5">
             <sc-if value="{{ hayError }}" hint-placeholder-val="{{ false }}">
-              <div style="font:600 12px/1.45 'Archivo',sans-serif;color:#B0483A;background:#F9EBE8;border-radius:8px;padding:10px 12px">{{ err }}</div>
+              <div style="font:600 12px/1.45 Archivo,sans-serif;color:#B0483A;background:#F9EBE8;border-radius:8px;padding:10px 12px">{{ err }}</div>
             </sc-if>
             <sc-if value="{{ hayMsg }}" hint-placeholder-val="{{ false }}">
-              <div style="font:600 12px/1.45 'Archivo',sans-serif;color:#2F6B4F;background:#E7F3EB;border-radius:8px;padding:10px 12px">{{ msg }}</div>
+              <div style="font:600 12px/1.45 Archivo,sans-serif;color:#2F6B4F;background:#E7F3EB;border-radius:8px;padding:10px 12px">{{ msg }}</div>
             </sc-if>
-            <button onClick="{{ acceder }}" style="cursor:pointer;border:none;background:#007E80;color:#fff;border-radius:9px;padding:13px;font:700 13.5px 'Archivo',sans-serif">{{ accesoBoton }}</button>
+            <button onClick="{{ acceder }}" style="cursor:pointer;border:none;background:#007E80;color:#fff;border-radius:9px;padding:13px;font:700 13.5px Archivo,sans-serif">{{ accesoBoton }}</button>
           </div>
           <div style="display:flex;justify-content:space-between;gap:12px;margin-top:16px;padding-top:15px;border-top:1px solid #F0EDE4">
-            <button onClick="{{ cambiarModo }}" style="cursor:pointer;border:none;background:none;padding:0;font:600 12px 'Archivo',sans-serif;color:#007E80;text-align:left">{{ cambiarModoLabel }}</button>
-            <button onClick="{{ recuperar }}" style="cursor:pointer;border:none;background:none;padding:0;font:600 12px 'Archivo',sans-serif;color:#8A8272;text-align:right">Olvidé mi contraseña</button>
+            <button onClick="{{ cambiarModo }}" style="cursor:pointer;border:none;background:none;padding:0;font:600 12px Archivo,sans-serif;color:#007E80;text-align:left">{{ cambiarModoLabel }}</button>
+            <button onClick="{{ recuperar }}" style="cursor:pointer;border:none;background:none;padding:0;font:600 12px Archivo,sans-serif;color:#8A8272;text-align:right">Olvidé mi contraseña</button>
           </div>
         </div>
-        <p style="font:italic 400 11.5px/1.5 'Spectral',serif;color:#8A8272;text-align:center;margin:16px 0 0">Solo pueden crear contraseña los correos previamente invitados por una persona administradora.</p>
+        <p style="font:italic 400 11.5px/1.5 Spectral,serif;color:#8A8272;text-align:center;margin:16px 0 0">Solo pueden crear contraseña los correos previamente invitados por una persona administradora.</p>
         <div style="text-align:center;margin-top:14px">
-          <a href="index.html" style="font:600 12px 'Archivo',sans-serif;text-decoration:none">← Volver a la plataforma pública</a>
+          <a href="index.html" style="font:600 12px Archivo,sans-serif;text-decoration:none">← Volver a la plataforma pública</a>
         </div>
       </div>
     </div>
@@ -72,135 +88,135 @@
       <a href="index.html" title="Volver al inicio de la plataforma" style="display:flex;align-items:center;gap:14px;text-decoration:none">
         <img src="assets/logo-fahu.png" alt="" style="height:52px;width:auto;display:block;filter:brightness(0) invert(1)">
         <div>
-          <div style="font:800 15px 'Archivo',sans-serif;color:#fff">Panel de actualización</div>
-          <div style="font:400 11.5px 'Archivo',sans-serif;color:rgba(255,255,255,.6)">Biblioteca Normativa de Postgrado</div>
+          <div style="font:800 15px Archivo,sans-serif;color:#fff">Panel de actualización</div>
+          <div style="font:400 11.5px Archivo,sans-serif;color:rgba(255,255,255,.6)">Biblioteca Normativa de Postgrado</div>
         </div>
       </a>
       <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
-        <span style="font:600 11px 'Archivo',sans-serif;color:rgba(255,255,255,.85)">{{ sesionEtiqueta }}</span>
-        <a href="index.html" style="font:600 11px 'Archivo',sans-serif;color:#3A4450;background:#fff;border-radius:8px;padding:8px 13px;text-decoration:none;white-space:nowrap">Ver plataforma →</a>
-        <button onClick="{{ salir }}" style="cursor:pointer;border:1px solid rgba(255,255,255,.35);background:none;color:#fff;border-radius:8px;padding:8px 13px;font:600 11px 'Archivo',sans-serif">Cerrar sesión</button>
+        <span style="font:600 11px Archivo,sans-serif;color:rgba(255,255,255,.85)">{{ sesionEtiqueta }}</span>
+        <a href="index.html" style="font:600 11px Archivo,sans-serif;color:#3A4450;background:#fff;border-radius:8px;padding:8px 13px;text-decoration:none;white-space:nowrap">Ver plataforma →</a>
+        <button onClick="{{ salir }}" style="cursor:pointer;border:1px solid rgba(255,255,255,.35);background:none;color:#fff;border-radius:8px;padding:8px 13px;font:600 11px Archivo,sans-serif">Cerrar sesión</button>
       </div>
     </header>
 
     <nav style="background:#fff;border-bottom:1px solid #E8E4DA;padding:0 clamp(20px,5vw,60px);display:flex;gap:2px;overflow-x:auto">
       <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="3">
-        <button onClick="{{ t.pick }}" style="cursor:pointer;border:none;background:none;padding:14px 16px;font:600 13px 'Archivo',sans-serif;white-space:nowrap;color:{{ t.fg }};border-bottom:3px solid {{ t.line }}">{{ t.name }}</button>
+        <button onClick="{{ t.pick }}" style="cursor:pointer;border:none;background:none;padding:14px 16px;font:600 13px Archivo,sans-serif;white-space:nowrap;color:{{ t.fg }};border-bottom:3px solid {{ t.line }}">{{ t.name }}</button>
       </sc-for>
     </nav>
 
     <main style="max-width:1080px;margin:0 auto;padding:30px clamp(18px,4vw,32px) 80px">
 
       <sc-if value="{{ hayAviso }}" hint-placeholder-val="{{ false }}">
-        <div style="font:600 12.5px/1.5 'Archivo',sans-serif;color:{{ avisoFg }};background:{{ avisoBg }};border-radius:10px;padding:12px 16px;margin-bottom:20px">{{ aviso }}</div>
+        <div style="font:600 12.5px/1.5 Archivo,sans-serif;color:{{ avisoFg }};background:{{ avisoBg }};border-radius:10px;padding:12px 16px;margin-bottom:20px">{{ aviso }}</div>
       </sc-if>
 
       <sc-if value="{{ tabDocs }}" hint-placeholder-val="{{ true }}">
         <div style="display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:26px;align-items:start">
           <section>
-            <h2 style="font:800 19px 'Archivo',sans-serif;margin:0 0 14px;color:#3A4450">Documentos cargados <span style="font:600 12px 'IBM Plex Mono',monospace;color:#8A8272">{{ nDocs }}</span></h2>
+            <h2 style="font:800 19px Archivo,sans-serif;margin:0 0 14px;color:#3A4450">Documentos cargados <span style="font:600 12px IBM Plex Mono,monospace;color:#8A8272">{{ nDocs }}</span></h2>
             <div style="background:#fff;border:1px solid #E8E4DA;border-radius:12px;padding:14px 16px;margin-bottom:14px;display:flex;flex-direction:column;gap:10px">
-              <input value="{{ bq }}" onChange="{{ setBq }}" placeholder="Buscar por título, referencia, materia o programa…" style="box-sizing:border-box;width:100%;padding:10px 14px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px 'Archivo',sans-serif;background:#FAF9F5">
+              <input value="{{ bq }}" onChange="{{ setBq }}" placeholder="Buscar por título, referencia, materia o programa…" style="box-sizing:border-box;width:100%;padding:10px 14px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5">
               <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px">
-                <select value="{{ bTipo }}" onChange="{{ setBTipo }}" style="min-width:0;padding:8px 10px;border:1.5px solid #E0DCD0;border-radius:8px;font:600 11.5px 'Archivo',sans-serif;background:#FAF9F5;color:#3A4450">
+                <select value="{{ bTipo }}" onChange="{{ setBTipo }}" style="min-width:0;padding:8px 10px;border:1.5px solid #E0DCD0;border-radius:8px;font:600 11.5px Archivo,sans-serif;background:#FAF9F5;color:#3A4450">
                   <sc-for list="{{ bTipos }}" as="o" hint-placeholder-count="5"><option>{{ o }}</option></sc-for>
                 </select>
-                <select value="{{ bAmbito }}" onChange="{{ setBAmbito }}" style="min-width:0;padding:8px 10px;border:1.5px solid #E0DCD0;border-radius:8px;font:600 11.5px 'Archivo',sans-serif;background:#FAF9F5;color:#3A4450">
+                <select value="{{ bAmbito }}" onChange="{{ setBAmbito }}" style="min-width:0;padding:8px 10px;border:1.5px solid #E0DCD0;border-radius:8px;font:600 11.5px Archivo,sans-serif;background:#FAF9F5;color:#3A4450">
                   <sc-for list="{{ bAmbitos }}" as="o" hint-placeholder-count="4"><option>{{ o }}</option></sc-for>
                 </select>
-                <select value="{{ bPrograma }}" onChange="{{ setBPrograma }}" style="min-width:0;padding:8px 10px;border:1.5px solid #E0DCD0;border-radius:8px;font:600 11.5px 'Archivo',sans-serif;background:#FAF9F5;color:#3A4450">
+                <select value="{{ bPrograma }}" onChange="{{ setBPrograma }}" style="min-width:0;padding:8px 10px;border:1.5px solid #E0DCD0;border-radius:8px;font:600 11.5px Archivo,sans-serif;background:#FAF9F5;color:#3A4450">
                   <sc-for list="{{ bProgramas }}" as="o" hint-placeholder-count="6"><option value="{{ o.v }}">{{ o.t }}</option></sc-for>
                 </select>
-                <select value="{{ bVigencia }}" onChange="{{ setBVigencia }}" style="min-width:0;padding:8px 10px;border:1.5px solid #E0DCD0;border-radius:8px;font:600 11.5px 'Archivo',sans-serif;background:#FAF9F5;color:#3A4450">
+                <select value="{{ bVigencia }}" onChange="{{ setBVigencia }}" style="min-width:0;padding:8px 10px;border:1.5px solid #E0DCD0;border-radius:8px;font:600 11.5px Archivo,sans-serif;background:#FAF9F5;color:#3A4450">
                   <sc-for list="{{ bVigencias }}" as="o" hint-placeholder-count="5"><option>{{ o }}</option></sc-for>
                 </select>
               </div>
               <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
-                <span style="font:400 11.5px 'Archivo',sans-serif;color:#8A8272">{{ bResumen }}</span>
+                <span style="font:400 11.5px Archivo,sans-serif;color:#8A8272">{{ bResumen }}</span>
                 <sc-if value="{{ bActivo }}" hint-placeholder-val="{{ false }}">
-                  <button onClick="{{ bLimpiar }}" style="cursor:pointer;border:none;background:none;padding:0;font:600 11.5px 'Archivo',sans-serif;color:#007E80">Ver todos</button>
+                  <button onClick="{{ bLimpiar }}" style="cursor:pointer;border:none;background:none;padding:0;font:600 11.5px Archivo,sans-serif;color:#007E80">Ver todos</button>
                 </sc-if>
               </div>
             </div>
             <sc-if value="{{ sinDocs }}" hint-placeholder-val="{{ false }}">
               <div style="background:#fff;border:1px dashed #C9C3B4;border-radius:12px;padding:22px;margin-bottom:14px">
-                <div style="font:700 13.5px 'Archivo',sans-serif;color:#3A4450;margin-bottom:6px">La base de datos está vacía</div>
-                <p style="font:400 13px/1.6 'Spectral',serif;color:#5A6470;margin:0 0 14px">Puedes cargar de una vez el catálogo que hoy tiene la plataforma pública. Los PDF seguirán leyéndose desde el repositorio; los que subas de aquí en adelante quedarán en el servicio de datos.</p>
-                <button onClick="{{ importar }}" style="cursor:pointer;border:none;background:#EF7A00;color:#fff;border-radius:9px;padding:11px 18px;font:700 12.5px 'Archivo',sans-serif">Importar catálogo actual</button>
+                <div style="font:700 13.5px Archivo,sans-serif;color:#3A4450;margin-bottom:6px">La base de datos está vacía</div>
+                <p style="font:400 13px/1.6 Spectral,serif;color:#5A6470;margin:0 0 14px">Puedes cargar de una vez el catálogo que hoy tiene la plataforma pública. Los PDF seguirán leyéndose desde el repositorio; los que subas de aquí en adelante quedarán en el servicio de datos.</p>
+                <button onClick="{{ importar }}" style="cursor:pointer;border:none;background:#EF7A00;color:#fff;border-radius:9px;padding:11px 18px;font:700 12.5px Archivo,sans-serif">Importar catálogo actual</button>
               </div>
             </sc-if>
             <div style="display:flex;flex-direction:column;gap:10px">
               <sc-for list="{{ docs }}" as="d" hint-placeholder-count="4">
                 <article style="background:#fff;border:1px solid #E8E4DA;border-radius:12px;padding:15px 18px;display:flex;flex-direction:column;gap:6px">
                   <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-                    <span style="font:600 9.5px 'Archivo',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#007E80;background:#E4F2F2;border-radius:6px;padding:4px 8px">{{ d.tipo }}</span>
-                    <span style="font:600 10.5px 'IBM Plex Mono',monospace;color:#EF7A00">{{ d.anio }}</span>
-                    <span style="font:400 11px 'Archivo',sans-serif;color:#8A8272">{{ d.materia }} · {{ d.ambito }} · {{ d.nv }} versión(es)</span>
+                    <span style="font:600 9.5px Archivo,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#007E80;background:#E4F2F2;border-radius:6px;padding:4px 8px">{{ d.tipo }}</span>
+                    <span style="font:600 10.5px IBM Plex Mono,monospace;color:#EF7A00">{{ d.anio }}</span>
+                    <span style="font:400 11px Archivo,sans-serif;color:#8A8272">{{ d.materia }} · {{ d.ambito }} · {{ d.nv }} versión(es)</span>
                     <sc-if value="{{ d.conPdf }}" hint-placeholder-val="{{ true }}">
-                      <span style="font:600 9.5px 'Archivo',sans-serif;letter-spacing:.05em;text-transform:uppercase;color:#2F6B4F;background:#E7F3EB;border-radius:6px;padding:4px 8px">PDF</span>
+                      <span style="font:600 9.5px Archivo,sans-serif;letter-spacing:.05em;text-transform:uppercase;color:#2F6B4F;background:#E7F3EB;border-radius:6px;padding:4px 8px">PDF</span>
                     </sc-if>
-                    <span style="font:600 9.5px 'Archivo',sans-serif;letter-spacing:.05em;text-transform:uppercase;border-radius:6px;padding:4px 8px;background:{{ d.vigBg }};color:{{ d.vigFg }}">{{ d.vigLabel }}</span>
+                    <span style="font:600 9.5px Archivo,sans-serif;letter-spacing:.05em;text-transform:uppercase;border-radius:6px;padding:4px 8px;background:{{ d.vigBg }};color:{{ d.vigFg }}">{{ d.vigLabel }}</span>
                   </div>
-                  <div style="font:700 14px/1.3 'Archivo',sans-serif;color:#3A4450">{{ d.titulo }}</div>
+                  <div style="font:700 14px/1.3 Archivo,sans-serif;color:#3A4450">{{ d.titulo }}</div>
                   <div style="display:flex;gap:14px;flex-wrap:wrap">
-                    <button onClick="{{ d.edit }}" style="cursor:pointer;border:none;background:none;padding:0;font:600 12px 'Archivo',sans-serif;color:#007E80">Editar / nueva versión</button>
-                    <button onClick="{{ d.del }}" style="cursor:pointer;border:none;background:none;padding:0;font:600 12px 'Archivo',sans-serif;color:#B0483A">Eliminar</button>
+                    <button onClick="{{ d.edit }}" style="cursor:pointer;border:none;background:none;padding:0;font:600 12px Archivo,sans-serif;color:#007E80">Editar / nueva versión</button>
+                    <button onClick="{{ d.del }}" style="cursor:pointer;border:none;background:none;padding:0;font:600 12px Archivo,sans-serif;color:#B0483A">Eliminar</button>
                   </div>
                 </article>
               </sc-for>
             </div>
             <sc-if value="{{ conPaginas }}" hint-placeholder-val="{{ false }}">
               <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:16px;padding-top:14px;border-top:1px solid #E8E4DA">
-                <button onClick="{{ pagPrev }}" style="cursor:{{ prevCursor }};border:none;background:none;padding:0;font:600 12.5px 'Archivo',sans-serif;color:{{ prevFg }}">← Anteriores</button>
-                <span style="font:400 11.5px 'Archivo',sans-serif;color:#8A8272">{{ pagRotulo }}</span>
-                <button onClick="{{ pagNext }}" style="cursor:{{ nextCursor }};border:none;background:none;padding:0;font:600 12.5px 'Archivo',sans-serif;color:{{ nextFg }}">Siguientes →</button>
+                <button onClick="{{ pagPrev }}" style="cursor:{{ prevCursor }};border:none;background:none;padding:0;font:600 12.5px Archivo,sans-serif;color:{{ prevFg }}">← Anteriores</button>
+                <span style="font:400 11.5px Archivo,sans-serif;color:#8A8272">{{ pagRotulo }}</span>
+                <button onClick="{{ pagNext }}" style="cursor:{{ nextCursor }};border:none;background:none;padding:0;font:600 12.5px Archivo,sans-serif;color:{{ nextFg }}">Siguientes →</button>
               </div>
             </sc-if>
           </section>
           <section style="background:#fff;border:1px solid #E8E4DA;border-radius:14px;padding:22px 24px;position:sticky;top:20px">
-            <h3 style="font:800 15px 'Archivo',sans-serif;margin:0 0 4px;color:#3A4450">{{ formTitle }}</h3>
-            <p style="font:italic 400 12px/1.45 'Spectral',serif;color:#8A8272;margin:0 0 16px">{{ formHint }}</p>
+            <h3 style="font:800 15px Archivo,sans-serif;margin:0 0 4px;color:#3A4450">{{ formTitle }}</h3>
+            <p style="font:italic 400 12px/1.45 Spectral,serif;color:#8A8272;margin:0 0 16px">{{ formHint }}</p>
             <div style="display:flex;flex-direction:column;gap:12px">
-              <input value="{{ fTitulo }}" onChange="{{ setTitulo }}" placeholder="Título del documento" style="box-sizing:border-box;width:100%;padding:10px 14px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px 'Archivo',sans-serif;background:#FAF9F5">
+              <input value="{{ fTitulo }}" onChange="{{ setTitulo }}" placeholder="Título del documento" style="box-sizing:border-box;width:100%;padding:10px 14px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5">
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-                <select value="{{ fTipo }}" onChange="{{ setTipo }}" style="padding:10px 12px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px 'Archivo',sans-serif;background:#FAF9F5;color:#3A4450">
+                <select value="{{ fTipo }}" onChange="{{ setTipo }}" style="padding:10px 12px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5;color:#3A4450">
                   <option>Reglamento</option><option>Resolución</option><option>Procedimiento</option><option>Lineamiento</option><option>Política</option><option>Ley</option><option>Convenio</option>
                 </select>
-                <select value="{{ fAmbito }}" onChange="{{ setAmbito }}" style="padding:10px 12px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px 'Archivo',sans-serif;background:#FAF9F5;color:#3A4450">
+                <select value="{{ fAmbito }}" onChange="{{ setAmbito }}" style="padding:10px 12px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5;color:#3A4450">
                   <option>Nacional</option><option>Universidad</option><option>Facultad</option>
                 </select>
               </div>
-              <select value="{{ fMateria }}" onChange="{{ setMateria }}" style="padding:10px 12px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px 'Archivo',sans-serif;background:#FAF9F5;color:#3A4450">
+              <select value="{{ fMateria }}" onChange="{{ setMateria }}" style="padding:10px 12px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5;color:#3A4450">
                 <sc-for list="{{ materiasOpts }}" as="m" hint-placeholder-count="6">
                   <option>{{ m }}</option>
                 </sc-for>
               </select>
-              <select value="{{ fPrograma }}" onChange="{{ setPrograma }}" style="padding:10px 12px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px 'Archivo',sans-serif;background:#FAF9F5;color:#3A4450">
+              <select value="{{ fPrograma }}" onChange="{{ setPrograma }}" style="padding:10px 12px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5;color:#3A4450">
                 <sc-for list="{{ programasOpts }}" as="p" hint-placeholder-count="4">
                   <option value="{{ p.valor }}">{{ p.etiqueta }}</option>
                 </sc-for>
               </select>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-                <input value="{{ fRef }}" onChange="{{ setRef }}" placeholder="Referencia (ej. REX N°4159)" style="box-sizing:border-box;width:100%;padding:10px 14px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px 'Archivo',sans-serif;background:#FAF9F5">
-                <input value="{{ fAnio }}" onChange="{{ setAnio }}" placeholder="Año (ej. 2026)" style="box-sizing:border-box;width:100%;padding:10px 14px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px 'Archivo',sans-serif;background:#FAF9F5">
+                <input value="{{ fRef }}" onChange="{{ setRef }}" placeholder="Referencia (ej. REX N°4159)" style="box-sizing:border-box;width:100%;padding:10px 14px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5">
+                <input value="{{ fAnio }}" onChange="{{ setAnio }}" placeholder="Año (ej. 2026)" style="box-sizing:border-box;width:100%;padding:10px 14px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5">
               </div>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-                <select value="{{ fVigencia }}" onChange="{{ setVigencia }}" style="padding:10px 12px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px 'Archivo',sans-serif;background:#FAF9F5;color:#3A4450">
+                <select value="{{ fVigencia }}" onChange="{{ setVigencia }}" style="padding:10px 12px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5;color:#3A4450">
                   <option>Vigente</option><option>Vencida</option><option>Derogada</option><option>Sin definir</option>
                 </select>
-                <input value="{{ fVigHasta }}" onChange="{{ setVigHasta }}" placeholder="Vigente hasta (ej. 17.01.2027)" style="box-sizing:border-box;width:100%;padding:10px 14px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px 'Archivo',sans-serif;background:#FAF9F5">
+                <input value="{{ fVigHasta }}" onChange="{{ setVigHasta }}" placeholder="Vigente hasta (ej. 17.01.2027)" style="box-sizing:border-box;width:100%;padding:10px 14px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5">
               </div>
-              <p style="font:italic 400 11.5px/1.45 'Spectral',serif;color:#8A8272;margin:-4px 0 0">Las resoluciones de designación de cuerpos académicos rigen dos años desde su promulgación. Deja la fecha en blanco si el documento no tiene término.</p>
-              <textarea value="{{ fResumen }}" onChange="{{ setResumen }}" placeholder="Resumen breve (qué regula y a quién aplica)" rows="3" style="box-sizing:border-box;width:100%;padding:10px 14px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px/1.5 'Spectral',serif;background:#FAF9F5;resize:vertical"></textarea>
-              <input value="{{ fNota }}" onChange="{{ setNota }}" placeholder="Nota de esta versión (ej. actualiza plazos)" style="box-sizing:border-box;width:100%;padding:10px 14px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px 'Archivo',sans-serif;background:#FAF9F5">
-              <label style="border:1.5px dashed #C9C3B4;border-radius:9px;padding:14px;text-align:center;font:600 12px/1.5 'Archivo',sans-serif;color:#8A8272;background:#FAF9F5;cursor:pointer;display:block">
+              <p style="font:italic 400 11.5px/1.45 Spectral,serif;color:#8A8272;margin:-4px 0 0">Las resoluciones de designación de cuerpos académicos rigen dos años desde su promulgación. Deja la fecha en blanco si el documento no tiene término.</p>
+              <textarea value="{{ fResumen }}" onChange="{{ setResumen }}" placeholder="Resumen breve (qué regula y a quién aplica)" rows="3" style="box-sizing:border-box;width:100%;padding:10px 14px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px/1.5 Spectral,serif;background:#FAF9F5;resize:vertical"></textarea>
+              <input value="{{ fNota }}" onChange="{{ setNota }}" placeholder="Nota de esta versión (ej. actualiza plazos)" style="box-sizing:border-box;width:100%;padding:10px 14px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5">
+              <label style="border:1.5px dashed #C9C3B4;border-radius:9px;padding:14px;text-align:center;font:600 12px/1.5 Archivo,sans-serif;color:#8A8272;background:#FAF9F5;cursor:pointer;display:block">
                 {{ pdfEtiqueta }}
                 <input type="file" accept="application/pdf" onChange="{{ setArchivo }}" style="display:none">
               </label>
               <div style="display:flex;gap:10px">
-                <button onClick="{{ save }}" style="cursor:pointer;flex:1;border:none;background:#007E80;color:#fff;border-radius:9px;padding:12px;font:700 13px 'Archivo',sans-serif">{{ saveLabel }}</button>
+                <button onClick="{{ save }}" style="cursor:pointer;flex:1;border:none;background:#007E80;color:#fff;border-radius:9px;padding:12px;font:700 13px Archivo,sans-serif">{{ saveLabel }}</button>
                 <sc-if value="{{ editing }}" hint-placeholder-val="{{ false }}">
-                  <button onClick="{{ cancel }}" style="cursor:pointer;border:1.5px solid #E0DCD0;background:#fff;color:#8A8272;border-radius:9px;padding:12px 16px;font:600 13px 'Archivo',sans-serif">Cancelar</button>
+                  <button onClick="{{ cancel }}" style="cursor:pointer;border:1.5px solid #E0DCD0;background:#fff;color:#8A8272;border-radius:9px;padding:12px 16px;font:600 13px Archivo,sans-serif">Cancelar</button>
                 </sc-if>
               </div>
             </div>
@@ -211,54 +227,54 @@
       <sc-if value="{{ tabUsers }}" hint-placeholder-val="{{ false }}">
         <div style="display:flex;flex-direction:column;gap:26px">
           <section>
-            <h2 style="font:800 19px 'Archivo',sans-serif;margin:0 0 14px;color:#3A4450">Usuarios con acceso <span style="font:600 12px 'IBM Plex Mono',monospace;color:#8A8272">{{ nUsers }}</span></h2>
+            <h2 style="font:800 19px Archivo,sans-serif;margin:0 0 14px;color:#3A4450">Usuarios con acceso <span style="font:600 12px IBM Plex Mono,monospace;color:#8A8272">{{ nUsers }}</span></h2>
             <div style="background:#fff;border:1px solid #E8E4DA;border-radius:14px;overflow:hidden">
               <sc-for list="{{ users }}" as="u" hint-placeholder-count="2">
                 <div style="display:grid;grid-template-columns:minmax(0,1fr) 130px 110px 80px;gap:14px;align-items:center;padding:13px 20px;border-bottom:1px solid #F0EDE4">
                   <div style="min-width:0">
-                    <div style="font:700 13.5px 'Archivo',sans-serif;color:#3A4450;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ u.nombre }}</div>
-                    <div style="font:400 11.5px 'IBM Plex Mono',monospace;color:#8A8272;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ u.correo }}</div>
+                    <div style="font:700 13.5px Archivo,sans-serif;color:#3A4450;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ u.nombre }}</div>
+                    <div style="font:400 11.5px IBM Plex Mono,monospace;color:#8A8272;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ u.correo }}</div>
                   </div>
-                  <select value="{{ u.rol }}" onChange="{{ u.setRol }}" disabled="{{ u.bloqueado }}" style="padding:7px 8px;border:1.5px solid #E0DCD0;border-radius:7px;font:600 11px 'Archivo',sans-serif;background:#FAF9F5;color:#3A4450">
+                  <select value="{{ u.rol }}" onChange="{{ u.setRol }}" disabled="{{ u.bloqueado }}" style="padding:7px 8px;border:1.5px solid #E0DCD0;border-radius:7px;font:600 11px Archivo,sans-serif;background:#FAF9F5;color:#3A4450">
                     <option value="editor">Editor/a</option><option value="administrador">Administrador/a</option>
                   </select>
-                  <button onClick="{{ u.toggle }}" style="cursor:pointer;border:none;border-radius:6px;padding:6px 8px;font:600 10.5px 'Archivo',sans-serif;background:{{ u.estBg }};color:{{ u.estFg }}">{{ u.estado }}</button>
-                  <button onClick="{{ u.del }}" style="cursor:pointer;border:none;background:none;font:600 12px 'Archivo',sans-serif;color:{{ u.quitarFg }};text-align:right">{{ u.quitar }}</button>
+                  <button onClick="{{ u.toggle }}" style="cursor:pointer;border:none;border-radius:6px;padding:6px 8px;font:600 10.5px Archivo,sans-serif;background:{{ u.estBg }};color:{{ u.estFg }}">{{ u.estado }}</button>
+                  <button onClick="{{ u.del }}" style="cursor:pointer;border:none;background:none;font:600 12px Archivo,sans-serif;color:{{ u.quitarFg }};text-align:right">{{ u.quitar }}</button>
                 </div>
               </sc-for>
             </div>
-            <p style="font:italic 400 12px/1.5 'Spectral',serif;color:#8A8272;margin-top:12px">La persona <strong>administradora</strong> invita usuarios, cambia roles y edita documentos; la <strong>editora</strong> carga y actualiza documentos. Suspender conserva la cuenta pero bloquea el acceso.</p>
+            <p style="font:italic 400 12px/1.5 Spectral,serif;color:#8A8272;margin-top:12px">La persona <strong>administradora</strong> invita usuarios, cambia roles y edita documentos; la <strong>editora</strong> carga y actualiza documentos. Suspender conserva la cuenta pero bloquea el acceso.</p>
           </section>
 
           <sc-if value="{{ hayInvitaciones }}" hint-placeholder-val="{{ false }}">
             <section>
-              <h3 style="font:800 15px 'Archivo',sans-serif;margin:0 0 12px;color:#3A4450">Invitaciones pendientes <span style="font:600 11px 'IBM Plex Mono',monospace;color:#8A8272">{{ nInv }}</span></h3>
+              <h3 style="font:800 15px Archivo,sans-serif;margin:0 0 12px;color:#3A4450">Invitaciones pendientes <span style="font:600 11px IBM Plex Mono,monospace;color:#8A8272">{{ nInv }}</span></h3>
               <div style="background:#fff;border:1px solid #E8E4DA;border-radius:14px;overflow:hidden">
                 <sc-for list="{{ invitaciones }}" as="i" hint-placeholder-count="1">
                   <div style="display:grid;grid-template-columns:minmax(0,1fr) 130px 80px;gap:14px;align-items:center;padding:12px 20px;border-bottom:1px solid #F0EDE4">
                     <div style="min-width:0">
-                      <div style="font:700 13px 'Archivo',sans-serif;color:#3A4450">{{ i.nombre }}</div>
-                      <div style="font:400 11.5px 'IBM Plex Mono',monospace;color:#8A8272;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ i.correo }}</div>
+                      <div style="font:700 13px Archivo,sans-serif;color:#3A4450">{{ i.nombre }}</div>
+                      <div style="font:400 11.5px IBM Plex Mono,monospace;color:#8A8272;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ i.correo }}</div>
                     </div>
-                    <span style="font:600 10px 'Archivo',sans-serif;letter-spacing:.06em;text-transform:uppercase;text-align:center;border-radius:6px;padding:5px 8px;background:#F4F1E8;color:#8A8272">{{ i.rol }}</span>
-                    <button onClick="{{ i.del }}" style="cursor:pointer;border:none;background:none;font:600 12px 'Archivo',sans-serif;color:#B0483A;text-align:right">Anular</button>
+                    <span style="font:600 10px Archivo,sans-serif;letter-spacing:.06em;text-transform:uppercase;text-align:center;border-radius:6px;padding:5px 8px;background:#F4F1E8;color:#8A8272">{{ i.rol }}</span>
+                    <button onClick="{{ i.del }}" style="cursor:pointer;border:none;background:none;font:600 12px Archivo,sans-serif;color:#B0483A;text-align:right">Anular</button>
                   </div>
                 </sc-for>
               </div>
-              <p style="font:italic 400 12px/1.5 'Spectral',serif;color:#8A8272;margin-top:10px">Estas personas aún no crean su contraseña. Deben entrar al panel, elegir «Primera vez: crear mi contraseña» y usar exactamente este correo.</p>
+              <p style="font:italic 400 12px/1.5 Spectral,serif;color:#8A8272;margin-top:10px">Estas personas aún no crean su contraseña. Deben entrar al panel, elegir «Primera vez: crear mi contraseña» y usar exactamente este correo.</p>
             </section>
           </sc-if>
 
           <section style="background:#fff;border:1px solid #E8E4DA;border-radius:14px;padding:22px 24px;max-width:440px">
-            <h3 style="font:800 15px 'Archivo',sans-serif;margin:0 0 4px;color:#3A4450">Invitar a una persona</h3>
-            <p style="font:italic 400 12px/1.45 'Spectral',serif;color:#8A8272;margin:0 0 16px">Autoriza el correo. La persona crea su propia contraseña desde la pantalla de acceso.</p>
+            <h3 style="font:800 15px Archivo,sans-serif;margin:0 0 4px;color:#3A4450">Invitar a una persona</h3>
+            <p style="font:italic 400 12px/1.45 Spectral,serif;color:#8A8272;margin:0 0 16px">Autoriza el correo. La persona crea su propia contraseña desde la pantalla de acceso.</p>
             <div style="display:flex;flex-direction:column;gap:12px">
-              <input value="{{ uNombre }}" onChange="{{ setUNombre }}" placeholder="Nombre y apellido" style="box-sizing:border-box;width:100%;padding:10px 14px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px 'Archivo',sans-serif;background:#FAF9F5">
-              <input value="{{ uCorreo }}" onChange="{{ setUCorreo }}" type="email" placeholder="correo@usach.cl" style="box-sizing:border-box;width:100%;padding:10px 14px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px 'Archivo',sans-serif;background:#FAF9F5">
-              <select value="{{ uRol }}" onChange="{{ setURol }}" style="padding:10px 12px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px 'Archivo',sans-serif;background:#FAF9F5;color:#3A4450">
+              <input value="{{ uNombre }}" onChange="{{ setUNombre }}" placeholder="Nombre y apellido" style="box-sizing:border-box;width:100%;padding:10px 14px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5">
+              <input value="{{ uCorreo }}" onChange="{{ setUCorreo }}" type="email" placeholder="correo@usach.cl" style="box-sizing:border-box;width:100%;padding:10px 14px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5">
+              <select value="{{ uRol }}" onChange="{{ setURol }}" style="padding:10px 12px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5;color:#3A4450">
                 <option value="editor">Editor/a</option><option value="administrador">Administrador/a</option>
               </select>
-              <button onClick="{{ addUser }}" style="cursor:pointer;border:none;background:#007E80;color:#fff;border-radius:9px;padding:12px;font:700 13px 'Archivo',sans-serif">Autorizar acceso</button>
+              <button onClick="{{ addUser }}" style="cursor:pointer;border:none;background:#007E80;color:#fff;border-radius:9px;padding:12px;font:700 13px Archivo,sans-serif">Autorizar acceso</button>
             </div>
           </section>
         </div>
@@ -267,25 +283,25 @@
       <sc-if value="{{ tabProgs }}" hint-placeholder-val="{{ false }}">
         <div style="display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:26px;align-items:start">
           <section>
-            <h2 style="font:800 19px 'Archivo',sans-serif;margin:0 0 6px;color:#3A4450">Programas de postgrado <span style="font:600 12px 'IBM Plex Mono',monospace;color:#8A8272">{{ nProgs }}</span></h2>
-            <p style="font:400 13.5px/1.6 'Spectral',serif;color:#5A6470;margin:0 0 18px;max-width:620px">Esta lista alimenta el desplegable con que se asocia cada documento a un programa, y el filtro por programa de la plataforma pública.</p>
+            <h2 style="font:800 19px Archivo,sans-serif;margin:0 0 6px;color:#3A4450">Programas de postgrado <span style="font:600 12px IBM Plex Mono,monospace;color:#8A8272">{{ nProgs }}</span></h2>
+            <p style="font:400 13.5px/1.6 Spectral,serif;color:#5A6470;margin:0 0 18px;max-width:620px">Esta lista alimenta el desplegable con que se asocia cada documento a un programa, y el filtro por programa de la plataforma pública.</p>
             <div style="background:#fff;border:1px solid #E8E4DA;border-radius:14px;overflow:hidden">
               <sc-for list="{{ progs }}" as="p" hint-placeholder-count="4">
                 <div style="display:grid;grid-template-columns:minmax(0,1fr) 110px 90px;gap:14px;align-items:center;padding:13px 20px;border-bottom:1px solid #F0EDE4">
-                  <div style="font:700 13px 'Archivo',sans-serif;color:#3A4450;min-width:0">{{ p.nombre }}</div>
-                  <span style="font:600 11px 'IBM Plex Mono',monospace;color:#8A8272;text-align:right">{{ p.uso }}</span>
-                  <button onClick="{{ p.del }}" style="cursor:pointer;border:none;background:none;font:600 12px 'Archivo',sans-serif;color:{{ p.delFg }};text-align:right">Eliminar</button>
+                  <div style="font:700 13px Archivo,sans-serif;color:#3A4450;min-width:0">{{ p.nombre }}</div>
+                  <span style="font:600 11px IBM Plex Mono,monospace;color:#8A8272;text-align:right">{{ p.uso }}</span>
+                  <button onClick="{{ p.del }}" style="cursor:pointer;border:none;background:none;font:600 12px Archivo,sans-serif;color:{{ p.delFg }};text-align:right">Eliminar</button>
                 </div>
               </sc-for>
             </div>
-            <p style="font:italic 400 12px/1.5 'Spectral',serif;color:#8A8272;margin-top:12px">Un programa con documentos asociados no se puede eliminar: primero hay que reasignar o borrar esos documentos.</p>
+            <p style="font:italic 400 12px/1.5 Spectral,serif;color:#8A8272;margin-top:12px">Un programa con documentos asociados no se puede eliminar: primero hay que reasignar o borrar esos documentos.</p>
           </section>
           <aside style="background:#fff;border:1px solid #E8E4DA;border-radius:14px;padding:22px 24px;position:sticky;top:20px">
-            <h3 style="font:800 15px 'Archivo',sans-serif;margin:0 0 4px;color:#3A4450">Agregar un programa</h3>
-            <p style="font:italic 400 12px/1.45 'Spectral',serif;color:#8A8272;margin:0 0 16px">Escribe el nombre completo, tal como debe figurar en la plataforma.</p>
+            <h3 style="font:800 15px Archivo,sans-serif;margin:0 0 4px;color:#3A4450">Agregar un programa</h3>
+            <p style="font:italic 400 12px/1.45 Spectral,serif;color:#8A8272;margin:0 0 16px">Escribe el nombre completo, tal como debe figurar en la plataforma.</p>
             <div style="display:flex;flex-direction:column;gap:12px">
-              <input value="{{ pNuevo }}" onChange="{{ setPNuevo }}" placeholder="Magíster en …" style="box-sizing:border-box;width:100%;padding:10px 14px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px 'Archivo',sans-serif;background:#FAF9F5">
-              <button onClick="{{ addProg }}" style="cursor:pointer;border:none;font:700 13px 'Archivo',sans-serif;color:#fff;background:#007E80;border-radius:10px;padding:11px 16px">Agregar programa</button>
+              <input value="{{ pNuevo }}" onChange="{{ setPNuevo }}" placeholder="Magíster en …" style="box-sizing:border-box;width:100%;padding:10px 14px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5">
+              <button onClick="{{ addProg }}" style="cursor:pointer;border:none;font:700 13px Archivo,sans-serif;color:#fff;background:#007E80;border-radius:10px;padding:11px 16px">Agregar programa</button>
             </div>
           </aside>
         </div>
@@ -294,28 +310,28 @@
       <sc-if value="{{ tabAct }}" hint-placeholder-val="{{ false }}">
         <section style="max-width:760px">
           <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin:0 0 6px">
-            <h2 style="font:800 19px 'Archivo',sans-serif;margin:0;color:#3A4450">Registro de actividad</h2>
-            <button type="button" onClick="{{ recargarAct }}" style="flex:none;font:600 12px 'Archivo',sans-serif;color:#007E80;background:#fff;border:1px solid #CFE7E7;border-radius:8px;padding:7px 12px;cursor:pointer" style-hover="background:#E9F5F5">Actualizar</button>
+            <h2 style="font:800 19px Archivo,sans-serif;margin:0;color:#3A4450">Registro de actividad</h2>
+            <button type="button" onClick="{{ recargarAct }}" style="flex:none;font:600 12px Archivo,sans-serif;color:#007E80;background:#fff;border:1px solid #CFE7E7;border-radius:8px;padding:7px 12px;cursor:pointer" style-hover="background:#E9F5F5">Actualizar</button>
           </div>
-          <p style="font:400 13.5px/1.6 'Spectral',serif;color:#5A6470;margin:0 0 18px">Últimos movimientos del panel (máximo 50). Cada carga, edición o cambio de permisos queda registrado con su autor y fecha.</p>
+          <p style="font:400 13.5px/1.6 Spectral,serif;color:#5A6470;margin:0 0 18px">Últimos movimientos del panel (máximo 50). Cada carga, edición o cambio de permisos queda registrado con su autor y fecha.</p>
           <sc-if value="{{ conActError }}" hint-placeholder-val="{{ false }}">
-            <div style="background:#F9EDE9;border:1px solid #E8CFC8;border-radius:12px;padding:14px 18px;margin-bottom:16px;font:400 12.5px/1.55 'Archivo',sans-serif;color:#8A3D2E">Registro de actividad: {{ actError }}</div>
+            <div style="background:#F9EDE9;border:1px solid #E8CFC8;border-radius:12px;padding:14px 18px;margin-bottom:16px;font:400 12.5px/1.55 Archivo,sans-serif;color:#8A3D2E">Registro de actividad: {{ actError }}</div>
           </sc-if>
           <sc-if value="{{ sinActividad }}" hint-placeholder-val="{{ false }}">
-            <div style="background:#fff;border:1px solid #E8E4DA;border-radius:14px;padding:22px 24px;margin-bottom:16px;font:400 13px/1.6 'Spectral',serif;color:#8A8272">Todavía no hay movimientos registrados: el historial comienza ahora, y las acciones anteriores a esta versión del panel no quedaron guardadas. La próxima carga, edición o cambio de permisos aparecerá aquí.</div>
+            <div style="background:#fff;border:1px solid #E8E4DA;border-radius:14px;padding:22px 24px;margin-bottom:16px;font:400 13px/1.6 Spectral,serif;color:#8A8272">Todavía no hay movimientos registrados: el historial comienza ahora, y las acciones anteriores a esta versión del panel no quedaron guardadas. La próxima carga, edición o cambio de permisos aparecerá aquí.</div>
           </sc-if>
           <sc-if value="{{ conActividad }}" hint-placeholder-val="{{ true }}">
           <div style="background:#fff;border:1px solid #E8E4DA;border-radius:14px;overflow:hidden">
-            <div style="display:grid;grid-template-columns:150px 120px minmax(0,1fr);gap:14px;padding:10px 20px;background:#F6F4EF;border-bottom:1px solid #E8E4DA;font:600 10.5px 'Archivo',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#8A8272">
+            <div style="display:grid;grid-template-columns:150px 120px minmax(0,1fr);gap:14px;padding:10px 20px;background:#F6F4EF;border-bottom:1px solid #E8E4DA;font:600 10.5px Archivo,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#8A8272">
               <span>Fecha</span><span>Acción</span><span>Detalle · {{ actTotal }} movimientos</span>
             </div>
             <sc-for list="{{ actividad }}" as="a" hint-placeholder-count="5">
               <div style="display:grid;grid-template-columns:150px 120px minmax(0,1fr);gap:14px;align-items:baseline;padding:12px 20px;border-bottom:1px solid #F0EDE4">
-                <span style="font:400 11px 'IBM Plex Mono',monospace;color:#8A8272">{{ a.fecha }}</span>
-                <span style="font:600 11px 'Archivo',sans-serif;color:#007E80">{{ a.accion }}</span>
+                <span style="font:400 11px IBM Plex Mono,monospace;color:#8A8272">{{ a.fecha }}</span>
+                <span style="font:600 11px Archivo,sans-serif;color:#007E80">{{ a.accion }}</span>
                 <div style="min-width:0">
-                  <div style="font:400 12.5px/1.45 'Spectral',serif;color:#3A4450">{{ a.detalle }}</div>
-                  <div style="font:400 10.5px 'IBM Plex Mono',monospace;color:#8A8272;margin-top:2px">{{ a.correo }}</div>
+                  <div style="font:400 12.5px/1.45 Spectral,serif;color:#3A4450">{{ a.detalle }}</div>
+                  <div style="font:400 10.5px IBM Plex Mono,monospace;color:#8A8272;margin-top:2px">{{ a.correo }}</div>
                 </div>
               </div>
             </sc-for>
@@ -326,20 +342,20 @@
 
       <sc-if value="{{ tabAyuda }}" hint-placeholder-val="{{ false }}">
         <section style="max-width:700px">
-          <h2 style="font:800 19px 'Archivo',sans-serif;margin:0 0 6px;color:#3A4450">Cómo funciona la publicación</h2>
-          <p style="font:400 14px/1.65 'Spectral',serif;color:#5A6470;margin:0 0 22px">Los documentos que cargas aquí quedan guardados en el servicio de datos del Vicedecanato. La plataforma pública los consulta cada vez que alguien la abre, de modo que no hay que descargar archivos ni actualizar el repositorio. Mientras la base de datos esté vacía, la plataforma sigue mostrando el catálogo estático original: por eso el primer paso es importar ese catálogo desde la pestaña Documentos.</p>
+          <h2 style="font:800 19px Archivo,sans-serif;margin:0 0 6px;color:#3A4450">Cómo funciona la publicación</h2>
+          <p style="font:400 14px/1.65 Spectral,serif;color:#5A6470;margin:0 0 22px">Los documentos que cargas aquí quedan guardados en el servicio de datos del Vicedecanato. La plataforma pública los consulta cada vez que alguien la abre, de modo que no hay que descargar archivos ni actualizar el repositorio. Mientras la base de datos esté vacía, la plataforma sigue mostrando el catálogo estático original: por eso el primer paso es importar ese catálogo desde la pestaña Documentos.</p>
           <div style="display:flex;flex-direction:column;gap:11px;margin-bottom:26px">
-            <div style="display:flex;gap:14px;align-items:baseline;background:#fff;border:1px solid #E8E4DA;border-radius:12px;padding:16px 20px"><span style="font:800 15px 'IBM Plex Mono',monospace;color:#EF7A00">1</span><span style="font:400 13.5px/1.55 'Spectral',serif;color:#5A6470">Completas la ficha del documento y adjuntas el PDF. El archivo se guarda cifrado en tránsito y queda accesible por su enlace público.</span></div>
-            <div style="display:flex;gap:14px;align-items:baseline;background:#fff;border:1px solid #E8E4DA;border-radius:12px;padding:16px 20px"><span style="font:800 15px 'IBM Plex Mono',monospace;color:#EF7A00">2</span><span style="font:400 13.5px/1.55 'Spectral',serif;color:#5A6470">Al guardar, el documento se publica de inmediato. Si editas uno existente, la versión anterior queda registrada en el historial que la plataforma muestra.</span></div>
-            <div style="display:flex;gap:14px;align-items:baseline;background:#fff;border:1px solid #E8E4DA;border-radius:12px;padding:16px 20px"><span style="font:800 15px 'IBM Plex Mono',monospace;color:#EF7A00">3</span><span style="font:400 13.5px/1.55 'Spectral',serif;color:#5A6470">Quien visita la plataforma consulta y descarga, pero no puede editar: la escritura exige sesión con cuenta autorizada.</span></div>
+            <div style="display:flex;gap:14px;align-items:baseline;background:#fff;border:1px solid #E8E4DA;border-radius:12px;padding:16px 20px"><span style="font:800 15px IBM Plex Mono,monospace;color:#EF7A00">1</span><span style="font:400 13.5px/1.55 Spectral,serif;color:#5A6470">Completas la ficha del documento y adjuntas el PDF. El archivo se guarda cifrado en tránsito y queda accesible por su enlace público.</span></div>
+            <div style="display:flex;gap:14px;align-items:baseline;background:#fff;border:1px solid #E8E4DA;border-radius:12px;padding:16px 20px"><span style="font:800 15px IBM Plex Mono,monospace;color:#EF7A00">2</span><span style="font:400 13.5px/1.55 Spectral,serif;color:#5A6470">Al guardar, el documento se publica de inmediato. Si editas uno existente, la versión anterior queda registrada en el historial que la plataforma muestra.</span></div>
+            <div style="display:flex;gap:14px;align-items:baseline;background:#fff;border:1px solid #E8E4DA;border-radius:12px;padding:16px 20px"><span style="font:800 15px IBM Plex Mono,monospace;color:#EF7A00">3</span><span style="font:400 13.5px/1.55 Spectral,serif;color:#5A6470">Quien visita la plataforma consulta y descarga, pero no puede editar: la escritura exige sesión con cuenta autorizada.</span></div>
           </div>
-          <h3 style="font:800 15px 'Archivo',sans-serif;margin:0 0 10px;color:#3A4450">Cómo se controla el acceso</h3>
-          <p style="font:400 13.5px/1.6 'Spectral',serif;color:#5A6470;margin:0 0 22px">Solo entran los correos que una persona administradora autorizó en la pestaña Usuarios. Quien no esté en esa lista recibe un rechazo al intentar crear contraseña, aunque el registro esté abierto en el servicio de datos: la restricción vive en la base de datos, no en el formulario. Por lo mismo, la opción «Allow new users to sign up» de Supabase debe permanecer activada; si se desactiva, ni las personas invitadas pueden definir su contraseña.</p>
-          <h3 style="font:800 15px 'Archivo',sans-serif;margin:0 0 10px;color:#3A4450">Si el servicio de datos no responde</h3>
-          <p style="font:400 13.5px/1.6 'Spectral',serif;color:#5A6470;margin:0 0 22px">La plataforma no se cae: vuelve a mostrar el catálogo estático guardado en el repositorio. Los documentos cargados después de esa copia no se verán hasta que el servicio se restablezca.</p>
-          <h3 style="font:800 15px 'Archivo',sans-serif;margin:0 0 10px;color:#3A4450">Respaldo del catálogo</h3>
-          <p style="font:400 13.5px/1.6 'Spectral',serif;color:#5A6470;margin:0 0 14px">Conviene guardar una copia periódica fuera del servicio de datos. El archivo descargado sirve como respaldo y como insumo si alguna vez se migra de plataforma.</p>
-          <button onClick="{{ download }}" style="cursor:pointer;border:none;background:#EF7A00;color:#fff;border-radius:10px;padding:13px 22px;font:700 13.5px 'Archivo',sans-serif">Descargar respaldo normativa.json ↓</button>
+          <h3 style="font:800 15px Archivo,sans-serif;margin:0 0 10px;color:#3A4450">Cómo se controla el acceso</h3>
+          <p style="font:400 13.5px/1.6 Spectral,serif;color:#5A6470;margin:0 0 22px">Solo entran los correos que una persona administradora autorizó en la pestaña Usuarios. Quien no esté en esa lista recibe un rechazo al intentar crear contraseña, aunque el registro esté abierto en el servicio de datos: la restricción vive en la base de datos, no en el formulario. Por lo mismo, la opción «Allow new users to sign up» de Supabase debe permanecer activada; si se desactiva, ni las personas invitadas pueden definir su contraseña.</p>
+          <h3 style="font:800 15px Archivo,sans-serif;margin:0 0 10px;color:#3A4450">Si el servicio de datos no responde</h3>
+          <p style="font:400 13.5px/1.6 Spectral,serif;color:#5A6470;margin:0 0 22px">La plataforma no se cae: vuelve a mostrar el catálogo estático guardado en el repositorio. Los documentos cargados después de esa copia no se verán hasta que el servicio se restablezca.</p>
+          <h3 style="font:800 15px Archivo,sans-serif;margin:0 0 10px;color:#3A4450">Respaldo del catálogo</h3>
+          <p style="font:400 13.5px/1.6 Spectral,serif;color:#5A6470;margin:0 0 14px">Conviene guardar una copia periódica fuera del servicio de datos. El archivo descargado sirve como respaldo y como insumo si alguna vez se migra de plataforma.</p>
+          <button onClick="{{ download }}" style="cursor:pointer;border:none;background:#EF7A00;color:#fff;border-radius:10px;padding:13px 22px;font:700 13.5px Archivo,sans-serif">Descargar respaldo normativa.json ↓</button>
         </section>
       </sc-if>
 
@@ -349,10 +365,10 @@
   <sc-if value="{{ vistaEstado }}" hint-placeholder-val="{{ false }}">
     <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px">
       <div style="max-width:420px;text-align:center">
-        <div style="font:700 14px 'Archivo',sans-serif;color:#3A4450;margin-bottom:8px">{{ estadoTitulo }}</div>
-        <p style="font:400 13.5px/1.6 'Spectral',serif;color:#5A6470;margin:0 0 18px">{{ estadoNota }}</p>
+        <div style="font:700 14px Archivo,sans-serif;color:#3A4450;margin-bottom:8px">{{ estadoTitulo }}</div>
+        <p style="font:400 13.5px/1.6 Spectral,serif;color:#5A6470;margin:0 0 18px">{{ estadoNota }}</p>
         <sc-if value="{{ estadoConSalir }}" hint-placeholder-val="{{ false }}">
-          <button onClick="{{ salir }}" style="cursor:pointer;border:1.5px solid #E0DCD0;background:#fff;color:#3A4450;border-radius:9px;padding:11px 18px;font:600 12.5px 'Archivo',sans-serif">Cerrar sesión</button>
+          <button onClick="{{ salir }}" style="cursor:pointer;border:1.5px solid #E0DCD0;background:#fff;color:#3A4450;border-radius:9px;padding:11px 18px;font:600 12.5px Archivo,sans-serif">Cerrar sesión</button>
         </sc-if>
       </div>
     </div>
@@ -381,7 +397,7 @@ class Component extends DCLogic {
     try {
       const [lib, cfg] = await Promise.all([
         import("https://esm.sh/@supabase/supabase-js@2"),
-        import("./data/supabase/config.js?v=1788795397013")
+        import("./data/supabase/config.js?v=1788796264341")
       ]);
       this.bucket = cfg.BUCKET || "normativa";
       this.sb = lib.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY);
@@ -564,7 +580,7 @@ class Component extends DCLogic {
 
   async importar() {
     try {
-      const {DOCS} = await import("./data/normativa/catalogo.js?v=1788795397013");
+      const {DOCS} = await import("./data/normativa/catalogo.js?v=1788796264341");
       const filas = DOCS.map(d => ({titulo: d.titulo, tipo: d.tipo, ambito: d.ambito, materia: d.materia || "",
         programa: d.programa || null, anio: String(d.anio || ""), ref: d.ref || "", resumen: d.resumen || "",
         arts: d.arts || 0, secciones: d.secciones || [], versiones: d.versiones || [], pdf: d.pdf || "",
