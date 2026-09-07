@@ -1,4 +1,4 @@
-# Netlify — Gestión de Información VIP · carpeta vipfahu/ (repo vipfahu/repositorio) → https://vipfahu.netlify.app
+# Netlify — Gestión de Información VIP · carpeta vipfahu/ (repo vipfahu/inicio · contenido en la raíz) → https://vipfahu.netlify.app
 [build]
   publish = "."
   command = ""

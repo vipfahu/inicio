@@ -1,6 +1,6 @@
 # Gestión de Información VIP — FAHU USACH
 
-Carpeta `vipfahu/` = raíz del sitio. Sitio estático publicado en Netlify: https://vipfahu.netlify.app (repo `vipfahu/repositorio`).
+Carpeta `vipfahu/` = raíz del sitio. Sitio estático publicado en Netlify: https://vipfahu.netlify.app (repo `vipfahu/inicio`; estos archivos van en la raíz del repo).
 
 - `index.html` — portal de entrada a los subsistemas.
 - `normativa-postgrados/` — Normativa Postgrados (`index.html` público, `admin.html` panel de actualización, `data/`, `support.js`, `assets/`).
