@@ -18,7 +18,7 @@
 </script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="./support.js?v=1788838801882"></script>
+<script src="./support.js?v=1788842104153"></script>
 </head>
 <body>
 <x-dc>
@@ -313,6 +313,13 @@ body{margin:0;background:#F6F4EF}a{color:#007E80}a:hover{color:#EF7A00}input:foc
         </div>
       </sc-if>
       <sc-if value="{{ esLista }}" hint-placeholder-val="{{ true }}">
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px">
+        <span style="font:700 10px Archivo,sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#8A8272">Ordenar por</span>
+        <select value="{{ listaOrdKey }}" onChange="{{ setListaOrd }}" style="padding:8px 10px;border:1.5px solid #E0DCD0;border-radius:8px;font:600 11.5px Archivo,sans-serif;background:#fff;color:#3A4450">
+          <sc-for list="{{ listaOrdOpc }}" as="o" hint-placeholder-count="8"><option value="{{ o.k }}">{{ o.label }}</option></sc-for>
+        </select>
+        <button onClick="{{ listaOrdInvertir }}" title="Invertir el orden" style="cursor:pointer;border:1.5px solid #E0DCD0;background:#fff;color:#007E80;border-radius:8px;padding:8px 12px;font:600 11.5px Archivo,sans-serif">{{ listaOrdDir }}</button>
+      </div>
       <div style="background:#fff;border:1px solid #E8E4DA;border-radius:14px;overflow:hidden">
         <sc-if value="{{ vacio }}" hint-placeholder-val="{{ false }}">
           <div style="padding:44px 24px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:12px">
@@ -397,14 +404,14 @@ class Component extends DCLogic {
 
   async componentDidMount() {
     try {
-      const m = await import("./data/cursos/catalogo.js?v=1788838801882");
+      const m = await import("./data/cursos/catalogo.js?v=1788842104153");
       this.estatico = { periodos: m.PERIODOS, cursos: m.CURSOS };
       this.aplicar(this.estatico, "estatico");
     } catch (e) { console.warn("catálogo estático no disponible", e); }
     try {
       const [lib, cfg] = await Promise.all([
         import("https://esm.sh/@supabase/supabase-js@2"),
-        import("./data/supabase/config.js?v=1788838801882")
+        import("./data/supabase/config.js?v=1788842104153")
       ]);
       const sb = lib.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY);
       const [p, c] = await Promise.all([
@@ -460,11 +467,12 @@ class Component extends DCLogic {
     const totalPag = esMatriz ? 1 : Math.max(1, Math.ceil(filtrados.length / this.POR));
     const pag = Math.min(Math.max(1, st.pag), totalPag);
     const DIAORD = { Lunes: 1, Martes: 2, "Miércoles": 3, Jueves: 4, Viernes: 5, "Sábado": 6 };
-    const sortVal = c => { const k = st.sortKey; if (k === "dia") return DIAORD[c.dia] || 9; if (k === "horario") return c.hora_inicio || "99"; if (k === "cupos" || k === "sct") return c[k] == null ? -1 : c[k]; return this.norm(c[k] || ""); };
+    const sortVal = c => { const k = st.sortKey; if (k === "dia") return DIAORD[c.dia] || 9; if (k === "horario") return c.hora_inicio || "99"; if (k === "vigente") return c.vigente ? 0 : 1; if (k === "cupos" || k === "sct") return c[k] == null ? -1 : c[k]; return this.norm(c[k] || ""); };
     const ordenados = [...filtrados].sort((a, b) => { const va = sortVal(a), vb = sortVal(b); const r = typeof va === "number" ? va - vb : String(va).localeCompare(String(vb)); return (r || this.norm(a.nombre_curso).localeCompare(this.norm(b.nombre_curso))) * st.sortDir; });
     const setVista = v => () => { try { localStorage.setItem("cf_vista", v); } catch (e) {} this.setState({ vista: v, pag: 1 }); };
     const MATCOLS = [["programa", "Programa"], ["nombre_curso", "Curso"], ["profesor", "Profesor/a"], ["tipo", "Tipo"], ["jornada", "Jornada"], ["dia", "Día"], ["horario", "Horario"], ["sala", "Sala"], ["cupos", "Cupos"], ["sct", "SCT"]];
-    const visibles = filtrados.slice((pag - 1) * this.POR, pag * this.POR);
+    const visibles = ordenados.slice((pag - 1) * this.POR, pag * this.POR);
+    const LISTA_ORD = [["programa", "Programa"], ["nombre_curso", "Curso"], ["profesor", "Profesor/a"], ["tipo", "Tipo"], ["dia", "Día"], ["horario", "Horario"], ["cupos", "Cupos"], ["vigente", "Vigencia"]];
     const sum = (arr, k) => arr.reduce((a, c) => a + (c[k] || 0), 0);
     const count = (arr, k) => { const m = {}; arr.forEach(c => { const v = c[k]; if (v) m[v] = (m[v] || 0) + 1; }); return m; };
     const set = (k, v) => () => this.setState(s => ({ [k]: s[k] === v ? null : v, pag: 1 }));
@@ -579,6 +587,11 @@ class Component extends DCLogic {
       verLista: setVista("lista"), verMatriz: setVista("matriz"),
       vistaListaBg: esMatriz ? "#fff" : T, vistaListaFg: esMatriz ? "#3A4450" : "#fff",
       vistaMatrizBg: esMatriz ? T : "#fff", vistaMatrizFg: esMatriz ? "#fff" : "#3A4450",
+      listaOrdOpc: LISTA_ORD.map(([k, label]) => ({ k, label })),
+      listaOrdKey: st.sortKey || "programa",
+      setListaOrd: e => this.setState({ sortKey: e.target.value, sortDir: 1, pag: 1 }),
+      listaOrdDir: st.sortDir === 1 ? "A → Z" : "Z → A",
+      listaOrdInvertir: () => this.setState(s => ({ sortDir: -s.sortDir, pag: 1 })),
       matCols: MATCOLS.map(([k, label]) => ({ label, fg: st.sortKey === k ? T : "#8A8272", flecha: st.sortKey === k ? (st.sortDir === 1 ? " ▲" : " ▼") : "",
         sort: () => this.setState(s => ({ sortKey: k, sortDir: s.sortKey === k ? -s.sortDir : 1 })) })),
       matFilas: ordenados.map(c => {

@@ -18,7 +18,7 @@
 </script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="./support.js?v=1788838801882"></script>
+<script src="./support.js?v=1788842104153"></script>
 </head>
 <body>
 <x-dc>
@@ -96,6 +96,40 @@ body{margin:0;background:#F6F4EF}a{color:#007E80}a:hover{color:#EF7A00}
         <span style="font:600 12.5px Archivo,sans-serif;color:#2F6B4F">Ingresar →</span>
       </a>
     </div>
+
+    <section style="margin-top:28px;background:#fff;border:1px solid #E8E4DA;border-radius:14px;padding:18px 24px;display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap">
+        <div>
+          <div style="font:700 10px Archivo,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#8A8272">Clima hoy · Santiago, Estación Central</div>
+          <div style="font:400 12px Archivo,sans-serif;color:#8A8272;margin-top:3px">{{ climaFecha }}</div>
+        </div>
+        <sc-if value="{{ climaListo }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;gap:12px">
+            {{ climaIcono }}
+            <span style="font:600 34px IBM Plex Mono,monospace;color:#3A4450;line-height:1">{{ climaTemp }}</span>
+            <span style="font:600 14px Archivo,sans-serif;color:#007E80">{{ climaEstado }}</span>
+          </div>
+          <div style="display:flex;gap:16px;flex-wrap:wrap">
+            <sc-for list="{{ climaDatos }}" as="d" hint-placeholder-count="4">
+              <div>
+                <div style="font:600 9.5px Archivo,sans-serif;letter-spacing:.09em;text-transform:uppercase;color:#8A8272">{{ d.k }}</div>
+                <div style="font:600 13px IBM Plex Mono,monospace;color:#3A4450;margin-top:2px">{{ d.v }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+        <sc-if value="{{ climaCargando }}" hint-placeholder-val="{{ true }}">
+          <span style="font:italic 400 12.5px Spectral,serif;color:#8A8272">Consultando el pronóstico…</span>
+        </sc-if>
+        <sc-if value="{{ climaError }}" hint-placeholder-val="{{ false }}">
+          <span style="font:italic 400 12.5px Spectral,serif;color:#8A8272">Sin conexión con el servicio meteorológico. <a href="https://www.meteochile.gob.cl/" target="_blank" rel="noreferrer">Ver en la Dirección Meteorológica de Chile ↗</a></span>
+        </sc-if>
+      </div>
+      <div style="font:400 11px Archivo,sans-serif;color:#8A8272;text-align:right">
+        Datos: <a href="https://open-meteo.com/" target="_blank" rel="noreferrer" style="color:#8A8272">Open-Meteo</a> (modelos de servicios meteorológicos nacionales) · <a href="https://www.meteochile.gob.cl/" target="_blank" rel="noreferrer" style="color:#8A8272">Dirección Meteorológica de Chile ↗</a>
+        <div style="margin-top:3px">{{ climaActualizado }}</div>
+      </div>
+    </section>
   </main>
 
   <footer style="border-top:1px solid #E8E4DA;padding:18px clamp(24px,5vw,60px);display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;font:400 12px Archivo,sans-serif;color:#8A8272">
@@ -104,5 +138,85 @@ body{margin:0;background:#F6F4EF}a{color:#007E80}a:hover{color:#EF7A00}
   </footer>
 </div>
 </x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { clima: null, climaEstado: "cargando", actualizado: null };
+  // Códigos WMO usados por Open-Meteo
+  WMO = { 0: "Despejado", 1: "Mayormente despejado", 2: "Parcialmente nublado", 3: "Nublado", 45: "Niebla", 48: "Niebla con escarcha",
+    51: "Llovizna ligera", 53: "Llovizna", 55: "Llovizna intensa", 56: "Llovizna helada", 57: "Llovizna helada intensa",
+    61: "Lluvia ligera", 63: "Lluvia", 65: "Lluvia intensa", 66: "Lluvia helada", 67: "Lluvia helada intensa",
+    71: "Nieve ligera", 73: "Nieve", 75: "Nieve intensa", 77: "Granos de nieve", 80: "Chubascos ligeros", 81: "Chubascos", 82: "Chubascos intensos",
+    85: "Chubascos de nieve", 86: "Chubascos de nieve intensos", 95: "Tormenta", 96: "Tormenta con granizo", 99: "Tormenta con granizo fuerte" };
+
+  async componentDidMount() {
+    await this.cargarClima();
+    this._timer = setInterval(() => this.cargarClima(), 30 * 60 * 1000);
+  }
+  componentWillUnmount() { clearInterval(this._timer); }
+
+  async cargarClima() {
+    // Estación Central, Santiago (campus USACH) · zona horaria de Chile
+    const url = "https://api.open-meteo.com/v1/forecast?latitude=-33.449&longitude=-70.681&timezone=America/Santiago"
+      + "&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,precipitation"
+      + "&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,uv_index_max,sunrise,sunset&forecast_days=1";
+    try {
+      const r = await fetch(url, { cache: "no-store" });
+      if (!r.ok) throw new Error(r.status);
+      const j = await r.json();
+      this.setState({ clima: j, climaEstado: "ok", actualizado: new Date() });
+    } catch (e) { console.warn("clima", e); this.setState({ climaEstado: "error" }); }
+  }
+
+  // Ícono lineal minimalista según grupo de código WMO (sol naranja, trazo grafito)
+  icono(code) {
+    const h = React.createElement, S = "#3A4450", N = "#EF7A00", A = "#00A0A0";
+    const p = (extra) => ({ fill: "none", stroke: S, strokeWidth: 1.8, strokeLinecap: "round", strokeLinejoin: "round", ...extra });
+    const sol = (cx, cy, r) => [
+      h("circle", { key: "s", cx, cy, r, ...p({ stroke: N }) }),
+      ...[0, 45, 90, 135, 180, 225, 270, 315].map(a => { const t = a * Math.PI / 180, r1 = r + 3.5, r2 = r + 7;
+        return h("line", { key: "r" + a, x1: cx + Math.cos(t) * r1, y1: cy + Math.sin(t) * r1, x2: cx + Math.cos(t) * r2, y2: cy + Math.sin(t) * r2, ...p({ stroke: N }) }); })
+    ];
+    const nube = (dx = 0, dy = 0) => h("path", { key: "n", d: `M${14 + dx} ${30 + dy}h20a7 7 0 0 0 .8-13.9A10 10 0 0 0 16 20a6 6 0 0 0-2 10z`, ...p() });
+    const gotas = () => [20, 27, 34].map((x, i) => h("line", { key: "g" + i, x1: x, y1: 35, x2: x - 2, y2: 41, ...p({ stroke: A }) }));
+    const copos = () => [20, 27, 34].map((x, i) => h("circle", { key: "c" + i, cx: x, cy: 38, r: 1.4, fill: S, stroke: "none" }));
+    const rayo = () => h("path", { key: "y", d: "M27 32l-4 8h5l-3 7", ...p({ stroke: N }) });
+    const niebla = () => [34, 39, 44].map((y, i) => h("line", { key: "f" + i, x1: 14 + (i % 2) * 4, y1: y, x2: 38 - (i % 2) * 4, y2: y, ...p() }));
+    let hijos;
+    if (code === 0) hijos = sol(24, 24, 8);
+    else if (code === 1 || code === 2) hijos = [...sol(18, 17, 6), nube(4, 4)];
+    else if (code === 3) hijos = [nube()];
+    else if (code === 45 || code === 48) hijos = [nube(0, -6), ...niebla()];
+    else if (code >= 51 && code <= 67) hijos = [nube(0, -4), ...gotas()];
+    else if (code >= 71 && code <= 77 || code === 85 || code === 86) hijos = [nube(0, -4), ...copos()];
+    else if (code >= 80 && code <= 82) hijos = [...sol(15, 14, 5), nube(4, -2), ...gotas()];
+    else if (code >= 95) hijos = [nube(0, -6), rayo()];
+    else hijos = [nube()];
+    return h("svg", { viewBox: "0 0 48 48", width: 48, height: 48, "aria-hidden": "true", style: { display: "block", flex: "none" } }, hijos);
+  }
+
+  renderVals() {
+    const st = this.state, c = st.clima, cur = c && c.current, d = c && c.daily;
+    const hoy = new Date().toLocaleDateString("es-CL", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+    const hora = t => { try { return new Date(t).toLocaleTimeString("es-CL", { hour: "2-digit", minute: "2-digit" }); } catch (e) { return ""; } };
+    return {
+      climaFecha: hoy.charAt(0).toUpperCase() + hoy.slice(1),
+      climaListo: st.climaEstado === "ok", climaCargando: st.climaEstado === "cargando", climaError: st.climaEstado === "error",
+      climaIcono: cur ? this.icono(cur.weather_code) : null,
+      climaTemp: cur ? Math.round(cur.temperature_2m) + "°" : "",
+      climaEstado: cur ? (this.WMO[cur.weather_code] || "—") : "",
+      climaDatos: cur && d ? [
+        { k: "Mín · Máx", v: `${Math.round(d.temperature_2m_min[0])}° · ${Math.round(d.temperature_2m_max[0])}°` },
+        { k: "Sensación", v: Math.round(cur.apparent_temperature) + "°" },
+        { k: "Humedad", v: cur.relative_humidity_2m + " %" },
+        { k: "Viento", v: Math.round(cur.wind_speed_10m) + " km/h" },
+        { k: "Prob. lluvia", v: (d.precipitation_probability_max[0] ?? 0) + " %" },
+        { k: "Índice UV", v: d.uv_index_max[0] != null ? Math.round(d.uv_index_max[0]) : "—" },
+        { k: "Sol", v: `${hora(d.sunrise[0])} – ${hora(d.sunset[0])}` }
+      ] : [],
+      climaActualizado: st.actualizado ? "Actualizado a las " + st.actualizado.toLocaleTimeString("es-CL", { hour: "2-digit", minute: "2-digit" }) + " · se renueva cada 30 min" : ""
+    };
+  }
+}
+</script>
 </body>
 </html>
