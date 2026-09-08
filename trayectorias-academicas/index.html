@@ -18,7 +18,7 @@
 </script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="./support.js?v=1788842104153"></script>
+<script src="./support.js?v=1788842524401"></script>
 </head>
 <body>
 <x-dc>
@@ -182,7 +182,7 @@ body{margin:0;background:#F1EFE8}a{color:#007E80}a:hover{color:#EF7A00}input:foc
                 <span style="font:600 12px Archivo,sans-serif;color:#3A4450;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ u.name }}</span>
                 <span style="display:flex;height:18px;border-radius:5px;overflow:hidden;background:#EFECE4">
                   <sc-for list="{{ u.segs }}" as="s" hint-placeholder-count="3">
-                    <span onMouseMove="{{ s.over }}" style="display:block;height:100%;width:{{ s.w }};background:{{ s.color }}"></span>
+                    <span onMouseMove="{{ s.over }}" style="display:block;height:100%;flex:{{ s.flex }};min-width:0;background:{{ s.color }}"></span>
                   </sc-for>
                 </span>
                 <span style="font:600 11px IBM Plex Mono,monospace;color:#5A6470;text-align:right">{{ u.n }}</span>
@@ -948,7 +948,7 @@ class Component extends DCLogic {
     this._esc = e => { if (e.key === "Escape" && this.state.visor) this.setState({ visor: null }); };
     window.addEventListener("keydown", this._esc);
     try {
-      const [lib, cfg] = await Promise.all([import("https://esm.sh/@supabase/supabase-js@2"), import("./data/supabase/config.js?v=1788842104153")]);
+      const [lib, cfg] = await Promise.all([import("https://esm.sh/@supabase/supabase-js@2"), import("./data/supabase/config.js?v=1788842524401")]);
       this.sb = lib.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY);
       this.sb.auth.onAuthStateChange((_e, s) => this.aplicarSesion(s));
       const { data } = await this.sb.auth.getSession();
@@ -1370,7 +1370,12 @@ class Component extends DCLogic {
 
     const porUnidad = unidades.map(u => {
       const ps = personas.filter(p => p.unidad === u), n = ps.length;
-      const segs = jerarquias.map(j => { const k = ps.filter(p => p.jer_actual === j).length; return k ? { w: pct(k, n), color: col(j), tip: `${u} · ${j}: ${k}`, over: e => { e.stopPropagation(); this.tip(e, `<strong>${j.replace("Profesor ", "")}</strong> · ${u}<br>${k} de ${n} (${pct(k, n)})`); } } : null; }).filter(Boolean);
+      // Ancho por segmento en flex (no en %) para que la barra siempre sume 100 y no asome la pista gris.
+      const segs = jerarquias.map(j => { const k = ps.filter(p => p.jer_actual === j).length; return k ? { w: k + "fr", flex: k, color: col(j), tip: `${u} · ${j}: ${k}`, over: e => { e.stopPropagation(); this.tip(e, `<strong>${j.replace("Profesor ", "")}</strong> · ${u}<br>${k} de ${n} (${pct(k, n)})`); } } : null; }).filter(Boolean);
+      // Fichas cuya jerarquía no es una de las tres (vacía, Instructor, «Corroborar»): se dibujan en ámbar y se explican en el hover.
+      const otras = ps.filter(p => !jerarquias.includes(p.jer_actual));
+      if (otras.length) segs.push({ w: otras.length + "fr", flex: otras.length, color: "#C9A24D", tip: `${u} · sin jerarquía definida: ${otras.length}`,
+        over: e => { e.stopPropagation(); this.tip(e, `<strong>Sin jerarquía definida</strong> · ${u}<br>${otras.length} de ${n}: ${[...new Set(otras.map(p => p.jer_actual || "campo vacío"))].join(", ")}<br><span style="opacity:.7">Revisa estas fichas en la matriz</span>`); } });
       return { name: u.replace(/^Departamento de /, "Dpto. ").replace(/^Escuela de /, "Esc. "), n, segs, ir: () => irMatriz({ fUnidad: u }),
         over: e => this.tip(e, `<strong>${u}</strong><br>${n} académicos/as · ${pct(n, personas.length)} de la Facultad<br><span style="opacity:.7">Clic para ver en la matriz</span>`) };
     }).sort((a, b) => b.n - a.n);

@@ -18,7 +18,7 @@
 </script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="./support.js?v=1788842104153"></script>
+<script src="./support.js?v=1788842524401"></script>
 </head>
 <body>
 <x-dc>
@@ -397,7 +397,7 @@ class Component extends DCLogic {
     try {
       const [lib, cfg] = await Promise.all([
         import("https://esm.sh/@supabase/supabase-js@2"),
-        import("./data/supabase/config.js?v=1788842104153")
+        import("./data/supabase/config.js?v=1788842524401")
       ]);
       this.bucket = cfg.BUCKET || "normativa";
       this.sb = lib.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY);
@@ -580,7 +580,7 @@ class Component extends DCLogic {
 
   async importar() {
     try {
-      const {DOCS} = await import("./data/normativa/catalogo.js?v=1788842104153");
+      const {DOCS} = await import("./data/normativa/catalogo.js?v=1788842524401");
       const filas = DOCS.map(d => ({titulo: d.titulo, tipo: d.tipo, ambito: d.ambito, materia: d.materia || "",
         programa: d.programa || null, anio: String(d.anio || ""), ref: d.ref || "", resumen: d.resumen || "",
         arts: d.arts || 0, secciones: d.secciones || [], versiones: d.versiones || [], pdf: d.pdf || "",

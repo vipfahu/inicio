@@ -18,7 +18,7 @@
 </script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="./support.js?v=1788842104153"></script>
+<script src="./support.js?v=1788842524401"></script>
 </head>
 <body>
 <x-dc>
@@ -546,7 +546,7 @@ class Component extends DCLogic {
   async componentDidMount() {
     this.setState({ form: { ...this.VACIO } });
     try {
-      const [lib, cfg] = await Promise.all([import("https://esm.sh/@supabase/supabase-js@2"), import("./data/supabase/config.js?v=1788842104153")]);
+      const [lib, cfg] = await Promise.all([import("https://esm.sh/@supabase/supabase-js@2"), import("./data/supabase/config.js?v=1788842524401")]);
       this.sb = lib.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY);
       this.sb.auth.onAuthStateChange((_e, s) => this.aplicarSesion(s));
       const { data } = await this.sb.auth.getSession();
@@ -740,7 +740,7 @@ class Component extends DCLogic {
 
   async importar() {
     try {
-      const { PERIODOS, CURSOS } = await import("./data/cursos/catalogo.js?v=1788842104153");
+      const { PERIODOS, CURSOS } = await import("./data/cursos/catalogo.js?v=1788842524401");
       const rp = await this.sb.from("cf_periodos").upsert(PERIODOS.map(p => ({ id: p.id, anio: p.anio, semestre: p.semestre, etiqueta: p.etiqueta, estado: p.estado, vigente: p.vigente })), { onConflict: "id" });
       if (rp.error) throw rp.error;
       const filas = CURSOS.map(({ id, ...c }) => c);
