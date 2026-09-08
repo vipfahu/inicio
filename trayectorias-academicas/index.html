@@ -18,7 +18,7 @@
 </script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="./support.js?v=1788818358071"></script>
+<script src="./support.js?v=1788838801882"></script>
 </head>
 <body>
 <x-dc>
@@ -39,6 +39,8 @@ body{margin:0;background:#F1EFE8}a{color:#007E80}a:hover{color:#EF7A00}input:foc
 }
 @media screen and (max-width:1120px){
   [style*="420px"]{grid-template-columns:minmax(0,1fr) !important}
+  [style*="420px"] > aside{order:-1}
+  [style*="420px"] > section{order:1}
   [style*="position: sticky"],[style*="position:sticky"]{position:static !important}
 }
 </style>
@@ -72,8 +74,9 @@ body{margin:0;background:#F1EFE8}a{color:#007E80}a:hover{color:#EF7A00}input:foc
             <p style="font:italic 400 11.5px/1.5 Spectral,serif;color:#8A8272;margin:0">Esta plataforma contiene datos personales y respaldos internos: el acceso se limita a las cuentas autorizadas por el Vicedecanato.</p>
           </div>
         </div>
-        <div style="text-align:center;margin-top:14px">
-          <a href="../index.html" style="font:600 12px Archivo,sans-serif;text-decoration:none">← Gestión de Información VIP</a>
+        <div style="margin-top:16px;background:#3A4450;border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+          <a href="../index.html" style="display:inline-flex;align-items:center;gap:8px;min-height:40px;box-sizing:border-box;padding:9px 16px;border-radius:8px;background:{{ retornoBg }};color:{{ retornoFg }};font:700 12.5px Archivo,sans-serif;letter-spacing:.01em;text-decoration:none" style-hover="background:#fff;color:#3A4450"><span style="font:700 14px Archivo,sans-serif;line-height:1">←</span>{{ retornoLabel }}</a>
+          <span style="font:600 12px Archivo,sans-serif;color:rgba(255,255,255,.75)">/ Trayectorias Académicas</span>
         </div>
       </div>
     </div>
@@ -92,6 +95,10 @@ body{margin:0;background:#F1EFE8}a{color:#007E80}a:hover{color:#EF7A00}input:foc
   </sc-if>
 
   <sc-if value="{{ vistaPanel }}" hint-placeholder-val="{{ false }}">
+    <div style="background:#3A4450;padding:12px clamp(20px,5vw,60px);display:flex;align-items:center;gap:12px;flex-wrap:wrap;border-bottom:1px solid rgba(255,255,255,.12)">
+      <a href="../index.html" style="display:inline-flex;align-items:center;gap:8px;min-height:40px;box-sizing:border-box;padding:9px 16px;border-radius:8px;background:{{ retornoBg }};color:{{ retornoFg }};font:700 12.5px Archivo,sans-serif;letter-spacing:.01em;text-decoration:none" style-hover="background:#fff;color:#3A4450"><span style="font:700 14px Archivo,sans-serif;line-height:1">←</span>{{ retornoLabel }}</a>
+      <span style="font:600 12px Archivo,sans-serif;color:rgba(255,255,255,.75)">/ Trayectorias Académicas</span>
+    </div>
     <header style="background:#3A4450;padding:14px clamp(20px,5vw,60px);display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap">
       <div style="display:flex;align-items:center;gap:14px">
         <img src="assets/logo-fahu.png" alt="" style="height:52px;width:auto;display:block;filter:brightness(0) invert(1)">
@@ -102,8 +109,9 @@ body{margin:0;background:#F1EFE8}a{color:#007E80}a:hover{color:#EF7A00}input:foc
       </div>
       <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
         <span style="font:600 11px Archivo,sans-serif;color:rgba(255,255,255,.75)">{{ sesionEtiqueta }}</span>
-        <a href="../index.html" style="font:600 11px Archivo,sans-serif;color:#fff;border:1px solid rgba(255,255,255,.35);border-radius:8px;padding:7px 12px;text-decoration:none" style-hover="background:rgba(255,255,255,.12)">Portal VIP</a>
-        <button onClick="{{ salir }}" style="cursor:pointer;border:1px solid rgba(255,255,255,.35);background:transparent;color:#fff;border-radius:8px;padding:7px 12px;font:600 11px Archivo,sans-serif">Salir</button>
+        <sc-if value="{{ mostrarSalir }}" hint-placeholder-val="{{ true }}">
+          <button onClick="{{ salir }}" style="cursor:pointer;border:1px solid rgba(255,255,255,.35);background:transparent;color:#fff;border-radius:8px;padding:7px 12px;font:600 11px Archivo,sans-serif">Salir</button>
+        </sc-if>
       </div>
     </header>
 
@@ -114,6 +122,13 @@ body{margin:0;background:#F1EFE8}a{color:#007E80}a:hover{color:#EF7A00}input:foc
     </nav>
 
     <main style="max-width:1240px;margin:0 auto;padding:26px clamp(20px,5vw,60px) 80px">
+      <sc-if value="{{ enAdmin }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px;padding-bottom:18px;border-bottom:1px solid #E5E1D4">
+          <sc-for list="{{ subTabs }}" as="s" hint-placeholder-count="3">
+            <button onClick="{{ s.pick }}" style="cursor:pointer;border:1.5px solid {{ s.borde }};background:{{ s.bg }};color:{{ s.fg }};border-radius:999px;padding:9px 16px;font:600 12.5px Archivo,sans-serif">{{ s.name }}</button>
+          </sc-for>
+        </div>
+      </sc-if>
       <sc-if value="{{ hayAviso }}" hint-placeholder-val="{{ false }}">
         <div style="font:600 12.5px/1.45 Archivo,sans-serif;color:{{ avisoFg }};background:{{ avisoBg }};border-radius:10px;padding:11px 14px;margin-bottom:18px">{{ aviso }}</div>
       </sc-if>
@@ -141,16 +156,29 @@ body{margin:0;background:#F1EFE8}a{color:#007E80}a:hover{color:#EF7A00}input:foc
 
         <div style="background:#fff;border:1px solid #E8E4DA;border-radius:14px;padding:22px 24px;margin-bottom:18px">
           <div style="display:flex;justify-content:space-between;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:16px">
-            <div style="font:700 10px Archivo,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#8A8272">Composición por jerarquía y unidad</div>
+            <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+              <div style="font:700 10px Archivo,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#8A8272">Composición por jerarquía y unidad</div>
+              <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+                <sc-for list="{{ escalas }}" as="s" hint-placeholder-count="3">
+                  <button onClick="{{ s.pick }}" title="Usar la escala {{ s.name }} en toda la plataforma" style="cursor:pointer;display:inline-flex;gap:7px;align-items:center;border:1.5px solid {{ s.borde }};background:{{ s.fondo }};border-radius:999px;padding:5px 10px;font:600 10.5px Archivo,sans-serif;color:#3A4450">
+                    <span style="display:flex;gap:2px">
+                      <sc-for list="{{ s.muestras }}" as="m" hint-placeholder-count="4">
+                        <span style="width:9px;height:12px;border-radius:2px;background:{{ m.c }};display:block"></span>
+                      </sc-for>
+                    </span>{{ s.name }}
+                  </button>
+                </sc-for>
+              </div>
+            </div>
             <div style="display:flex;gap:14px;flex-wrap:wrap">
               <sc-for list="{{ jerLeyenda }}" as="j" hint-placeholder-count="3">
-                <span style="display:inline-flex;gap:7px;align-items:center;font:600 11.5px Archivo,sans-serif;color:#3A4450"><span style="width:11px;height:11px;border-radius:3px;background:{{ j.color }};display:block"></span>{{ j.name }} <span style="font:600 11px IBM Plex Mono,monospace;color:#8A8272">{{ j.n }}</span></span>
+                <button onClick="{{ j.ir }}" title="Ver en la matriz" style="cursor:pointer;border:none;background:none;padding:0;display:inline-flex;gap:7px;align-items:center;font:600 11.5px Archivo,sans-serif;color:#3A4450"><span style="width:11px;height:11px;border-radius:3px;background:{{ j.color }};display:block"></span>{{ j.name }} <span style="font:600 11px IBM Plex Mono,monospace;color:#8A8272">{{ j.n }}</span></button>
               </sc-for>
             </div>
           </div>
           <div style="display:flex;flex-direction:column;gap:9px">
             <sc-for list="{{ porUnidad }}" as="u" hint-placeholder-count="7">
-              <div style="display:grid;grid-template-columns:200px 1fr 90px;gap:14px;align-items:center">
+              <button onClick="{{ u.ir }}" title="Ver esta unidad en la matriz" style="cursor:pointer;border:none;background:none;padding:0;width:100%;text-align:left;display:grid;grid-template-columns:200px 1fr 90px;gap:14px;align-items:center">
                 <span style="font:600 12px Archivo,sans-serif;color:#3A4450;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ u.name }}</span>
                 <span style="display:flex;height:18px;border-radius:5px;overflow:hidden;background:#EFECE4">
                   <sc-for list="{{ u.segs }}" as="s" hint-placeholder-count="3">
@@ -158,7 +186,7 @@ body{margin:0;background:#F1EFE8}a{color:#007E80}a:hover{color:#EF7A00}input:foc
                   </sc-for>
                 </span>
                 <span style="font:600 11px IBM Plex Mono,monospace;color:#5A6470;text-align:right">{{ u.n }}</span>
-              </div>
+              </button>
             </sc-for>
           </div>
         </div>
@@ -178,11 +206,11 @@ body{margin:0;background:#F1EFE8}a{color:#007E80}a:hover{color:#EF7A00}input:foc
             </div>
             <div style="display:flex;flex-direction:column;gap:7px">
               <sc-for list="{{ estadoUnidad }}" as="u" hint-placeholder-count="7">
-                <div title="{{ u.tip }}" style="display:grid;grid-template-columns:minmax(0,1fr) 90px 44px;gap:10px;align-items:center">
+                <button onClick="{{ u.ir }}" title="{{ u.tip }}" style="cursor:pointer;border:none;background:none;padding:0;width:100%;text-align:left;display:grid;grid-template-columns:minmax(0,1fr) 90px 44px;gap:10px;align-items:center">
                   <span style="font:400 12px Spectral,serif;color:#3A4450;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ u.name }}</span>
                   <span style="height:9px;background:#EFECE4;border-radius:5px;overflow:hidden;display:block"><span style="display:block;height:100%;background:#2F6B4F;width:{{ u.w }}"></span></span>
                   <span style="font:600 11px IBM Plex Mono,monospace;color:#5A6470;text-align:right">{{ u.label }}</span>
-                </div>
+                </button>
               </sc-for>
             </div>
           </div>
@@ -190,11 +218,11 @@ body{margin:0;background:#F1EFE8}a{color:#007E80}a:hover{color:#EF7A00}input:foc
             <div style="font:700 10px Archivo,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#8A8272;margin-bottom:14px">Modo de ingreso a la Universidad</div>
             <div style="display:flex;flex-direction:column;gap:7px">
               <sc-for list="{{ porModo }}" as="m" hint-placeholder-count="8">
-                <div title="{{ m.tip }}" style="display:grid;grid-template-columns:minmax(0,1fr) 90px 44px;gap:10px;align-items:center">
+                <button onClick="{{ m.ir }}" title="{{ m.tip }}" style="cursor:pointer;border:none;background:none;padding:0;width:100%;text-align:left;display:grid;grid-template-columns:minmax(0,1fr) 90px 44px;gap:10px;align-items:center">
                   <span style="font:400 12px Spectral,serif;color:#3A4450;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ m.name }}</span>
                   <span style="height:9px;background:#EFECE4;border-radius:5px;overflow:hidden;display:block"><span style="display:block;height:100%;background:#1D3F5C;width:{{ m.w }}"></span></span>
                   <span style="font:600 11px IBM Plex Mono,monospace;color:#5A6470;text-align:right">{{ m.n }}</span>
-                </div>
+                </button>
               </sc-for>
             </div>
           </div>
@@ -261,6 +289,12 @@ body{margin:0;background:#F1EFE8}a{color:#007E80}a:hover{color:#EF7A00}input:foc
           <section>
             <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:14px">
               <h2 style="font:800 19px Archivo,sans-serif;margin:0;color:#3A4450">Matriz de trayectorias <span style="font:600 12px IBM Plex Mono,monospace;color:#8A8272">{{ nFiltradas }} de {{ nTotal }}</span></h2>
+              <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <button onClick="{{ csvExportar }}" title="Descarga la matriz con los filtros aplicados" style="cursor:pointer;border:1.5px solid #E0DCD0;background:#fff;color:#3A4450;border-radius:8px;padding:8px 13px;font:600 12px Archivo,sans-serif">{{ csvLabel }}</button>
+                <sc-if value="{{ esAdmin }}" hint-placeholder-val="{{ false }}">
+                  <button onClick="{{ nuevaFicha }}" style="cursor:pointer;border:1.5px solid #CFE0D5;background:#fff;color:#2F6B4F;border-radius:8px;padding:8px 13px;font:600 12px Archivo,sans-serif">+ Agregar académico/a</button>
+                </sc-if>
+              </div>
             </div>
             <div style="background:#fff;border:1px solid #E8E4DA;border-radius:12px;padding:14px 16px;margin-bottom:14px;display:flex;flex-direction:column;gap:10px">
               <input value="{{ q }}" onChange="{{ setQ }}" placeholder="Buscar por apellido, nombre, unidad o acta…" style="box-sizing:border-box;width:100%;padding:10px 14px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5">
@@ -281,6 +315,12 @@ body{margin:0;background:#F1EFE8}a{color:#007E80}a:hover{color:#EF7A00}input:foc
               <label style="display:flex;align-items:center;gap:10px;font:600 12px Archivo,sans-serif;color:#5A6470;cursor:pointer">
                 <input type="checkbox" checked="{{ soloAlertas }}" onChange="{{ setSoloAlertas }}" style="width:17px;height:17px;accent-color:#C4762A">Ver solo fichas con datos o respaldos faltantes
               </label>
+              <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding-top:8px;border-top:1px solid #F0EDE4">
+                <span style="font:700 9.5px Archivo,sans-serif;letter-spacing:.09em;text-transform:uppercase;color:#8A8272;margin-right:4px">Escala de jerarquías</span>
+                <sc-for list="{{ escala }}" as="j" hint-placeholder-count="4">
+                  <span style="display:inline-flex;gap:6px;align-items:center;font:700 10px Archivo,sans-serif;letter-spacing:.05em;text-transform:uppercase;color:{{ j.fg }};background:{{ j.bg }};border-left:4px solid {{ j.solid }};border-radius:5px;padding:4px 8px">{{ j.name }} <span style="font:600 10px IBM Plex Mono,monospace;opacity:.85">{{ j.n }}</span></span>
+                </sc-for>
+              </div>
             </div>
             <div style="background:#fff;border:1px solid #E8E4DA;border-radius:14px;overflow:hidden">
               <sc-if value="{{ listaVacia }}" hint-placeholder-val="{{ false }}">
@@ -294,7 +334,7 @@ body{margin:0;background:#F1EFE8}a{color:#007E80}a:hover{color:#EF7A00}input:foc
                     <span style="display:block;font:400 11.5px Archivo,sans-serif;color:{{ p.estadoFg }};margin-top:4px">{{ p.estado }}</span>
                   </span>
                   <span style="display:flex;flex-direction:column;gap:5px;align-items:flex-end;flex:none">
-                    <span style="font:600 10px Archivo,sans-serif;letter-spacing:.05em;text-transform:uppercase;color:#fff;background:{{ p.color }};border-radius:5px;padding:4px 8px;white-space:nowrap">{{ p.jer }}</span>
+                    <span style="font:700 10px Archivo,sans-serif;letter-spacing:.05em;text-transform:uppercase;color:{{ p.chipFg }};background:{{ p.chipBg }};border-radius:5px;padding:4px 8px;white-space:nowrap">{{ p.jer }}</span>
                     <span style="font:600 12px IBM Plex Mono,monospace;color:#5A6470">{{ p.anio }}</span>
                     <sc-if value="{{ p.tieneAlertas }}" hint-placeholder-val="{{ false }}">
                       <span style="font:600 9.5px Archivo,sans-serif;letter-spacing:.05em;text-transform:uppercase;color:#8A5A00;background:#FCEBD9;border-radius:5px;padding:3px 6px;white-space:nowrap">{{ p.nAlertas }} por revisar</span>
@@ -306,15 +346,43 @@ body{margin:0;background:#F1EFE8}a{color:#007E80}a:hover{color:#EF7A00}input:foc
           </section>
 
           <aside style="position:sticky;top:16px">
+            <sc-if value="{{ edAbierto }}" hint-placeholder-val="{{ false }}">
+              <div style="background:#fff;border:1px solid #E8E4DA;border-radius:14px;padding:20px 22px;margin-bottom:16px">
+                <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:14px">
+                  <h3 style="font:800 15px Archivo,sans-serif;margin:0;color:#3A4450">{{ edTitulo }}</h3>
+                  <button onClick="{{ edCerrar }}" style="cursor:pointer;border:none;background:none;padding:0;font:600 12px Archivo,sans-serif;color:#8A8272">Cancelar</button>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:11px">
+                  <sc-for list="{{ campoEdit }}" as="c" hint-placeholder-count="18">
+                    <label style="display:block">
+                      <span style="display:block;font:700 9.5px Archivo,sans-serif;letter-spacing:.09em;text-transform:uppercase;color:#8A8272;margin-bottom:4px">{{ c.label }}</span>
+                      <sc-if value="{{ c.esTexto }}" hint-placeholder-val="{{ true }}">
+                        <input value="{{ c.valor }}" onChange="{{ c.set }}" type="{{ c.numero }}" style="box-sizing:border-box;width:100%;padding:9px 12px;border:1.5px solid #E0DCD0;border-radius:8px;font:400 12.5px Archivo,sans-serif;background:#FAF9F5">
+                      </sc-if>
+                      <sc-if value="{{ c.esLista }}" hint-placeholder-val="{{ false }}">
+                        <select value="{{ c.valor }}" onChange="{{ c.set }}" style="box-sizing:border-box;width:100%;padding:9px 12px;border:1.5px solid #E0DCD0;border-radius:8px;font:400 12.5px Archivo,sans-serif;background:#FAF9F5;color:#3A4450">
+                          <option value="">Sin definir</option>
+                          <sc-for list="{{ c.opciones }}" as="o" hint-placeholder-count="3"><option>{{ o.v }}</option></sc-for>
+                        </select>
+                      </sc-if>
+                      <sc-if value="{{ c.esArea }}" hint-placeholder-val="{{ false }}">
+                        <textarea value="{{ c.valor }}" onChange="{{ c.set }}" rows="3" style="box-sizing:border-box;width:100%;padding:9px 12px;border:1.5px solid #E0DCD0;border-radius:8px;font:400 12.5px/1.5 Spectral,serif;background:#FAF9F5;resize:vertical"></textarea>
+                      </sc-if>
+                    </label>
+                  </sc-for>
+                  <button onClick="{{ edGuardar }}" style="cursor:pointer;border:none;background:#2F6B4F;color:#fff;border-radius:9px;padding:12px;font:700 13px Archivo,sans-serif">Guardar ficha</button>
+                </div>
+              </div>
+            </sc-if>
             <sc-if value="{{ sinSeleccion }}" hint-placeholder-val="{{ true }}">
               <div style="background:#fff;border:1px dashed #D9D3C4;border-radius:14px;padding:30px;text-align:center;font:400 13.5px/1.6 Spectral,serif;color:#5A6470">Elige a una persona de la matriz para ver su trayectoria completa: ingreso, jerarquizaciones y respaldos.</div>
             </sc-if>
             <sc-if value="{{ haySeleccion }}" hint-placeholder-val="{{ false }}">
               <div style="background:#fff;border:1px solid #E8E4DA;border-radius:14px;overflow:hidden">
                 <div style="background:{{ sel.color }};padding:20px 22px">
-                  <div style="font:700 10.5px Archivo,sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#fff">{{ sel.jer }}</div>
-                  <div style="font:800 18px/1.25 Archivo,sans-serif;color:#fff;margin-top:6px">{{ sel.nombre }}</div>
-                  <div style="font:600 12.5px Archivo,sans-serif;color:#fff;margin-top:5px">{{ sel.unidad }}</div>
+                  <div style="font:700 10.5px Archivo,sans-serif;letter-spacing:.1em;text-transform:uppercase;color:{{ sel.fg }}">{{ sel.jer }}</div>
+                  <div style="font:800 18px/1.25 Archivo,sans-serif;color:{{ sel.fg }};margin-top:6px">{{ sel.nombre }}</div>
+                  <div style="font:600 12.5px Archivo,sans-serif;color:{{ sel.fg }};margin-top:5px">{{ sel.unidad }}</div>
                 </div>
                 <div style="padding:20px 22px">
                   <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px">
@@ -335,6 +403,65 @@ body{margin:0;background:#F1EFE8}a{color:#007E80}a:hover{color:#EF7A00}input:foc
                     </div>
                   </sc-if>
 
+                  <div style="background:#F6F4EF;border:1px solid #E8E4DA;border-radius:10px;padding:14px 16px;margin-bottom:18px">
+                    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:10px">
+                      <div style="font:700 9.5px Archivo,sans-serif;letter-spacing:.09em;text-transform:uppercase;color:#8A8272">Encasillamiento</div>
+                      <div style="display:flex;gap:10px;align-items:baseline">
+                        <span style="font:600 11.5px Archivo,sans-serif;color:#5A6470">Registrado: <strong style="color:#3A4450">{{ sel.encRegistrado }}</strong></span>
+                        <span style="font:600 11.5px Archivo,sans-serif;color:{{ sel.encEstimColor }}">Estimación: {{ sel.encEstim }}</span>
+                      </div>
+                    </div>
+                    <div style="display:flex;flex-direction:column;gap:6px">
+                      <sc-for list="{{ sel.crit }}" as="c" hint-placeholder-count="4">
+                        <div style="display:grid;grid-template-columns:18px minmax(0,1fr);gap:8px;align-items:baseline">
+                          <span style="font:700 12px IBM Plex Mono,monospace;color:{{ c.color }}">{{ c.marca }}</span>
+                          <span style="font:400 12px/1.45 Spectral,serif;color:#3A4450">{{ c.label }} <span style="color:#8A8272">· {{ c.detalle }}</span></span>
+                        </div>
+                      </sc-for>
+                    </div>
+                    <div style="font:400 12px/1.5 Spectral,serif;color:#5A6470;margin-top:10px;padding-top:10px;border-top:1px solid #E8E4DA">Envío STD: <strong style="color:#3A4450">{{ sel.encEnvio }}</strong> · {{ sel.encRespaldos }} respaldo(s) de encasillamiento en la trayectoria</div>
+                    <sc-if value="{{ sel.encDifiere }}" hint-placeholder-val="{{ false }}">
+                      <div style="font:600 11.5px/1.45 Archivo,sans-serif;color:#8A3D2E;background:#F9EDE9;border-radius:7px;padding:8px 10px;margin-top:10px">El valor registrado no coincide con la estimación por criterios. Revisa los datos o aplica la estimación.</div>
+                    </sc-if>
+                    <sc-if value="{{ esAdmin }}" hint-placeholder-val="{{ false }}">
+                      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
+                        <button onClick="{{ sel.encAbrir }}" style="cursor:pointer;border:1.5px solid #CFE0D5;background:#fff;color:#2F6B4F;border-radius:7px;padding:7px 11px;font:600 11.5px Archivo,sans-serif">Editar encasillamiento</button>
+                        <sc-if value="{{ sel.encDifiere }}" hint-placeholder-val="{{ false }}">
+                          <button onClick="{{ sel.encAplicar }}" style="cursor:pointer;border:none;background:#2F6B4F;color:#fff;border-radius:7px;padding:7px 11px;font:600 11.5px Archivo,sans-serif">Aplicar estimación</button>
+                        </sc-if>
+                      </div>
+                      <sc-if value="{{ encAbierto }}" hint-placeholder-val="{{ false }}">
+                        <div style="display:flex;flex-direction:column;gap:9px;margin-top:12px;padding-top:12px;border-top:1px solid #E8E4DA">
+                          <label style="display:block">
+                            <span style="display:block;font:700 9.5px Archivo,sans-serif;letter-spacing:.09em;text-transform:uppercase;color:#8A8272;margin-bottom:4px">Califica</span>
+                            <select value="{{ encCalifica }}" onChange="{{ setEncCalifica }}" style="box-sizing:border-box;width:100%;padding:9px 12px;border:1.5px solid #E0DCD0;border-radius:8px;font:400 12.5px Archivo,sans-serif;background:#fff;color:#3A4450">
+                              <option value="">Sin definir</option><option>Sí</option><option>No</option><option>Planta</option>
+                            </select>
+                          </label>
+                          <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px">
+                            <label style="display:block">
+                              <span style="display:block;font:700 9.5px Archivo,sans-serif;letter-spacing:.09em;text-transform:uppercase;color:#8A8272;margin-bottom:4px">Memorándum STD N°</span>
+                              <input value="{{ encMemo }}" onChange="{{ setEncMemo }}" placeholder="p. ej. 39068" style="box-sizing:border-box;width:100%;padding:9px 12px;border:1.5px solid #E0DCD0;border-radius:8px;font:400 12.5px Archivo,sans-serif;background:#fff">
+                            </label>
+                            <label style="display:block">
+                              <span style="display:block;font:700 9.5px Archivo,sans-serif;letter-spacing:.09em;text-transform:uppercase;color:#8A8272;margin-bottom:4px">Año del envío</span>
+                              <input value="{{ encAnio }}" onChange="{{ setEncAnio }}" type="number" placeholder="2025" style="box-sizing:border-box;width:100%;padding:9px 12px;border:1.5px solid #E0DCD0;border-radius:8px;font:400 12.5px Archivo,sans-serif;background:#fff">
+                            </label>
+                          </div>
+                          <label style="display:block">
+                            <span style="display:block;font:700 9.5px Archivo,sans-serif;letter-spacing:.09em;text-transform:uppercase;color:#8A8272;margin-bottom:4px">Observación del proceso</span>
+                            <textarea value="{{ encObs }}" onChange="{{ setEncObs }}" rows="3" placeholder="Respuesta de la VRA, estado del decreto, etc." style="box-sizing:border-box;width:100%;padding:9px 12px;border:1.5px solid #E0DCD0;border-radius:8px;font:400 12.5px/1.5 Spectral,serif;background:#fff;resize:vertical"></textarea>
+                          </label>
+                          <p style="font:italic 400 11.5px/1.5 Spectral,serif;color:#8A8272;margin:0">Al guardar un memorándum se crea el hito «Encasillamiento» en la trayectoria; carga allí el PDF del envío como respaldo.</p>
+                          <div style="display:flex;gap:8px">
+                            <button onClick="{{ encGuardar }}" style="cursor:pointer;border:none;background:#2F6B4F;color:#fff;border-radius:8px;padding:10px 14px;font:700 12.5px Archivo,sans-serif">Guardar</button>
+                            <button onClick="{{ encCerrar }}" style="cursor:pointer;border:none;background:none;color:#8A8272;padding:10px 6px;font:600 12px Archivo,sans-serif">Cancelar</button>
+                          </div>
+                        </div>
+                      </sc-if>
+                    </sc-if>
+                  </div>
+
                   <div style="font:700 9.5px Archivo,sans-serif;letter-spacing:.09em;text-transform:uppercase;color:#8A8272;margin-bottom:10px">Trayectoria</div>
                   <sc-if value="{{ sel.sinEventos }}" hint-placeholder-val="{{ false }}">
                     <p style="font:italic 400 12.5px/1.5 Spectral,serif;color:#8A8272;margin:0 0 16px">Sin hitos registrados todavía.</p>
@@ -350,10 +477,19 @@ body{margin:0;background:#F1EFE8}a{color:#007E80}a:hover{color:#EF7A00}input:foc
                         <div style="min-width:0">
                           <div style="font:700 12.5px Archivo,sans-serif;color:#3A4450">{{ e.tipo }}<span style="font:400 12px Archivo,sans-serif;color:#8A8272"> {{ e.jerarquia }}</span></div>
                           <div style="font:400 12.5px/1.5 Spectral,serif;color:#5A6470;margin-top:3px">{{ e.acta }}</div>
+                          <sc-if value="{{ e.hayArchivos }}" hint-placeholder-val="{{ false }}">
+                            <div style="display:flex;flex-direction:column;gap:4px;margin-top:8px">
+                              <sc-for list="{{ e.archivos }}" as="a" hint-placeholder-count="1">
+                                <div style="display:flex;gap:6px;align-items:center;background:#F2F7F3;border:1px solid #CFE0D5;border-radius:7px;padding:5px 6px 5px 10px">
+                                  <button onClick="{{ a.ver }}" title="Ver en ventana emergente" style="flex:1;min-width:0;text-align:left;cursor:pointer;border:none;background:none;padding:0;font:600 11.5px Archivo,sans-serif;color:#2F6B4F;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ a.nombre }}</button>
+                                  <sc-if value="{{ a.puedeBorrar }}" hint-placeholder-val="{{ false }}">
+                                    <button onClick="{{ a.borrar }}" title="Eliminar documento" style="cursor:pointer;border:none;background:none;color:#B0483A;padding:2px 4px;font:700 11px Archivo,sans-serif">✕</button>
+                                  </sc-if>
+                                </div>
+                              </sc-for>
+                            </div>
+                          </sc-if>
                           <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:7px;align-items:center">
-                            <sc-if value="{{ e.hayArchivo }}" hint-placeholder-val="{{ false }}">
-                              <button onClick="{{ e.verArchivo }}" style="cursor:pointer;border:1.5px solid #CFE0D5;background:#F2F7F3;color:#2F6B4F;border-radius:7px;padding:5px 10px;font:600 11px Archivo,sans-serif">Ver respaldo</button>
-                            </sc-if>
                             <sc-if value="{{ e.hayEnlace }}" hint-placeholder-val="{{ false }}">
                               <a href="{{ e.enlace }}" target="_blank" rel="noreferrer" style="font:600 11px Archivo,sans-serif;text-decoration:none;border:1.5px solid #E0DCD0;border-radius:7px;padding:5px 10px">Enlace externo ↗</a>
                             </sc-if>
@@ -361,7 +497,10 @@ body{margin:0;background:#F1EFE8}a{color:#007E80}a:hover{color:#EF7A00}input:foc
                               <span style="font:600 10.5px Archivo,sans-serif;color:#8A5A00;background:#FCEBD9;border-radius:6px;padding:4px 8px">Sin respaldo cargado</span>
                             </sc-if>
                             <sc-if value="{{ e.puedeSubir }}" hint-placeholder-val="{{ false }}">
-                              <label style="cursor:pointer;font:600 11px Archivo,sans-serif;color:#007E80;border:1.5px dashed #CFE7E7;border-radius:7px;padding:5px 10px">{{ e.subirLabel }}<input type="file" accept="application/pdf,image/*" onChange="{{ e.subir }}" style="display:none"></label>
+                              <label style="cursor:pointer;font:600 11px Archivo,sans-serif;color:#007E80;border:1.5px dashed #CFE7E7;border-radius:7px;padding:5px 10px">{{ e.subirLabel }}<input type="file" multiple="{{ true }}" accept="application/pdf,image/*" onChange="{{ e.subir }}" style="display:none"></label>
+                            </sc-if>
+                            <sc-if value="{{ e.puedeBorrar }}" hint-placeholder-val="{{ false }}">
+                              <button onClick="{{ e.editar }}" title="Editar este hito" style="cursor:pointer;border:1.5px solid #E0DCD0;background:#fff;color:#5A6470;border-radius:7px;padding:5px 9px;font:600 11px Archivo,sans-serif">Editar</button>
                             </sc-if>
                             <sc-if value="{{ e.puedeBorrar }}" hint-placeholder-val="{{ false }}">
                               <button onClick="{{ e.borrar }}" title="Eliminar este hito" style="cursor:pointer;border:1.5px solid #F0D5CF;background:#fff;color:#B0483A;border-radius:7px;padding:5px 9px;font:600 11px Archivo,sans-serif">✕</button>
@@ -374,9 +513,14 @@ body{margin:0;background:#F1EFE8}a{color:#007E80}a:hover{color:#EF7A00}input:foc
 
                   <sc-if value="{{ esAdmin }}" hint-placeholder-val="{{ false }}">
                     <div style="border-top:1px solid #F0EDE4;padding-top:16px">
+                      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+                        <button onClick="{{ sel.editar }}" style="cursor:pointer;border:1.5px solid #CFE0D5;background:#F2F7F3;color:#2F6B4F;border-radius:8px;padding:9px 13px;font:600 12px Archivo,sans-serif">Editar todos los datos</button>
+                        <button onClick="{{ sel.borrar }}" style="cursor:pointer;border:1.5px solid #F0D5CF;background:#fff;color:#B0483A;border-radius:8px;padding:9px 13px;font:600 12px Archivo,sans-serif">Eliminar ficha</button>
+                      </div>
                       <button onClick="{{ evToggle }}" style="cursor:pointer;border:1.5px solid #E0DCD0;background:#fff;color:#2F6B4F;border-radius:8px;padding:9px 13px;font:600 12px Archivo,sans-serif">{{ evToggleLabel }}</button>
                       <sc-if value="{{ evAbierto }}" hint-placeholder-val="{{ false }}">
                         <div style="display:flex;flex-direction:column;gap:9px;margin-top:12px">
+                          <div style="font:700 9.5px Archivo,sans-serif;letter-spacing:.09em;text-transform:uppercase;color:#8A8272">{{ evTitulo }}</div>
                           <select value="{{ evTipo }}" onChange="{{ setEvTipo }}" style="padding:9px 12px;border:1.5px solid #E0DCD0;border-radius:8px;font:400 12.5px Archivo,sans-serif;background:#FAF9F5;color:#3A4450">
                             <option>Jerarquización</option><option>Ingreso</option><option>Antecedente adicional</option><option>Encasillamiento</option>
                           </select>
@@ -389,7 +533,7 @@ body{margin:0;background:#F1EFE8}a{color:#007E80}a:hover{color:#EF7A00}input:foc
                           </select>
                           <input value="{{ evActa }}" onChange="{{ setEvActa }}" placeholder="Acta, decreto o sesión que lo respalda" style="box-sizing:border-box;width:100%;padding:9px 12px;border:1.5px solid #E0DCD0;border-radius:8px;font:400 12.5px Archivo,sans-serif;background:#FAF9F5">
                           <input value="{{ evEnlace }}" onChange="{{ setEvEnlace }}" placeholder="Enlace externo (opcional)" style="box-sizing:border-box;width:100%;padding:9px 12px;border:1.5px solid #E0DCD0;border-radius:8px;font:400 12.5px Archivo,sans-serif;background:#FAF9F5">
-                          <button onClick="{{ evGuardar }}" style="cursor:pointer;border:none;background:#2F6B4F;color:#fff;border-radius:8px;padding:11px;font:700 12.5px Archivo,sans-serif">Agregar hito</button>
+                          <button onClick="{{ evGuardar }}" style="cursor:pointer;border:none;background:#2F6B4F;color:#fff;border-radius:8px;padding:11px;font:700 12.5px Archivo,sans-serif">{{ evGuardarLabel }}</button>
                         </div>
                       </sc-if>
                     </div>
@@ -403,7 +547,8 @@ body{margin:0;background:#F1EFE8}a{color:#007E80}a:hover{color:#EF7A00}input:foc
 
       <sc-if value="{{ tabEncasillamiento }}" hint-placeholder-val="{{ false }}">
         <h2 style="font:800 20px Archivo,sans-serif;margin:0 0 6px;color:#3A4450">Encasillamiento</h2>
-        <p style="font:400 13.5px/1.6 Spectral,serif;color:#5A6470;margin:0 0 20px;max-width:780px">Estado del proceso según la matriz: quiénes califican, qué antecedentes ya fueron enviados por STD y qué observaciones registró la Vicerrectoría Académica.</p>
+        <p style="font:400 13.5px/1.6 Spectral,serif;color:#5A6470;margin:0 0 8px;max-width:820px">Estado del proceso: quién califica, qué antecedentes ya fueron enviados por STD (Sistema de Trazabilidad Documental) y qué observó la Vicerrectoría Académica.</p>
+        <p style="font:italic 400 12.5px/1.55 Spectral,serif;color:#8A8272;margin:0 0 20px;max-width:820px">La estimación aplica cuatro criterios a cada ficha: (a) contratación vigente, (b) antigüedad de al menos 5 años, (c) jerarquización realizada y (d) sin sanción del art. 121 c) del DFL 29/2004 en los últimos 5 años. Se compara con el valor registrado; las diferencias aparecen primero.</p>
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:22px">
           <sc-for list="{{ encKpis }}" as="k" hint-placeholder-count="4">
             <div style="background:#fff;border:1px solid #E8E4DA;border-radius:12px;padding:16px 18px">
@@ -415,18 +560,270 @@ body{margin:0;background:#F1EFE8}a{color:#007E80}a:hover{color:#EF7A00}input:foc
         <div style="background:#fff;border:1px solid #E8E4DA;border-radius:14px;overflow:hidden">
           <div style="display:grid;grid-template-columns:minmax(0,1fr) 150px 120px;gap:12px;padding:10px 20px;background:#F6F4EF;border-bottom:1px solid #E8E4DA;font:600 10.5px Archivo,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#8A8272"><span>Académico/a</span><span>Califica</span><span>Envío</span></div>
           <sc-for list="{{ encLista }}" as="e" hint-placeholder-count="10">
-            <div style="display:grid;grid-template-columns:minmax(0,1fr) 150px 120px;gap:12px;align-items:start;padding:12px 20px;border-bottom:1px solid #F0EDE4">
-              <div style="min-width:0">
-                <div style="font:700 13px Archivo,sans-serif;color:#3A4450">{{ e.nombre }}</div>
-                <div style="font:400 11.5px Archivo,sans-serif;color:#8A8272;margin-top:2px">{{ e.unidad }}</div>
+            <button onClick="{{ e.abrir }}" style="width:100%;text-align:left;cursor:pointer;border:none;background:#fff;display:grid;grid-template-columns:minmax(0,1fr) 150px 120px;gap:12px;align-items:start;padding:12px 20px;border-bottom:1px solid #F0EDE4">
+              <span style="min-width:0;display:block">
+                <span style="display:block;font:700 13px Archivo,sans-serif;color:#3A4450">{{ e.nombre }}</span>
+                <span style="display:block;font:400 11.5px Archivo,sans-serif;color:#8A8272;margin-top:2px">{{ e.unidad }}</span>
                 <sc-if value="{{ e.hayObs }}" hint-placeholder-val="{{ false }}">
-                  <div style="font:400 12px/1.5 Spectral,serif;color:#5A6470;margin-top:5px">{{ e.obs }}</div>
+                  <span style="display:block;font:400 12px/1.5 Spectral,serif;color:#5A6470;margin-top:5px">{{ e.obs }}</span>
                 </sc-if>
-              </div>
-              <span style="font:600 10.5px Archivo,sans-serif;letter-spacing:.05em;text-transform:uppercase;color:{{ e.cFg }};background:{{ e.cBg }};border-radius:5px;padding:4px 8px;justify-self:start">{{ e.califica }}</span>
+              </span>
+              <span style="display:flex;flex-direction:column;gap:5px;align-items:flex-start">
+                <span style="font:600 10.5px Archivo,sans-serif;letter-spacing:.05em;text-transform:uppercase;color:{{ e.cFg }};background:{{ e.cBg }};border-radius:5px;padding:4px 8px">{{ e.califica }}</span>
+                <span style="font:400 11px Archivo,sans-serif;color:#8A8272">{{ e.estim }}</span>
+                <sc-if value="{{ e.difiere }}" hint-placeholder-val="{{ false }}">
+                  <span style="font:600 9.5px Archivo,sans-serif;letter-spacing:.05em;text-transform:uppercase;color:#8A3D2E;background:#F9EDE9;border-radius:5px;padding:3px 6px">Revisar</span>
+                </sc-if>
+              </span>
               <span style="font:400 11.5px/1.45 Spectral,serif;color:#5A6470">{{ e.envio }}</span>
+            </button>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ tabRespaldos }}" hint-placeholder-val="{{ false }}">
+        <h2 style="font:800 20px Archivo,sans-serif;margin:0 0 6px;color:#3A4450">Respaldos</h2>
+        <p style="font:400 13.5px/1.6 Spectral,serif;color:#5A6470;margin:0 0 8px;max-width:820px">Cada hito de trayectoria debe terminar con su documento alojado en la plataforma, en un depósito privado al que solo acceden las cuentas autorizadas. Los enlaces a Google Drive que trae la matriz siguen disponibles como referencia mientras se migran.</p>
+        <p style="font:italic 400 12.5px/1.55 Spectral,serif;color:#8A8272;margin:0 0 20px;max-width:820px">La migración se hace desde aquí: abre el enlace externo, descarga el documento y cárgalo en el mismo hito. Al subirlo queda asociado al hito y el contador avanza.</p>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px">
+          <div style="background:#fff;border:1px solid #E8E4DA;border-radius:12px;padding:16px 18px">
+            <div style="font:600 28px IBM Plex Mono,monospace;color:#2F6B4F;line-height:1">{{ respPct }}</div>
+            <div style="font:400 12px/1.45 Archivo,sans-serif;color:#8A8272;margin-top:6px">hitos con documento en la plataforma</div>
+          </div>
+          <div style="background:#fff;border:1px solid #E8E4DA;border-radius:12px;padding:16px 18px">
+            <div style="font:600 28px IBM Plex Mono,monospace;color:#1D3F5C;line-height:1">{{ respConArchivo }}</div>
+            <div style="font:400 12px/1.45 Archivo,sans-serif;color:#8A8272;margin-top:6px">de {{ respTotal }} hitos registrados</div>
+          </div>
+          <div style="background:#fff;border:1px solid #E8E4DA;border-radius:12px;padding:16px 18px">
+            <div style="font:600 28px IBM Plex Mono,monospace;color:#C4762A;line-height:1">{{ respConEnlace }}</div>
+            <div style="font:400 12px/1.45 Archivo,sans-serif;color:#8A8272;margin-top:6px">pendientes con enlace externo por migrar</div>
+          </div>
+          <div style="background:#fff;border:1px solid #E8E4DA;border-radius:12px;padding:16px 18px">
+            <div style="font:600 28px IBM Plex Mono,monospace;color:#B0483A;line-height:1">{{ respPendientes }}</div>
+            <div style="font:400 12px/1.45 Archivo,sans-serif;color:#8A8272;margin-top:6px">hitos sin documento cargado</div>
+          </div>
+        </div>
+        <input value="{{ rq }}" onChange="{{ setRq }}" placeholder="Buscar por apellido, unidad, tipo de hito o acta…" style="box-sizing:border-box;width:100%;max-width:520px;padding:10px 14px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#fff;margin-bottom:14px">
+        <div style="background:#fff;border:1px solid #E8E4DA;border-radius:14px;overflow:hidden">
+          <sc-if value="{{ respSinPendientes }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:30px;text-align:center;font:400 13.5px/1.6 Spectral,serif;color:#5A6470">No quedan hitos sin documento con ese criterio.</div>
+          </sc-if>
+          <sc-for list="{{ respLista }}" as="r" hint-placeholder-count="8">
+            <div style="display:flex;gap:16px;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;padding:14px 20px;border-bottom:1px solid #F0EDE4">
+              <div style="min-width:240px;flex:1">
+                <div style="font:700 13px Archivo,sans-serif;color:#3A4450">{{ r.nombre }}</div>
+                <div style="font:400 11.5px Archivo,sans-serif;color:#8A8272;margin-top:2px">{{ r.unidad }} · {{ r.tipo }} {{ r.anio }}</div>
+                <div style="font:400 12.5px/1.5 Spectral,serif;color:#5A6470;margin-top:5px">{{ r.acta }}</div>
+              </div>
+              <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+                <sc-if value="{{ r.hayEnlace }}" hint-placeholder-val="{{ true }}">
+                  <a href="{{ r.enlace }}" target="_blank" rel="noreferrer" style="font:600 11px Archivo,sans-serif;text-decoration:none;border:1.5px solid #E0DCD0;border-radius:7px;padding:7px 11px">Abrir en Drive ↗</a>
+                </sc-if>
+                <sc-if value="{{ r.sinEnlace }}" hint-placeholder-val="{{ false }}">
+                  <span style="font:600 10.5px Archivo,sans-serif;color:#8A5A00;background:#FCEBD9;border-radius:6px;padding:5px 9px">Sin enlace de origen</span>
+                </sc-if>
+                <label style="cursor:pointer;font:600 11px Archivo,sans-serif;color:#2F6B4F;border:1.5px dashed #CFE0D5;background:#F2F7F3;border-radius:7px;padding:7px 11px">Cargar documento(s)<input type="file" multiple="{{ true }}" accept="application/pdf,image/*" onChange="{{ r.subir }}" style="display:none"></label>
+              </div>
             </div>
           </sc-for>
+        </div>
+        <sc-if value="{{ hayRespMas }}" hint-placeholder-val="{{ false }}">
+          <p style="font:400 12.5px Spectral,serif;color:#8A8272;margin:12px 0 0">{{ respMas }}</p>
+        </sc-if>
+      </sc-if>
+
+      <sc-if value="{{ tabUnidades }}" hint-placeholder-val="{{ false }}">
+        <h2 style="font:800 20px Archivo,sans-serif;margin:0 0 6px;color:#3A4450">Unidades académicas</h2>
+        <p style="font:400 13.5px/1.6 Spectral,serif;color:#5A6470;margin:0 0 18px;max-width:820px">Departamentos, escuelas e institutos a los que se adscriben las fichas. Al <strong>renombrar</strong> una unidad, el nuevo nombre se aplica a todas sus fichas. Una unidad <strong>desactivada</strong> se conserva en el historial pero no se ofrece en fichas nuevas; para eliminarla no debe quedar ninguna persona adscrita.</p>
+        <sc-if value="{{ sinTablaUnidades }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#F9EDE9;border:1px solid #E8CFC8;border-radius:12px;padding:14px 18px;margin-bottom:16px;font:400 12.5px/1.55 Archivo,sans-serif;color:#8A3D2E">Falta instalar el catálogo: ejecuta una vez <strong>data/supabase/migracion-unidades.sql</strong> en el editor SQL de Supabase. Mientras tanto, las unidades se leen de las fichas y no se pueden editar aquí.</div>
+        </sc-if>
+        <div style="display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:24px;align-items:start">
+          <section style="background:#fff;border:1px solid #E8E4DA;border-radius:14px;overflow:hidden">
+            <sc-if value="{{ sinUnidades }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:30px;text-align:center;font:400 13.5px/1.6 Spectral,serif;color:#5A6470">Aún no hay unidades registradas. Créalas con el formulario de la derecha.</div>
+            </sc-if>
+            <sc-for list="{{ uniLista }}" as="u" hint-placeholder-count="7">
+              <div style="display:grid;grid-template-columns:minmax(0,1fr) 120px 90px;gap:14px;align-items:center;padding:13px 20px;border-bottom:1px solid #F0EDE4;background:{{ u.bg }}">
+                <div style="min-width:0">
+                  <sc-if value="{{ u.editando }}" hint-placeholder-val="{{ false }}">
+                    <div style="display:flex;flex-direction:column;gap:8px">
+                      <input value="{{ uniNombre }}" onChange="{{ setUniNombre }}" placeholder="Nombre de la unidad" style="box-sizing:border-box;width:100%;padding:9px 12px;border:1.5px solid #E0DCD0;border-radius:8px;font:400 13px Archivo,sans-serif;background:#FAF9F5">
+                      <select value="{{ uniTipo }}" onChange="{{ setUniTipo }}" style="box-sizing:border-box;width:100%;padding:9px 12px;border:1.5px solid #E0DCD0;border-radius:8px;font:400 12.5px Archivo,sans-serif;background:#FAF9F5;color:#3A4450">
+                        <option value="">Sin tipo</option><option>Departamento</option><option>Escuela</option><option>Instituto</option><option>Otra</option>
+                      </select>
+                      <div style="display:flex;gap:8px">
+                        <button onClick="{{ uniGuardar }}" style="cursor:pointer;border:none;background:#2F6B4F;color:#fff;border-radius:7px;padding:7px 13px;font:700 11.5px Archivo,sans-serif">Guardar</button>
+                        <button onClick="{{ uniCancelar }}" style="cursor:pointer;border:none;background:none;color:#8A8272;padding:7px 4px;font:600 11.5px Archivo,sans-serif">Cancelar</button>
+                      </div>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ u.viendo }}" hint-placeholder-val="{{ true }}">
+                    <div>
+                      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+                        <span style="font:700 13.5px/1.3 Archivo,sans-serif;color:#3A4450">{{ u.nombre }}</span>
+                        <sc-if value="{{ u.inactivo }}" hint-placeholder-val="{{ false }}"><span style="font:600 9.5px Archivo,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#8A3D2E;background:#F9EDE9;border-radius:5px;padding:3px 7px">Desactivada</span></sc-if>
+                      </div>
+                      <div style="font:400 12px Archivo,sans-serif;color:#8A8272;margin-top:3px">{{ u.sub }}</div>
+                      <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">
+                        <sc-if value="{{ u.editable }}" hint-placeholder-val="{{ true }}">
+                          <button onClick="{{ u.editar }}" style="cursor:pointer;border:1.5px solid #E0DCD0;background:#fff;color:#2F6B4F;border-radius:6px;padding:5px 10px;font:600 11px Archivo,sans-serif">Renombrar</button>
+                        </sc-if>
+                        <sc-if value="{{ u.editable }}" hint-placeholder-val="{{ true }}">
+                          <button onClick="{{ u.alternar }}" style="cursor:pointer;border:1.5px solid #E0DCD0;background:#fff;color:#5A6470;border-radius:6px;padding:5px 10px;font:600 11px Archivo,sans-serif">{{ u.alternarLabel }}</button>
+                        </sc-if>
+                        <button onClick="{{ u.ver }}" style="cursor:pointer;border:1.5px solid #E0DCD0;background:#fff;color:#5A6470;border-radius:6px;padding:5px 10px;font:600 11px Archivo,sans-serif">Ver fichas</button>
+                      </div>
+                    </div>
+                  </sc-if>
+                </div>
+                <span style="font:600 11px IBM Plex Mono,monospace;color:#8A8272;text-align:right">{{ u.n }} fichas</span>
+                <div style="display:flex;justify-content:flex-end">
+                  <sc-if value="{{ u.editable }}" hint-placeholder-val="{{ true }}">
+                    <button onClick="{{ u.borrar }}" title="{{ u.borrarTitulo }}" style="cursor:pointer;border:1.5px solid #F0D5CF;background:#fff;color:#B0483A;border-radius:7px;padding:6px 9px;font:600 11px Archivo,sans-serif">Eliminar</button>
+                  </sc-if>
+                </div>
+              </div>
+            </sc-for>
+          </section>
+          <aside style="background:#fff;border:1px solid #E8E4DA;border-radius:14px;padding:20px">
+            <h3 style="font:800 15px Archivo,sans-serif;margin:0 0 12px;color:#3A4450">Nueva unidad</h3>
+            <sc-if value="{{ sinTablaUnidades }}" hint-placeholder-val="{{ false }}">
+              <p style="font:400 12.5px/1.55 Spectral,serif;color:#5A6470;margin:0">Disponible una vez instalado el catálogo: ejecuta <strong>migracion-unidades.sql</strong> en Supabase y vuelve a esta pestaña.</p>
+            </sc-if>
+            <sc-if value="{{ puedeEditarUnidades }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <input value="{{ nuNombre }}" onChange="{{ setNuNombre }}" placeholder="Nombre completo, p. ej. Departamento de Filosofía" style="box-sizing:border-box;width:100%;padding:10px 13px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5">
+              <select value="{{ nuTipo }}" onChange="{{ setNuTipo }}" style="padding:10px 12px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5;color:#3A4450">
+                <option>Departamento</option><option>Escuela</option><option>Instituto</option><option>Otra</option>
+              </select>
+              <button onClick="{{ crearUnidad }}" style="cursor:pointer;border:none;background:#2F6B4F;color:#fff;border-radius:9px;padding:12px;font:700 13.5px Archivo,sans-serif">Agregar unidad</button>
+            </div>
+            </sc-if>
+          </aside>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ tabCuentas }}" hint-placeholder-val="{{ false }}">
+        <h2 style="font:800 20px Archivo,sans-serif;margin:0 0 6px;color:#3A4450">Cuentas y permisos</h2>
+        <p style="font:400 13.5px/1.6 Spectral,serif;color:#5A6470;margin:0 0 8px;max-width:840px">Dos niveles de acceso. <strong>Administración</strong>: edita fichas, agrega hitos, carga respaldos y gestiona cuentas. <strong>Solo visión</strong>: consulta la matriz, las síntesis y los respaldos, sin modificar nada. Sin cuenta no se ve ninguna información.</p>
+        <p style="font:italic 400 12.5px/1.55 Spectral,serif;color:#8A8272;margin:0 0 20px;max-width:840px">Las cuentas son las mismas de todo el sistema VIP: una cuenta «Solo visión» aquí equivale a «Editor/a» en Normativa y Cursos (donde sí puede cargar documentos o cursos de sus programas). Cambiar el nivel aquí lo cambia en los tres subsistemas.</p>
+        <div style="display:flex;flex-direction:column;gap:26px;max-width:940px">
+          <section>
+            <h3 style="font:800 15px Archivo,sans-serif;margin:0 0 12px;color:#3A4450">Personas con acceso <span style="font:600 11px IBM Plex Mono,monospace;color:#8A8272">{{ nUsers }}</span></h3>
+            <div style="background:#fff;border:1px solid #E8E4DA;border-radius:14px;overflow:hidden">
+              <sc-for list="{{ users }}" as="u" hint-placeholder-count="3">
+                <div style="display:grid;grid-template-columns:minmax(0,1fr) 150px 120px;gap:14px;align-items:center;padding:14px 20px;border-bottom:1px solid #F0EDE4">
+                  <div style="min-width:0">
+                    <div style="font:700 13.5px Archivo,sans-serif;color:#3A4450">{{ u.nombre }}</div>
+                    <div style="font:400 12px Archivo,sans-serif;color:#8A8272;margin-top:2px">{{ u.correo }} · {{ u.estado }} · {{ u.rolLabel }}</div>
+                  </div>
+                  <select value="{{ u.rol }}" onChange="{{ u.setRol }}" disabled="{{ u.bloqueado }}" style="padding:8px 10px;border:1.5px solid #E0DCD0;border-radius:8px;font:600 11.5px Archivo,sans-serif;background:#FAF9F5;color:#3A4450">
+                    <option value="editor">Solo visión</option>
+                    <option value="administrador">Administración</option>
+                  </select>
+                  <div style="display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap">
+                    <button onClick="{{ u.alternar }}" disabled="{{ u.bloqueado }}" style="cursor:pointer;border:1.5px solid #E0DCD0;background:#fff;color:#5A6470;border-radius:7px;padding:6px 9px;font:600 11px Archivo,sans-serif">{{ u.alternarLabel }}</button>
+                    <sc-if value="{{ u.puedeQuitar }}" hint-placeholder-val="{{ false }}">
+                      <button onClick="{{ u.quitar }}" style="cursor:pointer;border:1.5px solid #F0D5CF;background:#fff;color:#B0483A;border-radius:7px;padding:6px 9px;font:600 11px Archivo,sans-serif">Quitar</button>
+                    </sc-if>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </section>
+          <sc-if value="{{ hayInvitaciones }}" hint-placeholder-val="{{ false }}">
+            <section>
+              <h3 style="font:800 15px Archivo,sans-serif;margin:0 0 12px;color:#3A4450">Invitaciones pendientes <span style="font:600 11px IBM Plex Mono,monospace;color:#8A8272">{{ nInv }}</span></h3>
+              <div style="background:#fff;border:1px solid #E8E4DA;border-radius:14px;overflow:hidden">
+                <sc-for list="{{ invitaciones }}" as="i" hint-placeholder-count="1">
+                  <div style="display:grid;grid-template-columns:minmax(0,1fr) 150px 120px;gap:14px;align-items:center;padding:13px 20px;border-bottom:1px solid #F0EDE4">
+                    <div style="min-width:0">
+                      <div style="font:700 13px Archivo,sans-serif;color:#3A4450">{{ i.nombre }}</div>
+                      <div style="font:400 12px Archivo,sans-serif;color:#8A8272;margin-top:2px">{{ i.correo }}</div>
+                    </div>
+                    <span style="font:600 11.5px Archivo,sans-serif;color:#5A6470">{{ i.rol }}</span>
+                    <div style="display:flex;justify-content:flex-end">
+                      <button onClick="{{ i.borrar }}" style="cursor:pointer;border:1.5px solid #F0D5CF;background:#fff;color:#B0483A;border-radius:7px;padding:6px 9px;font:600 11px Archivo,sans-serif">Anular</button>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+            </section>
+          </sc-if>
+          <section style="background:#fff;border:1px solid #E8E4DA;border-radius:14px;padding:22px 24px;max-width:460px">
+            <h3 style="font:800 15px Archivo,sans-serif;margin:0 0 4px;color:#3A4450">Autorizar una cuenta nueva</h3>
+            <p style="font:italic 400 12px/1.45 Spectral,serif;color:#8A8272;margin:0 0 16px">Se autoriza el correo; la persona crea su contraseña en la pantalla de acceso con la opción «Primera vez».</p>
+            <div style="display:flex;flex-direction:column;gap:11px">
+              <input value="{{ uNombre }}" onChange="{{ setUNombre }}" placeholder="Nombre y apellido" style="box-sizing:border-box;width:100%;padding:10px 13px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5">
+              <input value="{{ uCorreo }}" onChange="{{ setUCorreo }}" type="email" placeholder="correo@usach.cl *" style="box-sizing:border-box;width:100%;padding:10px 13px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5">
+              <select value="{{ uRol }}" onChange="{{ setURol }}" style="padding:10px 12px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5;color:#3A4450">
+                <option value="editor">Solo visión</option>
+                <option value="administrador">Administración</option>
+              </select>
+              <button onClick="{{ invitar }}" style="cursor:pointer;border:none;background:#2F6B4F;color:#fff;border-radius:9px;padding:12px;font:700 13.5px Archivo,sans-serif">Autorizar cuenta</button>
+            </div>
+          </section>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ tabSistema }}" hint-placeholder-val="{{ false }}">
+        <h2 style="font:800 20px Archivo,sans-serif;margin:0 0 6px;color:#3A4450">Sistema</h2>
+        <p style="font:400 13.5px/1.6 Spectral,serif;color:#5A6470;margin:0 0 20px;max-width:820px">Estado de la base de datos, depuración del depósito de documentos y registro de movimientos. Solo para administración.</p>
+        <div style="display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:24px;align-items:start">
+          <div style="display:flex;flex-direction:column;gap:18px">
+            <section style="background:#fff;border:1px solid #E8E4DA;border-radius:14px;padding:22px 24px">
+              <div style="font:700 10px Archivo,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#8A8272;margin-bottom:12px">Estado de la base</div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <sc-for list="{{ sistema }}" as="s" hint-placeholder-count="4">
+                  <div style="display:grid;grid-template-columns:28px minmax(0,1fr);gap:10px;align-items:start;background:{{ s.bg }};border-radius:9px;padding:10px 12px">
+                    <span style="font:700 14px IBM Plex Mono,monospace;color:{{ s.color }}">{{ s.marca }}</span>
+                    <div>
+                      <div style="font:700 12.5px Archivo,sans-serif;color:#3A4450">{{ s.name }}</div>
+                      <div style="font:400 12px/1.45 Spectral,serif;color:#5A6470;margin-top:2px">{{ s.detalle }} · <span style="font:600 11px IBM Plex Mono,monospace;color:#8A8272">{{ s.accion }}</span></div>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+              <p style="font:italic 400 12px/1.5 Spectral,serif;color:#8A8272;margin:12px 0 0">Los scripts SQL están en <strong>data/supabase/</strong> del proyecto y se ejecutan una sola vez en el editor SQL de Supabase, en el orden indicado.</p>
+            </section>
+
+            <section style="background:#fff;border:1px solid #E8E4DA;border-radius:14px;padding:22px 24px">
+              <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:6px">
+                <div style="font:700 10px Archivo,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#8A8272">Registro de actividad</div>
+                <button type="button" onClick="{{ recargar }}" style="flex:none;font:600 12px Archivo,sans-serif;color:#2F6B4F;background:#fff;border:1px solid #CFE0D5;border-radius:8px;padding:6px 11px;cursor:pointer">Actualizar</button>
+              </div>
+              <p style="font:400 12.5px/1.5 Spectral,serif;color:#5A6470;margin:0 0 12px">Últimos 60 movimientos de este subsistema (fichas, hitos, respaldos, cuentas).</p>
+              <sc-if value="{{ sinActividad }}" hint-placeholder-val="{{ false }}"><div style="padding:18px;text-align:center;font:400 13px Spectral,serif;color:#8A8272">Sin movimientos todavía.</div></sc-if>
+              <div style="display:flex;flex-direction:column">
+                <sc-for list="{{ actividad }}" as="a" hint-placeholder-count="5">
+                  <div style="display:grid;grid-template-columns:150px 120px minmax(0,1fr);gap:14px;align-items:baseline;padding:9px 0;border-bottom:1px solid #F0EDE4">
+                    <span style="font:400 11px IBM Plex Mono,monospace;color:#8A8272">{{ a.fecha }}</span>
+                    <span style="font:600 11px Archivo,sans-serif;color:#2F6B4F">{{ a.accion }}</span>
+                    <span style="font:400 12.5px Spectral,serif;color:#3A4450">{{ a.detalle }}<span style="color:#8A8272"> · {{ a.correo }}</span></span>
+                  </div>
+                </sc-for>
+              </div>
+            </section>
+          </div>
+
+          <aside style="background:#fff;border:1px solid #E8E4DA;border-radius:14px;padding:22px 24px">
+            <div style="font:700 10px Archivo,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#8A8272;margin-bottom:8px">Depósito de documentos</div>
+            <p style="font:400 12.5px/1.55 Spectral,serif;color:#5A6470;margin:0 0 14px">Revisa si quedaron archivos en el depósito que ya no pertenecen a ningún hito (por ejemplo, tras eliminar una ficha o por una carga interrumpida).</p>
+            <button onClick="{{ buscarHuerfanos }}" disabled="{{ huerfanosBusy }}" style="cursor:pointer;border:1.5px solid #CFE0D5;background:#F2F7F3;color:#2F6B4F;border-radius:8px;padding:10px 14px;font:600 12px Archivo,sans-serif;width:100%">Revisar el depósito</button>
+            <sc-if value="{{ huerfanosListos }}" hint-placeholder-val="{{ false }}">
+              <div style="font:600 12px/1.5 Archivo,sans-serif;color:#3A4450;margin-top:14px">{{ depositoResumen }}</div>
+              <sc-if value="{{ hayHuerfanos }}" hint-placeholder-val="{{ false }}">
+                <div style="font:600 12px Archivo,sans-serif;color:#8A3D2E;background:#F9EDE9;border-radius:8px;padding:9px 11px;margin-top:10px">{{ huerfanosN }} archivo(s) sin hito asociado</div>
+                <div style="display:flex;flex-direction:column;gap:4px;margin-top:10px;max-height:260px;overflow:auto">
+                  <sc-for list="{{ huerfanos }}" as="h" hint-placeholder-count="2">
+                    <div style="display:flex;justify-content:space-between;gap:8px;font:400 11px IBM Plex Mono,monospace;color:#5A6470"><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ h.ruta }}</span><span style="flex:none">{{ h.tamano }}</span></div>
+                  </sc-for>
+                </div>
+                <button onClick="{{ borrarHuerfanos }}" style="cursor:pointer;border:1.5px solid #F0D5CF;background:#fff;color:#B0483A;border-radius:8px;padding:9px 13px;font:600 12px Archivo,sans-serif;margin-top:12px;width:100%">Eliminar archivos huérfanos</button>
+              </sc-if>
+            </sc-if>
+          </aside>
         </div>
       </sc-if>
 
@@ -464,21 +861,76 @@ body{margin:0;background:#F1EFE8}a{color:#007E80}a:hover{color:#EF7A00}input:foc
         </div>
       </sc-if>
     </main>
+
+    <sc-if value="{{ visorAbierto }}" hint-placeholder-val="{{ false }}">
+      <div onClick="{{ visorFondo }}" style="position:fixed;inset:0;z-index:50;background:rgba(58,68,80,.72);display:flex;align-items:center;justify-content:center;padding:clamp(12px,3vw,32px)">
+        <div style="width:100%;max-width:1040px;height:min(92vh,900px);background:#fff;border-radius:14px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 30px 80px rgba(0,0,0,.35)">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:14px;padding:12px 16px 12px 20px;border-bottom:1px solid #E8E4DA;background:#F6F4EF">
+            <div style="min-width:0">
+              <div style="font:700 13.5px Archivo,sans-serif;color:#3A4450;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ visor.nombre }}</div>
+              <div style="font:400 11.5px Archivo,sans-serif;color:#8A8272;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ visor.titulo }}</div>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;flex:none">
+              <a href="{{ visor.url }}" target="_blank" rel="noreferrer" style="font:600 11.5px Archivo,sans-serif;text-decoration:none;border:1.5px solid #E0DCD0;border-radius:7px;padding:7px 11px;background:#fff">Abrir en pestaña ↗</a>
+              <button onClick="{{ cerrarVisor }}" style="cursor:pointer;border:none;background:#3A4450;color:#fff;border-radius:7px;padding:7px 12px;font:700 12px Archivo,sans-serif">Cerrar ✕</button>
+            </div>
+          </div>
+          <div style="flex:1;min-height:0;background:#EAE6DC;display:flex;align-items:center;justify-content:center">
+            {{ visorContenido }}
+            <sc-if value="{{ visor.otro }}" hint-placeholder-val="{{ false }}">
+              <div style="text-align:center;padding:30px;font:400 13.5px/1.6 Spectral,serif;color:#5A6470">Este tipo de archivo no se puede previsualizar aquí. <a href="{{ visor.url }}" target="_blank" rel="noreferrer">Descárgalo o ábrelo en otra pestaña</a>.</div>
+            </sc-if>
+          </div>
+        </div>
+      </div>
+    </sc-if>
   </sc-if>
 </div>
 
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1240,&quot;height&quot;:900}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1240,&quot;height&quot;:900},&quot;colorRetorno&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#EF7A00&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;options&quot;:[&quot;#EF7A00&quot;,&quot;#FFFFFF&quot;,&quot;#2F6B4F&quot;,&quot;#3A4450&quot;],&quot;section&quot;:&quot;Volver al portal&quot;},&quot;etiquetaRetorno&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Gestión de Información VIP&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Volver al portal&quot;},&quot;mostrarSalirCabecera&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Volver al portal&quot;}}">
 class Component extends DCLogic {
-  COLOR = { "Profesor Asistente": "#4E7C5E", "Profesor Asociado": "#2F6B4F", "Profesor Titular": "#1D3F5C", "Profesor Instructor": "#8A8272", "(Corroborar)": "#B08A3A" };
+  // Escalas ordinales de jerarquía: siempre de claro a oscuro, para que el orden se lea sin leyenda.
+  // solid = barras, bordes y leyendas; bg/fg = chips y cabeceras (tinta oscura sobre tinte en los tonos bajos).
+  ESCALAS = {
+    bosque: { nombre: "Bosque", jer: {
+      "Profesor Instructor": { solid: "#B5AC97", bg: "#F0EDE4", fg: "#57503F" },
+      "Profesor Asistente":  { solid: "#7FBF52", bg: "#E6F4D7", fg: "#3D5F17" },
+      "Profesor Asociado":   { solid: "#1F7A55", bg: "#1F7A55", fg: "#FFFFFF" },
+      "Profesor Titular":    { solid: "#123A6B", bg: "#123A6B", fg: "#FFFFFF" },
+      "(Corroborar)":        { solid: "#C9A24D", bg: "#F7EBCB", fg: "#6E5211" } } },
+    teal: { nombre: "Monocroma teal", jer: {
+      "Profesor Instructor": { solid: "#C3D6D6", bg: "#EFF5F5", fg: "#35504F" },
+      "Profesor Asistente":  { solid: "#5FB3B5", bg: "#DAEFEF", fg: "#15514F" },
+      "Profesor Asociado":   { solid: "#0A6E70", bg: "#0A6E70", fg: "#FFFFFF" },
+      "Profesor Titular":    { solid: "#0B2E38", bg: "#0B2E38", fg: "#FFFFFF" },
+      "(Corroborar)":        { solid: "#C9A24D", bg: "#F7EBCB", fg: "#6E5211" } } },
+    tierra: { nombre: "Tierra", jer: {
+      "Profesor Instructor": { solid: "#D9C9A8", bg: "#F5EFE2", fg: "#5C4A33" },
+      "Profesor Asistente":  { solid: "#E8A317", bg: "#FBEBC6", fg: "#6E4A11" },
+      "Profesor Asociado":   { solid: "#B8471B", bg: "#B8471B", fg: "#FFFFFF" },
+      "Profesor Titular":    { solid: "#54140E", bg: "#54140E", fg: "#FFFFFF" },
+      "(Corroborar)":        { solid: "#8A8272", bg: "#EFECE4", fg: "#5A554A" } } }
+  };
+  jer(j, id) {
+    const e = this.ESCALAS[id || this.state.escala] || this.ESCALAS.bosque;
+    return e.jer[j] || { solid: "#8A8272", bg: "#EFECE4", fg: "#5A554A" };
+  }
   state = { fase: "cargando", modo: "login", perfil: null, login: { correo: "", clave: "", nombre: "" }, err: "", busy: false,
-    tab: "panorama", personas: [], eventos: [], aviso: "", avisoTipo: "ok",
+    tab: "panorama", personas: [], eventos: [], archivos: [], sinTablaArchivos: false, visor: null, aviso: "", avisoTipo: "ok",
+    perfiles: [], invitaciones: [], uform: { nombre: "", correo: "", rol: "editor" },
+    edAbierto: false, ed: null, nuevaAbierta: false, rq: "", encAbierto: false, enc: null,
+    escala: "bosque", unidades: [], sinTablaUnidades: false, uniEditId: null, uniNombre: "", uniTipo: "", nuNombre: "", nuTipo: "Departamento",
+    evEditId: null, actividad: [], actError: "", huerfanos: null, huerfanosBusy: false, totalDeposito: 0, bytesDeposito: 0, sinColEnc: false,
     q: "", fUnidad: "Todas las unidades", fJer: "Todas las jerarquías", fEstado: "Todo estado de jerarquización", fModo: "Todos los modos de ingreso", soloAlertas: false,
     selId: null, evAbierto: false, ev: { tipo: "Jerarquización", anio: "", fecha: "", jerarquia: "", acta: "", enlace: "" } };
 
   async componentDidMount() {
+    try { const g = localStorage.getItem("tr_escala"); if (g && this.ESCALAS[g]) this.setState({ escala: g }); } catch (e) {}
+    this._esc = e => { if (e.key === "Escape" && this.state.visor) this.setState({ visor: null }); };
+    window.addEventListener("keydown", this._esc);
     try {
-      const [lib, cfg] = await Promise.all([import("https://esm.sh/@supabase/supabase-js@2"), import("./data/supabase/config.js?v=1788818358071")]);
+      const [lib, cfg] = await Promise.all([import("https://esm.sh/@supabase/supabase-js@2"), import("./data/supabase/config.js?v=1788838801882")]);
       this.sb = lib.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY);
       this.sb.auth.onAuthStateChange((_e, s) => this.aplicarSesion(s));
       const { data } = await this.sb.auth.getSession();
@@ -498,12 +950,171 @@ class Component extends DCLogic {
   }
 
   async cargar() {
-    const [p, e] = await Promise.all([
+    const admin = !!(this.state.perfil && this.state.perfil.rol === "administrador");
+    const t = [
       this.sb.from("tr_personas").select("*").order("ap1").order("ap2"),
-      this.sb.from("tr_eventos").select("*").order("anio", { ascending: true })
-    ]);
+      this.sb.from("tr_eventos").select("*").order("anio", { ascending: true }),
+      this.sb.from("tr_archivos").select("*").order("creado", { ascending: true }),
+      this.sb.from("tr_personas").select("id,contratado,sancion_5a,sancion_anio,sancion_nota,std_memo,std_anio").limit(1),
+      this.sb.from("tr_unidades").select("*").order("nombre")
+    ];
+    const IDX = { perfiles: 5, invitaciones: 6, actividad: 7 };
+    if (admin) {
+      t.push(this.sb.from("perfiles").select("*").order("nombre"));
+      t.push(this.sb.from("invitaciones").select("*").order("correo"));
+      t.push(this.sb.from("actividad").select("*").ilike("accion", "TR:%").order("fecha", { ascending: false }).limit(60));
+    }
+    const r = await Promise.all(t);
+    const [p, e, a, colEnc, uni] = r;
     if (p.error && /could not find the table|PGRST205|schema cache|does not exist/i.test(p.error.message)) { this.setState({ fase: "sininstalar" }); return; }
-    this.setState({ personas: p.data || [], eventos: e.data || [] });
+    // Sin la migración de archivos, cada hito conserva su archivo único en tr_eventos.archivo
+    const archivos = a.error ? (e.data || []).filter(x => x.archivo).map(x => ({ id: "ev-" + x.id, evento: x.id, ruta: x.archivo, nombre: x.archivo.replace(/^.*\//, ""), legado: true })) : (a.data || []);
+    const personas = p.data || [];
+    this.setState({ personas, eventos: e.data || [], archivos, sinTablaArchivos: !!a.error,
+      sinColEnc: !!colEnc.error, unidades: uni.error ? [] : (uni.data || []), sinTablaUnidades: !!uni.error,
+      perfiles: admin ? (r[IDX.perfiles].data || []) : [], invitaciones: admin ? (r[IDX.invitaciones].data || []) : [],
+      actividad: admin ? (r[IDX.actividad].data || []) : [], actError: admin && r[IDX.actividad].error ? this.traducir(r[IDX.actividad].error.message) : "" });
+  }
+
+  CAMPOS = [["ap1", "Primer apellido", "text"], ["ap2", "Segundo apellido", "text"], ["nombres", "Nombres", "text"],
+    ["run", "RUN (sin puntos ni dígito verificador)", "number"], ["dv", "Dígito verificador", "text"], ["rango", "Rango contractual", "text"],
+    ["unidad", "Departamento o Escuela", "unidad"], ["anio_ingreso", "Año de ingreso a la Universidad", "number"],
+    ["jer_provisoria", "Jerarquía provisoria de ingreso", "jer"], ["jer_actual", "Jerarquía actual", "jer"],
+    ["estado_jer", "Estado de jerarquización", "estado"], ["modo_ingreso", "Modo de ingreso", "modo"],
+    ["fuente", "Fuente de información del ingreso", "area"], ["aclaracion", "Aclaración del modo de ingreso", "area"],
+    ["observaciones", "Observaciones", "area"],
+    ["contratado", "(a) Contratación vigente", "bool"], ["sancion_5a", "(d) Sanción art. 121 c) DFL 29/2004", "bool"],
+    ["sancion_anio", "Año de la sanción", "number"], ["sancion_nota", "Detalle o referencia de la sanción", "area"],
+    ["califica_encasillamiento", "Califica para encasillamiento", "enc"],
+    ["std_memo", "Envío STD · N° de memorándum", "text"], ["std_anio", "Envío STD · año", "number"],
+    ["enviado_encasillamiento", "Envío a encasillamiento (texto de la planilla)", "text"], ["obs_encasillamiento", "Observación del encasillamiento", "area"]];
+
+  // Criterios de encasillamiento. Devuelve la lista evaluada y la estimación (Sí / No / Sin determinar).
+  criterios(p, HOY) {
+    const antig = p.anio_ingreso ? HOY - p.anio_ingreso : null;
+    const c = [
+      { k: "a", label: "Contratación vigente", ok: p.contratado !== false, detalle: p.contratado === false ? "Sin contrato vigente" : "Contratado/a" },
+      { k: "b", label: "Antigüedad de al menos 5 años", ok: antig == null ? null : antig >= 5, detalle: antig == null ? "Sin año de ingreso" : `${antig} años (ingreso ${p.anio_ingreso})` },
+      { k: "c", label: "Jerarquización realizada (no provisoria)", ok: p.estado_jer === "Realizada", detalle: p.estado_jer === "Realizada" ? (p.jer_actual || "Jerarquizado/a") : "Jerarquía provisoria" },
+      { k: "d", label: "Sin sanción art. 121 c) DFL 29/2004 en 5 años",
+        ok: !p.sancion_5a ? true : (p.sancion_anio ? HOY - p.sancion_anio >= 5 : null),
+        detalle: !p.sancion_5a ? "Sin sanción registrada"
+          : !p.sancion_anio ? "Sanción sin año registrado: no se puede determinar"
+          : HOY - p.sancion_anio >= 5 ? `Sanción de ${p.sancion_anio}: fuera del plazo de 5 años`
+          : `Sanción de ${p.sancion_anio}: dentro de los últimos 5 años` }
+    ];
+    const estim = c.some(x => x.ok === false) ? "No" : c.some(x => x.ok === null) ? "Sin determinar" : "Sí";
+    return { lista: c, estim };
+  }
+
+  async guardarEncasillamiento() {
+    const st = this.state, p = st.personas.find(x => x.id === st.selId);
+    if (!p) return;
+    const f = st.enc || {};
+    const memo = (f.std_memo || "").trim(), anio = f.std_anio ? parseInt(f.std_anio, 10) : null;
+    const fila = { califica_encasillamiento: f.califica || null, std_memo: memo || null, std_anio: anio || null,
+      obs_encasillamiento: (f.obs || "").trim() || null };
+    if (memo) fila.enviado_encasillamiento = `STD Nro ${memo}${anio ? " · " + anio : ""}`;
+    const r = await this.sb.from("tr_personas").update(fila).eq("id", p.id);
+    if (r.error) { this.avisar("No se pudo guardar: " + this.traducir(r.error.message), "err"); return; }
+    if (memo && !st.eventos.some(e => e.persona === p.id && e.tipo === "Encasillamiento" && (e.acta || "").includes(memo))) {
+      await this.sb.from("tr_eventos").insert({ persona: p.id, tipo: "Encasillamiento", anio: anio, acta: `Memorándum N° ${memo} enviado por STD${anio ? " (" + anio + ")" : ""}` });
+    }
+    await this.anota("Encasillamiento", `${p.ap1} ${p.nombres} · califica: ${fila.califica_encasillamiento || "sin definir"}${memo ? " · STD " + memo : ""}`);
+    this.avisar("Encasillamiento actualizado. Si registraste un memorándum, carga su respaldo en el hito «Encasillamiento» de la trayectoria.");
+    this.setState({ encAbierto: false, enc: null });
+    this.cargar();
+  }
+
+  fichaVacia() { const o = {}; this.CAMPOS.forEach(([k]) => { o[k] = ""; }); o.contratado = "Sí"; o.sancion_5a = "No"; return o; }
+
+  async guardarFicha() {
+    const st = this.state, ed = st.ed || {};
+    const num = v => v === "" || v == null ? null : (isFinite(+v) ? Math.round(+v) : null);
+    const txt = v => (v || "").toString().trim();
+    if (!txt(ed.ap1) || !txt(ed.nombres)) { this.avisar("El primer apellido y los nombres son obligatorios.", "err"); return; }
+    if (!txt(ed.unidad)) { this.avisar("Indica el departamento o escuela.", "err"); return; }
+    const fila = { ap1: txt(ed.ap1), ap2: txt(ed.ap2), nombres: txt(ed.nombres), unidad: txt(ed.unidad),
+      run: num(ed.run), dv: txt(ed.dv) || null, rango: txt(ed.rango) || null, anio_ingreso: num(ed.anio_ingreso),
+      jer_provisoria: txt(ed.jer_provisoria) || null, jer_actual: txt(ed.jer_actual) || null, estado_jer: txt(ed.estado_jer) || null,
+      modo_ingreso: txt(ed.modo_ingreso) || null, fuente: txt(ed.fuente) || null, aclaracion: txt(ed.aclaracion) || null,
+      observaciones: txt(ed.observaciones) || null, califica_encasillamiento: txt(ed.califica_encasillamiento) || null,
+      enviado_encasillamiento: txt(ed.enviado_encasillamiento) || null, obs_encasillamiento: txt(ed.obs_encasillamiento) || null,
+      contratado: txt(ed.contratado) !== "No", sancion_5a: txt(ed.sancion_5a) === "Sí",
+      sancion_anio: num(ed.sancion_anio), sancion_nota: txt(ed.sancion_nota) || null,
+      std_memo: txt(ed.std_memo) || null, std_anio: num(ed.std_anio) };
+    let r, nuevoId = st.selId;
+    if (st.nuevaAbierta) { r = await this.sb.from("tr_personas").insert(fila).select("id").maybeSingle(); if (r.data) nuevoId = r.data.id; }
+    else r = await this.sb.from("tr_personas").update(fila).eq("id", st.selId);
+    if (r.error) { this.avisar("No se pudo guardar: " + this.traducir(r.error.message), "err"); return; }
+    await this.anota(st.nuevaAbierta ? "Nueva ficha" : "Ficha editada", `${fila.ap1} ${fila.nombres} · ${fila.unidad}`);
+    this.avisar(st.nuevaAbierta ? "Ficha creada." : "Ficha actualizada.");
+    this.setState({ edAbierto: false, nuevaAbierta: false, ed: null, selId: nuevoId });
+    this.cargar();
+  }
+
+  async borrarFicha(p) {
+    if (!confirm(`¿Eliminar la ficha de ${p.ap1} ${p.nombres} y todos sus hitos? Esta acción no se puede deshacer.`)) return;
+    const r = await this.sb.from("tr_personas").delete().eq("id", p.id);
+    if (r.error) { this.avisar("No se pudo eliminar: " + this.traducir(r.error.message), "err"); return; }
+    await this.anota("Ficha eliminada", `${p.ap1} ${p.nombres}`);
+    this.avisar("Ficha eliminada.");
+    this.setState({ selId: null, edAbierto: false, ed: null });
+    this.cargar();
+  }
+
+  async crearUnidad() {
+    const nombre = this.state.nuNombre.trim(), tipo = this.state.nuTipo;
+    if (!nombre) { this.avisar("Escribe el nombre de la unidad.", "err"); return; }
+    const r = await this.sb.from("tr_unidades").insert({ nombre, tipo: tipo || null });
+    if (r.error) { this.avisar("No se pudo crear: " + this.traducir(r.error.message), "err"); return; }
+    await this.anota("Nueva unidad", nombre);
+    this.avisar(`«${nombre}» agregada al catálogo.`);
+    this.setState({ nuNombre: "", nuTipo: "Departamento" });
+    this.cargar();
+  }
+
+  async guardarUnidad() {
+    const st = this.state, u = st.unidades.find(x => x.id === st.uniEditId);
+    if (!u) return;
+    const nombre = st.uniNombre.trim(), tipo = st.uniTipo;
+    if (!nombre) { this.avisar("El nombre no puede quedar vacío.", "err"); return; }
+    const n = st.personas.filter(p => p.unidad === u.nombre).length;
+    if (nombre !== u.nombre && n > 0 && !confirm(`El nuevo nombre se aplicará también a las ${n} fichas adscritas a «${u.nombre}». ¿Continuar?`)) return;
+    const r = await this.sb.from("tr_unidades").update({ nombre, tipo: tipo || null }).eq("id", u.id);
+    if (r.error) { this.avisar("No se pudo guardar: " + this.traducir(r.error.message), "err"); return; }
+    await this.anota("Unidad editada", nombre === u.nombre ? nombre : `${u.nombre} → ${nombre}`);
+    this.avisar(nombre === u.nombre ? "Unidad actualizada." : `Renombrada a «${nombre}»${n ? ` y aplicada a ${n} fichas` : ""}.`);
+    this.setState({ uniEditId: null, uniNombre: "", uniTipo: "" });
+    this.cargar();
+  }
+
+  async alternarUnidad(u) {
+    const r = await this.sb.from("tr_unidades").update({ activo: !u.activo }).eq("id", u.id);
+    if (r.error) { this.avisar("No se pudo actualizar: " + this.traducir(r.error.message), "err"); return; }
+    await this.anota("Unidad", `${u.nombre} → ${u.activo ? "desactivada" : "activa"}`);
+    this.cargar();
+  }
+
+  async borrarUnidad(u, n) {
+    if (n > 0) { this.avisar(`«${u.nombre}» tiene ${n} fichas adscritas. Traslada esas personas antes, o desactiva la unidad.`, "err"); return; }
+    if (!confirm(`¿Eliminar «${u.nombre}» del catálogo de unidades?`)) return;
+    const r = await this.sb.from("tr_unidades").delete().eq("id", u.id);
+    if (r.error) { this.avisar("No se pudo eliminar: " + this.traducir(r.error.message), "err"); return; }
+    await this.anota("Unidad eliminada", u.nombre);
+    this.avisar("Unidad eliminada.");
+    this.cargar();
+  }
+
+  async invitar() {
+    const u = this.state.uform, correo = u.correo.trim().toLowerCase();
+    if (!correo) { this.avisar("Escribe el correo de la persona.", "err"); return; }
+    const r = await this.sb.from("invitaciones").upsert({ correo, nombre: u.nombre.trim(), rol: u.rol });
+    if (r.error) { this.avisar("No se pudo autorizar: " + this.traducir(r.error.message), "err"); return; }
+    await this.anota("Cuenta autorizada", `${correo} como ${u.rol === "administrador" ? "administración" : "solo visión"}`);
+    this.avisar("Correo autorizado. La persona ya puede crear su contraseña.");
+    this.setState({ uform: { nombre: "", correo: "", rol: "editor" } });
+    this.cargar();
   }
 
   async anota(accion, detalle) {
@@ -519,6 +1130,10 @@ class Component extends DCLogic {
     if (/email not confirmed/i.test(t)) return "Debes confirmar tu correo antes de entrar.";
     if (/rate limit|too many/i.test(t)) return "Demasiados intentos. Espera unos minutos.";
     if (/tr_personas|tr_eventos/i.test(t) && /could not find|does not exist|schema cache/i.test(t)) return "Faltan las tablas: ejecuta data/supabase/setup-trayectorias.sql en Supabase.";
+    if (/tr_archivos/i.test(t) && /could not find|does not exist|schema cache/i.test(t)) return "Falta la tabla de documentos: ejecuta data/supabase/migracion-archivos.sql en Supabase.";
+    if (/tr_unidades/i.test(t) && /could not find|does not exist|schema cache/i.test(t)) return "Falta el catálogo de unidades: ejecuta data/supabase/migracion-unidades.sql en Supabase.";
+    if (/duplicate key/i.test(t) && /unidad/i.test(t)) return "Ya existe una unidad con ese nombre.";
+    if (/could not find the '?[a-z_0-9]+'? column|column .* does not exist|PGRST204/i.test(t)) return "Falta actualizar la base: ejecuta data/supabase/migracion-encasillamiento.sql en Supabase.";
     if (/could not find the table|schema cache|relation .* does not exist/i.test(t)) return "La base aún no está instalada: ejecuta data/supabase/setup-trayectorias.sql en Supabase.";
     if (/row-level security|permission denied/i.test(t)) return "Tu cuenta no tiene permiso para esta operación (solo administradores editan).";
     if (/bucket.*not found/i.test(t)) return "Falta el depósito de respaldos: ejecuta setup-trayectorias.sql en Supabase.";
@@ -545,39 +1160,111 @@ class Component extends DCLogic {
     if (error) this.setState({ err: this.traducir(error.message) });
   }
 
+  EV_VACIO = { tipo: "Jerarquización", anio: "", fecha: "", jerarquia: "", acta: "", enlace: "" };
+
   async guardarEvento() {
     const st = this.state, ev = st.ev;
     if (!st.selId) return;
     if (!ev.acta && !ev.anio && !ev.fecha) { this.avisar("Indica al menos el año o el acta del hito.", "err"); return; }
-    const fila = { persona: st.selId, tipo: ev.tipo, anio: ev.anio ? parseInt(ev.anio, 10) : (ev.fecha ? +ev.fecha.slice(0, 4) : null),
+    const fila = { tipo: ev.tipo, anio: ev.anio ? parseInt(ev.anio, 10) : (ev.fecha ? +ev.fecha.slice(0, 4) : null),
       fecha: ev.fecha || null, jerarquia: ev.jerarquia || null, acta: ev.acta || null, enlace: ev.enlace || null };
-    const r = await this.sb.from("tr_eventos").insert(fila);
+    const r = st.evEditId ? await this.sb.from("tr_eventos").update(fila).eq("id", st.evEditId)
+                          : await this.sb.from("tr_eventos").insert({ ...fila, persona: st.selId });
     if (r.error) { this.avisar("No se pudo guardar: " + this.traducir(r.error.message), "err"); return; }
     const p = st.personas.find(x => x.id === st.selId) || {};
-    await this.anota("Nuevo hito", `${ev.tipo} · ${p.ap1 || ""} ${p.nombres || ""}`);
-    this.avisar("Hito agregado a la trayectoria.");
-    this.setState({ evAbierto: false, ev: { tipo: "Jerarquización", anio: "", fecha: "", jerarquia: "", acta: "", enlace: "" } });
+    await this.anota(st.evEditId ? "Hito editado" : "Nuevo hito", `${ev.tipo} · ${p.ap1 || ""} ${p.nombres || ""}`);
+    this.avisar(st.evEditId ? "Hito actualizado." : "Hito agregado a la trayectoria.");
+    this.setState({ evAbierto: false, evEditId: null, ev: { ...this.EV_VACIO } });
     this.cargar();
   }
 
-  async subirRespaldo(evento, file) {
-    if (!file) return;
-    const ext = (file.name.split(".").pop() || "pdf").toLowerCase();
-    const ruta = `persona-${evento.persona}/hito-${evento.id}-${Date.now()}.${ext}`;
-    this.avisar("Subiendo respaldo…");
-    const up = await this.sb.storage.from("trayectorias").upload(ruta, file, { upsert: true, contentType: file.type || "application/pdf" });
-    if (up.error) { this.avisar("No se pudo subir: " + this.traducir(up.error.message), "err"); return; }
-    const r = await this.sb.from("tr_eventos").update({ archivo: ruta }).eq("id", evento.id);
-    if (r.error) { this.avisar("Se subió el archivo pero no se pudo asociar: " + this.traducir(r.error.message), "err"); return; }
-    await this.anota("Respaldo cargado", `${evento.tipo} · ${file.name}`);
-    this.avisar("Respaldo cargado y asociado al hito.");
+  // Exporta la matriz filtrada como CSV (separador ; para Excel en español). RUN según rol.
+  exportarCsv(filas, admin) {
+    const esc = v => { const s = v == null ? "" : String(v); return /[;"\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+    const cab = ["Apellidos y nombres", "RUN", "Unidad", "Rango", "Año de ingreso", "Antigüedad", "Modo de ingreso", "Jerarquía provisoria", "Jerarquía actual", "Estado jerarquización", "Última jerarquización", "Califica encasillamiento", "Estimación", "Envío STD", "Hitos", "Hitos con documento", "Pendientes"];
+    const cuerpo = filas.map(f => [f.nombre, admin ? f.run : f.runMasc, f.unidad, f.rango, f.anio, f.antig, f.modo, f.jerProv, f.jer, f.estado, f.ultima, f.califica, f.estim, f.envio, f.nHitos, f.nDocs, f.alertas].map(esc).join(";"));
+    const csv = "\uFEFF" + [cab.join(";")].concat(cuerpo).join("\r\n");
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+    a.download = `trayectorias-fahu-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a); a.click(); a.remove();
+    this.anota("Exportación CSV", `${filas.length} fichas`);
+  }
+
+  // Mantenimiento: archivos en el depósito que no están registrados en ningún hito.
+  async buscarHuerfanos() {
+    this.setState({ huerfanosBusy: true, huerfanos: null });
+    const rutas = [];
+    const listar = async (prefijo) => {
+      const { data, error } = await this.sb.storage.from("trayectorias").list(prefijo, { limit: 1000 });
+      if (error) throw error;
+      for (const it of data || []) {
+        const ruta = prefijo ? `${prefijo}/${it.name}` : it.name;
+        if (it.id) rutas.push({ ruta, tamano: (it.metadata && it.metadata.size) || 0 }); else await listar(ruta);
+      }
+    };
+    try { await listar(""); }
+    catch (e) { this.avisar("No se pudo revisar el depósito: " + this.traducir(e.message), "err"); this.setState({ huerfanosBusy: false, huerfanos: [] }); return; }
+    const registradas = new Set(this.state.archivos.map(a => a.ruta).concat(this.state.eventos.map(e => e.archivo).filter(Boolean)));
+    this.setState({ huerfanosBusy: false, huerfanos: rutas.filter(r => !registradas.has(r.ruta)), totalDeposito: rutas.length, bytesDeposito: rutas.reduce((a, r) => a + r.tamano, 0) });
+  }
+
+  async borrarHuerfanos() {
+    const h = this.state.huerfanos || [];
+    if (!h.length || !confirm(`¿Eliminar ${h.length} archivo(s) del depósito que no pertenecen a ningún hito?`)) return;
+    const { error } = await this.sb.storage.from("trayectorias").remove(h.map(x => x.ruta));
+    if (error) { this.avisar("No se pudieron eliminar: " + this.traducir(error.message), "err"); return; }
+    await this.anota("Depósito depurado", `${h.length} archivo(s) huérfano(s) eliminados`);
+    this.avisar("Depósito depurado.");
+    this.buscarHuerfanos();
+  }
+
+  async subirRespaldos(evento, files) {
+    const lista = Array.from(files || []).filter(Boolean);
+    if (!lista.length) return;
+    this.avisar(`Subiendo ${lista.length} ${lista.length === 1 ? "archivo" : "archivos"}…`);
+    let ok = 0, primero = null;
+    for (const file of lista) {
+      const limpio = file.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^\w.\-]+/g, "_");
+      const ruta = `persona-${evento.persona}/hito-${evento.id}/${Date.now()}-${limpio}`;
+      const up = await this.sb.storage.from("trayectorias").upload(ruta, file, { upsert: false, contentType: file.type || "application/pdf" });
+      if (up.error) { this.avisar(`No se pudo subir «${file.name}»: ` + this.traducir(up.error.message), "err"); continue; }
+      if (this.state.sinTablaArchivos) {
+        const r = await this.sb.from("tr_eventos").update({ archivo: ruta }).eq("id", evento.id);
+        if (r.error) { this.avisar("Se subió pero no se pudo asociar: " + this.traducir(r.error.message), "err"); continue; }
+        if (lista.length > 1) this.avisar("Sin la migración de archivos solo se conserva un documento por hito: ejecuta migracion-archivos.sql.", "err");
+      } else {
+        const r = await this.sb.from("tr_archivos").insert({ evento: evento.id, ruta, nombre: file.name, tipo: file.type || null, tamano: file.size || null });
+        if (r.error) { this.avisar("Se subió pero no se pudo registrar: " + this.traducir(r.error.message), "err"); continue; }
+        if (!primero) primero = ruta;
+      }
+      ok++;
+    }
+    if (ok && !this.state.sinTablaArchivos && !evento.archivo && primero) await this.sb.from("tr_eventos").update({ archivo: primero }).eq("id", evento.id);
+    if (ok) { await this.anota("Respaldo cargado", `${evento.tipo} · ${ok} archivo(s)`); this.avisar(`${ok} ${ok === 1 ? "documento cargado" : "documentos cargados"} en el hito.`); }
     this.cargar();
   }
 
-  async verRespaldo(evento) {
-    const { data, error } = await this.sb.storage.from("trayectorias").createSignedUrl(evento.archivo, 3600);
+  async abrirVisor(archivo, titulo) {
+    const { data, error } = await this.sb.storage.from("trayectorias").createSignedUrl(archivo.ruta, 3600);
     if (error) { this.avisar("No se pudo abrir el respaldo: " + this.traducir(error.message), "err"); return; }
-    window.open(data.signedUrl, "_blank", "noreferrer");
+    const nombre = archivo.nombre || archivo.ruta.replace(/^.*\//, "");
+    const esImg = /\.(png|jpe?g|gif|webp)$/i.test(nombre) || /^image\//.test(archivo.tipo || "");
+    const esPdf = /\.pdf$/i.test(nombre) || /pdf/.test(archivo.tipo || "");
+    this.setState({ visor: { url: data.signedUrl, nombre, titulo: titulo || "", esImg, esPdf, otro: !esImg && !esPdf } });
+  }
+
+  async borrarArchivo(archivo, evento) {
+    if (!confirm(`¿Eliminar el documento «${archivo.nombre}» de este hito?`)) return;
+    await this.sb.storage.from("trayectorias").remove([archivo.ruta]);
+    if (archivo.legado) await this.sb.from("tr_eventos").update({ archivo: null }).eq("id", evento.id);
+    else {
+      const r = await this.sb.from("tr_archivos").delete().eq("id", archivo.id);
+      if (r.error) { this.avisar("No se pudo eliminar: " + this.traducir(r.error.message), "err"); return; }
+      if (evento.archivo === archivo.ruta) await this.sb.from("tr_eventos").update({ archivo: null }).eq("id", evento.id);
+    }
+    await this.anota("Respaldo eliminado", `${evento.tipo} · ${archivo.nombre}`);
+    this.cargar();
   }
 
   async borrarEvento(evento) {
@@ -596,14 +1283,22 @@ class Component extends DCLogic {
     if (!evs.some(e => e.tipo === "Ingreso" && (e.enlace || e.archivo))) a.push("Sin respaldo del ingreso");
     if (p.estado_jer === "Realizada" && !evs.some(e => e.tipo === "Jerarquización" && (e.acta || e.enlace || e.archivo))) a.push("Jerarquización realizada sin acta ni respaldo");
     if (!p.fuente) a.push("Sin fuente de información del ingreso");
+    const reg = (p.califica_encasillamiento || "").toLowerCase(), est = this.criterios(p, 2026).estim;
+    const regN = reg === "sí" || reg === "si" ? "Sí" : reg === "no" ? "No" : reg === "planta" ? "Planta" : "";
+    if (regN && regN !== "Planta" && est !== "Sin determinar" && regN !== est) a.push(`Califica registrado «${regN}» difiere de la estimación por criterios («${est}»)`);
+    if (p.sancion_5a && !p.sancion_anio) a.push("Sanción registrada sin año: impide estimar el encasillamiento");
+    if (p.sancion_5a && !p.sancion_nota) a.push("Sanción registrada sin detalle ni referencia");
     return a;
   }
 
   renderVals() {
     const st = this.state, admin = !!(st.perfil && st.perfil.rol === "administrador");
-    const col = j => this.COLOR[j] || "#8A8272";
+    const col = j => this.jer(j).solid;
     const norm = t => (t || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-    const evsDe = id => st.eventos.filter(e => e.persona === id);
+    const archDe = evId => st.archivos.filter(a => a.evento === evId);
+    // un hito «tiene respaldo» si posee al menos un documento cargado
+    const conDoc = e => archDe(e.id).length > 0;
+    const evsDe = id => st.eventos.filter(e => e.persona === id).map(e => ({ ...e, archivo: conDoc(e) ? (e.archivo || archDe(e.id)[0].ruta) : null }));
     const nombreDe = p => `${p.ap1} ${p.ap2}, ${p.nombres}`.replace(/\s+,/, ",").trim();
     const pct = (a, b) => (b ? Math.round(a / b * 100) : 0) + "%";
     const HOY = 2026;
@@ -634,17 +1329,17 @@ class Component extends DCLogic {
     const porUnidad = unidades.map(u => {
       const ps = personas.filter(p => p.unidad === u), n = ps.length;
       const segs = jerarquias.map(j => { const k = ps.filter(p => p.jer_actual === j).length; return k ? { w: pct(k, n), color: col(j), tip: `${u} · ${j}: ${k}` } : null; }).filter(Boolean);
-      return { name: u.replace(/^Departamento de /, "Dpto. ").replace(/^Escuela de /, "Esc. "), n, segs };
+      return { name: u.replace(/^Departamento de /, "Dpto. ").replace(/^Escuela de /, "Esc. "), n, segs, ir: () => irMatriz({ fUnidad: u }) };
     }).sort((a, b) => b.n - a.n);
 
     const estadoUnidad = unidades.map(u => {
       const ps = personas.filter(p => p.unidad === u), r = ps.filter(p => p.estado_jer === "Realizada").length;
-      return { name: u.replace(/^Departamento de /, "Dpto. ").replace(/^Escuela de /, "Esc. "), w: pct(r, ps.length), label: `${r}/${ps.length}`, tip: `${u}: ${r} de ${ps.length} con jerarquización realizada` };
+      return { name: u.replace(/^Departamento de /, "Dpto. ").replace(/^Escuela de /, "Esc. "), w: pct(r, ps.length), label: `${r}/${ps.length}`, tip: `${u}: ${r} de ${ps.length} con jerarquización realizada · clic para ver pendientes`, ir: () => irMatriz({ fUnidad: u, fEstado: "No realizada" }) };
     }).sort((a, b) => parseInt(b.w) - parseInt(a.w));
 
     const modoCuenta = cuenta(personas, "modo_ingreso");
     const maxModo = Math.max(1, ...modoCuenta.map(x => x[1]));
-    const porModo = modoCuenta.map(([name, n]) => ({ name, n, w: pct(n, maxModo), tip: `${name}: ${n} personas (${pct(n, personas.length)})` }));
+    const porModo = modoCuenta.map(([name, n]) => ({ name, n, w: pct(n, maxModo), tip: `${name}: ${n} personas (${pct(n, personas.length)}) · clic para filtrar`, ir: () => irMatriz({ fModo: name }) }));
 
     const anios = conAnio.map(p => p.anio_ingreso);
     const a0 = anios.length ? Math.min(...anios) : 0, a1 = anios.length ? Math.max(...anios) : 0;
@@ -691,19 +1386,25 @@ class Component extends DCLogic {
     const pendientes = Object.entries(tipos).sort((a, b) => b[1] - a[1]).map(([name, n]) => ({ name, n, w: pct(n, maxPend) }));
 
     const califica = v => { const t = (v || "").toLowerCase(); return t === "sí" || t === "si" ? "Sí" : t === "planta" ? "Planta" : t === "no" ? "No" : "Sin definir"; };
-    const encPersonas = personas.filter(p => califica(p.califica_encasillamiento) !== "No");
+    const estimDe = p => this.criterios(p, HOY).estim;
+    const envioDe = p => p.std_memo ? `Memorándum N° ${p.std_memo}${p.std_anio ? " · " + p.std_anio : ""}` : (p.enviado_encasillamiento || "");
+    const difiere = p => { const c = califica(p.califica_encasillamiento), e = estimDe(p); return c !== "Planta" && e !== "Sin determinar" && c !== e; };
+    const encPersonas = personas.filter(p => califica(p.califica_encasillamiento) !== "No" || estimDe(p) === "Sí");
     const encKpis = [
-      { n: personas.filter(p => califica(p.califica_encasillamiento) === "Sí").length, label: "califican para encasillamiento", color: "#2F6B4F" },
+      { n: personas.filter(p => califica(p.califica_encasillamiento) === "Sí").length, label: "registrados como «califica»", color: "#2F6B4F" },
+      { n: personas.filter(p => estimDe(p) === "Sí").length, label: "cumplen los 4 criterios (estimación)", color: "#5E8C6A" },
       { n: personas.filter(p => califica(p.califica_encasillamiento) === "Planta").length, label: "ya en planta", color: "#1D3F5C" },
-      { n: personas.filter(p => p.enviado_encasillamiento).length, label: "con antecedentes enviados por STD", color: "#C4762A" },
-      { n: personas.filter(p => califica(p.califica_encasillamiento) === "Sí" && !p.enviado_encasillamiento).length, label: "califican y aún sin envío", color: "#B0483A" }
+      { n: personas.filter(p => envioDe(p)).length, label: "con envío por STD registrado", color: "#C4762A" },
+      { n: personas.filter(p => difiere(p)).length, label: "registro distinto de la estimación", color: "#B0483A" }
     ];
-    const encLista = encPersonas.map(p => { const c = califica(p.califica_encasillamiento); return {
+    const encLista = encPersonas.map(p => { const c = califica(p.califica_encasillamiento), e = estimDe(p), env = envioDe(p); return {
       nombre: nombreDe(p), unidad: p.unidad, califica: c,
       cFg: c === "Sí" ? "#1F5C3E" : c === "Planta" ? "#1D3F5C" : "#8A5A00", cBg: c === "Sí" ? "#E7F3EB" : c === "Planta" ? "#E7EEF5" : "#FCEBD9",
-      envio: p.enviado_encasillamiento || "Sin envío registrado",
-      hayObs: !!p.obs_encasillamiento, obs: p.obs_encasillamiento }; })
-      .sort((a, b) => (a.envio === "Sin envío registrado" ? 0 : 1) - (b.envio === "Sin envío registrado" ? 0 : 1) || a.nombre.localeCompare(b.nombre));
+      estim: `Estimación: ${e}`, difiere: difiere(p),
+      envio: env || "Sin envío registrado", sinEnvio: !env,
+      hayObs: !!p.obs_encasillamiento, obs: p.obs_encasillamiento,
+      abrir: () => this.setState({ tab: "personas", selId: p.id, encAbierto: false }) }; })
+      .sort((a, b) => (b.difiere ? 1 : 0) - (a.difiere ? 1 : 0) || (a.sinEnvio ? 0 : 1) - (b.sinEnvio ? 0 : 1) || a.nombre.localeCompare(b.nombre));
 
     const selP = personas.find(p => p.id === st.selId);
     let sel = null;
@@ -713,7 +1414,7 @@ class Component extends DCLogic {
       const runVis = admin ? runFmt : runFmt.replace(/^(\d+\.\d+)\..*(-.)$/, "$1.***$2");
       const ult = evs.filter(e => e.tipo === "Jerarquización" && (e.anio || e.acta)).slice(-1)[0];
       sel = {
-        color: col(selP.jer_actual), jer: selP.jer_actual || "Sin jerarquía", nombre: nombreDe(selP), unidad: selP.unidad,
+        color: this.jer(selP.jer_actual).bg, fg: this.jer(selP.jer_actual).fg, jer: selP.jer_actual || "Sin jerarquía", nombre: nombreDe(selP), unidad: selP.unidad,
         datos: [
           { label: "RUN", valor: runVis },
           { label: "Rango contractual", valor: selP.rango || "—" },
@@ -722,30 +1423,79 @@ class Component extends DCLogic {
           { label: "Estado de jerarquización", valor: selP.estado_jer || "—" },
           { label: "Última jerarquización", valor: ult ? (ult.anio ? String(ult.anio) : "Año sin registrar") : "Sin registro" },
           { label: "Modo de ingreso", valor: selP.modo_ingreso || "—" },
-          { label: "Encasillamiento", valor: califica(selP.califica_encasillamiento) + (selP.enviado_encasillamiento ? " · enviado" : "") }
-        ].concat(selP.enviado_encasillamiento ? [{ label: "Envío a encasillamiento", valor: selP.enviado_encasillamiento }] : [])
-          .concat(selP.obs_encasillamiento ? [{ label: "Observación del proceso", valor: selP.obs_encasillamiento }] : [])
+          { label: "Contratación", valor: selP.contratado === false ? "Sin contrato vigente" : "Vigente" }
+        ].concat(selP.sancion_5a ? [{ label: `Sanción art. 121 c) DFL 29/2004${selP.sancion_anio ? " · " + selP.sancion_anio : ""}`, valor: selP.sancion_nota || "Registrada, sin detalle" }] : [])
+          .concat(selP.obs_encasillamiento ? [{ label: "Observación del encasillamiento", valor: selP.obs_encasillamiento }] : [])
           .concat(selP.observaciones ? [{ label: "Observaciones", valor: selP.observaciones }] : []),
+        editar: () => { const o = {}; this.CAMPOS.forEach(([k, , tipo]) => { o[k] = tipo === "bool" ? (selP[k] === true ? "Sí" : selP[k] === false ? "No" : (k === "contratado" ? "Sí" : "No")) : (selP[k] == null ? "" : String(selP[k])); }); this.setState({ edAbierto: true, nuevaAbierta: false, ed: o }); },
+        borrar: () => this.borrarFicha(selP),
+        crit: (() => { const c = this.criterios(selP, HOY); return c.lista.map(x => ({ label: `(${x.k}) ${x.label}`, detalle: x.detalle,
+          marca: x.ok === true ? "✓" : x.ok === false ? "✕" : "?", color: x.ok === true ? "#2F6B4F" : x.ok === false ? "#B0483A" : "#8A5A00" })); })(),
+        encEstim: this.criterios(selP, HOY).estim,
+        encEstimColor: this.criterios(selP, HOY).estim === "Sí" ? "#2F6B4F" : this.criterios(selP, HOY).estim === "No" ? "#B0483A" : "#8A5A00",
+        encRegistrado: califica(selP.califica_encasillamiento),
+        encDifiere: califica(selP.califica_encasillamiento) !== "Planta" && this.criterios(selP, HOY).estim !== "Sin determinar" && califica(selP.califica_encasillamiento) !== this.criterios(selP, HOY).estim,
+        encEnvio: selP.std_memo ? `Memorándum N° ${selP.std_memo}${selP.std_anio ? " · " + selP.std_anio : ""}` : (selP.enviado_encasillamiento || "Sin envío registrado"),
+        encRespaldos: evsDe(selP.id).filter(e => e.tipo === "Encasillamiento").length,
+        encAbrir: () => this.setState({ encAbierto: true, enc: { califica: califica(selP.califica_encasillamiento) === "Sin definir" ? "" : califica(selP.califica_encasillamiento), std_memo: selP.std_memo || "", std_anio: selP.std_anio ? String(selP.std_anio) : "", obs: selP.obs_encasillamiento || "" } }),
+        encAplicar: () => { const est = this.criterios(selP, HOY).estim; if (est === "Sin determinar") return; this.setState({ encAbierto: true, enc: { califica: est, std_memo: selP.std_memo || "", std_anio: selP.std_anio ? String(selP.std_anio) : "", obs: selP.obs_encasillamiento || "" } }); },
         alertas: alertasDe[selP.id] || [], hayAlertas: (alertasDe[selP.id] || []).length > 0,
         sinEventos: evs.length === 0,
         eventos: evs.map(e => ({
           anio: e.anio || (e.fecha ? e.fecha.slice(0, 4) : "—"), tipo: e.tipo, jerarquia: e.jerarquia || "",
           color: e.tipo === "Ingreso" ? "#8A8272" : col(e.jerarquia || selP.jer_actual),
           acta: e.acta || e.nota || "Sin acta registrada",
-          hayArchivo: !!e.archivo, verArchivo: () => this.verRespaldo(e),
+          archivos: archDe(e.id).map((a, i) => ({ nombre: a.nombre || `Documento ${i + 1}`, ver: () => this.abrirVisor(a, `${e.tipo}${e.anio ? " " + e.anio : ""} · ${nombreDe(selP)}`), puedeBorrar: admin, borrar: () => this.borrarArchivo(a, e) })),
+          nArchivos: archDe(e.id).length, hayArchivos: archDe(e.id).length > 0,
           hayEnlace: !!e.enlace, enlace: e.enlace,
-          sinRespaldo: !e.archivo && !e.enlace,
-          puedeSubir: admin, subirLabel: e.archivo ? "Reemplazar archivo" : "Cargar respaldo",
-          subir: ev => { const f = ev.target.files && ev.target.files[0]; ev.target.value = ""; this.subirRespaldo(e, f); },
-          puedeBorrar: admin, borrar: () => this.borrarEvento(e)
+          sinRespaldo: !conDoc(e) && !e.enlace,
+          puedeSubir: admin, subirLabel: conDoc(e) ? "Agregar documentos" : "Cargar respaldo",
+          subir: ev => { const fs = ev.target.files; const arr = Array.from(fs || []); ev.target.value = ""; this.subirRespaldos(e, arr); },
+          puedeBorrar: admin, borrar: () => this.borrarEvento(e),
+          editar: () => this.setState({ evAbierto: true, evEditId: e.id, ev: { tipo: e.tipo || "Jerarquización", anio: e.anio ? String(e.anio) : "", fecha: e.fecha || "", jerarquia: e.jerarquia || "", acta: e.acta || "", enlace: e.enlace || "" } })
         }))
       };
     }
 
-    const pest = [["panorama", "Panorama"], ["personas", "Matriz de personas"], ["encasillamiento", "Encasillamiento"], ["completitud", "Completitud"]];
+    const pest = [["panorama", "Panorama"], ["personas", "Matriz de personas"], ["encasillamiento", "Encasillamiento"], ["completitud", "Completitud"],
+      admin && ["respaldos", "Respaldos"], admin && ["admin", "Administración de sistema"]].filter(Boolean);
+    const SUB = [["unidades", "Unidades académicas"], ["cuentas", "Cuentas"], ["sistema", "Sistema"]];
+    const ADMIN_TABS = SUB.map(x => x[0]);
+    const tabActual = admin ? st.tab : (ADMIN_TABS.includes(st.tab) ? "panorama" : st.tab);
+    const enAdmin = admin && ADMIN_TABS.includes(tabActual);
+    const irMatriz = cambios => this.setState({ tab: "personas", q: "", fUnidad: "Todas las unidades", fJer: "Todas las jerarquías", fEstado: "Todo estado de jerarquización", fModo: "Todos los modos de ingreso", soloAlertas: false, ...cambios });
+    const fmtFecha = d => { try { return new Date(d).toLocaleString("es-CL", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }); } catch (e) { return d; } };
+    const fmtBytes = b => b > 1048576 ? (b / 1048576).toFixed(1) + " MB" : b > 1024 ? Math.round(b / 1024) + " KB" : b + " B";
+    const OPC = {
+      unidad: (st.unidades || []).filter(u => u.activo !== false).length ? (st.unidades || []).filter(u => u.activo !== false).map(u => u.nombre) : unidades.length ? unidades : ["Departamento de Educación", "Departamento de Estudios Políticos", "Departamento de Filosofía", "Departamento de Historia", "Departamento de Lingüística y Literatura", "Escuela de Periodismo", "Escuela de Psicología"],
+      jer: ["Profesor Instructor", "Profesor Asistente", "Profesor Asociado", "Profesor Titular", "(Corroborar)"],
+      estado: ["Realizada", "No realizada"],
+      modo: modos.length ? modos : ["Concurso Público", "Comité de Búsqueda", "Contratación Directa", "Concurso Especial", "Concurso Interno", "Jornada de Reemplazo", "Recontratación tras Jubilación", "Programa de Atracción e Inserción o Subvención de Instalación en la Academia", "Sin Información o Necesidad de Corroborar"],
+      enc: ["Sí", "No", "Planta"], bool: ["Sí", "No"]
+    };
+    const ed = st.ed || this.fichaVacia();
+    const campoEdit = this.CAMPOS.map(([k, label, tipo]) => ({
+      k, label, esArea: tipo === "area", esTexto: tipo === "text" || tipo === "number", esLista: !!OPC[tipo],
+      numero: tipo === "number" ? "number" : "text", valor: ed[k] == null ? "" : String(ed[k]),
+      opciones: (OPC[tipo] || []).map(o => ({ v: o })),
+      set: e => { const v = e.target.value; this.setState(s => ({ ed: { ...(s.ed || this.fichaVacia()), [k]: v } })); }
+    }));
+
+    const pendientesResp = st.eventos.filter(e => !conDoc(e)).map(e => {
+      const p = personas.find(x => x.id === e.persona);
+      return p ? { e, p } : null;
+    }).filter(Boolean);
+    const rq = norm(st.rq).trim();
+    const respFiltrados = pendientesResp.filter(x => !rq || norm(`${x.p.ap1} ${x.p.ap2} ${x.p.nombres} ${x.p.unidad} ${x.e.tipo} ${x.e.acta || ""}`).includes(rq));
+    const conArchivo = st.eventos.filter(e => conDoc(e)).length;
+    const conEnlace = pendientesResp.filter(x => x.e.enlace).length;
 
     return {
       vistaAcceso: st.fase === "login", vistaPanel: st.fase === "panel",
+      retornoBg: this.props.colorRetorno ?? "#EF7A00",
+      retornoFg: ["#FFFFFF", "#F1EFE8", "#F6F4EF"].includes((this.props.colorRetorno ?? "#EF7A00").toUpperCase()) ? "#3A4450" : "#FFFFFF",
+      retornoLabel: this.props.etiquetaRetorno ?? "Gestión de Información VIP",
+      mostrarSalir: this.props.mostrarSalirCabecera ?? true,
       vistaEstado: ["cargando", "error", "sinperfil", "suspendido", "sininstalar"].includes(st.fase),
       estadoTitulo: st.fase === "cargando" ? "Conectando…" : st.fase === "error" ? "Sin conexión con el servicio de datos" : st.fase === "sininstalar" ? "Falta instalar las tablas" : st.fase === "suspendido" ? "Cuenta suspendida" : "Cuenta sin permisos",
       estadoNota: st.fase === "cargando" ? "Verificando la sesión." : st.fase === "error" ? "Revisa que el proyecto de datos esté activo." : st.fase === "sininstalar" ? "Ejecuta una vez data/supabase/setup-trayectorias.sql en el editor SQL de Supabase y vuelve a entrar." : st.fase === "suspendido" ? "Tu acceso fue suspendido por una persona administradora." : "Tu cuenta no tiene perfil en el sistema VIP. Pide que autoricen tu correo desde el panel de Cursos o de Normativa.",
@@ -764,8 +1514,109 @@ class Component extends DCLogic {
       hayError: !!st.err, err: st.err, salir: () => this.sb.auth.signOut(),
       sesionEtiqueta: st.perfil ? `${st.perfil.nombre || st.perfil.correo} · ${admin ? "Administrador/a" : "Consulta"}` : "",
       esAdmin: admin,
-      tabs: pest.map(([id, name]) => ({ name, fg: st.tab === id ? "#2F6B4F" : "#8A8272", line: st.tab === id ? "#EF7A00" : "transparent", pick: () => this.setState({ tab: id }) })),
-      tabPanorama: st.tab === "panorama", tabPersonas: st.tab === "personas", tabEncasillamiento: st.tab === "encasillamiento", tabCompletitud: st.tab === "completitud",
+      tabs: pest.map(([id, name]) => { const on = id === "admin" ? enAdmin : tabActual === id;
+        return { name, fg: on ? "#2F6B4F" : "#8A8272", line: on ? "#EF7A00" : "transparent", pick: () => this.setState({ tab: id === "admin" ? "unidades" : id }) }; }),
+      enAdmin,
+      subTabs: SUB.map(([id, name]) => ({ name, activa: tabActual === id,
+        fg: tabActual === id ? "#fff" : "#3A4450", bg: tabActual === id ? "#2F6B4F" : "#fff", borde: tabActual === id ? "#2F6B4F" : "#E0DCD0",
+        pick: () => this.setState({ tab: id }) })),
+      tabPanorama: tabActual === "panorama", tabPersonas: tabActual === "personas", tabEncasillamiento: tabActual === "encasillamiento", tabCompletitud: tabActual === "completitud",
+      tabRespaldos: tabActual === "respaldos", tabCuentas: tabActual === "cuentas", tabSistema: tabActual === "sistema", tabUnidades: tabActual === "unidades",
+
+      sinTablaUnidades: !!st.sinTablaUnidades, puedeEditarUnidades: !st.sinTablaUnidades,
+      sinUnidades: (st.sinTablaUnidades ? unidades.length : (st.unidades || []).length) === 0,
+      uniLista: (st.sinTablaUnidades
+        ? unidades.map(nombre => ({ id: "f-" + nombre, nombre, tipo: null, activo: true, soloLectura: true }))
+        : (st.unidades || [])).map(u => { const n = personas.filter(p => p.unidad === u.nombre).length; return {
+        nombre: u.nombre, n, tipo: u.tipo || "Sin tipo", inactivo: u.activo === false, editable: !u.soloLectura,
+        bg: st.uniEditId === u.id ? "#FBF6EC" : "#fff", editando: st.uniEditId === u.id, viendo: st.uniEditId !== u.id,
+        sub: [u.soloLectura ? "Leída de las fichas" : (u.tipo || "Sin tipo"), n === 1 ? "1 ficha adscrita" : n + " fichas adscritas"].join(" · "),
+        editar: () => this.setState({ uniEditId: u.id, uniNombre: u.nombre, uniTipo: u.tipo || "" }),
+        alternar: () => this.alternarUnidad(u), alternarLabel: u.activo === false ? "Activar" : "Desactivar",
+        ver: () => irMatriz({ fUnidad: u.nombre }),
+        borrar: () => this.borrarUnidad(u, n), borrarTitulo: n ? `Tiene ${n} fichas adscritas: trasládalas primero` : "Eliminar del catálogo" }; })
+        .sort((a, b) => b.n - a.n),
+      uniNombre: st.uniNombre, setUniNombre: e => this.setState({ uniNombre: e.target.value }),
+      uniTipo: st.uniTipo, setUniTipo: e => this.setState({ uniTipo: e.target.value }),
+      uniGuardar: () => this.guardarUnidad(), uniCancelar: () => this.setState({ uniEditId: null, uniNombre: "", uniTipo: "" }),
+      nuNombre: st.nuNombre, setNuNombre: e => this.setState({ nuNombre: e.target.value }),
+      nuTipo: st.nuTipo, setNuTipo: e => this.setState({ nuTipo: e.target.value }),
+      crearUnidad: () => this.crearUnidad(),
+      sistema: [
+        { name: "Tablas tr_personas / tr_eventos", ok: true, detalle: `${personas.length} fichas · ${st.eventos.length} hitos`, accion: "setup-trayectorias.sql" },
+        { name: "Encasillamiento (criterios y envío STD)", ok: !st.sinColEnc, detalle: st.sinColEnc ? "Faltan columnas: contratado / sancion_5a / sancion_anio / std_memo / std_anio" : "Columnas presentes", accion: "migracion-encasillamiento.sql" },
+        { name: "Varios documentos por hito", ok: !st.sinTablaArchivos, detalle: st.sinTablaArchivos ? "Sin tabla tr_archivos: un solo documento por hito" : `${st.archivos.length} documentos registrados`, accion: "migracion-archivos.sql" },
+        { name: "Catálogo de unidades académicas", ok: !st.sinTablaUnidades, detalle: st.sinTablaUnidades ? "Sin tabla tr_unidades: las unidades se leen de las fichas y no se pueden editar" : `${(st.unidades || []).length} unidades en el catálogo`, accion: "migracion-unidades.sql" },
+        { name: "Registro de actividad", ok: !st.actError, detalle: st.actError || `${st.actividad.length} movimientos recientes`, accion: "setup.sql (Normativa)" }
+      ].map(x => ({ ...x, marca: x.ok ? "✓" : "✕", color: x.ok ? "#2F6B4F" : "#B0483A", bg: x.ok ? "#E7F3EB" : "#F9EBE8" })),
+      actividad: st.actividad.map(a => ({ fecha: fmtFecha(a.fecha), accion: (a.accion || "").replace(/^TR:\s*/, ""), detalle: a.detalle, correo: a.correo })),
+      sinActividad: st.actividad.length === 0,
+      recargar: () => this.cargar(),
+      huerfanosBusy: st.huerfanosBusy, buscarHuerfanos: () => this.buscarHuerfanos(), borrarHuerfanos: () => this.borrarHuerfanos(),
+      huerfanosListos: Array.isArray(st.huerfanos), huerfanosN: (st.huerfanos || []).length, hayHuerfanos: (st.huerfanos || []).length > 0,
+      huerfanos: (st.huerfanos || []).slice(0, 40).map(h => ({ ruta: h.ruta, tamano: fmtBytes(h.tamano) })),
+      depositoResumen: Array.isArray(st.huerfanos) ? `${st.totalDeposito} archivos en el depósito · ${fmtBytes(st.bytesDeposito)} · ${st.archivos.length} registrados en hitos` : "",
+      csvExportar: () => this.exportarCsv(filtradas.map(p => { const evs = evsDe(p.id); const j = evs.filter(e => e.tipo === "Jerarquización" && e.anio).map(e => e.anio);
+        const runF = p.run ? String(p.run).replace(/\B(?=(\d{3})+(?!\d))/g, ".") + "-" + (p.dv || "") : "";
+        return { nombre: nombreDe(p), run: runF, runMasc: runF.replace(/^(\d+\.\d+)\..*(-.)$/, "$1.***$2"), unidad: p.unidad, rango: p.rango, anio: p.anio_ingreso, antig: p.anio_ingreso ? HOY - p.anio_ingreso : "",
+          modo: p.modo_ingreso, jerProv: p.jer_provisoria, jer: p.jer_actual, estado: p.estado_jer, ultima: j.length ? Math.max(...j) : "", califica: califica(p.califica_encasillamiento), estim: estimDe(p), envio: envioDe(p),
+          nHitos: evs.length, nDocs: evs.filter(e => conDoc(e)).length, alertas: (alertasDe[p.id] || []).join(" | ") }; }), admin),
+      csvLabel: `Exportar CSV (${filtradas.length})`,
+
+      campoEdit, edAbierto: st.edAbierto || st.nuevaAbierta, edTitulo: st.nuevaAbierta ? "Nueva ficha académica" : "Editar ficha",
+      edGuardar: () => this.guardarFicha(),
+      edCerrar: () => this.setState({ edAbierto: false, nuevaAbierta: false, ed: null }),
+      nuevaFicha: () => this.setState({ nuevaAbierta: true, edAbierto: false, selId: null, ed: this.fichaVacia(), tab: "personas" }),
+
+      respTotal: st.eventos.length, respConArchivo: conArchivo, respPendientes: pendientesResp.length, respConEnlace: conEnlace,
+      respPct: pct(conArchivo, st.eventos.length),
+      rq: st.rq, setRq: e => this.setState({ rq: e.target.value }),
+      respSinPendientes: respFiltrados.length === 0,
+      respLista: respFiltrados.slice(0, 60).map(({ e, p }) => ({
+        nombre: nombreDe(p), unidad: p.unidad, tipo: e.tipo, anio: e.anio || "—",
+        acta: e.acta || e.nota || "Sin acta registrada",
+        hayEnlace: !!e.enlace, enlace: e.enlace, sinEnlace: !e.enlace,
+        subir: ev => { const arr = Array.from(ev.target.files || []); ev.target.value = ""; this.subirRespaldos(e, arr); }
+      })),
+      respMas: respFiltrados.length > 60 ? `Se muestran 60 de ${respFiltrados.length} hitos sin archivo. Usa el buscador para acotar.` : "",
+      hayRespMas: respFiltrados.length > 60,
+
+      nUsers: st.perfiles.length,
+      users: st.perfiles.map(u => { const yo = !!(st.perfil && u.id === st.perfil.id); return {
+        nombre: u.nombre || "(sin nombre)", correo: u.correo, rol: u.rol,
+        rolLabel: u.rol === "administrador" ? "Administración" : "Solo visión",
+        estado: u.activo ? "Activa" : "Suspendida", bloqueado: yo, puedeQuitar: !yo,
+        alternarLabel: u.activo ? "Suspender" : "Reactivar",
+        alternar: async () => {
+          const r = await this.sb.from("perfiles").update({ activo: !u.activo }).eq("id", u.id);
+          if (r.error) { this.avisar("No se pudo cambiar el estado: " + this.traducir(r.error.message), "err"); return; }
+          await this.anota("Cuenta", `${u.correo} → ${u.activo ? "suspendida" : "reactivada"}`); this.cargar();
+        },
+        setRol: async e => {
+          const rol = e.target.value;
+          const r = await this.sb.from("perfiles").update({ rol }).eq("id", u.id);
+          if (r.error) { this.avisar("No se pudo cambiar el rol: " + this.traducir(r.error.message), "err"); return; }
+          await this.anota("Cambio de rol", `${u.correo} → ${rol}`); this.cargar();
+        },
+        quitar: async () => {
+          if (!confirm(`¿Quitar el acceso de ${u.correo}?`)) return;
+          const r = await this.sb.from("perfiles").delete().eq("id", u.id);
+          if (r.error) { this.avisar("No se pudo quitar: " + this.traducir(r.error.message), "err"); return; }
+          await this.anota("Cuenta eliminada", u.correo); this.avisar("Acceso retirado."); this.cargar();
+        } }; }),
+      hayInvitaciones: st.invitaciones.length > 0, nInv: st.invitaciones.length,
+      invitaciones: st.invitaciones.map(i => ({ nombre: i.nombre || "(sin nombre)", correo: i.correo,
+        rol: i.rol === "administrador" ? "Administración" : "Solo visión",
+        borrar: async () => {
+          const r = await this.sb.from("invitaciones").delete().eq("correo", i.correo);
+          if (r.error) { this.avisar("No se pudo anular: " + this.traducir(r.error.message), "err"); return; }
+          await this.anota("Invitación anulada", i.correo); this.cargar();
+        } })),
+      uNombre: st.uform.nombre, uCorreo: st.uform.correo, uRol: st.uform.rol,
+      setUNombre: e => this.setState(s => ({ uform: { ...s.uform, nombre: e.target.value } })),
+      setUCorreo: e => this.setState(s => ({ uform: { ...s.uform, correo: e.target.value } })),
+      setURol: e => this.setState(s => ({ uform: { ...s.uform, rol: e.target.value } })),
+      invitar: () => this.invitar(),
       hayAviso: !!st.aviso, aviso: st.aviso, avisoFg: st.avisoTipo === "err" ? "#B0483A" : "#2F6B4F", avisoBg: st.avisoTipo === "err" ? "#F9EBE8" : "#E7F3EB",
       baseVacia: personas.length === 0,
 
@@ -776,7 +1627,7 @@ class Component extends DCLogic {
         { n: antigProm ? antigProm + " años" : "—", label: "antigüedad promedio en la Universidad", color: "#C4762A" },
         { n: conAlerta, label: "fichas con datos o respaldos por completar", color: "#B0483A" }
       ],
-      jerLeyenda: jerarquias.map(j => ({ name: j.replace("Profesor ", ""), n: nJer[j], color: col(j) })),
+      jerLeyenda: jerarquias.map(j => ({ name: j.replace("Profesor ", ""), n: nJer[j], color: col(j), ir: () => irMatriz({ fJer: j }) })),
       porUnidad, estadoUnidad, porModo, porAnio, porDecada, antigUnidad, brecha,
       jerPct: pct(realizadas, personas.length), jerPend: personas.length - realizadas,
       ingresoRango: anios.length ? `${a0}–${a1} · ${conAnio.length} de ${personas.length} con año registrado` : "Sin datos",
@@ -792,16 +1643,39 @@ class Component extends DCLogic {
       fModo: st.fModo, setFModo: e => this.setState({ fModo: e.target.value }), modoOpc: ["Todos los modos de ingreso", ...modos],
       soloAlertas: st.soloAlertas, setSoloAlertas: e => this.setState({ soloAlertas: e.target.checked }),
       lista: filtradas.map(p => ({
-        nombre: nombreDe(p), unidad: p.unidad, jer: (p.jer_actual || "—").replace("Profesor ", ""), color: col(p.jer_actual),
+        nombre: nombreDe(p), unidad: p.unidad, jer: (p.jer_actual || "—").replace("Profesor ", ""), color: col(p.jer_actual), chipBg: this.jer(p.jer_actual).bg, chipFg: this.jer(p.jer_actual).fg,
         estado: p.estado_jer === "Realizada" ? "Jerarquización realizada" : "Jerarquización pendiente",
-        estadoFg: p.estado_jer === "Realizada" ? "#2F6B4F" : "#C4762A",
+        estadoFg: p.estado_jer === "Realizada" ? "#2F6B4F" : "#94571B",
         anio: p.anio_ingreso || "—", bg: st.selId === p.id ? "#F2F7F3" : "#fff",
         tieneAlertas: (alertasDe[p.id] || []).length > 0, nAlertas: (alertasDe[p.id] || []).length,
-        abrir: () => this.setState({ selId: p.id, evAbierto: false })
+        abrir: () => this.setState({ selId: p.id, evAbierto: false, nuevaAbierta: false, edAbierto: false, ed: null, encAbierto: false, enc: null })
       })),
       sinSeleccion: !sel, haySeleccion: !!sel, sel: sel || {},
-      evAbierto: st.evAbierto, evToggle: () => this.setState(s => ({ evAbierto: !s.evAbierto })),
+      visorAbierto: !!st.visor, visor: st.visor || {}, cerrarVisor: () => this.setState({ visor: null }),
+      // src se asigna solo cuando existe la URL firmada: evita peticiones a un hueco sin resolver durante el streaming
+      visorContenido: !st.visor ? null : st.visor.esPdf
+        ? React.createElement("iframe", { src: st.visor.url, title: st.visor.nombre, style: { width: "100%", height: "100%", border: "none", display: "block", background: "#fff" } })
+        : st.visor.esImg
+          ? React.createElement("img", { src: st.visor.url, alt: st.visor.nombre, style: { maxWidth: "100%", maxHeight: "100%", objectFit: "contain", display: "block" } })
+          : null,
+      visorFondo: e => { if (e.target === e.currentTarget) this.setState({ visor: null }); },
+      sinTablaArchivos: !!st.sinTablaArchivos,
+      escala: ["Profesor Instructor", "Profesor Asistente", "Profesor Asociado", "Profesor Titular"].map(j => ({ name: j.replace("Profesor ", ""), solid: this.jer(j).solid, bg: this.jer(j).bg, fg: this.jer(j).fg, n: personas.filter(p => p.jer_actual === j).length })),
+      escalas: Object.keys(this.ESCALAS).map(id => ({
+        name: this.ESCALAS[id].nombre, activa: st.escala === id,
+        borde: st.escala === id ? "#3A4450" : "#E0DCD0", fondo: st.escala === id ? "#F6F4EF" : "#fff",
+        muestras: ["Profesor Instructor", "Profesor Asistente", "Profesor Asociado", "Profesor Titular"].map(j => ({ c: this.jer(j, id).solid })),
+        pick: () => { try { localStorage.setItem("tr_escala", id); } catch (e) {} this.setState({ escala: id }); }
+      })),
+      encAbierto: st.encAbierto, encCerrar: () => this.setState({ encAbierto: false, enc: null }), encGuardar: () => this.guardarEncasillamiento(),
+      encCalifica: (st.enc || {}).califica || "", encMemo: (st.enc || {}).std_memo || "", encAnio: (st.enc || {}).std_anio || "", encObs: (st.enc || {}).obs || "",
+      setEncCalifica: e => this.setState(s => ({ enc: { ...(s.enc || {}), califica: e.target.value } })),
+      setEncMemo: e => this.setState(s => ({ enc: { ...(s.enc || {}), std_memo: e.target.value } })),
+      setEncAnio: e => this.setState(s => ({ enc: { ...(s.enc || {}), std_anio: e.target.value } })),
+      setEncObs: e => this.setState(s => ({ enc: { ...(s.enc || {}), obs: e.target.value } })),
+      evAbierto: st.evAbierto, evToggle: () => this.setState(s => ({ evAbierto: !s.evAbierto, evEditId: null, ev: { ...this.EV_VACIO } })),
       evToggleLabel: st.evAbierto ? "Cerrar formulario" : "Agregar un hito a la trayectoria",
+      evTitulo: st.evEditId ? "Editar hito" : "Nuevo hito", evGuardarLabel: st.evEditId ? "Guardar cambios" : "Agregar hito",
       evTipo: st.ev.tipo, evAnio: st.ev.anio, evFecha: st.ev.fecha, evJer: st.ev.jerarquia, evActa: st.ev.acta, evEnlace: st.ev.enlace,
       setEvTipo: e => this.setState(s => ({ ev: { ...s.ev, tipo: e.target.value } })),
       setEvAnio: e => this.setState(s => ({ ev: { ...s.ev, anio: e.target.value } })),
