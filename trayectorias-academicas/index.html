@@ -1,24 +1,16 @@
 <!DOCTYPE html>
 <html>
 <head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <script>
-(function(){
-  function lock(){
-    document.body && document.body.removeAttribute('data-dc-editor-on');
-    document.querySelectorAll('[contenteditable="true"]').forEach(function(el){ el.setAttribute('contenteditable','false'); });
-  }
-  document.addEventListener('DOMContentLoaded', function(){
-    lock();
-    new MutationObserver(lock).observe(document.documentElement, {attributes:true, subtree:true, attributeFilter:['data-dc-editor-on','contenteditable']});
-  });
-})();
+(function(){function g(){document.body&&document.body.removeAttribute('data-dc-editor-on');document.querySelectorAll('[contenteditable]').forEach(function(e){e.setAttribute('contenteditable','false')})}
+document.addEventListener('DOMContentLoaded',function(){g();new MutationObserver(g).observe(document.documentElement,{attributes:true,subtree:true,attributeFilter:['data-dc-editor-on','contenteditable']})})})();
 </script>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="./support.js?v=1788842524401"></script>
+<script src="support.js?v=1788890044138"></script>
 </head>
 <body>
 <x-dc>
@@ -48,10 +40,10 @@ body{margin:0;background:#F1EFE8}a{color:#007E80}a:hover{color:#EF7A00}input:foc
 <div style="min-height:100vh;font-family:Spectral,serif;color:#3A4450">
 
   <sc-if value="{{ vistaAcceso }}" hint-placeholder-val="{{ true }}">
-    <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px">
+    <div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:40px 24px 56px">
       <div style="width:100%;max-width:420px">
         <div style="text-align:center;margin-bottom:22px">
-          <img src="assets/logo-fahu.png" alt="Facultad de Humanidades USACH" style="height:104px;width:auto;display:block;margin:0 auto 14px">
+          <img src="assets/logo-fahu.png?v=1788890044138" alt="Facultad de Humanidades USACH" style="height:104px;width:auto;display:block;margin:0 auto 14px">
           <div style="font:800 17px Archivo,sans-serif;color:#2F6B4F">Trayectorias Académicas</div>
           <div style="font:400 12.5px Archivo,sans-serif;color:#8A8272;margin-top:4px">Facultad de Humanidades · Vicedecanato de Investigación y Postgrado</div>
         </div>
@@ -79,6 +71,115 @@ body{margin:0;background:#F1EFE8}a{color:#007E80}a:hover{color:#EF7A00}input:foc
           <span style="font:600 12px Archivo,sans-serif;color:rgba(255,255,255,.75)">/ Trayectorias Académicas</span>
         </div>
       </div>
+
+      <sc-if value="{{ pubListo }}" hint-placeholder-val="{{ false }}">
+        <div style="width:100%;max-width:980px;margin-top:46px;padding-top:34px;border-top:1px solid #E0DCD0">
+          <div style="text-align:center;max-width:640px;margin:0 auto 26px">
+            <div style="font:700 10px Archivo,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#2F6B4F;margin-bottom:8px">Cifras abiertas</div>
+            <h2 style="font:800 clamp(19px,2.4vw,25px)/1.2 Archivo,sans-serif;color:#3A4450;margin:0 0 8px">El cuerpo académico de la Facultad en cifras</h2>
+            <p style="font:400 13.5px/1.6 Spectral,serif;color:#5A6470;margin:0">Estos totales agregados se publican sin necesidad de cuenta. Las fichas individuales, los respaldos y los datos personales solo son visibles al iniciar sesión.</p>
+          </div>
+
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:18px">
+            <sc-for list="{{ pubKpis }}" as="k" hint-placeholder-count="4">
+              <div style="background:#fff;border:1px solid #E8E4DA;border-radius:12px;padding:16px 18px">
+                <div style="font:600 26px IBM Plex Mono,monospace;color:{{ k.color }};line-height:1">{{ k.n }}</div>
+                <div style="font:400 12px/1.45 Archivo,sans-serif;color:#8A8272;margin-top:6px">{{ k.label }}</div>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="background:#fff;border:1px solid #E8E4DA;border-radius:14px;padding:22px 24px;margin-bottom:18px">
+            <div style="display:flex;justify-content:space-between;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:16px">
+              <div style="font:700 10px Archivo,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#8A8272">Composición por jerarquía y unidad</div>
+              <div style="display:flex;gap:14px;flex-wrap:wrap">
+                <sc-for list="{{ pubJerLeyenda }}" as="j" hint-placeholder-count="4">
+                  <span style="display:inline-flex;gap:7px;align-items:center;font:600 11.5px Archivo,sans-serif;color:#3A4450"><span style="width:11px;height:11px;border-radius:3px;background:{{ j.color }};display:block"></span>{{ j.name }} <span style="font:600 11px IBM Plex Mono,monospace;color:#8A8272">{{ j.n }}</span></span>
+                </sc-for>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:9px">
+              <sc-for list="{{ pubUnidades }}" as="u" hint-placeholder-count="7">
+                <div onMouseMove="{{ u.over }}" onMouseLeave="{{ tipOff }}" style="width:100%;display:grid;grid-template-columns:200px 1fr 90px;gap:14px;align-items:center;cursor:default">
+                  <span style="font:600 12px Archivo,sans-serif;color:#3A4450;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ u.name }}</span>
+                  <span style="display:flex;height:18px;border-radius:5px;overflow:hidden;background:#EFECE4">
+                    <sc-for list="{{ u.segs }}" as="s" hint-placeholder-count="3">
+                      <span onMouseMove="{{ s.over }}" style="display:block;height:100%;flex:{{ s.flex }};min-width:0;background:{{ s.color }}"></span>
+                    </sc-for>
+                  </span>
+                  <span style="font:600 11px IBM Plex Mono,monospace;color:#5A6470;text-align:right">{{ u.n }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px">
+            <div style="background:#fff;border:1px solid #E8E4DA;border-radius:14px;padding:22px 24px">
+              <div style="font:700 10px Archivo,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#8A8272;margin-bottom:14px">Estado de jerarquización</div>
+              <div style="display:flex;gap:18px;align-items:center;margin-bottom:16px">
+                <div style="flex:1">
+                  <div style="font:600 30px IBM Plex Mono,monospace;color:#2F6B4F;line-height:1">{{ pubJerPct }}</div>
+                  <div style="font:400 12px Archivo,sans-serif;color:#8A8272;margin-top:5px">con jerarquización realizada</div>
+                </div>
+                <div style="flex:1">
+                  <div style="font:600 30px IBM Plex Mono,monospace;color:#C4762A;line-height:1">{{ pubJerPend }}</div>
+                  <div style="font:400 12px Archivo,sans-serif;color:#8A8272;margin-top:5px">pendientes de jerarquizar</div>
+                </div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:7px">
+                <sc-for list="{{ pubEstado }}" as="u" hint-placeholder-count="7">
+                  <div onMouseMove="{{ u.over }}" onMouseLeave="{{ tipOff }}" style="width:100%;display:grid;grid-template-columns:minmax(0,1fr) 90px 44px;gap:10px;align-items:center;cursor:default">
+                    <span style="font:400 12px Spectral,serif;color:#3A4450;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ u.name }}</span>
+                    <span style="height:9px;background:#EFECE4;border-radius:5px;overflow:hidden;display:block"><span style="display:block;height:100%;background:#2F6B4F;width:{{ u.w }}"></span></span>
+                    <span style="font:600 11px IBM Plex Mono,monospace;color:#5A6470;text-align:right">{{ u.label }}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+            <div style="background:#fff;border:1px solid #E8E4DA;border-radius:14px;padding:22px 24px">
+              <div style="font:700 10px Archivo,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#8A8272;margin-bottom:14px">Modo de ingreso a la Universidad</div>
+              <div style="display:flex;flex-direction:column;gap:7px">
+                <sc-for list="{{ pubModo }}" as="m" hint-placeholder-count="6">
+                  <div onMouseMove="{{ m.over }}" onMouseLeave="{{ tipOff }}" style="width:100%;display:grid;grid-template-columns:minmax(0,1fr) 90px 44px;gap:10px;align-items:center;cursor:default">
+                    <span style="font:400 12px Spectral,serif;color:#3A4450;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ m.name }}</span>
+                    <span style="height:9px;background:#EFECE4;border-radius:5px;overflow:hidden;display:block"><span style="display:block;height:100%;background:#1D3F5C;width:{{ m.w }}"></span></span>
+                    <span style="font:600 11px IBM Plex Mono,monospace;color:#5A6470;text-align:right">{{ m.n }}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+
+          <div style="background:#fff;border:1px solid #E8E4DA;border-radius:14px;padding:22px 24px">
+            <div style="display:flex;justify-content:space-between;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:16px">
+              <div style="font:700 10px Archivo,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#8A8272">Ingresos por año</div>
+              <div style="font:400 12px Spectral,serif;color:#8A8272">{{ pubRango }}</div>
+            </div>
+            <div style="display:flex;align-items:flex-end;gap:3px;height:130px;padding-bottom:4px">
+              <sc-for list="{{ pubAnios }}" as="a" hint-placeholder-count="30">
+                <span onMouseMove="{{ a.over }}" onMouseLeave="{{ tipOff }}" style="flex:1;min-width:6px;display:flex;flex-direction:column;justify-content:flex-end;height:100%;cursor:default">
+                  <span style="display:block;background:{{ a.color }};height:{{ a.h }};border-radius:3px 3px 0 0"></span>
+                </span>
+              </sc-for>
+            </div>
+            <div style="display:flex;gap:3px;margin-top:6px">
+              <sc-for list="{{ pubAnios }}" as="a" hint-placeholder-count="30">
+                <span style="flex:1;min-width:6px;font:600 8.5px IBM Plex Mono,monospace;color:#8A8272;text-align:center;transform:rotate(-90deg);transform-origin:center;height:26px">{{ a.rot }}</span>
+              </sc-for>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-top:18px;padding-top:16px;border-top:1px solid #F0EDE4">
+              <sc-for list="{{ pubDecadas }}" as="d" hint-placeholder-count="4">
+                <div>
+                  <div style="font:600 19px IBM Plex Mono,monospace;color:#1D3F5C">{{ d.n }}</div>
+                  <div style="font:400 11.5px Archivo,sans-serif;color:#8A8272;margin-top:2px">{{ d.name }}</div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+
+          <p style="font:italic 400 11.5px/1.5 Spectral,serif;color:#8A8272;margin:14px 0 0;text-align:center">{{ pubFuente }}</p>
+        </div>
+      </sc-if>
     </div>
   </sc-if>
 
@@ -101,7 +202,7 @@ body{margin:0;background:#F1EFE8}a{color:#007E80}a:hover{color:#EF7A00}input:foc
     </div>
     <header style="background:#3A4450;padding:14px clamp(20px,5vw,60px);display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap">
       <div style="display:flex;align-items:center;gap:14px">
-        <img src="assets/logo-fahu.png" alt="" style="height:52px;width:auto;display:block;filter:brightness(0) invert(1)">
+        <img src="assets/logo-fahu.png?v=1788890044138" alt="" style="height:52px;width:auto;display:block;filter:brightness(0) invert(1)">
         <div>
           <div style="font:800 15px Archivo,sans-serif;color:#fff">Trayectorias Académicas</div>
           <div style="font:400 11.5px Archivo,sans-serif;color:rgba(255,255,255,.65)">Facultad de Humanidades · USACH</div>
@@ -929,7 +1030,7 @@ class Component extends DCLogic {
     const e = this.ESCALAS[id || this.state.escala] || this.ESCALAS.bosque;
     return e.jer[j] || { solid: "#8A8272", bg: "#EFECE4", fg: "#5A554A" };
   }
-  state = { fase: "cargando", modo: "login", perfil: null, login: { correo: "", clave: "", nombre: "" }, err: "", busy: false,
+  state = { fase: "cargando", modo: "login", perfil: null, login: { correo: "", clave: "", nombre: "" }, err: "", busy: false, pub: null,
     tab: "panorama", personas: [], eventos: [], archivos: [], sinTablaArchivos: false, visor: null, aviso: "", avisoTipo: "ok",
     perfiles: [], invitaciones: [], uform: { nombre: "", correo: "", rol: "editor" },
     edAbierto: false, ed: null, nuevaAbierta: false, rq: "", encAbierto: false, enc: null,
@@ -948,7 +1049,7 @@ class Component extends DCLogic {
     this._esc = e => { if (e.key === "Escape" && this.state.visor) this.setState({ visor: null }); };
     window.addEventListener("keydown", this._esc);
     try {
-      const [lib, cfg] = await Promise.all([import("https://esm.sh/@supabase/supabase-js@2"), import("./data/supabase/config.js?v=1788842524401")]);
+      const [lib, cfg] = await Promise.all([import("https://esm.sh/@supabase/supabase-js@2"), import("./data/supabase/config.js?v=1788890044138")]);
       this.sb = lib.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY);
       this.sb.auth.onAuthStateChange((_e, s) => this.aplicarSesion(s));
       const { data } = await this.sb.auth.getSession();
@@ -957,8 +1058,82 @@ class Component extends DCLogic {
     window.__DC_READY = true;
   }
 
+  // Bloque público bajo el formulario de acceso: solo conteos agregados de la vista tr_publico.
+  publico() {
+    const rows = this.state.pub;
+    if (!rows || !rows.length) return { pubListo: false };
+    const HOY = new Date().getFullYear();
+    const corto = u => u.replace(/^Departamento de /, "Dpto. ").replace(/^Escuela de /, "Esc. ");
+    const pct = (a, b) => b ? Math.round(a / b * 100) + "%" : "0%";
+    const of = t => rows.filter(r => r.tipo === t);
+    const total = (of("total")[0] || {}).n || of("jer").reduce((s, r) => s + r.n, 0);
+    const JORDEN = ["Profesor Titular", "Profesor Asociado", "Profesor Asistente", "Profesor Instructor"];
+    const jerRows = of("jer");
+    const nJer = {}; jerRows.forEach(r => { nJer[r.b] = (nJer[r.b] || 0) + r.n; });
+    const jerNoms = [...JORDEN.filter(j => nJer[j]), ...Object.keys(nJer).filter(j => !JORDEN.includes(j)).sort((a, b) => nJer[b] - nJer[a])];
+    const colJ = j => JORDEN.includes(j) ? this.jer(j).solid : "#C9A24D";
+    const pubJerLeyenda = jerNoms.map(j => ({ name: j.replace("Profesor ", ""), n: nJer[j], color: colJ(j) }));
+
+    const unidades = [...new Set(jerRows.map(r => r.a))];
+    const pubUnidades = unidades.map(u => {
+      const rs = jerRows.filter(r => r.a === u), n = rs.reduce((s, r) => s + r.n, 0);
+      const segs = jerNoms.map(j => { const k = (rs.find(r => r.b === j) || {}).n || 0; return k ? { flex: k, color: colJ(j),
+        over: e => { e.stopPropagation(); this.tip(e, `<strong>${j.replace("Profesor ", "")}</strong> · ${u}<br>${k} de ${n} (${pct(k, n)})`); } } : null; }).filter(Boolean);
+      return { name: corto(u), n, segs, over: e => this.tip(e, `<strong>${u}</strong><br>${n} académicos/as · ${pct(n, total)} de la Facultad`) };
+    }).sort((a, b) => b.n - a.n);
+
+    const est = of("estado");
+    const realizadas = est.filter(r => r.b === "Realizada").reduce((s, r) => s + r.n, 0);
+    const pubEstado = [...new Set(est.map(r => r.a))].map(u => {
+      const rs = est.filter(r => r.a === u), n = rs.reduce((s, r) => s + r.n, 0);
+      const r = (rs.find(x => x.b === "Realizada") || {}).n || 0;
+      return { name: corto(u), w: pct(r, n), label: `${r}/${n}`,
+        over: e => this.tip(e, `<strong>${u}</strong><br>${r} de ${n} con jerarquización realizada (${pct(r, n)})<br>${n - r} pendientes`) };
+    }).sort((a, b) => parseInt(b.w) - parseInt(a.w));
+
+    const modos = of("modo").sort((a, b) => b.n - a.n);
+    const maxModo = Math.max(1, ...modos.map(r => r.n));
+    const pubModo = modos.map(r => ({ name: r.a, n: r.n, w: pct(r.n, maxModo),
+      over: e => this.tip(e, `<strong>${r.a}</strong><br>${r.n} personas · ${pct(r.n, total)} de la Facultad`) }));
+
+    const anioRows = of("anio").filter(r => /^\d{4}$/.test(r.a)).map(r => ({ y: +r.a, n: r.n }));
+    const a0 = anioRows.length ? Math.min(...anioRows.map(r => r.y)) : 0, a1 = anioRows.length ? Math.max(...anioRows.map(r => r.y)) : 0;
+    const serie = []; for (let y = a0; y <= a1; y++) serie.push({ y, n: (anioRows.find(r => r.y === y) || {}).n || 0 });
+    const maxAnio = Math.max(1, ...serie.map(s => s.n));
+    const pubAnios = serie.map(s => ({ h: s.n ? Math.max(4, Math.round(s.n / maxAnio * 100)) + "%" : "2px",
+      color: s.n ? (s.y >= 2020 ? "#2F6B4F" : s.y >= 2010 ? "#5E8C6A" : "#1D3F5C") : "#E5E1D4",
+      rot: s.y % 5 === 0 ? String(s.y) : "",
+      over: e => this.tip(e, `<strong>${s.y}</strong><br>${s.n} ${s.n === 1 ? "ingreso" : "ingresos"}`) }));
+    const dec = {}; anioRows.forEach(r => { const d = Math.floor(r.y / 10) * 10; dec[d] = (dec[d] || 0) + r.n; });
+    const pubDecadas = Object.entries(dec).sort((a, b) => a[0] - b[0]).map(([d, n]) => ({ name: `Ingresos ${d}–${+d + 9}`, n }));
+    const conAnio = anioRows.reduce((s, r) => s + r.n, 0);
+    const antig = conAnio ? Math.round(anioRows.reduce((s, r) => s + (HOY - r.y) * r.n, 0) / conAnio) : 0;
+
+    return {
+      pubListo: true,
+      pubKpis: [
+        { n: total, label: "académicas y académicos", color: "#2F6B4F" },
+        { n: unidades.length, label: "unidades académicas", color: "#1D3F5C" },
+        { n: pct(realizadas, total), label: "con jerarquización realizada", color: "#5E8C6A" },
+        { n: antig + " años", label: "antigüedad promedio", color: "#C4762A" }
+      ],
+      pubJerLeyenda, pubUnidades, pubEstado, pubModo, pubAnios, pubDecadas,
+      pubJerPct: pct(realizadas, total), pubJerPend: total - realizadas,
+      pubRango: a0 ? `${a0} – ${a1}` : "",
+      pubFuente: `Registro de trayectorias del Vicedecanato de Investigación y Postgrado · ${total} fichas · actualizado a ${HOY}.`
+    };
+  }
+
+  async cargarPublico() {
+    try {
+      const { data, error } = await this.sb.from("tr_publico").select("*");
+      if (error || !data || !data.length) { console.warn("Sin estadísticas públicas (falta ejecutar migracion-publico.sql)", error); return; }
+      this.setState({ pub: data });
+    } catch (e) { console.warn(e); }
+  }
+
   async aplicarSesion(sesion) {
-    if (!sesion) { this.setState({ fase: "login", perfil: null }); return; }
+    if (!sesion) { this.setState({ fase: "login", perfil: null }); this.cargarPublico(); return; }
     const { data: perfil, error } = await this.sb.from("perfiles").select("*").eq("id", sesion.user.id).maybeSingle();
     if (error && /could not find the table|PGRST205|schema cache/i.test(error.message + " " + (error.code || ""))) { this.setState({ fase: "sininstalar" }); return; }
     if (error || !perfil) { this.setState({ fase: "sinperfil" }); return; }
@@ -1546,6 +1721,7 @@ class Component extends DCLogic {
     const conEnlace = pendientesResp.filter(x => x.e.enlace).length;
 
     return {
+      ...this.publico(),
       vistaAcceso: st.fase === "login", vistaPanel: st.fase === "panel",
       retornoBg: this.props.colorRetorno ?? "#EF7A00",
       retornoFg: ["#FFFFFF", "#F1EFE8", "#F6F4EF"].includes((this.props.colorRetorno ?? "#EF7A00").toUpperCase()) ? "#3A4450" : "#FFFFFF",
