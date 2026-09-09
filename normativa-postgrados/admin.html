@@ -18,7 +18,7 @@
 </script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="./support.js?v=1788842524401"></script>
+<script src="./support.js?v=1788967555847"></script>
 </head>
 <body>
 <x-dc>
@@ -180,10 +180,10 @@ body{margin:0;background:#F1EFE8}a{color:#007E80}a:hover{color:#EF7A00}input:foc
               <input value="{{ fTitulo }}" onChange="{{ setTitulo }}" placeholder="Título del documento" style="box-sizing:border-box;width:100%;padding:10px 14px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5">
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
                 <select value="{{ fTipo }}" onChange="{{ setTipo }}" style="padding:10px 12px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5;color:#3A4450">
-                  <option>Reglamento</option><option>Resolución</option><option>Procedimiento</option><option>Lineamiento</option><option>Política</option><option>Ley</option><option>Convenio</option>
+                  <sc-for list="{{ tiposOpts }}" as="t" hint-placeholder-count="7"><option>{{ t }}</option></sc-for>
                 </select>
                 <select value="{{ fAmbito }}" onChange="{{ setAmbito }}" style="padding:10px 12px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5;color:#3A4450">
-                  <option>Nacional</option><option>Universidad</option><option>Facultad</option>
+                  <sc-for list="{{ ambitosOpts }}" as="a" hint-placeholder-count="3"><option>{{ a }}</option></sc-for>
                 </select>
               </div>
               <select value="{{ fMateria }}" onChange="{{ setMateria }}" style="padding:10px 12px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5;color:#3A4450">
@@ -307,6 +307,47 @@ body{margin:0;background:#F1EFE8}a{color:#007E80}a:hover{color:#EF7A00}input:foc
         </div>
       </sc-if>
 
+      <sc-if value="{{ tabCats }}" hint-placeholder-val="{{ false }}">
+        <div style="display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:26px;align-items:start">
+          <section>
+            <h2 style="font:800 19px Archivo,sans-serif;margin:0 0 6px;color:#3A4450">Categorías de clasificación</h2>
+            <p style="font:400 13.5px/1.6 Spectral,serif;color:#5A6470;margin:0 0 18px;max-width:620px">Con estas listas se clasifica cada documento y se arman los filtros de la plataforma pública. Al renombrar una categoría, el nuevo nombre se aplica a todos los documentos que la usaban.</p>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
+              <sc-for list="{{ clases }}" as="c" hint-placeholder-count="3">
+                <button onClick="{{ c.pick }}" style="cursor:pointer;border:1.5px solid {{ c.bd }};background:{{ c.bg }};color:{{ c.fg }};border-radius:999px;padding:9px 15px;font:600 12px Archivo,sans-serif">{{ c.name }} · {{ c.n }}</button>
+              </sc-for>
+            </div>
+            <sc-if value="{{ catsSinTabla }}" hint-placeholder-val="{{ false }}">
+              <div style="background:#FBF0DF;border:1px solid #EBD9B6;border-radius:12px;padding:13px 16px;margin-bottom:14px;font:400 12.5px/1.6 Spectral,serif;color:#8A5A12">Las categorías se están leyendo de los documentos existentes. Para poder crear categorías nuevas o dejar una lista fija, ejecuta una vez <strong style="font-family:IBM Plex Mono,monospace;font-size:11.5px">data/supabase/migracion-categorias.sql</strong> en el editor SQL de Supabase.</div>
+            </sc-if>
+            <div style="background:#fff;border:1px solid #E8E4DA;border-radius:14px;overflow:hidden">
+              <sc-for list="{{ cats }}" as="c" hint-placeholder-count="5">
+                <div style="display:grid;grid-template-columns:minmax(0,1fr) 110px 90px 70px;gap:12px;align-items:center;padding:12px 20px;border-bottom:1px solid #F0EDE4">
+                  <sc-if value="{{ c.editando }}" hint-placeholder-val="{{ false }}">
+                    <input value="{{ cNombre }}" onChange="{{ setCNombre }}" onKeyDown="{{ enterRenombrar }}" style="box-sizing:border-box;width:100%;min-width:0;padding:8px 11px;border:1.5px solid #00A0A0;border-radius:8px;font:600 12.5px Archivo,sans-serif;background:#FAF9F5;color:#3A4450">
+                  </sc-if>
+                  <sc-if value="{{ c.quieto }}" hint-placeholder-val="{{ true }}">
+                    <div style="font:700 13px Archivo,sans-serif;color:#3A4450;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ c.nombre }}</div>
+                  </sc-if>
+                  <span style="font:600 11px IBM Plex Mono,monospace;color:#8A8272;text-align:right">{{ c.uso }}</span>
+                  <button onClick="{{ c.ren }}" style="cursor:pointer;border:none;background:none;font:600 12px Archivo,sans-serif;color:#007E80;text-align:right">{{ c.renLabel }}</button>
+                  <button onClick="{{ c.del }}" style="cursor:pointer;border:none;background:none;font:600 12px Archivo,sans-serif;color:{{ c.delFg }};text-align:right">{{ c.delLabel }}</button>
+                </div>
+              </sc-for>
+            </div>
+            <p style="font:italic 400 12px/1.5 Spectral,serif;color:#8A8272;margin-top:12px">Una categoría con documentos asociados no se puede eliminar: renómbrala o reclasifica antes esos documentos.</p>
+          </section>
+          <aside style="background:#fff;border:1px solid #E8E4DA;border-radius:14px;padding:22px 24px;position:sticky;top:20px">
+            <h3 style="font:800 15px Archivo,sans-serif;margin:0 0 4px;color:#3A4450">{{ catAddTitulo }}</h3>
+            <p style="font:italic 400 12px/1.45 Spectral,serif;color:#8A8272;margin:0 0 16px">{{ catAddNota }}</p>
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <input value="{{ cNuevo }}" onChange="{{ setCNuevo }}" placeholder="{{ catAddEjemplo }}" style="box-sizing:border-box;width:100%;padding:10px 14px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5">
+              <button onClick="{{ addCat }}" style="cursor:pointer;border:none;font:700 13px Archivo,sans-serif;color:#fff;background:#007E80;border-radius:10px;padding:11px 16px">{{ catAddBoton }}</button>
+            </div>
+          </aside>
+        </div>
+      </sc-if>
+
       <sc-if value="{{ tabAct }}" hint-placeholder-val="{{ false }}">
         <section style="max-width:760px">
           <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin:0 0 6px">
@@ -387,6 +428,7 @@ class Component extends DCLogic {
     form: null, editing: null, archivoNombre: "",
     uform: {nombre:"", correo:"", rol:"editor"},
     programas: [], pNuevo: "",
+    cats: [], catsSinTabla: false, cclase: "tipo", cNuevo: "", cEdit: "", cNombre: "",
     actError: "", pag: 1,
     bq: "", bTipo: "Todos los tipos", bAmbito: "Todos los ámbitos", bPrograma: "", bVigencia: "Toda vigencia",
     err: "", msg: "", aviso: "", avisoTipo: "ok", busy: false
@@ -397,7 +439,7 @@ class Component extends DCLogic {
     try {
       const [lib, cfg] = await Promise.all([
         import("https://esm.sh/@supabase/supabase-js@2"),
-        import("./data/supabase/config.js?v=1788842524401")
+        import("./data/supabase/config.js?v=1788967555847")
       ]);
       this.bucket = cfg.BUCKET || "normativa";
       this.sb = lib.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY);
@@ -428,7 +470,8 @@ class Component extends DCLogic {
     const tareas = [
       this.sb.from("documentos").select("*").order("anio", {ascending: false}).order("titulo"),
       this.sb.from("actividad").select("*").order("fecha", {ascending: false}).limit(50),
-      this.sb.from("programas").select("*").order("nombre")
+      this.sb.from("programas").select("*").order("nombre"),
+      this.sb.from("categorias").select("*").order("nombre")
     ];
     if (admin) {
       tareas.push(this.sb.from("perfiles").select("*").order("nombre"));
@@ -439,7 +482,8 @@ class Component extends DCLogic {
     this.setState({
       actError: r[1].error ? "no se pudo leer el registro (" + this.traducir(r[1].error.message) + "). Revisa que la tabla «actividad» y sus políticas estén creadas con setup.sql." : (this.state.actError || ""),
       docs: r[0].data || [], actividad: r[1].data || [], programas: r[2].data || [],
-      perfiles: admin ? (r[3].data || []) : [], invitaciones: admin ? (r[4].data || []) : []
+      cats: r[3].data || [], catsSinTabla: !!r[3].error,
+      perfiles: admin ? (r[4].data || []) : [], invitaciones: admin ? (r[5].data || []) : []
     });
   }
 
@@ -459,6 +503,80 @@ class Component extends DCLogic {
       (!s.bPrograma || (s.bPrograma === "__sin__" ? !d.programa : d.programa === s.bPrograma)) &&
       (s.bVigencia === "Toda vigencia" || (d.vigencia || "Vigente") === s.bVigencia) &&
       (!q || norm([d.titulo, d.ref, d.materia, d.programa, d.resumen, d.anio].join(" ")).includes(q)));
+  }
+
+  CLASES = {
+    tipo: {rotulo: "Tipos de documento", singular: "tipo de documento", campo: "tipo",
+      ejemplo: "Reglamento, Instructivo, Circular…",
+      base: ["Reglamento","Resolución","Procedimiento","Lineamiento","Política","Ley","Convenio"]},
+    ambito: {rotulo: "Ámbitos", singular: "ámbito", campo: "ambito",
+      ejemplo: "Nacional, Universidad, Facultad…",
+      base: ["Nacional","Universidad","Facultad"]},
+    materia: {rotulo: "Materias", singular: "materia", campo: "materia",
+      ejemplo: "Reglamentos generales, Becas y aranceles…", base: []}
+  };
+
+  catValores(clase) {
+    const st = this.state;
+    const enTabla = st.cats.filter(c => c.clase === clase).map(c => c.nombre);
+    const enDocs = st.docs.map(d => d[this.CLASES[clase].campo]).filter(Boolean);
+    const base = enTabla.length ? [] : this.CLASES[clase].base;
+    return [...new Set([...enTabla, ...enDocs, ...base])].sort((a, b) => a.localeCompare(b, "es"));
+  }
+
+  catUso(clase, nombre) {
+    const campo = this.CLASES[clase].campo;
+    return this.state.docs.filter(d => (d[campo] || "") === nombre).length;
+  }
+
+  async agregarCategoria() {
+    const clase = this.state.cclase, nombre = (this.state.cNuevo || "").trim();
+    const C = this.CLASES[clase];
+    if (!nombre) { this.avisar(`Escribe el nombre del ${C.singular}.`, "err"); return; }
+    if (this.catValores(clase).some(v => v.toLowerCase() === nombre.toLowerCase())) {
+      this.avisar("Esa categoría ya está en la lista.", "err"); return;
+    }
+    const r = await this.sb.from("categorias").insert({clase, nombre});
+    if (r.error) { this.avisar("No se pudo agregar: " + this.traducir(r.error.message), "err"); return; }
+    await this.anota("categoría agregada", `${C.rotulo}: ${nombre}`);
+    this.setState({cNuevo: ""});
+    this.avisar("Categoría agregada.", "ok");
+    this.cargar();
+  }
+
+  async renombrarCategoria(viejo) {
+    const clase = this.state.cclase, C = this.CLASES[clase];
+    const nuevo = (this.state.cNombre || "").trim();
+    if (!nuevo) { this.avisar("Escribe el nuevo nombre.", "err"); return; }
+    if (nuevo === viejo) { this.setState({cEdit: "", cNombre: ""}); return; }
+    if (this.catValores(clase).some(v => v !== viejo && v.toLowerCase() === nuevo.toLowerCase())) {
+      this.avisar("Ya existe una categoría con ese nombre.", "err"); return;
+    }
+    const uso = this.catUso(clase, viejo);
+    if (!this.state.catsSinTabla) {
+      const rc = await this.sb.from("categorias").update({nombre: nuevo}).eq("clase", clase).eq("nombre", viejo);
+      if (rc.error) { this.avisar("No se pudo renombrar: " + this.traducir(rc.error.message), "err"); return; }
+    }
+    if (uso) {
+      const rd = await this.sb.from("documentos").update({[C.campo]: nuevo}).eq(C.campo, viejo);
+      if (rd.error) { this.avisar("La categoría cambió, pero los documentos no: " + this.traducir(rd.error.message), "err"); return; }
+    }
+    await this.anota("categoría renombrada", `${C.rotulo}: ${viejo} → ${nuevo}`);
+    this.setState({cEdit: "", cNombre: ""});
+    this.avisar(uso ? `Renombrada y aplicada a ${uso} documento(s).` : "Categoría renombrada.", "ok");
+    this.cargar();
+  }
+
+  async eliminarCategoria(nombre, uso) {
+    const clase = this.state.cclase, C = this.CLASES[clase];
+    if (uso) { this.avisar(`«${nombre}» clasifica ${uso} documento(s): reclasifícalos o renómbrala.`, "err"); return; }
+    if (this.state.catsSinTabla) { this.avisar("Para administrar la lista, ejecuta primero migracion-categorias.sql.", "err"); return; }
+    if (!confirm(`¿Eliminar «${nombre}» de la lista de ${C.rotulo.toLowerCase()}?`)) return;
+    const r = await this.sb.from("categorias").delete().eq("clase", clase).eq("nombre", nombre);
+    if (r.error) { this.avisar("No se pudo eliminar: " + this.traducir(r.error.message), "err"); return; }
+    await this.anota("categoría eliminada", `${C.rotulo}: ${nombre}`);
+    this.avisar("Categoría eliminada.", "ok");
+    this.cargar();
   }
 
   async agregarPrograma() {
@@ -580,7 +698,7 @@ class Component extends DCLogic {
 
   async importar() {
     try {
-      const {DOCS} = await import("./data/normativa/catalogo.js?v=1788842524401");
+      const {DOCS} = await import("./data/normativa/catalogo.js");
       const filas = DOCS.map(d => ({titulo: d.titulo, tipo: d.tipo, ambito: d.ambito, materia: d.materia || "",
         programa: d.programa || null, anio: String(d.anio || ""), ref: d.ref || "", resumen: d.resumen || "",
         arts: d.arts || 0, secciones: d.secciones || [], versiones: d.versiones || [], pdf: d.pdf || "",
@@ -597,7 +715,9 @@ class Component extends DCLogic {
     const st = this.state, f = st.form || this.VACIO;
     const admin = !!st.perfil && st.perfil.rol === "administrador";
     const fecha = s => { try { return new Date(s).toLocaleString("es-CL", {day:"2-digit", month:"2-digit", year:"numeric", hour:"2-digit", minute:"2-digit"}); } catch (e) { return ""; } };
-    const pestañas = [["docs","Documentos"],["progs","Programas"]].concat(admin ? [["users","Usuarios"]] : []).concat([["act","Actividad"],["ayuda","Publicación"]]);
+    const pestañas = [["docs","Documentos"],["cats","Clasificación"],["progs","Programas"]].concat(admin ? [["users","Usuarios"]] : []).concat([["act","Actividad"],["ayuda","Publicación"]]);
+    const clase = st.cclase, CL = this.CLASES[clase];
+    const catValores = this.catValores(clase);
     const usoPrograma = p => st.docs.filter(d => d.programa === p).length;
     const POR = 20;
     const filtrados = this.filtrarDocs(st.docs);
@@ -641,6 +761,35 @@ class Component extends DCLogic {
         pick: () => this.setState({tab: id})})),
       tabDocs: st.tab === "docs", tabUsers: st.tab === "users" && admin, tabAct: st.tab === "act", tabAyuda: st.tab === "ayuda",
       tabProgs: st.tab === "progs",
+      tabCats: st.tab === "cats",
+      catsSinTabla: st.catsSinTabla,
+      clases: Object.keys(this.CLASES).map(k => ({
+        name: this.CLASES[k].rotulo, n: this.catValores(k).length,
+        bg: k === clase ? "#E4F2F2" : "#fff", fg: k === clase ? "#007E80" : "#8A8272",
+        bd: k === clase ? "#00A0A0" : "#E0DCD0",
+        pick: () => this.setState({cclase: k, cEdit: "", cNombre: "", cNuevo: ""})})),
+      cats: catValores.map(nombre => {
+        const n = this.catUso(clase, nombre), editando = st.cEdit === nombre;
+        return {nombre, editando, quieto: !editando,
+          uso: n === 1 ? "1 documento" : `${n} documentos`,
+          renLabel: editando ? "Guardar" : "Renombrar",
+          ren: () => editando ? this.renombrarCategoria(nombre) : this.setState({cEdit: nombre, cNombre: nombre}),
+          delLabel: editando ? "Cancelar" : "Eliminar",
+          delFg: editando ? "#8A8272" : (n ? "#C9C2B2" : "#B0483A"),
+          del: () => editando ? this.setState({cEdit: "", cNombre: ""}) : this.eliminarCategoria(nombre, n)};
+      }),
+      cNombre: st.cNombre,
+      setCNombre: e => this.setState({cNombre: e.target.value}),
+      enterRenombrar: e => { if (e.key === "Enter") this.renombrarCategoria(st.cEdit); },
+      cNuevo: st.cNuevo,
+      setCNuevo: e => this.setState({cNuevo: e.target.value}),
+      addCat: () => this.agregarCategoria(),
+      catAddTitulo: `Agregar ${clase === "materia" ? "una materia" : clase === "ambito" ? "un ámbito" : "un tipo"}`,
+      catAddNota: clase === "materia"
+        ? "Las materias agrupan documentos por asunto en la plataforma pública."
+        : `Aparecerá en el desplegable de ${CL.rotulo.toLowerCase()} al cargar o editar un documento.`,
+      catAddEjemplo: CL.ejemplo,
+      catAddBoton: `Agregar ${CL.singular}`,
       nProgs: programas.length,
       pNuevo: st.pNuevo,
       setPNuevo: e => this.setState({pNuevo: e.target.value}),
@@ -663,8 +812,8 @@ class Component extends DCLogic {
       setBAmbito: e => this.setState({bAmbito: e.target.value, pag: 1}),
       setBPrograma: e => this.setState({bPrograma: e.target.value, pag: 1}),
       setBVigencia: e => this.setState({bVigencia: e.target.value, pag: 1}),
-      bTipos: ["Todos los tipos", ...[...new Set(st.docs.map(d => d.tipo).filter(Boolean))].sort()],
-      bAmbitos: ["Todos los ámbitos", ...[...new Set(st.docs.map(d => d.ambito).filter(Boolean))].sort()],
+      bTipos: ["Todos los tipos", ...this.catValores("tipo")],
+      bAmbitos: ["Todos los ámbitos", ...this.catValores("ambito")],
       bVigencias: ["Toda vigencia", "Vigente", "Vencida", "Derogada", "Sin definir"],
       bProgramas: [{v: "", t: "Todos los programas"}, {v: "__sin__", t: "Sin programa asignado"},
         ...programas.map(p => ({v: p, t: p}))],
@@ -700,7 +849,9 @@ class Component extends DCLogic {
       formHint: st.editing ? "Al guardar se registra una nueva versión; la anterior queda en el historial." : "Al guardar, el documento aparece de inmediato en la plataforma pública.",
       saveLabel: st.editing ? "Guardar nueva versión" : "Publicar documento",
       editing: !!st.editing,
-      materiasOpts: [...new Set([...st.docs.map(d => d.materia).filter(Boolean), f.materia || "Reglamentos generales"])].sort(),
+      tiposOpts: [...new Set([...this.catValores("tipo"), f.tipo].filter(Boolean))].sort((a,b) => a.localeCompare(b, "es")),
+      ambitosOpts: [...new Set([...this.catValores("ambito"), f.ambito].filter(Boolean))].sort((a,b) => a.localeCompare(b, "es")),
+      materiasOpts: [...new Set([...this.catValores("materia"), f.materia || "Reglamentos generales"].filter(Boolean))].sort((a,b) => a.localeCompare(b, "es")),
       programasOpts: [{valor: "", etiqueta: "Sin programa asociado"}].concat(programas.map(p => ({valor: p, etiqueta: p}))),
       fTitulo: f.titulo, fTipo: f.tipo, fAmbito: f.ambito, fAnio: f.anio, fMateria: f.materia, fPrograma: f.programa, fRef: f.ref, fResumen: f.resumen, fNota: f.nota,
       fVigencia: f.vigencia || "Vigente", fVigHasta: f.vigHasta || "",
