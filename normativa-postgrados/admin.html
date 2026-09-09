@@ -18,7 +18,7 @@
 </script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="./support.js?v=1788967555847"></script>
+<script src="./support.js?v=1788969136123"></script>
 </head>
 <body>
 <x-dc>
@@ -322,7 +322,8 @@ body{margin:0;background:#F1EFE8}a{color:#007E80}a:hover{color:#EF7A00}input:foc
             </sc-if>
             <div style="background:#fff;border:1px solid #E8E4DA;border-radius:14px;overflow:hidden">
               <sc-for list="{{ cats }}" as="c" hint-placeholder-count="5">
-                <div style="display:grid;grid-template-columns:minmax(0,1fr) 110px 90px 70px;gap:12px;align-items:center;padding:12px 20px;border-bottom:1px solid #F0EDE4">
+                <div draggable="true" onDragStart="{{ c.dragStart }}" onDragOver="{{ c.dragOver }}" onDrop="{{ c.drop }}" onDragEnd="{{ c.dragEnd }}" style="display:grid;grid-template-columns:22px minmax(0,1fr) 110px 90px 70px;gap:12px;align-items:center;padding:12px 20px;border-bottom:1px solid #F0EDE4;border-top:2px solid {{ c.marca }};background:{{ c.filaBg }};opacity:{{ c.filaOp }};cursor:grab">
+                  <span title="Arrastrar para reordenar" style="font:600 14px IBM Plex Mono,monospace;color:#C9C2B2;line-height:1;user-select:none">⋮⋮</span>
                   <sc-if value="{{ c.editando }}" hint-placeholder-val="{{ false }}">
                     <input value="{{ cNombre }}" onChange="{{ setCNombre }}" onKeyDown="{{ enterRenombrar }}" style="box-sizing:border-box;width:100%;min-width:0;padding:8px 11px;border:1.5px solid #00A0A0;border-radius:8px;font:600 12.5px Archivo,sans-serif;background:#FAF9F5;color:#3A4450">
                   </sc-if>
@@ -335,7 +336,12 @@ body{margin:0;background:#F1EFE8}a{color:#007E80}a:hover{color:#EF7A00}input:foc
                 </div>
               </sc-for>
             </div>
-            <p style="font:italic 400 12px/1.5 Spectral,serif;color:#8A8272;margin-top:12px">Una categoría con documentos asociados no se puede eliminar: renómbrala o reclasifica antes esos documentos.</p>
+            <div style="display:flex;gap:16px;align-items:baseline;justify-content:space-between;flex-wrap:wrap;margin-top:12px">
+              <p style="font:italic 400 12px/1.5 Spectral,serif;color:#8A8272;margin:0;max-width:520px">Las categorías se ordenan por cantidad de documentos. Arrastra una fila desde <span style="font:600 12px IBM Plex Mono,monospace;color:#8A8272">⋮⋮</span> para fijar tu propio orden; queda guardado en este navegador. Una categoría con documentos asociados no se puede eliminar: renómbrala o reclasifica antes esos documentos.</p>
+              <sc-if value="{{ catOrdenPropio }}" hint-placeholder-val="{{ false }}">
+                <button onClick="{{ restablecerOrden }}" style="flex:none;cursor:pointer;border:1px solid #CFE7E7;background:#fff;color:#007E80;border-radius:8px;padding:8px 12px;font:600 12px Archivo,sans-serif" style-hover="background:#E9F5F5">Restablecer orden</button>
+              </sc-if>
+            </div>
           </section>
           <aside style="background:#fff;border:1px solid #E8E4DA;border-radius:14px;padding:22px 24px;position:sticky;top:20px">
             <h3 style="font:800 15px Archivo,sans-serif;margin:0 0 4px;color:#3A4450">{{ catAddTitulo }}</h3>
@@ -429,17 +435,28 @@ class Component extends DCLogic {
     uform: {nombre:"", correo:"", rol:"editor"},
     programas: [], pNuevo: "",
     cats: [], catsSinTabla: false, cclase: "tipo", cNuevo: "", cEdit: "", cNombre: "",
+    orden: {}, arrastra: -1, sobre: -1,
     actError: "", pag: 1,
     bq: "", bTipo: "Todos los tipos", bAmbito: "Todos los ámbitos", bPrograma: "", bVigencia: "Toda vigencia",
     err: "", msg: "", aviso: "", avisoTipo: "ok", busy: false
   };
 
+  ORDEN_KEY = "np_orden_categorias_v1";
+
+  leerOrden() {
+    try { return JSON.parse(localStorage.getItem(this.ORDEN_KEY) || "{}") || {}; } catch (e) { return {}; }
+  }
+  guardarOrden(orden) {
+    try { localStorage.setItem(this.ORDEN_KEY, JSON.stringify(orden)); } catch (e) {}
+    this.setState({orden});
+  }
+
   async componentDidMount() {
-    this.setState({form: {...this.VACIO}});
+    this.setState({form: {...this.VACIO}, orden: this.leerOrden()});
     try {
       const [lib, cfg] = await Promise.all([
         import("https://esm.sh/@supabase/supabase-js@2"),
-        import("./data/supabase/config.js?v=1788967555847")
+        import("./data/supabase/config.js?v=1788969136123")
       ]);
       this.bucket = cfg.BUCKET || "normativa";
       this.sb = lib.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY);
@@ -521,7 +538,29 @@ class Component extends DCLogic {
     const enTabla = st.cats.filter(c => c.clase === clase).map(c => c.nombre);
     const enDocs = st.docs.map(d => d[this.CLASES[clase].campo]).filter(Boolean);
     const base = enTabla.length ? [] : this.CLASES[clase].base;
-    return [...new Set([...enTabla, ...enDocs, ...base])].sort((a, b) => a.localeCompare(b, "es"));
+    const todas = [...new Set([...enTabla, ...enDocs, ...base])];
+    // Orden por omisión: más documentos primero; a igual cantidad, alfabético.
+    todas.sort((a, b) => this.catUso(clase, b) - this.catUso(clase, a) || a.localeCompare(b, "es"));
+    const propio = ((this.state.orden || {})[clase] || []).filter(n => todas.includes(n));
+    return [...propio, ...todas.filter(n => !propio.includes(n))];
+  }
+
+  ordenPropio(clase) { return (((this.state.orden || {})[clase]) || []).length > 0; }
+
+  moverCategoria(desde, hasta) {
+    const clase = this.state.cclase;
+    const lista = this.catValores(clase).slice();
+    if (desde === hasta || desde < 0 || hasta < 0 || desde >= lista.length) return;
+    const [mov] = lista.splice(desde, 1);
+    lista.splice(hasta, 0, mov);
+    this.guardarOrden({...(this.state.orden || {}), [clase]: lista});
+  }
+
+  restablecerOrden() {
+    const orden = {...(this.state.orden || {})};
+    delete orden[this.state.cclase];
+    this.guardarOrden(orden);
+    this.avisar("Orden restablecido según la cantidad de documentos.", "ok");
   }
 
   catUso(clase, nombre) {
@@ -768,10 +807,19 @@ class Component extends DCLogic {
         bg: k === clase ? "#E4F2F2" : "#fff", fg: k === clase ? "#007E80" : "#8A8272",
         bd: k === clase ? "#00A0A0" : "#E0DCD0",
         pick: () => this.setState({cclase: k, cEdit: "", cNombre: "", cNuevo: ""})})),
-      cats: catValores.map(nombre => {
+      catOrdenPropio: this.ordenPropio(clase),
+      restablecerOrden: () => this.restablecerOrden(),
+      cats: catValores.map((nombre, i) => {
         const n = this.catUso(clase, nombre), editando = st.cEdit === nombre;
         return {nombre, editando, quieto: !editando,
           uso: n === 1 ? "1 documento" : `${n} documentos`,
+          filaBg: st.arrastra === i ? "#F4F1E8" : "#fff",
+          filaOp: st.arrastra === i ? 0.55 : 1,
+          marca: st.sobre === i && st.arrastra !== i ? "#EF7A00" : "#F0EDE4",
+          dragStart: e => { try { e.dataTransfer.effectAllowed = "move"; e.dataTransfer.setData("text/plain", String(i)); } catch (err) {} this.setState({arrastra: i, cEdit: "", cNombre: ""}); },
+          dragOver: e => { e.preventDefault(); try { e.dataTransfer.dropEffect = "move"; } catch (err) {} if (st.sobre !== i) this.setState({sobre: i}); },
+          drop: e => { e.preventDefault(); const d = st.arrastra; this.setState({arrastra: -1, sobre: -1}); if (d >= 0) this.moverCategoria(d, i); },
+          dragEnd: () => this.setState({arrastra: -1, sobre: -1}),
           renLabel: editando ? "Guardar" : "Renombrar",
           ren: () => editando ? this.renombrarCategoria(nombre) : this.setState({cEdit: nombre, cNombre: nombre}),
           delLabel: editando ? "Cancelar" : "Eliminar",
@@ -849,9 +897,9 @@ class Component extends DCLogic {
       formHint: st.editing ? "Al guardar se registra una nueva versión; la anterior queda en el historial." : "Al guardar, el documento aparece de inmediato en la plataforma pública.",
       saveLabel: st.editing ? "Guardar nueva versión" : "Publicar documento",
       editing: !!st.editing,
-      tiposOpts: [...new Set([...this.catValores("tipo"), f.tipo].filter(Boolean))].sort((a,b) => a.localeCompare(b, "es")),
-      ambitosOpts: [...new Set([...this.catValores("ambito"), f.ambito].filter(Boolean))].sort((a,b) => a.localeCompare(b, "es")),
-      materiasOpts: [...new Set([...this.catValores("materia"), f.materia || "Reglamentos generales"].filter(Boolean))].sort((a,b) => a.localeCompare(b, "es")),
+      tiposOpts: [...new Set([...this.catValores("tipo"), f.tipo].filter(Boolean))],
+      ambitosOpts: [...new Set([...this.catValores("ambito"), f.ambito].filter(Boolean))],
+      materiasOpts: [...new Set([...this.catValores("materia"), f.materia || "Reglamentos generales"].filter(Boolean))],
       programasOpts: [{valor: "", etiqueta: "Sin programa asociado"}].concat(programas.map(p => ({valor: p, etiqueta: p}))),
       fTitulo: f.titulo, fTipo: f.tipo, fAmbito: f.ambito, fAnio: f.anio, fMateria: f.materia, fPrograma: f.programa, fRef: f.ref, fResumen: f.resumen, fNota: f.nota,
       fVigencia: f.vigencia || "Vigente", fVigHasta: f.vigHasta || "",

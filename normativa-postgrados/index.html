@@ -18,7 +18,7 @@
 </script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="./support.js?v=1788842524401"></script>
+<script src="./support.js?v=1788970081024"></script>
 </head>
 <body>
 <x-dc>
@@ -76,7 +76,13 @@ body{margin:0;background:#F6F4EF}a{color:#007E80}a:hover{color:#EF7A00}input:foc
       <div style="font:700 10px Archivo,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#8A8272;margin-bottom:10px">Materia</div>
       <div style="display:flex;flex-direction:column;gap:2px;margin-bottom:26px">
         <sc-for list="{{ materias }}" as="t" hint-placeholder-count="6">
-          <button onClick="{{ t.pick }}" style="cursor:{{ t.cursor }};display:flex;justify-content:space-between;align-items:center;gap:8px;border:none;text-align:left;border-radius:8px;padding:8px 12px;font:600 12.5px Archivo,sans-serif;background:{{ t.bg }};color:{{ t.fg }}"><span>{{ t.name }}</span><span style="font:600 11px IBM Plex Mono,monospace;opacity:.65">{{ t.n }}</span></button>
+          <button onClick="{{ t.pick }}" draggable="{{ t.arr }}" title="{{ t.titulo }}" onDragStart="{{ t.dragStart }}" onDragOver="{{ t.dragOver }}" onDrop="{{ t.drop }}" onDragEnd="{{ t.dragEnd }}" style="cursor:{{ t.cursor }};display:flex;justify-content:space-between;align-items:center;gap:8px;border:none;border-top:2px solid {{ t.marca }};text-align:left;border-radius:8px;padding:8px 12px;font:600 12.5px Archivo,sans-serif;background:{{ t.bg }};color:{{ t.fg }};opacity:{{ t.op }}"><span style="display:flex;align-items:center;gap:8px;min-width:0"><span aria-hidden="true" style="font:600 12px IBM Plex Mono,monospace;line-height:1;color:{{ t.gripFg }};user-select:none;width:{{ t.gripW }};overflow:hidden;flex:none">⋮⋮</span><span>{{ t.name }}</span></span><span style="font:600 11px IBM Plex Mono,monospace;opacity:.65">{{ t.n }}</span></button>
+        </sc-for>
+      </div>
+      <div style="font:700 10px Archivo,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#8A8272;margin-bottom:10px">Tipo de documento</div>
+      <div style="display:flex;flex-direction:column;gap:2px;margin-bottom:26px">
+        <sc-for list="{{ tipos }}" as="t" hint-placeholder-count="5">
+          <button onClick="{{ t.pick }}" draggable="{{ t.arr }}" title="{{ t.titulo }}" onDragStart="{{ t.dragStart }}" onDragOver="{{ t.dragOver }}" onDrop="{{ t.drop }}" onDragEnd="{{ t.dragEnd }}" style="cursor:{{ t.cursor }};display:flex;justify-content:space-between;align-items:center;gap:8px;border:none;border-top:2px solid {{ t.marca }};text-align:left;border-radius:8px;padding:8px 12px;font:600 12.5px Archivo,sans-serif;background:{{ t.bg }};color:{{ t.fg }};opacity:{{ t.op }}"><span style="display:flex;align-items:center;gap:8px;min-width:0"><span aria-hidden="true" style="font:600 12px IBM Plex Mono,monospace;line-height:1;color:{{ t.gripFg }};user-select:none;width:{{ t.gripW }};overflow:hidden;flex:none">⋮⋮</span><span>{{ t.name }}</span></span><span style="font:600 11px IBM Plex Mono,monospace;opacity:.65">{{ t.n }}</span></button>
         </sc-for>
       </div>
       <div style="font:700 10px Archivo,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#8A8272;margin-bottom:10px">PROGRAMAS<br></div>
@@ -88,21 +94,19 @@ body{margin:0;background:#F6F4EF}a{color:#007E80}a:hover{color:#EF7A00}input:foc
       <div style="font:700 10px Archivo,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#8A8272;margin-bottom:10px">Ámbito</div>
       <div style="display:flex;flex-direction:column;gap:2px;margin-bottom:26px">
         <sc-for list="{{ ambitos }}" as="t" hint-placeholder-count="4">
-          <button onClick="{{ t.pick }}" style="cursor:{{ t.cursor }};display:flex;justify-content:space-between;align-items:center;gap:8px;border:none;text-align:left;border-radius:8px;padding:8px 12px;font:600 12.5px Archivo,sans-serif;background:{{ t.bg }};color:{{ t.fg }}"><span>{{ t.name }}</span><span style="font:600 11px IBM Plex Mono,monospace;opacity:.65">{{ t.n }}</span></button>
-        </sc-for>
-      </div>
-      <div style="font:700 10px Archivo,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#8A8272;margin-bottom:10px">Tipo de documento</div>
-      <div style="display:flex;flex-direction:column;gap:2px;margin-bottom:26px">
-        <sc-for list="{{ tipos }}" as="t" hint-placeholder-count="5">
-          <button onClick="{{ t.pick }}" style="cursor:{{ t.cursor }};display:flex;justify-content:space-between;align-items:center;gap:8px;border:none;text-align:left;border-radius:8px;padding:8px 12px;font:600 12.5px Archivo,sans-serif;background:{{ t.bg }};color:{{ t.fg }}"><span>{{ t.name }}</span><span style="font:600 11px IBM Plex Mono,monospace;opacity:.65">{{ t.n }}</span></button>
+          <button onClick="{{ t.pick }}" draggable="{{ t.arr }}" title="{{ t.titulo }}" onDragStart="{{ t.dragStart }}" onDragOver="{{ t.dragOver }}" onDrop="{{ t.drop }}" onDragEnd="{{ t.dragEnd }}" style="cursor:{{ t.cursor }};display:flex;justify-content:space-between;align-items:center;gap:8px;border:none;border-top:2px solid {{ t.marca }};text-align:left;border-radius:8px;padding:8px 12px;font:600 12.5px Archivo,sans-serif;background:{{ t.bg }};color:{{ t.fg }};opacity:{{ t.op }}"><span style="display:flex;align-items:center;gap:8px;min-width:0"><span aria-hidden="true" style="font:600 12px IBM Plex Mono,monospace;line-height:1;color:{{ t.gripFg }};user-select:none;width:{{ t.gripW }};overflow:hidden;flex:none">⋮⋮</span><span>{{ t.name }}</span></span><span style="font:600 11px IBM Plex Mono,monospace;opacity:.65">{{ t.n }}</span></button>
         </sc-for>
       </div>
       <div style="font:700 10px Archivo,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#8A8272;margin-bottom:10px">Vigencia</div>
       <div style="display:flex;flex-direction:column;gap:2px">
         <sc-for list="{{ vigencias }}" as="t" hint-placeholder-count="5">
-          <button onClick="{{ t.pick }}" style="cursor:{{ t.cursor }};display:flex;justify-content:space-between;align-items:center;gap:8px;border:none;text-align:left;border-radius:8px;padding:8px 12px;font:600 12.5px Archivo,sans-serif;background:{{ t.bg }};color:{{ t.fg }}"><span>{{ t.name }}</span><span style="font:600 11px IBM Plex Mono,monospace;opacity:.65">{{ t.n }}</span></button>
+          <button onClick="{{ t.pick }}" draggable="{{ t.arr }}" title="{{ t.titulo }}" onDragStart="{{ t.dragStart }}" onDragOver="{{ t.dragOver }}" onDrop="{{ t.drop }}" onDragEnd="{{ t.dragEnd }}" style="cursor:{{ t.cursor }};display:flex;justify-content:space-between;align-items:center;gap:8px;border:none;border-top:2px solid {{ t.marca }};text-align:left;border-radius:8px;padding:8px 12px;font:600 12.5px Archivo,sans-serif;background:{{ t.bg }};color:{{ t.fg }};opacity:{{ t.op }}"><span style="display:flex;align-items:center;gap:8px;min-width:0"><span aria-hidden="true" style="font:600 12px IBM Plex Mono,monospace;line-height:1;color:{{ t.gripFg }};user-select:none;width:{{ t.gripW }};overflow:hidden;flex:none">⋮⋮</span><span>{{ t.name }}</span></span><span style="font:600 11px IBM Plex Mono,monospace;opacity:.65">{{ t.n }}</span></button>
         </sc-for>
       </div>
+      <p style="font:italic 400 11px/1.5 Spectral,serif;color:#A79F8E;margin:20px 0 0">Las categorías se ordenan por cantidad de documentos. Puedes arrastrar las filas de cada lista para fijar tu propio orden en este navegador.</p>
+      <sc-if value="{{ ordenPropio }}" hint-placeholder-val="{{ false }}">
+        <button onClick="{{ restablecerOrden }}" style="cursor:pointer;margin-top:8px;border:1px solid #E0DCD0;background:#fff;color:#007E80;border-radius:8px;padding:7px 11px;font:600 11.5px Archivo,sans-serif" style-hover="background:#E9F5F5">Restablecer orden</button>
+      </sc-if>
     </aside>
     <main style="padding:30px clamp(20px,3.5vw,44px) 80px">
       <div style="background:#3A4450;border-radius:14px;padding:{{ panPad }};margin-bottom:26px">
@@ -231,12 +235,14 @@ body{margin:0;background:#F6F4EF}a{color:#007E80}a:hover{color:#EF7A00}input:foc
 <script type="text/x-dc" data-dc-script>
 class Component extends DCLogic {
   state = { q: "", tipo: "Todos", ambito: "Todos", materia: "Todas", nivel: "Todos", programa: "Todos", vigencia: "Todas", sel: null,
+    orden: (() => { try { return JSON.parse(localStorage.getItem("np_orden_facetas_v1") || "{}") || {}; } catch (e) { return {}; } })(),
+    arrKey: "", arrIdx: -1, sobreIdx: -1,
     panorama: (() => { try { return localStorage.getItem("np_panorama") !== "0"; } catch (e) { return true; } })() };
   docs = [];
   matrizFilas = [];
   async componentDidMount() {
     try {
-      const m = await import('./data/normativa/catalogo.js');
+      const m = await import('./data/normativa/catalogo.js?v=1788970081024');
       this.docs = m.DOCS; this.matrizFilas = m.MATRIZ;
       this.forceUpdate();
     } catch (e) { console.warn('No se pudo cargar el catálogo normativo', e); }
@@ -257,7 +263,7 @@ class Component extends DCLogic {
       if (!this._sb) {
         const [lib, cfg] = await Promise.all([
           import('https://esm.sh/@supabase/supabase-js@2'),
-          import('./data/supabase/config.js')
+          import('./data/supabase/config.js?v=1788970081024')
         ]);
         this._sb = lib.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY);
       }
@@ -302,8 +308,34 @@ class Component extends DCLogic {
     "Magíster en Literatura Latinoamericana y Chilena":"M. Literatura Latinoam. y Chilena",
     "Magíster en Psicología Educacional":"M. Psicología Educacional"
   };
-  facet(key, values) {
-    return values.map(v => {
+  ORDEN_KEY = "np_orden_facetas_v1";
+  leerOrden() {
+    try { return JSON.parse(localStorage.getItem(this.ORDEN_KEY) || "{}") || {}; } catch (e) { return {}; }
+  }
+  guardarOrden(orden) {
+    try { localStorage.setItem(this.ORDEN_KEY, JSON.stringify(orden)); } catch (e) {}
+    this.setState({orden});
+  }
+  cuenta(key, v) {
+    return key === "vigencia" ? this.docs.filter(d => (d.vigencia || "Vigente") === v).length
+                              : this.docs.filter(d => d[key] === v).length;
+  }
+  // Orden por omisión: más documentos primero; sobre él, el orden propio de cada visitante.
+  ordenar(key, valores) {
+    const arr = [...new Set(valores)].sort((a, b) => this.cuenta(key, b) - this.cuenta(key, a) || a.localeCompare(b, "es"));
+    const propio = ((this.state.orden || {})[key] || []).filter(n => arr.includes(n));
+    return [...propio, ...arr.filter(n => !propio.includes(n))];
+  }
+  mover(key, valores, desde, hasta) {
+    if (desde === hasta || desde < 0 || hasta < 0 || desde >= valores.length) return;
+    const lista = valores.slice();
+    const [m] = lista.splice(desde, 1);
+    lista.splice(hasta, 0, m);
+    this.guardarOrden({...(this.state.orden || {}), [key]: lista});
+  }
+
+  facet(key, values, reordenable) {
+    const items = values.map(v => {
       const n = (v==="Todos"||v==="Todas") ? this.docs.length
               : key==="vigencia" ? this.docs.filter(d => (d.vigencia||"Vigente")===v).length
               : this.docs.filter(d => d[key]===v).length;
@@ -318,6 +350,26 @@ class Component extends DCLogic {
         cursor: vacio ? "default" : "pointer",
         pick: vacio ? (() => {}) : (() => this.setState({[key]: v, sel: null}))
       };
+    });
+    if (!reordenable) return items;
+    const st = this.state;
+    const movibles = items.filter(i => i.valor !== "Todos" && i.valor !== "Todas");
+    const lista = movibles.map(i => i.valor);
+    const arrastrando = st.arrKey === key ? st.arrIdx : -1;
+    return items.map(i => {
+      const idx = lista.indexOf(i.valor);
+      if (idx < 0) return {...i, arr: false, marca: "transparent", op: 1, titulo: "", gripFg: "transparent", gripW: "0px"};
+      const on = this.state[key] === i.valor;
+      return {...i, arr: true,
+        gripFg: on ? "rgba(255,255,255,.55)" : "#C9C2B2", gripW: "12px",
+        titulo: "Arrastra para cambiar el orden de la lista",
+        cursor: i.cursor === "default" ? "grab" : i.cursor,
+        op: arrastrando === idx ? 0.5 : 1,
+        marca: st.arrKey === key && st.sobreIdx === idx && arrastrando !== idx ? "#EF7A00" : "transparent",
+        dragStart: e => { try { e.dataTransfer.effectAllowed = "move"; e.dataTransfer.setData("text/plain", String(idx)); } catch (err) {} this.setState({arrKey: key, arrIdx: idx, sobreIdx: -1}); },
+        dragOver: e => { e.preventDefault(); try { e.dataTransfer.dropEffect = "move"; } catch (err) {} if (st.arrKey === key && st.sobreIdx !== idx) this.setState({sobreIdx: idx}); },
+        drop: e => { e.preventDefault(); const d = arrastrando; this.setState({arrKey: "", arrIdx: -1, sobreIdx: -1}); if (d >= 0) this.mover(key, lista, d, idx); },
+        dragEnd: () => this.setState({arrKey: "", arrIdx: -1, sobreIdx: -1})};
     });
   }
   renderVals() {
@@ -426,11 +478,13 @@ class Component extends DCLogic {
       panResumen: `${this.docs.length} documentos \u00b7 ${new Set(this.docs.map(d => d.materia).filter(Boolean)).size} materias normativas`,
       panToggle: () => this.setState(s => { const v = !s.panorama; try { localStorage.setItem("np_panorama", v ? "1" : "0"); } catch (e) {} return { panorama: v }; }),
       limpiar: () => this.setState({q:"", tipo:"Todos", ambito:"Todos", materia:"Todas", nivel:"Todos", programa:"Todos", vigencia:"Todas", sel:null}),
-      tipos: this.facet("tipo", ["Todos","Reglamento","Resolución","Procedimiento","Lineamiento","Política","Ley","Convenio"]),
-      ambitos: this.facet("ambito", ["Todos","Nacional","Universidad","Facultad"]),
-      materias: this.facet("materia", ["Todas", ...materias]),
-      programas: this.facet("programa", ["Todos", ...[...new Set(this.docs.map(d => d.programa).filter(Boolean))].sort()]),
-      vigencias: this.facet("vigencia", ["Todas", "Vigente", "Vencida", "Derogada", "Sin definir"]),
+      tipos: this.facet("tipo", ["Todos", ...this.ordenar("tipo", ["Reglamento","Resolución","Procedimiento","Lineamiento","Política","Ley","Convenio", ...this.docs.map(d => d.tipo).filter(Boolean)])], true),
+      ambitos: this.facet("ambito", ["Todos", ...this.ordenar("ambito", ["Nacional","Universidad","Facultad", ...this.docs.map(d => d.ambito).filter(Boolean)])], true),
+      materias: this.facet("materia", ["Todas", ...this.ordenar("materia", materias)], true),
+      programas: this.facet("programa", ["Todos", ...this.ordenar("programa", this.docs.map(d => d.programa).filter(Boolean))]),
+      vigencias: this.facet("vigencia", ["Todas", ...this.ordenar("vigencia", ["Vigente", "Vencida", "Derogada", "Sin definir"])], true),
+      ordenPropio: Object.values(this.state.orden || {}).some(l => l && l.length),
+      restablecerOrden: () => this.guardarOrden({}),
       programaSel: this.state.programa,
       setPrograma: e => this.setState({programa: e.target.value, sel: null})
     };
