@@ -12,13 +12,14 @@ Carpeta `vipfahu/` = raíz del sitio. Sitio estático publicado en Netlify: http
 
 ## Datos (Supabase, un solo proyecto para los tres subsistemas)
 Los scripts SQL viven en el proyecto de diseño (no se publican). Orden de ejecución, una sola vez cada uno, en SQL Editor:
-1. `normativa-postgrados/data/supabase/setup.sql` — perfiles, invitaciones, documentos, actividad, funciones `es_editor()` / `es_admin()`. Luego `migracion-mi-cuenta.sql` (sep 2026): cada persona edita su propio nombre, correo y contraseña desde «Mi cuenta» en los tres paneles.
+1. `normativa-postgrados/data/supabase/setup.sql` — perfiles, invitaciones, documentos, actividad, funciones `es_editor()` / `es_admin()`. Luego `migracion-mi-cuenta.sql` (sep 2026): cada persona edita su propio nombre, correo y contraseña desde «Mi cuenta» en los tres paneles. Al final de todo, `migracion-accesos.sql` (sep 2026): accesos diferenciados por plataforma (Sin acceso / Consulta / Edición / Administración por cuenta y plataforma; `perfiles.rol` queda como rol general).
 2. `cursos-formacion/data/supabase/setup-cursos.sql` → `seed-cursos.sql` → `migracion-programas-cuentas.sql`.
 3. `trayectorias-academicas/data/supabase/setup-trayectorias.sql` → `seed-trayectorias.sql` → `migracion-encasillamiento.sql` → `migracion-archivos.sql`.
 
 Los archivos con datos personales (`seed-trayectorias.sql`, `catalogo.js` de trayectorias) **nunca** se copian a esta carpeta.
 
 ## Cuentas y niveles
+Una sola cuenta (correo + contraseña) para todo el sistema, con un **nivel por plataforma** que se fija en la matriz «Acceso por plataforma» de la pestaña Usuarios/Cuentas de cualquier panel: Sin acceso · Consulta · Edición · Administración. El **rol general** «Admin. general» (columna rol de la lista de cuentas) administra cuentas y accesos de las tres plataformas; solo otra administración general puede otorgarlo. Invitar desde un panel autoriza únicamente esa plataforma.
 Una sola tabla `perfiles` para todo el sistema; el rol se interpreta por subsistema:
 
 | rol            | Normativa                     | Cursos                                        | Trayectorias            |
