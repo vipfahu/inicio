@@ -10,7 +10,7 @@
 (function(){function g(){document.body&&document.body.removeAttribute('data-dc-editor-on');document.querySelectorAll('[contenteditable]').forEach(function(e){e.setAttribute('contenteditable','false')})}
 document.addEventListener('DOMContentLoaded',function(){g();new MutationObserver(g).observe(document.documentElement,{attributes:true,subtree:true,attributeFilter:['data-dc-editor-on','contenteditable']})})})();
 </script>
-<script src="support.js?v=1788889264975"></script>
+<script src="support.js?v=1790262639328"></script>
 </head>
 <body>
 <x-dc>
@@ -30,7 +30,7 @@ body{margin:0;background:#F6F4EF}a{color:#007E80}a:hover{color:#EF7A00}
 <div style="min-height:100vh;display:flex;flex-direction:column;font-family:Spectral,Georgia,serif;color:#3A4450">
   <header style="background:#fff;border-bottom:1px solid #E8E4DA;padding:18px clamp(24px,5vw,60px);display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap">
     <div style="display:flex;align-items:center;gap:18px">
-      <img src="assets/logo-fahu.png?v=1788889264975" alt="Facultad de Humanidades · Universidad de Santiago de Chile" style="display:block;height:72px;width:auto">
+      <img src="assets/logo-fahu.png?v=1790262639328" alt="Facultad de Humanidades · Universidad de Santiago de Chile" style="display:block;height:72px;width:auto">
       <div>
         <div style="font:800 17px Archivo,sans-serif;color:#007E80">Gestión de Información VIP</div>
         <div style="font:400 12px Archivo,sans-serif;color:#8A8272;margin-top:2px">Vicedecanato de Investigación y Postgrado · FAHU USACH</div>
@@ -88,17 +88,17 @@ body{margin:0;background:#F6F4EF}a{color:#007E80}a:hover{color:#EF7A00}
         <span style="font:600 12.5px Archivo,sans-serif;color:#2F6B4F">Ingresar →</span>
       </a>
 
-      <div style="display:flex;flex-direction:column;gap:18px;background:#FBFAF6;border:1px dashed #D8D3C5;border-top:4px solid #C9C2B0;border-radius:14px;padding:26px 26px 24px;min-height:250px;box-sizing:border-box">
+      <a href="https://atmeetfahu.netlify.app" target="_blank" rel="noopener" style="display:flex;flex-direction:column;gap:18px;background:#fff;border:1px solid #E8E4DA;border-top:4px solid #EF7A00;border-radius:14px;padding:26px 26px 24px;text-decoration:none;color:inherit;min-height:250px;box-sizing:border-box;transition:transform .15s,box-shadow .15s" style-hover="transform:translateY(-3px);box-shadow:0 12px 32px rgba(58,68,80,.10)">
         <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
-          <span style="font:600 12px IBM Plex Mono,monospace;color:#A8A192">04</span>
-          <span style="font:600 10.5px Archivo,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#94571B;background:#FBEEDD;border-radius:999px;padding:5px 10px">En desarrollo</span>
+          <span style="font:600 12px IBM Plex Mono,monospace;color:#8A8272">04</span>
+          <span style="font:600 10.5px Archivo,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#007E80;background:#E6F4F4;border-radius:999px;padding:5px 10px">Disponible</span>
         </div>
         <div style="flex:1">
-          <h2 style="font:800 20px/1.2 Archivo,sans-serif;color:#5A6470;margin:0 0 10px">Solicitudes de Patrocinio</h2>
-          <p style="font:400 14px/1.55 Spectral,serif;color:#8A8272;margin:0;text-wrap:pretty">Registro y seguimiento de las solicitudes de patrocinio institucional a proyectos de investigación: antecedentes, estado de tramitación y respaldos.</p>
+          <h2 style="font:800 20px/1.2 Archivo,sans-serif;color:#3A4450;margin:0 0 10px">Aplicación para Coordinación de Reuniones</h2>
+          <p style="font:400 14px/1.55 Spectral,serif;color:#5A6470;margin:0;text-wrap:pretty">Encuentra los horarios comunes de un grupo para agendar reuniones: cada participante indica su disponibilidad con preferencias visuales y puede dejar comentarios.</p>
         </div>
-        <span style="font:600 12.5px Archivo,sans-serif;color:#A8A192">Próximamente</span>
-      </div>
+        <span style="font:600 12.5px Archivo,sans-serif;color:#EF7A00">Abrir aplicación ↗</span>
+      </a>
 
       <div style="display:flex;flex-direction:column;gap:18px;background:#FBFAF6;border:1px dashed #D8D3C5;border-top:4px solid #C9C2B0;border-radius:14px;padding:26px 26px 24px;min-height:250px;box-sizing:border-box">
         <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
@@ -106,8 +106,8 @@ body{margin:0;background:#F6F4EF}a{color:#007E80}a:hover{color:#EF7A00}
           <span style="font:600 10.5px Archivo,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#94571B;background:#FBEEDD;border-radius:999px;padding:5px 10px">En desarrollo</span>
         </div>
         <div style="flex:1">
-          <h2 style="font:800 20px/1.2 Archivo,sans-serif;color:#5A6470;margin:0 0 10px">Procesos de Jerarquización</h2>
-          <p style="font:400 14px/1.55 Spectral,serif;color:#8A8272;margin:0;text-wrap:pretty">Gestión de los procesos de jerarquización académica: postulaciones, etapas de evaluación, plazos y resultados, en articulación con las fichas de trayectoria.</p>
+          <h2 style="font:800 20px/1.2 Archivo,sans-serif;color:#5A6470;margin:0 0 10px">Concesiones Académicas de Excepción de Postgrado</h2>
+          <p style="font:400 14px/1.55 Spectral,serif;color:#8A8272;margin:0;text-wrap:pretty">Registro y seguimiento de las concesiones académicas de excepción otorgadas a estudiantes de postgrado: solicitudes, fundamentos, resoluciones y respaldos.</p>
         </div>
         <span style="font:600 12.5px Archivo,sans-serif;color:#A8A192">Próximamente</span>
       </div>
