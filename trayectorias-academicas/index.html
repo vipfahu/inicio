@@ -10,7 +10,7 @@
 (function(){function g(){document.body&&document.body.removeAttribute('data-dc-editor-on');document.querySelectorAll('[contenteditable]').forEach(function(e){e.setAttribute('contenteditable','false')})}
 document.addEventListener('DOMContentLoaded',function(){g();new MutationObserver(g).observe(document.documentElement,{attributes:true,subtree:true,attributeFilter:['data-dc-editor-on','contenteditable']})})})();
 </script>
-<script src="support.js?v=1788971210142"></script>
+<script src="support.js?v=1790272432799"></script>
 </head>
 <body>
 <x-dc>
@@ -43,7 +43,7 @@ body{margin:0;background:#F1EFE8}a{color:#007E80}a:hover{color:#EF7A00}input:foc
     <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px">
       <div style="width:100%;max-width:420px">
         <div style="text-align:center;margin-bottom:22px">
-          <img src="assets/logo-fahu.png?v=1788971210142" alt="Facultad de Humanidades USACH" style="height:104px;width:auto;display:block;margin:0 auto 14px">
+          <img src="assets/logo-fahu.png?v=1790272432799" alt="Facultad de Humanidades USACH" style="height:104px;width:auto;display:block;margin:0 auto 14px">
           <div style="font:800 17px Archivo,sans-serif;color:#2F6B4F">Trayectorias Académicas</div>
           <div style="font:400 12.5px Archivo,sans-serif;color:#8A8272;margin-top:4px">Facultad de Humanidades · Vicedecanato de Investigación y Postgrado</div>
         </div>
@@ -93,7 +93,7 @@ body{margin:0;background:#F1EFE8}a{color:#007E80}a:hover{color:#EF7A00}input:foc
     </div>
     <header style="background:#3A4450;padding:14px clamp(20px,5vw,60px);display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap">
       <div style="display:flex;align-items:center;gap:14px">
-        <img src="assets/logo-fahu.png?v=1788971210142" alt="" style="height:52px;width:auto;display:block;filter:brightness(0) invert(1)">
+        <img src="assets/logo-fahu.png?v=1790272432799" alt="" style="height:52px;width:auto;display:block;filter:brightness(0) invert(1)">
         <div>
           <div style="font:800 15px Archivo,sans-serif;color:#fff">Trayectorias Académicas</div>
           <div style="font:400 11.5px Archivo,sans-serif;color:rgba(255,255,255,.65)">Facultad de Humanidades · USACH</div>
@@ -101,6 +101,7 @@ body{margin:0;background:#F1EFE8}a{color:#007E80}a:hover{color:#EF7A00}input:foc
       </div>
       <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
         <span style="font:600 11px Archivo,sans-serif;color:rgba(255,255,255,.75)">{{ sesionEtiqueta }}</span>
+        <button onClick="{{ abrirCuenta }}" style="cursor:pointer;border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.12);color:#fff;border-radius:8px;padding:7px 12px;font:600 11px Archivo,sans-serif;min-height:34px">Mi cuenta</button>
         <sc-if value="{{ mostrarSalir }}" hint-placeholder-val="{{ true }}">
           <button onClick="{{ salir }}" style="cursor:pointer;border:1px solid rgba(255,255,255,.35);background:transparent;color:#fff;border-radius:8px;padding:7px 12px;font:600 11px Archivo,sans-serif">Salir</button>
         </sc-if>
@@ -866,6 +867,54 @@ body{margin:0;background:#F1EFE8}a{color:#007E80}a:hover{color:#EF7A00}input:foc
         </div>
       </sc-if>
     </main>
+    <sc-if value="{{ cuentaAbierta }}" hint-placeholder-val="{{ false }}">
+      <div onClick="{{ cuentaFondo }}" style="position:fixed;inset:0;z-index:60;background:rgba(58,68,80,.62);display:flex;align-items:flex-start;justify-content:center;padding:clamp(12px,4vh,60px) 16px;overflow-y:auto">
+        <div onClick="{{ detener }}" role="dialog" aria-label="Mi cuenta" style="width:100%;max-width:520px;background:#fff;border-radius:14px;box-shadow:0 30px 80px rgba(0,0,0,.3);padding:24px 26px 22px;box-sizing:border-box">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:6px">
+            <div>
+              <h2 style="font:800 18px Archivo,sans-serif;color:#3A4450;margin:0">Mi cuenta</h2>
+              <p style="font:400 12.5px/1.5 Spectral,serif;color:#8A8272;margin:4px 0 0">La misma cuenta sirve para Normativa, Cursos y Trayectorias: lo que cambies aquí aplica a todo el sistema VIP.</p>
+            </div>
+            <button onClick="{{ cerrarCuenta }}" aria-label="Cerrar" style="cursor:pointer;border:1px solid #E0DCD0;background:#FAF9F5;color:#3A4450;border-radius:8px;width:34px;height:34px;font:600 15px Archivo,sans-serif;flex:none">×</button>
+          </div>
+          <sc-if value="{{ hayCuentaAviso }}" hint-placeholder-val="{{ false }}">
+            <div style="font:600 12.5px/1.5 Archivo,sans-serif;color:{{ cuentaAvisoFg }};background:{{ cuentaAvisoBg }};border-radius:9px;padding:10px 13px;margin-top:12px">{{ cuentaAviso }}</div>
+          </sc-if>
+
+          <section style="border-top:1px solid #F0EDE4;margin-top:16px;padding-top:16px">
+            <div style="font:700 11px Archivo,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#2F6B4F;margin-bottom:10px">Nombre</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <input value="{{ cNombreVal }}" onChange="{{ setCNombreVal }}" placeholder="Nombre y apellido" style="flex:1;min-width:200px;box-sizing:border-box;padding:10px 13px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5;min-height:44px">
+              <button onClick="{{ guardarNombre }}" style="cursor:pointer;border:none;background:#2F6B4F;color:#fff;border-radius:9px;padding:10px 16px;font:600 12.5px Archivo,sans-serif;min-height:44px">Guardar</button>
+            </div>
+            <p style="font:400 11.5px/1.5 Spectral,serif;color:#8A8272;margin:7px 0 0">Así aparecerás en el registro de actividad y en la lista de cuentas.</p>
+          </section>
+
+          <section style="border-top:1px solid #F0EDE4;margin-top:16px;padding-top:16px">
+            <div style="font:700 11px Archivo,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#2F6B4F;margin-bottom:10px">Correo electrónico</div>
+            <div style="font:400 12.5px IBM Plex Mono,monospace;color:#5A6470;margin-bottom:8px">Actual: {{ cCorreoActual }}</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <input type="email" value="{{ cCorreoVal }}" onChange="{{ setCCorreoVal }}" placeholder="nuevo.correo@usach.cl" style="flex:1;min-width:200px;box-sizing:border-box;padding:10px 13px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5;min-height:44px">
+              <button onClick="{{ guardarCorreo }}" style="cursor:pointer;border:none;background:#2F6B4F;color:#fff;border-radius:9px;padding:10px 16px;font:600 12.5px Archivo,sans-serif;min-height:44px">Cambiar</button>
+            </div>
+            <p style="font:400 11.5px/1.5 Spectral,serif;color:#8A8272;margin:7px 0 0">Recibirás un enlace de confirmación en el correo nuevo. El cambio se aplica al abrirlo; hasta entonces sigues entrando con el actual.</p>
+          </section>
+
+          <section style="border-top:1px solid #F0EDE4;margin-top:16px;padding-top:16px">
+            <div style="font:700 11px Archivo,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#2F6B4F;margin-bottom:10px">Contraseña</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+              <input type="password" autoComplete="new-password" value="{{ cClave1 }}" onChange="{{ setCClave1 }}" placeholder="Nueva contraseña (mín. 8)" style="box-sizing:border-box;padding:10px 13px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5;min-height:44px;min-width:0">
+              <input type="password" autoComplete="new-password" value="{{ cClave2 }}" onChange="{{ setCClave2 }}" onKeyDown="{{ claveEnterCuenta }}" placeholder="Repetir contraseña" style="box-sizing:border-box;padding:10px 13px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5;min-height:44px;min-width:0">
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px">
+              <button onClick="{{ guardarClave }}" style="cursor:pointer;border:none;background:#2F6B4F;color:#fff;border-radius:9px;padding:10px 16px;font:600 12.5px Archivo,sans-serif;min-height:44px">{{ textoGuardarClave }}</button>
+              <span style="font:400 11.5px/1.5 Spectral,serif;color:#8A8272">Se aplica de inmediato; las otras sesiones abiertas se cierran.</span>
+            </div>
+          </section>
+        </div>
+      </div>
+    </sc-if>
+
 
     <sc-if value="{{ visorAbierto }}" hint-placeholder-val="{{ false }}">
       <div onClick="{{ visorFondo }}" style="position:fixed;inset:0;z-index:50;background:rgba(58,68,80,.72);display:flex;align-items:center;justify-content:center;padding:clamp(12px,3vw,32px)">
@@ -940,7 +989,7 @@ class Component extends DCLogic {
     this._esc = e => { if (e.key === "Escape" && this.state.visor) this.setState({ visor: null }); };
     window.addEventListener("keydown", this._esc);
     try {
-      const [lib, cfg] = await Promise.all([import("https://esm.sh/@supabase/supabase-js@2"), import("./data/supabase/config.js?v=1788971210142")]);
+      const [lib, cfg] = await Promise.all([import("https://esm.sh/@supabase/supabase-js@2"), import("./data/supabase/config.js?v=1790272432799")]);
       this.sb = lib.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY);
       this.sb.auth.onAuthStateChange((_e, s) => this.aplicarSesion(s));
       const { data } = await this.sb.auth.getSession();
@@ -1388,6 +1437,74 @@ class Component extends DCLogic {
     return a;
   }
 
+
+  // ---- Mi cuenta: nombre, correo y contraseña de la propia persona ----
+  abrirCuenta() {
+    const p = this.state.perfil || {};
+    this.setState({ cuentaAbierta: true, cNombreVal: p.nombre || "", cCorreoVal: "", cClave1: "", cClave2: "", cuentaAviso: "", cuentaBusy: false });
+  }
+  avisarCuenta(t, tipo) { this.setState({ cuentaAviso: t, cuentaAvisoTipo: tipo || "ok" }); }
+  async guardarNombre() {
+    const nombre = (this.state.cNombreVal || "").trim(), p = this.state.perfil;
+    if (!p) return;
+    if (nombre.length < 3) { this.avisarCuenta("Escribe tu nombre y apellido.", "err"); return; }
+    if (nombre === (p.nombre || "")) { this.avisarCuenta("El nombre no cambió.", "err"); return; }
+    const r = await this.sb.from("perfiles").update({ nombre }).eq("id", p.id).select().maybeSingle();
+    if (r.error) {
+      const m = /row-level security|policy/i.test(r.error.message) ? "El servicio aún no permite editar tu propio perfil: pide al administrador ejecutar migracion-mi-cuenta.sql." : this.traducir(r.error.message);
+      this.avisarCuenta("No se pudo guardar: " + m, "err"); return;
+    }
+    if (!r.data) { this.avisarCuenta("El servicio no aplicó el cambio: falta ejecutar migracion-mi-cuenta.sql.", "err"); return; }
+    await this.anota("Mi cuenta", (p.nombre || p.correo) + " → " + nombre);
+    this.setState({ perfil: Object.assign({}, p, { nombre }) });
+    this.avisarCuenta("Nombre actualizado.");
+  }
+  async guardarCorreo() {
+    const correo = (this.state.cCorreoVal || "").trim().toLowerCase(), p = this.state.perfil;
+    if (!p) return;
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)) { this.avisarCuenta("Escribe un correo válido.", "err"); return; }
+    if (correo === (p.correo || "").toLowerCase()) { this.avisarCuenta("Ese ya es tu correo actual.", "err"); return; }
+    this.setState({ cuentaBusy: true });
+    const r = await this.sb.auth.updateUser({ email: correo }, { emailRedirectTo: location.href.split("#")[0] });
+    this.setState({ cuentaBusy: false });
+    if (r.error) { this.avisarCuenta("No se pudo cambiar el correo: " + this.traducir(r.error.message), "err"); return; }
+    await this.anota("Mi cuenta", "solicitó cambiar correo a " + correo);
+    this.setState({ cCorreoVal: "" });
+    this.avisarCuenta("Te enviamos un enlace a " + correo + ". Ábrelo para confirmar el cambio; mientras tanto sigue vigente " + p.correo + ".");
+  }
+  async guardarClave() {
+    const a = this.state.cClave1 || "", b = this.state.cClave2 || "";
+    if (a.length < 8) { this.avisarCuenta("La contraseña debe tener al menos 8 caracteres.", "err"); return; }
+    if (a !== b) { this.avisarCuenta("Las dos contraseñas no coinciden.", "err"); return; }
+    this.setState({ cuentaBusy: true });
+    const r = await this.sb.auth.updateUser({ password: a });
+    this.setState({ cuentaBusy: false });
+    if (r.error) {
+      const m = /same password|different from the old/i.test(r.error.message) ? "La nueva contraseña debe ser distinta de la actual." : this.traducir(r.error.message);
+      this.avisarCuenta("No se pudo cambiar: " + m, "err"); return;
+    }
+    await this.anota("Mi cuenta", "cambió su contraseña");
+    this.setState({ cClave1: "", cClave2: "" });
+    this.avisarCuenta("Contraseña actualizada.");
+  }
+  cuentaVals() {
+    const st = this.state, p = st.perfil || {};
+    return {
+      cuentaAbierta: !!st.cuentaAbierta, abrirCuenta: () => this.abrirCuenta(),
+      cerrarCuenta: () => this.setState({ cuentaAbierta: false }), cuentaFondo: () => this.setState({ cuentaAbierta: false }),
+      detener: e => e.stopPropagation(),
+      hayCuentaAviso: !!st.cuentaAviso, cuentaAviso: st.cuentaAviso,
+      cuentaAvisoFg: st.cuentaAvisoTipo === "err" ? "#B0483A" : "#2F6B4F", cuentaAvisoBg: st.cuentaAvisoTipo === "err" ? "#F9EBE8" : "#E7F3EB",
+      cNombreVal: st.cNombreVal || "", setCNombreVal: e => this.setState({ cNombreVal: e.target.value }),
+      cCorreoActual: p.correo || "", cCorreoVal: st.cCorreoVal || "", setCCorreoVal: e => this.setState({ cCorreoVal: e.target.value }),
+      cClave1: st.cClave1 || "", cClave2: st.cClave2 || "",
+      setCClave1: e => this.setState({ cClave1: e.target.value }), setCClave2: e => this.setState({ cClave2: e.target.value }),
+      claveEnterCuenta: e => { if (e.key === "Enter") this.guardarClave(); },
+      guardarNombre: () => this.guardarNombre(), guardarCorreo: () => this.guardarCorreo(), guardarClave: () => this.guardarClave(),
+      textoGuardarClave: st.cuentaBusy ? "Guardando…" : "Cambiar contraseña"
+    };
+  }
+
   renderVals() {
     const st = this.state, admin = !!(st.perfil && st.perfil.rol === "administrador");
     const col = j => this.jer(j).solid;
@@ -1634,6 +1751,7 @@ class Component extends DCLogic {
       cambiarModoLabel: st.modo === "registro" ? "← Ya tengo contraseña" : "Primera vez: crear mi contraseña",
       hayError: !!st.err, err: st.err, salir: () => this.sb.auth.signOut(),
       sesionEtiqueta: st.perfil ? `${st.perfil.nombre || st.perfil.correo} · ${admin ? "Administrador/a" : "Consulta"}` : "",
+      ...this.cuentaVals(),
       esAdmin: admin,
       tabs: pest.map(([id, name]) => { const on = id === "admin" ? enAdmin : tabActual === id;
         return { name, fg: on ? "#2F6B4F" : "#8A8272", line: on ? "#EF7A00" : "transparent", pick: () => this.setState({ tab: id === "admin" ? "unidades" : id }) }; }),

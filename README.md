@@ -12,7 +12,7 @@ Carpeta `vipfahu/` = raíz del sitio. Sitio estático publicado en Netlify: http
 
 ## Datos (Supabase, un solo proyecto para los tres subsistemas)
 Los scripts SQL viven en el proyecto de diseño (no se publican). Orden de ejecución, una sola vez cada uno, en SQL Editor:
-1. `normativa-postgrados/data/supabase/setup.sql` — perfiles, invitaciones, documentos, actividad, funciones `es_editor()` / `es_admin()`.
+1. `normativa-postgrados/data/supabase/setup.sql` — perfiles, invitaciones, documentos, actividad, funciones `es_editor()` / `es_admin()`. Luego `migracion-mi-cuenta.sql` (sep 2026): cada persona edita su propio nombre, correo y contraseña desde «Mi cuenta» en los tres paneles.
 2. `cursos-formacion/data/supabase/setup-cursos.sql` → `seed-cursos.sql` → `migracion-programas-cuentas.sql`.
 3. `trayectorias-academicas/data/supabase/setup-trayectorias.sql` → `seed-trayectorias.sql` → `migracion-encasillamiento.sql` → `migracion-archivos.sql`.
 
