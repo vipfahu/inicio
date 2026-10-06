@@ -10,7 +10,7 @@
 (function(){function g(){document.body&&document.body.removeAttribute('data-dc-editor-on');document.querySelectorAll('[contenteditable]').forEach(function(e){e.setAttribute('contenteditable','false')})}
 document.addEventListener('DOMContentLoaded',function(){g();new MutationObserver(g).observe(document.documentElement,{attributes:true,subtree:true,attributeFilter:['data-dc-editor-on','contenteditable']})})})();
 </script>
-<script src="support.js?v=1790277601612"></script>
+<script src="support.js?v=1791307004054"></script>
 </head>
 <body>
 <x-dc>
@@ -43,7 +43,7 @@ body{margin:0;background:#F1EFE8}a{color:#007E80}a:hover{color:#EF7A00}input:foc
     <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px">
       <div style="width:100%;max-width:420px">
         <div style="text-align:center;margin-bottom:22px">
-          <img src="assets/logo-fahu.png?v=1790277601612" alt="Facultad de Humanidades USACH" style="height:104px;width:auto;display:block;margin:0 auto 14px">
+          <img src="assets/logo-fahu.png?v=1791307004054" alt="Facultad de Humanidades USACH" style="height:104px;width:auto;display:block;margin:0 auto 14px">
           <div style="font:800 17px Archivo,sans-serif;color:#2F6B4F">Trayectorias Académicas</div>
           <div style="font:400 12.5px Archivo,sans-serif;color:#8A8272;margin-top:4px">Facultad de Humanidades · Vicedecanato de Investigación y Postgrado</div>
         </div>
@@ -93,7 +93,7 @@ body{margin:0;background:#F1EFE8}a{color:#007E80}a:hover{color:#EF7A00}input:foc
     </div>
     <header style="background:#3A4450;padding:14px clamp(20px,5vw,60px);display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap">
       <div style="display:flex;align-items:center;gap:14px">
-        <img src="assets/logo-fahu.png?v=1790277601612" alt="" style="height:52px;width:auto;display:block;filter:brightness(0) invert(1)">
+        <img src="assets/logo-fahu.png?v=1791307004054" alt="" style="height:52px;width:auto;display:block;filter:brightness(0) invert(1)">
         <div>
           <div style="font:800 15px Archivo,sans-serif;color:#fff">Trayectorias Académicas</div>
           <div style="font:400 11.5px Archivo,sans-serif;color:rgba(255,255,255,.65)">Facultad de Humanidades · USACH</div>
@@ -304,6 +304,12 @@ body{margin:0;background:#F1EFE8}a{color:#007E80}a:hover{color:#EF7A00}input:foc
                 <select value="{{ fModo }}" onChange="{{ setFModo }}" style="min-width:0;padding:8px 10px;border:1.5px solid #E0DCD0;border-radius:8px;font:600 11.5px Archivo,sans-serif;background:#FAF9F5;color:#3A4450">
                   <sc-for list="{{ modoOpc }}" as="o" hint-placeholder-count="9"><option>{{ o }}</option></sc-for>
                 </select>
+                <select value="{{ fEnc }}" onChange="{{ setFEnc }}" title="Estado de encasillamiento" style="min-width:0;padding:8px 10px;border:1.5px solid #E0DCD0;border-radius:8px;font:600 11.5px Archivo,sans-serif;background:#FAF9F5;color:#3A4450">
+                  <sc-for list="{{ encOpc }}" as="o" hint-placeholder-count="8"><option>{{ o }}</option></sc-for>
+                </select>
+                <select value="{{ fActiva }}" onChange="{{ setFActiva }}" title="Estado de la ficha" style="min-width:0;padding:8px 10px;border:1.5px solid {{ fActivaBorde }};border-radius:8px;font:600 11.5px Archivo,sans-serif;background:{{ fActivaBg }};color:#3A4450">
+                  <sc-for list="{{ activaOpc }}" as="o" hint-placeholder-count="3"><option>{{ o }}</option></sc-for>
+                </select>
               </div>
               <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:space-between">
                 <label style="display:flex;align-items:center;gap:10px;font:600 12px Archivo,sans-serif;color:#5A6470;cursor:pointer">
@@ -338,6 +344,9 @@ body{margin:0;background:#F1EFE8}a{color:#007E80}a:hover{color:#EF7A00}input:foc
                   <span style="display:flex;flex-direction:column;gap:5px;align-items:flex-end;flex:none">
                     <span style="font:700 10px Archivo,sans-serif;letter-spacing:.05em;text-transform:uppercase;color:{{ p.chipFg }};background:{{ p.chipBg }};border-radius:5px;padding:4px 8px;white-space:nowrap">{{ p.jer }}</span>
                     <span style="font:600 12px IBM Plex Mono,monospace;color:#5A6470">{{ p.anio }}</span>
+                    <sc-if value="{{ p.inactiva }}" hint-placeholder-val="{{ false }}">
+                      <span style="font:600 9.5px Archivo,sans-serif;letter-spacing:.05em;text-transform:uppercase;color:#8A5A00;background:#FCF6E8;border:1px solid #E8D9B8;border-radius:5px;padding:3px 6px;white-space:nowrap">Desactivada · {{ p.bajaMotivo }}</span>
+                    </sc-if>
                     <sc-if value="{{ p.tieneAlertas }}" hint-placeholder-val="{{ false }}">
                       <span style="font:600 9.5px Archivo,sans-serif;letter-spacing:.05em;text-transform:uppercase;color:#8A5A00;background:#FCEBD9;border-radius:5px;padding:3px 6px;white-space:nowrap">{{ p.nAlertas }} por revisar</span>
                     </sc-if>
@@ -388,6 +397,12 @@ body{margin:0;background:#F1EFE8}a{color:#007E80}a:hover{color:#EF7A00}input:foc
                 </div>
                 <div style="padding:20px 22px">
                   <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px">
+                    <sc-if value="{{ sel.inactiva }}" hint-placeholder-val="{{ false }}">
+                      <div style="background:#FCF6E8;border:1px solid #E8D9B8;border-radius:10px;padding:11px 14px;margin-bottom:12px">
+                        <div style="font:700 9.5px Archivo,sans-serif;letter-spacing:.09em;text-transform:uppercase;color:#8A5A00">Ficha desactivada · {{ sel.bajaMotivo }}</div>
+                        <div style="font:400 12.5px/1.5 Spectral,serif;color:#5A6470;margin-top:3px">{{ sel.bajaDetalle }}</div>
+                      </div>
+                    </sc-if>
                     <sc-for list="{{ sel.datos }}" as="d" hint-placeholder-count="6">
                       <div>
                         <div style="font:700 9.5px Archivo,sans-serif;letter-spacing:.09em;text-transform:uppercase;color:#8A8272">{{ d.label }}</div>
@@ -517,6 +532,12 @@ body{margin:0;background:#F1EFE8}a{color:#007E80}a:hover{color:#EF7A00}input:foc
                     <div style="border-top:1px solid #F0EDE4;padding-top:16px">
                       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
                         <button onClick="{{ sel.editar }}" style="cursor:pointer;border:1.5px solid #CFE0D5;background:#F2F7F3;color:#2F6B4F;border-radius:8px;padding:9px 13px;font:600 12px Archivo,sans-serif">Editar todos los datos</button>
+                        <sc-if value="{{ sel.activa }}" hint-placeholder-val="{{ true }}">
+                          <button onClick="{{ sel.darBaja }}" style="cursor:pointer;border:1.5px solid #E8D9B8;background:#FCF6E8;color:#8A5A00;border-radius:8px;padding:9px 13px;font:600 12px Archivo,sans-serif">Desactivar ficha</button>
+                        </sc-if>
+                        <sc-if value="{{ sel.inactiva }}" hint-placeholder-val="{{ false }}">
+                          <button onClick="{{ sel.reactivar }}" style="cursor:pointer;border:none;background:#2F6B4F;color:#fff;border-radius:8px;padding:9px 13px;font:600 12px Archivo,sans-serif">Reactivar ficha</button>
+                        </sc-if>
                         <button onClick="{{ sel.borrar }}" style="cursor:pointer;border:1.5px solid #F0D5CF;background:#fff;color:#B0483A;border-radius:8px;padding:9px 13px;font:600 12px Archivo,sans-serif">Eliminar ficha</button>
                       </div>
                       <button onClick="{{ evToggle }}" style="cursor:pointer;border:1.5px solid #E0DCD0;background:#fff;color:#2F6B4F;border-radius:8px;padding:9px 13px;font:600 12px Archivo,sans-serif">{{ evToggleLabel }}</button>
@@ -632,6 +653,56 @@ body{margin:0;background:#F1EFE8}a{color:#007E80}a:hover{color:#EF7A00}input:foc
         <sc-if value="{{ hayRespMas }}" hint-placeholder-val="{{ false }}">
           <p style="font:400 12.5px Spectral,serif;color:#8A8272;margin:12px 0 0">{{ respMas }}</p>
         </sc-if>
+      </sc-if>
+
+      <sc-if value="{{ tabMotivos }}" hint-placeholder-val="{{ false }}">
+        <h2 style="font:800 20px Archivo,sans-serif;margin:0 0 6px;color:#3A4450">Motivos de desactivación de fichas</h2>
+        <p style="font:400 13.5px/1.6 Spectral,serif;color:#5A6470;margin:0 0 18px;max-width:820px">Catálogo que se ofrece al <strong>desactivar</strong> una ficha desde la matriz. Al <strong>renombrar</strong> un motivo, el nuevo nombre se aplica a las fichas que lo registran; para eliminarlo no debe quedar ninguna ficha con ese motivo. La desactivación siempre es reversible desde la ficha.</p>
+        <sc-if value="{{ sinTablaMotivos }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#F9EDE9;border:1px solid #E8CFC8;border-radius:12px;padding:14px 18px;margin-bottom:16px;font:400 12.5px/1.55 Archivo,sans-serif;color:#8A3D2E">Falta instalar la desactivación de fichas: ejecuta una vez <strong>data/supabase/migracion-bajas.sql</strong> en el editor SQL de Supabase. Hasta entonces, no es posible desactivar fichas ni editar motivos.</div>
+        </sc-if>
+        <div style="display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:24px;align-items:start">
+          <section style="background:#fff;border:1px solid #E8E4DA;border-radius:14px;overflow:hidden">
+            <sc-if value="{{ sinMotivos }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:30px;text-align:center;font:400 13.5px/1.6 Spectral,serif;color:#5A6470">Aún no hay motivos registrados. Créalos con el formulario de la derecha.</div>
+            </sc-if>
+            <sc-for list="{{ motLista }}" as="m" hint-placeholder-count="3">
+              <div style="display:grid;grid-template-columns:minmax(0,1fr) 110px 90px;gap:14px;align-items:center;padding:13px 20px;border-bottom:1px solid #F0EDE4">
+                <div style="min-width:0">
+                  <sc-if value="{{ m.editando }}" hint-placeholder-val="{{ false }}">
+                    <div style="display:flex;gap:8px;flex-wrap:wrap">
+                      <input value="{{ motNombre }}" onChange="{{ setMotNombre }}" placeholder="Nombre del motivo" style="box-sizing:border-box;flex:1;min-width:180px;padding:9px 12px;border:1.5px solid #E0DCD0;border-radius:8px;font:400 13px Archivo,sans-serif;background:#FAF9F5">
+                      <button onClick="{{ motGuardar }}" style="cursor:pointer;border:none;background:#2F6B4F;color:#fff;border-radius:7px;padding:7px 13px;font:700 11.5px Archivo,sans-serif">Guardar</button>
+                      <button onClick="{{ motCancelar }}" style="cursor:pointer;border:none;background:none;color:#8A8272;padding:7px 4px;font:600 11.5px Archivo,sans-serif">Cancelar</button>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ m.viendo }}" hint-placeholder-val="{{ true }}">
+                    <div>
+                      <div style="font:700 13.5px/1.3 Archivo,sans-serif;color:#3A4450">{{ m.nombre }}</div>
+                      <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">
+                        <button onClick="{{ m.editar }}" style="cursor:pointer;border:1.5px solid #E0DCD0;background:#fff;color:#2F6B4F;border-radius:6px;padding:5px 10px;font:600 11px Archivo,sans-serif">Renombrar</button>
+                        <sc-if value="{{ m.hayFichas }}" hint-placeholder-val="{{ false }}">
+                          <button onClick="{{ m.ver }}" style="cursor:pointer;border:1.5px solid #E0DCD0;background:#fff;color:#5A6470;border-radius:6px;padding:5px 10px;font:600 11px Archivo,sans-serif">Ver fichas</button>
+                        </sc-if>
+                      </div>
+                    </div>
+                  </sc-if>
+                </div>
+                <span style="font:600 11px IBM Plex Mono,monospace;color:#8A8272;text-align:right">{{ m.n }} fichas</span>
+                <div style="display:flex;justify-content:flex-end">
+                  <button onClick="{{ m.borrar }}" title="{{ m.borrarTitulo }}" style="cursor:pointer;border:1.5px solid #F0D5CF;background:#fff;color:#B0483A;border-radius:7px;padding:6px 9px;font:600 11px Archivo,sans-serif">Eliminar</button>
+                </div>
+              </div>
+            </sc-for>
+          </section>
+          <aside style="background:#fff;border:1px solid #E8E4DA;border-radius:14px;padding:20px">
+            <h3 style="font:800 15px Archivo,sans-serif;margin:0 0 12px;color:#3A4450">Nuevo motivo</h3>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <input value="{{ nmNombre }}" onChange="{{ setNmNombre }}" placeholder="p. ej. Término de contrato" style="box-sizing:border-box;width:100%;padding:10px 13px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5">
+              <button onClick="{{ crearMotivo }}" disabled="{{ sinTablaMotivos }}" style="cursor:pointer;border:none;background:#2F6B4F;color:#fff;border-radius:9px;padding:11px 16px;font:700 12.5px Archivo,sans-serif;min-height:44px">Agregar al catálogo</button>
+            </div>
+          </aside>
+        </div>
       </sc-if>
 
       <sc-if value="{{ tabUnidades }}" hint-placeholder-val="{{ false }}">
@@ -916,6 +987,38 @@ body{margin:0;background:#F1EFE8}a{color:#007E80}a:hover{color:#EF7A00}input:foc
         </div>
       </sc-if>
     </main>
+    <sc-if value="{{ bajaAbierta }}" hint-placeholder-val="{{ false }}">
+      <div onClick="{{ bajaCerrar }}" style="position:fixed;inset:0;z-index:60;background:rgba(58,68,80,.62);display:flex;align-items:flex-start;justify-content:center;padding:clamp(12px,6vh,80px) 16px;overflow-y:auto">
+        <div onClick="{{ detener }}" role="dialog" aria-label="Desactivar ficha" style="width:100%;max-width:480px;background:#fff;border-radius:14px;box-shadow:0 30px 80px rgba(0,0,0,.3);padding:24px 26px 22px;box-sizing:border-box">
+          <h2 style="font:800 18px Archivo,sans-serif;color:#3A4450;margin:0">Desactivar ficha</h2>
+          <p style="font:400 13px/1.55 Spectral,serif;color:#5A6470;margin:6px 0 16px">{{ bajaNombre }} dejará de contarse en los indicadores. Sus datos, hitos y respaldos se conservan y la ficha puede reactivarse en cualquier momento.</p>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="font:700 9.5px Archivo,sans-serif;letter-spacing:.09em;text-transform:uppercase;color:#8A8272">Motivo</div>
+            <select value="{{ bajaMotivoVal }}" onChange="{{ setBajaMotivo }}" style="padding:10px 12px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5;color:#3A4450">
+              <option value="">Selecciona un motivo…</option>
+              <sc-for list="{{ motivosOpc }}" as="m" hint-placeholder-count="3"><option value="{{ m }}">{{ m }}</option></sc-for>
+            </select>
+            <sc-if value="{{ sinMotivos }}" hint-placeholder-val="{{ false }}">
+              <div style="font:400 12px/1.5 Spectral,serif;color:#8A3D2E">No hay motivos en el catálogo. Agrégalos en Administración de sistema ▸ Motivos de baja (requiere migracion-bajas.sql).</div>
+            </sc-if>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px">
+              <div>
+                <div style="font:700 9.5px Archivo,sans-serif;letter-spacing:.09em;text-transform:uppercase;color:#8A8272;margin-bottom:6px">Fecha</div>
+                <input type="date" value="{{ bajaFechaVal }}" onChange="{{ setBajaFecha }}" style="box-sizing:border-box;width:100%;padding:9px 12px;border:1.5px solid #E0DCD0;border-radius:8px;font:400 12.5px Archivo,sans-serif;background:#FAF9F5;color:#3A4450">
+              </div>
+            </div>
+            <div>
+              <div style="font:700 9.5px Archivo,sans-serif;letter-spacing:.09em;text-transform:uppercase;color:#8A8272;margin-bottom:6px">Referencia (opcional)</div>
+              <input value="{{ bajaNotaVal }}" onChange="{{ setBajaNota }}" placeholder="Resolución, memorándum u observación" style="box-sizing:border-box;width:100%;padding:9px 12px;border:1.5px solid #E0DCD0;border-radius:8px;font:400 12.5px Archivo,sans-serif;background:#FAF9F5">
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:18px">
+            <button onClick="{{ bajaCerrar }}" style="cursor:pointer;border:none;background:none;color:#8A8272;padding:9px 10px;font:600 12.5px Archivo,sans-serif;min-height:44px">Cancelar</button>
+            <button onClick="{{ bajaConfirmar }}" style="cursor:pointer;border:none;background:#8A5A00;color:#fff;border-radius:9px;padding:10px 18px;font:700 12.5px Archivo,sans-serif;min-height:44px">Desactivar</button>
+          </div>
+        </div>
+      </div>
+    </sc-if>
     <sc-if value="{{ cuentaAbierta }}" hint-placeholder-val="{{ false }}">
       <div onClick="{{ cuentaFondo }}" style="position:fixed;inset:0;z-index:60;background:rgba(58,68,80,.62);display:flex;align-items:flex-start;justify-content:center;padding:clamp(12px,4vh,60px) 16px;overflow-y:auto">
         <div onClick="{{ detener }}" role="dialog" aria-label="Mi cuenta" style="width:100%;max-width:520px;background:#fff;border-radius:14px;box-shadow:0 30px 80px rgba(0,0,0,.3);padding:24px 26px 22px;box-sizing:border-box">
@@ -1026,6 +1129,8 @@ class Component extends DCLogic {
     escala: "bosque", orden: "apellido", ordenDir: 1, unidades: [], sinTablaUnidades: false, uniError: "", colEncError: "", archError: "", uniEditId: null, uniNombre: "", uniTipo: "", nuNombre: "", nuTipo: "Departamento",
     evEditId: null, actividad: [], actError: "", huerfanos: null, huerfanosBusy: false, totalDeposito: 0, bytesDeposito: 0, sinColEnc: false,
     q: "", fUnidad: "Todas las unidades", fJer: "Todas las jerarquías", fEstado: "Todo estado de jerarquización", fModo: "Todos los modos de ingreso", soloAlertas: false,
+    fEnc: "Todo encasillamiento", fActiva: "Fichas activas", motivos: [], sinTablaMotivos: false, motError: "", motEditId: null, motNombre: "", nmNombre: "",
+    bajaAbierta: false, baja: null,
     selId: null, evAbierto: false, ev: { tipo: "Jerarquización", anio: "", fecha: "", jerarquia: "", acta: "", enlace: "" } };
 
   async componentDidMount() {
@@ -1038,7 +1143,7 @@ class Component extends DCLogic {
     this._esc = e => { if (e.key === "Escape" && this.state.visor) this.setState({ visor: null }); };
     window.addEventListener("keydown", this._esc);
     try {
-      const [lib, cfg] = await Promise.all([import("https://esm.sh/@supabase/supabase-js@2"), import("./data/supabase/config.js?v=1790277601612")]);
+      const [lib, cfg] = await Promise.all([import("https://esm.sh/@supabase/supabase-js@2"), import("./data/supabase/config.js?v=1791307004054")]);
       this.sb = lib.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY);
       this.sb.auth.onAuthStateChange((_e, s) => this.aplicarSesion(s));
       const { data } = await this.sb.auth.getSession();
@@ -1140,22 +1245,24 @@ class Component extends DCLogic {
       this.sb.from("tr_eventos").select("*").order("anio", { ascending: true }),
       this.sb.from("tr_archivos").select("*").order("creado", { ascending: true }),
       this.sb.from("tr_personas").select("id,contratado,sancion_5a,sancion_anio,sancion_nota,std_memo,std_anio").limit(1),
-      this.sb.from("tr_unidades").select("*").order("nombre")
+      this.sb.from("tr_unidades").select("*").order("nombre"),
+      this.sb.from("tr_motivos_baja").select("*").order("orden").order("nombre")
     ];
-    const IDX = { perfiles: 5, invitaciones: 6, actividad: 7 };
+    const IDX = { perfiles: 6, invitaciones: 7, actividad: 8 };
     if (admin) {
       t.push(this.sb.from("perfiles").select("*").order("nombre"));
       t.push(this.sb.from("invitaciones").select("*").order("correo"));
       t.push(this.sb.from("actividad").select("*").ilike("accion", "TR:%").order("fecha", { ascending: false }).limit(60));
     }
     const r = await Promise.all(t);
-    const [p, e, a, colEnc, uni] = r;
+    const [p, e, a, colEnc, uni, mot] = r;
     if (p.error && /could not find the table|PGRST205|schema cache|does not exist/i.test(p.error.message)) { this.setState({ fase: "sininstalar" }); return; }
     // Sin la migración de archivos, cada hito conserva su archivo único en tr_eventos.archivo
     const archivos = a.error ? (e.data || []).filter(x => x.archivo).map(x => ({ id: "ev-" + x.id, evento: x.id, ruta: x.archivo, nombre: x.archivo.replace(/^.*\//, ""), legado: true })) : (a.data || []);
     const personas = p.data || [];
     this.setState({ personas, eventos: e.data || [], archivos, sinTablaArchivos: !!a.error,
       sinColEnc: !!colEnc.error, colEncError: colEnc.error ? (colEnc.error.message || "") + (colEnc.error.code ? " [" + colEnc.error.code + "]" : "") : "",
+      motivos: mot.error ? [] : (mot.data || []), sinTablaMotivos: !!mot.error, motError: mot.error ? (mot.error.message || "") + (mot.error.code ? " [" + mot.error.code + "]" : "") : "",
       unidades: uni.error ? [] : (uni.data || []), sinTablaUnidades: !!uni.error, uniError: uni.error ? (uni.error.message || "") + (uni.error.code ? " [" + uni.error.code + "]" : "") : "",
       archError: a.error ? (a.error.message || "") + (a.error.code ? " [" + a.error.code + "]" : "") : "",
       perfiles: admin ? (r[IDX.perfiles].data || []) : [], invitaciones: admin ? (r[IDX.invitaciones].data || []) : [],
@@ -1292,6 +1399,66 @@ class Component extends DCLogic {
     this.cargar();
   }
 
+  // ---- desactivación reversible de fichas ----
+  abrirBaja(p) {
+    if (this.state.sinTablaMotivos) { this.avisar("Falta instalar la desactivación de fichas: ejecuta data/supabase/migracion-bajas.sql en Supabase.", "err"); return; }
+    const hoy = new Date().toISOString().slice(0, 10);
+    this.setState({ bajaAbierta: true, baja: { id: p.id, nombre: `${p.nombres} ${p.ap1}`, motivo: "", fecha: hoy, nota: "" } });
+  }
+  async confirmarBaja() {
+    const b = this.state.baja; if (!b) return;
+    if (!b.motivo) { this.avisar("Selecciona el motivo de la desactivación.", "err"); return; }
+    const r = await this.sb.from("tr_personas").update({ activa: false, baja_motivo: b.motivo, baja_fecha: b.fecha || null, baja_nota: (b.nota || "").trim() || null }).eq("id", b.id);
+    if (r.error) { this.avisar("No se pudo desactivar: " + this.traducir(r.error.message), "err"); return; }
+    await this.anota("Ficha desactivada", `${b.nombre} · ${b.motivo}${b.fecha ? " · " + b.fecha : ""}`);
+    this.avisar(`Ficha de ${b.nombre} desactivada (${b.motivo}). Puedes reactivarla desde la propia ficha.`);
+    this.setState({ bajaAbierta: false, baja: null, fActiva: "Fichas desactivadas" });
+    this.cargar();
+  }
+  async reactivarFicha(p) {
+    if (!confirm(`¿Reactivar la ficha de ${p.nombres} ${p.ap1}? Volverá a contarse en los indicadores.`)) return;
+    const r = await this.sb.from("tr_personas").update({ activa: true, baja_motivo: null, baja_fecha: null, baja_nota: null }).eq("id", p.id);
+    if (r.error) { this.avisar("No se pudo reactivar: " + this.traducir(r.error.message), "err"); return; }
+    await this.anota("Ficha reactivada", `${p.nombres} ${p.ap1}${p.baja_motivo ? " (antes: " + p.baja_motivo + ")" : ""}`);
+    this.avisar(`Ficha de ${p.nombres} ${p.ap1} reactivada.`);
+    this.setState({ fActiva: "Fichas activas" });
+    this.cargar();
+  }
+  // ---- catálogo de motivos ----
+  async crearMotivo() {
+    const nombre = this.state.nmNombre.trim();
+    if (!nombre) { this.avisar("Escribe el nombre del motivo.", "err"); return; }
+    const orden = Math.max(0, ...(this.state.motivos || []).map(m => m.orden || 0)) + 1;
+    const r = await this.sb.from("tr_motivos_baja").insert({ nombre, orden });
+    if (r.error) { this.avisar("No se pudo crear: " + this.traducir(r.error.message), "err"); return; }
+    await this.anota("Nuevo motivo de baja", nombre);
+    this.avisar(`«${nombre}» agregado al catálogo de motivos.`);
+    this.setState({ nmNombre: "" });
+    this.cargar();
+  }
+  async guardarMotivo() {
+    const st = this.state, m = (st.motivos || []).find(x => x.id === st.motEditId); if (!m) return;
+    const nombre = st.motNombre.trim();
+    if (!nombre) { this.avisar("El nombre no puede quedar vacío.", "err"); return; }
+    const n = st.personas.filter(p => p.baja_motivo === m.nombre).length;
+    if (nombre !== m.nombre && n > 0 && !confirm(`El nuevo nombre se aplicará también a las ${n} fichas desactivadas por «${m.nombre}». ¿Continuar?`)) return;
+    const r = await this.sb.from("tr_motivos_baja").update({ nombre }).eq("id", m.id);
+    if (r.error) { this.avisar("No se pudo guardar: " + this.traducir(r.error.message), "err"); return; }
+    await this.anota("Motivo de baja editado", nombre === m.nombre ? nombre : `${m.nombre} → ${nombre}`);
+    this.avisar("Motivo actualizado.");
+    this.setState({ motEditId: null, motNombre: "" });
+    this.cargar();
+  }
+  async borrarMotivo(m, n) {
+    if (n > 0) { this.avisar(`«${m.nombre}» está registrado en ${n} fichas. Reactívalas o cámbiales el motivo antes de eliminarlo.`, "err"); return; }
+    if (!confirm(`¿Eliminar «${m.nombre}» del catálogo de motivos?`)) return;
+    const r = await this.sb.from("tr_motivos_baja").delete().eq("id", m.id);
+    if (r.error) { this.avisar("No se pudo eliminar: " + this.traducir(r.error.message), "err"); return; }
+    await this.anota("Motivo de baja eliminado", m.nombre);
+    this.avisar("Motivo eliminado.");
+    this.cargar();
+  }
+
   async invitar() {
     const u = this.state.uform, correo = u.correo.trim().toLowerCase();
     if (!correo) { this.avisar("Escribe el correo de la persona.", "err"); return; }
@@ -1330,6 +1497,8 @@ class Component extends DCLogic {
     if (/tr_personas|tr_eventos/i.test(t) && /could not find|does not exist|schema cache/i.test(t)) return "Faltan las tablas: ejecuta data/supabase/setup-trayectorias.sql en Supabase.";
     if (/tr_archivos/i.test(t) && /could not find|does not exist|schema cache/i.test(t)) return "Falta la tabla de documentos: ejecuta data/supabase/migracion-archivos.sql en Supabase.";
     if (/tr_unidades/i.test(t) && /could not find|does not exist|schema cache/i.test(t)) return "Falta el catálogo de unidades: ejecuta data/supabase/migracion-unidades.sql en Supabase.";
+    if (/tr_motivos_baja|'activa'|baja_motivo/i.test(t) && /could not find|does not exist|schema cache/i.test(t)) return "Falta la desactivación de fichas: ejecuta data/supabase/migracion-bajas.sql en Supabase.";
+    if (/duplicate key/i.test(t) && /motivo/i.test(t)) return "Ya existe un motivo con ese nombre.";
     if (/duplicate key/i.test(t) && /unidad/i.test(t)) return "Ya existe una unidad con ese nombre.";
     if (/could not find the '?[a-z_0-9]+'? column|column .* does not exist|PGRST204/i.test(t)) return "Falta actualizar la base: ejecuta data/supabase/migracion-encasillamiento.sql en Supabase.";
     if (/could not find the table|schema cache|relation .* does not exist/i.test(t)) return "La base aún no está instalada: ejecuta data/supabase/setup-trayectorias.sql en Supabase.";
@@ -1379,8 +1548,8 @@ class Component extends DCLogic {
   // Exporta la matriz filtrada como CSV (separador ; para Excel en español). RUN según rol.
   exportarCsv(filas, admin) {
     const esc = v => { const s = v == null ? "" : String(v); return /[;"\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
-    const cab = ["Apellidos y nombres", "RUN", "Unidad", "Rango", "Año de ingreso", "Antigüedad", "Modo de ingreso", "Jerarquía provisoria", "Jerarquía actual", "Estado jerarquización", "Última jerarquización", "Califica encasillamiento", "Estimación", "Envío STD", "Hitos", "Hitos con documento", "Pendientes"];
-    const cuerpo = filas.map(f => [f.nombre, admin ? f.run : f.runMasc, f.unidad, f.rango, f.anio, f.antig, f.modo, f.jerProv, f.jer, f.estado, f.ultima, f.califica, f.estim, f.envio, f.nHitos, f.nDocs, f.alertas].map(esc).join(";"));
+    const cab = ["Apellidos y nombres", "RUN", "Unidad", "Rango", "Año de ingreso", "Antigüedad", "Modo de ingreso", "Jerarquía provisoria", "Jerarquía actual", "Estado jerarquización", "Última jerarquización", "Califica encasillamiento", "Estimación", "Envío STD", "Hitos", "Hitos con documento", "Pendientes", "Estado de la ficha", "Motivo de baja", "Fecha de baja"];
+    const cuerpo = filas.map(f => [f.nombre, admin ? f.run : f.runMasc, f.unidad, f.rango, f.anio, f.antig, f.modo, f.jerProv, f.jer, f.estado, f.ultima, f.califica, f.estim, f.envio, f.nHitos, f.nDocs, f.alertas, f.activa, f.bajaMotivo, f.bajaFecha].map(esc).join(";"));
     const csv = "\uFEFF" + [cab.join(";")].concat(cuerpo).join("\r\n");
     const a = document.createElement("a");
     a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
@@ -1657,15 +1826,29 @@ class Component extends DCLogic {
     const pct = (a, b) => (b ? Math.round(a / b * 100) : 0) + "%";
     const HOY = 2026;
 
-    const personas = st.personas;
-    const alertasDe = {}; personas.forEach(p => { alertasDe[p.id] = this.alertas(p, evsDe(p.id)); });
+    const todas = st.personas;
+    const esActiva = p => p.activa !== false;
+    // Indicadores (Panorama, Encasillamiento, Completitud) solo con fichas activas; la matriz decide por filtro.
+    const personas = todas.filter(esActiva);
+    const inactivas = todas.filter(p => !esActiva(p));
+    const alertasDe = {}; todas.forEach(p => { alertasDe[p.id] = this.alertas(p, evsDe(p.id)); });
+    const califica0 = v => { const t = (v || "").toLowerCase(); return t === "sí" || t === "si" ? "Sí" : t === "planta" ? "Planta" : t === "no" ? "No" : "Sin definir"; };
+    const ENC_OPC = ["Todo encasillamiento", "Califica (registrado)", "No califica (registrado)", "Planta", "Sin definir", "Cumple criterios (estimación)", "No cumple criterios (estimación)", "Registro distinto de la estimación", "Con envío STD"];
+    const encCumple = p => { const c = califica0(p.califica_encasillamiento), e = this.criterios(p, HOY).estim, env = !!(p.std_memo || p.enviado_encasillamiento);
+      switch (st.fEnc) {
+        case "Califica (registrado)": return c === "Sí"; case "No califica (registrado)": return c === "No"; case "Planta": return c === "Planta"; case "Sin definir": return c === "Sin definir";
+        case "Cumple criterios (estimación)": return e === "Sí"; case "No cumple criterios (estimación)": return e === "No";
+        case "Registro distinto de la estimación": return c !== "Planta" && e !== "Sin determinar" && c !== e; case "Con envío STD": return env; default: return true; } };
+    const ACT_OPC = ["Fichas activas", "Fichas desactivadas", "Todas las fichas"];
+    const baseMatriz = st.fActiva === "Fichas desactivadas" ? inactivas : st.fActiva === "Todas las fichas" ? todas : personas;
 
     const unidades = [...new Set(personas.map(p => p.unidad).filter(Boolean))].sort((a, b) => a.localeCompare(b));
     const jerarquias = ["Profesor Asistente", "Profesor Asociado", "Profesor Titular"];
     const modos = [...new Set(personas.map(p => p.modo_ingreso).filter(Boolean))].sort((a, b) => a.localeCompare(b));
 
     const q = norm(st.q).trim();
-    const filtradas = personas.filter(p =>
+    const filtradas = baseMatriz.filter(p =>
+      encCumple(p) &&
       (st.fUnidad === "Todas las unidades" || p.unidad === st.fUnidad) &&
       (st.fJer === "Todas las jerarquías" || p.jer_actual === st.fJer) &&
       (st.fEstado === "Todo estado de jerarquización" || p.estado_jer === st.fEstado) &&
@@ -1784,7 +1967,7 @@ class Component extends DCLogic {
       abrir: () => this.setState({ tab: "personas", selId: p.id, encAbierto: false }) }; })
       .sort((a, b) => (b.difiere ? 1 : 0) - (a.difiere ? 1 : 0) || (a.sinEnvio ? 0 : 1) - (b.sinEnvio ? 0 : 1) || a.nombre.localeCompare(b.nombre));
 
-    const selP = personas.find(p => p.id === st.selId);
+    const selP = todas.find(p => p.id === st.selId);
     let sel = null;
     if (selP) {
       const evs = evsDe(selP.id).slice().sort((a, b) => (a.anio || 9999) - (b.anio || 9999));
@@ -1807,6 +1990,10 @@ class Component extends DCLogic {
           .concat(selP.observaciones ? [{ label: "Observaciones", valor: selP.observaciones }] : []),
         editar: () => { const o = {}; this.CAMPOS.forEach(([k, , tipo]) => { o[k] = tipo === "bool" ? (selP[k] === true ? "Sí" : selP[k] === false ? "No" : (k === "contratado" ? "Sí" : "No")) : (selP[k] == null ? "" : String(selP[k])); }); this.setState({ edAbierto: true, nuevaAbierta: false, ed: o }); },
         borrar: () => this.borrarFicha(selP),
+        activa: esActiva(selP), inactiva: !esActiva(selP),
+        bajaMotivo: selP.baja_motivo || "Sin motivo registrado",
+        bajaDetalle: [selP.baja_fecha ? "Desde " + selP.baja_fecha.split("-").reverse().join("/") : "", selP.baja_nota || ""].filter(Boolean).join(" · ") || "No se cuenta en los indicadores; sus datos e hitos se conservan.",
+        darBaja: () => this.abrirBaja(selP), reactivar: () => this.reactivarFicha(selP),
         crit: (() => { const c = this.criterios(selP, HOY); return c.lista.map(x => ({ label: `(${x.k}) ${x.label}`, detalle: x.detalle,
           marca: x.ok === true ? "✓" : x.ok === false ? "✕" : "?", color: x.ok === true ? "#2F6B4F" : x.ok === false ? "#B0483A" : "#8A5A00" })); })(),
         encEstim: this.criterios(selP, HOY).estim,
@@ -1837,11 +2024,11 @@ class Component extends DCLogic {
 
     const pest = [["panorama", "Panorama"], ["personas", "Matriz de personas"], ["encasillamiento", "Encasillamiento"], ["completitud", "Completitud"],
       admin && ["respaldos", "Respaldos"], admin && ["admin", "Administración de sistema"]].filter(Boolean);
-    const SUB = [["unidades", "Unidades académicas"], ["cuentas", "Cuentas"], ["sistema", "Sistema"]];
+    const SUB = [["unidades", "Unidades académicas"], ["motivos", "Motivos de baja"], ["cuentas", "Cuentas"], ["sistema", "Sistema"]];
     const ADMIN_TABS = SUB.map(x => x[0]);
     const tabActual = admin ? st.tab : (ADMIN_TABS.includes(st.tab) ? "panorama" : st.tab);
     const enAdmin = admin && ADMIN_TABS.includes(tabActual);
-    const irMatriz = cambios => this.setState({ tab: "personas", q: "", fUnidad: "Todas las unidades", fJer: "Todas las jerarquías", fEstado: "Todo estado de jerarquización", fModo: "Todos los modos de ingreso", soloAlertas: false, ...cambios });
+    const irMatriz = cambios => this.setState({ tab: "personas", q: "", fEnc: "Todo encasillamiento", fActiva: "Fichas activas", fUnidad: "Todas las unidades", fJer: "Todas las jerarquías", fEstado: "Todo estado de jerarquización", fModo: "Todos los modos de ingreso", soloAlertas: false, ...cambios });
     const fmtFecha = d => { try { return new Date(d).toLocaleString("es-CL", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }); } catch (e) { return d; } };
     const fmtBytes = b => b > 1048576 ? (b / 1048576).toFixed(1) + " MB" : b > 1024 ? Math.round(b / 1024) + " KB" : b + " B";
     const OPC = {
@@ -1901,7 +2088,27 @@ class Component extends DCLogic {
         fg: tabActual === id ? "#fff" : "#3A4450", bg: tabActual === id ? "#2F6B4F" : "#fff", borde: tabActual === id ? "#2F6B4F" : "#E0DCD0",
         pick: () => this.setState({ tab: id }) })),
       tabPanorama: tabActual === "panorama", tabPersonas: tabActual === "personas", tabEncasillamiento: tabActual === "encasillamiento", tabCompletitud: tabActual === "completitud",
-      tabRespaldos: tabActual === "respaldos", tabCuentas: tabActual === "cuentas", tabSistema: tabActual === "sistema", tabUnidades: tabActual === "unidades",
+      tabRespaldos: tabActual === "respaldos", tabCuentas: tabActual === "cuentas", tabSistema: tabActual === "sistema", tabUnidades: tabActual === "unidades", tabMotivos: tabActual === "motivos",
+      // filtros nuevos de la matriz
+      fEnc: st.fEnc, setFEnc: e => this.setState({ fEnc: e.target.value }), encOpc: ENC_OPC,
+      fActiva: st.fActiva, setFActiva: e => this.setState({ fActiva: e.target.value }), activaOpc: ACT_OPC,
+      fActivaBorde: st.fActiva === "Fichas activas" ? "#E0DCD0" : "#E8D9B8", fActivaBg: st.fActiva === "Fichas activas" ? "#FAF9F5" : "#FCF6E8",
+      nInactivas: inactivas.length,
+      // modal de baja
+      bajaAbierta: !!st.bajaAbierta, bajaCerrar: () => this.setState({ bajaAbierta: false, baja: null }), bajaConfirmar: () => this.confirmarBaja(),
+      bajaNombre: st.baja ? st.baja.nombre : "", bajaMotivoVal: st.baja ? st.baja.motivo : "", bajaFechaVal: st.baja ? st.baja.fecha : "", bajaNotaVal: st.baja ? st.baja.nota : "",
+      setBajaMotivo: e => this.setState({ baja: { ...st.baja, motivo: e.target.value } }), setBajaFecha: e => this.setState({ baja: { ...st.baja, fecha: e.target.value } }), setBajaNota: e => this.setState({ baja: { ...st.baja, nota: e.target.value } }),
+      motivosOpc: (st.motivos || []).map(m => m.nombre), sinMotivos: !(st.motivos || []).length,
+      // catálogo de motivos
+      sinTablaMotivos: !!st.sinTablaMotivos,
+      motLista: (st.motivos || []).map(m => { const n = todas.filter(p => p.baja_motivo === m.nombre).length; return { nombre: m.nombre, n, hayFichas: n > 0,
+        editando: st.motEditId === m.id, viendo: st.motEditId !== m.id,
+        editar: () => this.setState({ motEditId: m.id, motNombre: m.nombre }),
+        ver: () => irMatriz({ fActiva: "Fichas desactivadas", q: "" }),
+        borrar: () => this.borrarMotivo(m, n), borrarTitulo: n ? `Registrado en ${n} fichas: reasígnalas primero` : "Eliminar del catálogo" }; }),
+      motNombre: st.motNombre, setMotNombre: e => this.setState({ motNombre: e.target.value }),
+      motGuardar: () => this.guardarMotivo(), motCancelar: () => this.setState({ motEditId: null, motNombre: "" }),
+      nmNombre: st.nmNombre, setNmNombre: e => this.setState({ nmNombre: e.target.value }), crearMotivo: () => this.crearMotivo(),
 
       sinTablaUnidades: !!st.sinTablaUnidades, puedeEditarUnidades: !st.sinTablaUnidades,
       sinUnidades: (st.sinTablaUnidades ? unidades.length : (st.unidades || []).length) === 0,
@@ -1926,6 +2133,7 @@ class Component extends DCLogic {
         { name: "Tablas tr_personas / tr_eventos", ok: true, detalle: `${personas.length} fichas · ${st.eventos.length} hitos`, accion: "setup-trayectorias.sql" },
         { name: "Encasillamiento (criterios y envío STD)", ok: !st.sinColEnc, detalle: st.sinColEnc ? "La consulta de las columnas contratado / sancion_5a / sancion_anio / std_memo / std_anio falló: " + (st.colEncError || "sin detalle") : "Columnas presentes", accion: "migracion-encasillamiento.sql" },
         { name: "Varios documentos por hito", ok: !st.sinTablaArchivos, detalle: st.sinTablaArchivos ? "La consulta a tr_archivos falló: " + (st.archError || "sin detalle") : `${st.archivos.length} documentos registrados`, accion: "migracion-archivos.sql" },
+        { name: "Desactivación reversible de fichas y motivos", ok: !st.sinTablaMotivos, detalle: st.sinTablaMotivos ? "La consulta a tr_motivos_baja falló: " + (st.motError || "sin detalle") : `${(st.motivos || []).length} motivos · ${st.personas.filter(p => p.activa === false).length} fichas desactivadas`, accion: "migracion-bajas.sql" },
         { name: "Catálogo de unidades académicas", ok: !st.sinTablaUnidades, detalle: st.sinTablaUnidades ? "La consulta a tr_unidades falló: " + (st.uniError || "sin detalle") : `${(st.unidades || []).length} unidades en el catálogo`, accion: "migracion-unidades.sql" },
         { name: "Registro de actividad", ok: !st.actError, detalle: st.actError || `${st.actividad.length} movimientos recientes`, accion: "setup.sql (Normativa)" }
       ].map(x => ({ ...x, marca: x.ok ? "✓" : "✕", color: x.ok ? "#2F6B4F" : "#B0483A", bg: x.ok ? "#E7F3EB" : "#F9EBE8" })),
@@ -1940,7 +2148,8 @@ class Component extends DCLogic {
         const runF = p.run ? String(p.run).replace(/\B(?=(\d{3})+(?!\d))/g, ".") + "-" + (p.dv || "") : "";
         return { nombre: nombreDe(p), run: runF, runMasc: runF.replace(/^(\d+\.\d+)\..*(-.)$/, "$1.***$2"), unidad: p.unidad, rango: p.rango, anio: p.anio_ingreso, antig: p.anio_ingreso ? HOY - p.anio_ingreso : "",
           modo: p.modo_ingreso, jerProv: p.jer_provisoria, jer: p.jer_actual, estado: p.estado_jer, ultima: j.length ? Math.max(...j) : "", califica: califica(p.califica_encasillamiento), estim: estimDe(p), envio: envioDe(p),
-          nHitos: evs.length, nDocs: evs.filter(e => conDoc(e)).length, alertas: (alertasDe[p.id] || []).join(" | ") }; }), admin),
+          nHitos: evs.length, nDocs: evs.filter(e => conDoc(e)).length, alertas: (alertasDe[p.id] || []).join(" | "),
+          activa: esActiva(p) ? "Activa" : "Desactivada", bajaMotivo: p.baja_motivo || "", bajaFecha: p.baja_fecha || "" }; }), admin),
       csvLabel: `Exportar CSV (${filtradas.length})`,
 
       campoEdit, edAbierto: st.edAbierto || st.nuevaAbierta, edTitulo: st.nuevaAbierta ? "Nueva ficha académica" : "Editar ficha",
@@ -2017,7 +2226,7 @@ class Component extends DCLogic {
       campos, pendientes, verPendientes: () => this.setState({ tab: "personas", soloAlertas: true }),
       encKpis, encLista,
 
-      nTotal: personas.length, nFiltradas: filtradas.length, listaVacia: filtradas.length === 0,
+      nTotal: baseMatriz.length, nFiltradas: filtradas.length, listaVacia: filtradas.length === 0,
       q: st.q, setQ: e => this.setState({ q: e.target.value }),
       fUnidad: st.fUnidad, setFUnidad: e => this.setState({ fUnidad: e.target.value }), unidadesOpc: ["Todas las unidades", ...unidades],
       fJer: st.fJer, setFJer: e => this.setState({ fJer: e.target.value }), jerOpc: ["Todas las jerarquías", ...jerarquias],
@@ -2031,7 +2240,8 @@ class Component extends DCLogic {
         nombre: nombreDe(p), unidad: p.unidad, jer: (p.jer_actual || "—").replace("Profesor ", ""), color: col(p.jer_actual), chipBg: this.jer(p.jer_actual).bg, chipFg: this.jer(p.jer_actual).fg,
         estado: p.estado_jer === "Realizada" ? "Jerarquización realizada" : "Jerarquización pendiente",
         estadoFg: p.estado_jer === "Realizada" ? "#2F6B4F" : "#94571B",
-        anio: p.anio_ingreso || "—", bg: st.selId === p.id ? "#F2F7F3" : "#fff",
+        anio: p.anio_ingreso || "—", bg: st.selId === p.id ? "#F2F7F3" : esActiva(p) ? "#fff" : "#FBFAF6",
+        inactiva: !esActiva(p), bajaMotivo: p.baja_motivo || "sin motivo",
         tieneAlertas: (alertasDe[p.id] || []).length > 0, nAlertas: (alertasDe[p.id] || []).length,
         abrir: () => this.setState({ selId: p.id, evAbierto: false, nuevaAbierta: false, edAbierto: false, ed: null, encAbierto: false, enc: null })
       })),
