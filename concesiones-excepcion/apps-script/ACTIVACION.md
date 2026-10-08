@@ -144,7 +144,7 @@ Si algún correo no llega: revisar la Bitácora (las filas «ERROR · no se envi
 ## Mantenimiento
 
 - **Altas y bajas del equipo:** Panel → Cuentas (agregar o desactivar).
-- **Programa nuevo:** agregarlo en Configuración **y** en la lista de programas (aparece en el formulario si está activo).
+- **Programa nuevo:** agregarlo en Configuración → Programas; aparece en el formulario web si está activo.
 - **Feriados:** cada diciembre, cargar los del año siguiente.
 - **Código nuevo:** repetir la Fase A (pasos 1–4).
 - **Correo de cuota:** la cuenta institucional puede enviar ~1.500 destinatarios/día desde Apps Script; *Diagnóstico* muestra lo que queda.
