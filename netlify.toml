@@ -45,6 +45,13 @@
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
 
+# Código fuente de Apps Script (CAE): vive en el repo, no se publica en el sitio
+[[redirects]]
+  from = "/concesiones-excepcion/apps-script/*"
+  to = "/404.html"
+  status = 404
+  force = true
+
 # Rutas cortas por subsistema
 [[redirects]]
   from = "/normativa"

@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<base target="_top">
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700;800&family=Spectral:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{--tinta:#3A4450;--tinta2:#5A6470;--apagado:#8A8272;--deshab:#A8A192;--borde:#E8E4DA;--campo:#E0DCD0;--fila:#F0EDE4;
+    --fondo:#F1EFE8;--fcampo:#FAF9F5;--teal:#007E80;--teal2:#00A0A0;--naranja:#EF7A00;--verde:#2F6B4F;--rojo:#8A3D2E}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--fondo);color:var(--tinta);font-family:Spectral,Georgia,serif}
+  a{color:var(--teal)} a:hover{color:var(--naranja)}
+  button{font:600 12px Archivo,sans-serif;cursor:pointer;border-radius:8px;padding:9px 13px;border:1.5px solid var(--campo);background:#fff;color:var(--teal)}
+  button:hover{border-color:var(--teal2);background:var(--fcampo)}
+  button.prim{background:var(--teal);border-color:var(--teal);color:#fff} button.prim:hover{background:var(--naranja);border-color:var(--naranja)}
+  button.ambar{background:#FCEBD9;border-color:#F5D3B0;color:#8A5A00}
+  button:disabled{opacity:.5;cursor:default}
+  input,select,textarea{font:400 13px Archivo,sans-serif;padding:10px 12px;border:1.5px solid var(--campo);border-radius:9px;background:var(--fcampo);color:var(--tinta);width:100%}
+  textarea{font:400 14px/1.6 Spectral,serif;resize:vertical}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--teal2)}
+  button:focus-visible,a:focus-visible{outline:2px solid var(--teal2);outline-offset:2px}
+  .mono{font-family:'IBM Plex Mono',monospace}
+  header{background:var(--tinta);padding:14px clamp(16px,5vw,60px);display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+  header img{height:48px;filter:brightness(0) invert(1)}
+  .htit{font:800 15px Archivo,sans-serif;color:#fff} .hsub{font:400 11.5px Archivo,sans-serif;color:rgba(255,255,255,.65)}
+  .sesion{font:600 11px Archivo,sans-serif;color:rgba(255,255,255,.75)}
+  nav{background:#fff;border-bottom:1px solid var(--borde);padding:0 clamp(16px,5vw,60px);display:flex;gap:4px;overflow-x:auto}
+  nav button{border:0;border-bottom:3px solid transparent;border-radius:0;background:none;color:var(--apagado);font:600 13px Archivo,sans-serif;padding:14px 16px}
+  nav button.act{border-bottom-color:var(--teal);color:var(--tinta)}
+  main{max-width:1200px;margin:0 auto;padding:26px clamp(16px,5vw,60px) 70px}
+  h2{font:800 19px Archivo,sans-serif;margin:0} h3{font:800 15px Archivo,sans-serif;margin:0 0 12px}
+  .tarjeta{background:#fff;border:1px solid var(--borde);border-radius:14px;padding:20px}
+  .et{font:700 9.5px Archivo,sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--apagado);margin:0 0 6px;display:block}
+  .kicker{font:600 11px Archivo,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--naranja)}
+  .resumen{font:400 13.5px/1.6 Spectral,serif;color:var(--tinta2)}
+  .tag{display:inline-block;font:600 9.5px Archivo,sans-serif;letter-spacing:.06em;text-transform:uppercase;border-radius:5px;padding:3px 7px}
+  .t-adm{color:#5A6470;background:#EFECE4} .t-tra{color:#007E80;background:#E4F2F2} .t-vb{color:#8A5A00;background:#FCEBD9}
+  .t-ok{color:#2F6B4F;background:#E7F3EB} .t-no{color:#8A3D2E;background:#F9EDE9}
+  .tabla{background:#fff;border:1px solid var(--borde);border-radius:14px;overflow:hidden}
+  .fila{display:grid;grid-template-columns:76px 1.3fr 1.1fr 170px 140px 96px 52px;gap:10px;padding:13px 20px;border-bottom:1px solid var(--fila);align-items:center;cursor:pointer}
+  .fila:hover{background:var(--fcampo)} .fila.enc{cursor:default;background:var(--fcampo);font:600 10.5px Archivo,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--apagado)}
+  .nom{font:700 13.5px Archivo,sans-serif} .sub{font:400 12px Archivo,sans-serif;color:var(--apagado);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .filtros{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:10px;margin:16px 0}
+  .grid2{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:26px;align-items:start}
+  .pila>*+*{margin-top:16px}
+  .lado{position:sticky;top:16px}
+  .dl{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .bit{border-left:2px solid var(--fila);margin-left:5px;padding-left:16px}
+  .bit .it{position:relative;padding-bottom:14px} .bit .it::before{content:'';position:absolute;left:-22px;top:4px;width:10px;height:10px;border-radius:50%;background:var(--c,#C9C2B0)}
+  .bit .meta{font:400 11px 'IBM Plex Mono',monospace;color:var(--apagado)} .bit .tx{font:400 13.5px/1.55 Spectral,serif;white-space:pre-line}
+  .chip{display:inline-block;margin-top:4px;font:600 11px Archivo,sans-serif;color:var(--teal);background:#E4F2F2;border-radius:6px;padding:3px 8px}
+  .aviso{font:600 12px Archivo,sans-serif;border-radius:10px;padding:10px 12px}
+  .a-amb{background:#FBEEDD;color:#94571B} .a-rojo{background:#F9EBE8;color:#B0483A} .a-teal{background:#E4F2F2;color:#1F5C5E}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  .kpi{background:#fff;border:1px solid var(--borde);border-top:4px solid var(--c);border-radius:14px;padding:18px}
+  .kpi b{display:block;font:600 34px/1 'IBM Plex Mono',monospace} .kpi span{font:600 11px Archivo,sans-serif;text-transform:uppercase;color:var(--apagado)}
+  .barra{height:5px;background:var(--fila);border-radius:3px;margin:4px 0 10px} .barra i{display:block;height:5px;background:var(--teal2);border-radius:3px}
+  #fondo{position:fixed;inset:0;background:rgba(58,68,80,.45);display:none;align-items:flex-start;justify-content:center;padding:40px 16px;overflow:auto;z-index:10}
+  #dlg{background:#fff;border-radius:14px;box-shadow:0 30px 80px rgba(0,0,0,.3);padding:24px 26px 22px;max-width:680px;width:100%}
+  #toast{position:fixed;right:20px;bottom:20px;background:var(--tinta);color:#fff;font:600 12.5px Archivo,sans-serif;border-radius:10px;padding:11px 16px;box-shadow:0 12px 32px rgba(58,68,80,.25);display:none;max-width:420px;z-index:20}
+  #toast.err{background:#8A3D2E}
+  .cargando{font:400 14px Spectral,serif;color:var(--apagado);padding:40px 0;text-align:center}
+  .lista-item{padding:13px 18px;border-left:3px solid transparent;border-bottom:1px solid var(--fila);cursor:pointer}
+  .lista-item.sel{border-left-color:var(--teal);background:var(--fcampo)}
+  .vars code{font:400 11px 'IBM Plex Mono',monospace;background:#EFECE4;border-radius:4px;padding:2px 5px;margin:2px;display:inline-block}
+  .acciones{display:flex;gap:8px;flex-wrap:wrap}
+  label.chk{display:flex;gap:8px;align-items:center;font:400 13px Archivo,sans-serif;margin:4px 0} label.chk input{width:auto}
+  @media (max-width:760px){
+    .grid2,.filtros,.kpis,.dl{grid-template-columns:minmax(0,1fr)}
+    .fila{grid-template-columns:70px 1fr;}
+    .fila>:nth-child(n+3){display:none}
+    .lado{position:static}
+    button,select,input{min-height:44px}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div style="display:flex;align-items:center;gap:14px">
+    <img src="https://vipfahu.netlify.app/assets/logo-fahu.png" alt="Facultad de Humanidades USACH">
+    <div><div class="htit">Concesiones Académicas de Excepción</div><div class="hsub">Panel de gestión · Vicedecanato de Investigación y Postgrado</div></div>
+  </div>
+  <div class="sesion" id="sesion"></div>
+</header>
+<nav id="nav"></nav>
+<main id="app"><div class="cargando">Cargando…</div></main>
+<div id="fondo"><div id="dlg" role="dialog" aria-modal="true"></div></div>
+<div id="toast" role="status"></div>
+
+<script>
+const FOLIO_INICIAL = '<?= folioInicial ?>';
+const S = { ini: null, vista: 'bandeja', bandeja: [], filtro: { q: '', grupo: 'curso', programa: '', analista: '' }, exp: null, plantillas: [], plSel: '', plModo: 'editar', cuentas: null, config: null };
+
+/* ── utilidades ── */
+const h = s => String(s === null || s === undefined ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const $ = id => document.getElementById(id);
+function run(fn) {
+  const args = Array.prototype.slice.call(arguments, 1);
+  return new Promise((ok, mal) => google.script.run.withSuccessHandler(ok).withFailureHandler(mal)[fn].apply(null, args));
+}
+function toast(msg, err) {
+  const t = $('toast'); t.textContent = msg; t.className = err ? 'err' : ''; t.style.display = 'block';
+  clearTimeout(toast._t); toast._t = setTimeout(() => { t.style.display = 'none'; }, err ? 7000 : 4200);
+}
+function fallo(e) { toast(String(e && e.message || e).replace(/^Error:\s*/, '').replace(/^(SIN_ACCESO|SIN_IDENTIDAD):\s*/, ''), true); }
+const fecha = iso => { if (!iso) return '—'; const d = new Date(iso); return isNaN(d) ? String(iso) : ('0' + d.getDate()).slice(-2) + '.' + ('0' + (d.getMonth() + 1)).slice(-2) + '.' + d.getFullYear(); };
+const fechaHora = iso => { if (!iso) return 'sin fecha · migrado'; const d = new Date(iso); return isNaN(d) ? String(iso) : fecha(iso) + ' ' + ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2); };
+const dias = iso => iso ? Math.max(0, Math.round((Date.now() - new Date(iso)) / 864e5)) : '';
+const etq = id => (S.ini.estados.find(e => e.id === id) || {}).etiqueta || id;
+const cierre = id => ['resuelto', 'rechazada', 'no_procede', 'negado'].indexOf(id) >= 0;
+function clase(id) {
+  if (id === 'resuelto') return 't-ok';
+  if (['rechazada', 'no_procede', 'negado'].indexOf(id) >= 0) return 't-no';
+  if (id === 'vb' || id === 'vb_informe' || id === 'recibida' || id === 'autorizada' || id === 'denegada_vb') return 't-vb';
+  return 't-tra';
+}
+const tag = (id, grande) => '<span class="tag ' + clase(id) + '"' + (grande ? ' style="font-size:10.5px;border-radius:999px;padding:5px 10px"' : '') + '>' + h(etq(id)) + '</span>';
+const nivel = n => ['sin_acceso', 'consulta', 'edicion', 'administracion'].indexOf(S.ini.usuario.nivel) >= ['sin_acceso', 'consulta', 'edicion', 'administracion'].indexOf(n);
+
+/* ── arranque ── */
+run('api_inicio').then(r => {
+  if (!r.acceso) {
+    $('app').innerHTML = '<div class="tarjeta" style="max-width:560px;margin:40px auto"><h3>Sin acceso</h3><p class="resumen">' +
+      (r.motivo === 'sin_identidad' ? 'Google no entregó su correo. Ingrese con su cuenta <b>@usach.cl</b> y vuelva a abrir el enlace.'
+        : 'La cuenta <b class="mono">' + h(r.correo) + '</b> no tiene acceso a la plataforma o está desactivada. Si corresponde, solicítelo al Vicedecanato.') + '</p></div>';
+    return;
+  }
+  S.ini = r;
+  $('sesion').textContent = (r.usuario.nombre || r.usuario.correo) + ' · ' + ({ consulta: 'Consulta', edicion: 'Edición', administracion: 'Administración' })[r.usuario.nivel];
+  if (r.usuario.rol === 'Vicedecano/a') S.filtro.grupo = 'vb';
+  pintarNav();
+  cargarBandeja().then(() => { if (/^\d{2}\/\d{4}$/.test(FOLIO_INICIAL)) abrir(FOLIO_INICIAL); });
+}).catch(fallo);
+
+function pintarNav() {
+  const tabs = [['bandeja', 'Bandeja'], ['indicadores', 'Indicadores'], ['plantillas', 'Plantillas de correo'], ['config', 'Configuración']];
+  if (nivel('administracion')) tabs.push(['cuentas', 'Cuentas']);
+  $('nav').innerHTML = tabs.map(t => '<button data-v="' + t[0] + '" class="' + (S.vista === t[0] || (S.vista === 'exp' && t[0] === 'bandeja') ? 'act' : '') + '">' + t[1] + '</button>').join('');
+  $('nav').querySelectorAll('button').forEach(b => b.onclick = () => ir(b.dataset.v));
+}
+function ir(v) {
+  S.vista = v; pintarNav();
+  if (v === 'bandeja') return cargarBandeja();
+  if (v === 'indicadores') return pintarIndicadores();
+  if (v === 'plantillas') return cargarPlantillas();
+  if (v === 'cuentas') return cargarCuentas();
+  if (v === 'config') return cargarConfig();
+}
+
+/* ── Bandeja ── */
+function cargarBandeja() {
+  $('app').innerHTML = '<div class="cargando">Cargando solicitudes…</div>';
+  return run('api_bandeja').then(l => { S.bandeja = l; pintarBandeja(); }).catch(fallo);
+}
+function filtrar() {
+  const f = S.filtro, q = f.q.trim().toLowerCase();
+  return S.bandeja.filter(s => {
+    if (f.grupo === 'curso' && cierre(s.estado)) return false;
+    if (f.grupo === 'vb' && ['recibida', 'vb_informe', 'vb'].indexOf(s.estado) < 0) return false;
+    if (f.grupo === 'comunicar' && ['autorizada', 'denegada_vb'].indexOf(s.estado) < 0) return false;
+    if (f.grupo === 'cerradas' && !cierre(s.estado)) return false;
+    if (f.grupo === 'revisar' && s.revisar !== 'SÍ') return false;
+    if (f.programa && s.programa !== f.programa) return false;
+    if (f.analista === '__sin' ? !!s.analista : (f.analista && s.analista !== f.analista)) return false;
+    return !q || [s.folio, s.nombre, s.run, s.programa, s.tipo].join(' ').toLowerCase().indexOf(q) >= 0;
+  }).sort((a, b) => String(b.fecha_recepcion).localeCompare(String(a.fecha_recepcion)));
+}
+function pintarBandeja() {
+  const l = S.bandeja, curso = l.filter(s => !cierre(s.estado)).length, vb = l.filter(s => ['recibida', 'vb_informe', 'vb'].indexOf(s.estado) >= 0).length, rev = l.filter(s => s.revisar === 'SÍ').length;
+  const progs = [...new Set(l.map(s => s.programa))].sort();
+  const sel = (id, ops, val) => '<select id="' + id + '">' + ops.map(o => '<option value="' + h(o[0]) + '"' + (o[0] === val ? ' selected' : '') + '>' + h(o[1]) + '</option>').join('') + '</select>';
+  $('app').innerHTML =
+    '<div style="display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap"><div><h2>Bandeja de solicitudes <span class="mono" style="font-size:12px;color:var(--apagado)" id="cont"></span></h2>' +
+    '<div class="resumen">' + curso + ' en curso · ' + vb + ' pendientes del Vicedecano/a · ' + (l.length - curso) + ' cerradas' + (rev ? ' · <b style="color:#94571B">' + rev + ' por revisar (migración)</b>' : '') + '</div></div></div>' +
+    '<div class="tarjeta filtros" style="padding:14px 16px"><input id="fq" placeholder="Buscar por folio, nombre, RUN o tipo…" value="' + h(S.filtro.q) + '">' +
+    sel('fg', [['todas', 'Todos los estados'], ['curso', 'En curso'], ['vb', 'Pendiente Vicedecano/a'], ['comunicar', 'Por comunicar al estudiante'], ['cerradas', 'Cerradas'], ['revisar', 'Por revisar']], S.filtro.grupo) +
+    sel('fp', [['', 'Todos los programas']].concat(progs.map(p => [p, p])), S.filtro.programa) +
+    sel('fa', [['', 'Todas las analistas'], ['__sin', 'Sin asignar']].concat(S.ini.analistas.map(a => [a.correo, a.nombre])), S.filtro.analista) + '</div>' +
+    '<div class="tabla" id="tabla"></div>';
+  $('fq').oninput = e => { S.filtro.q = e.target.value; pintarFilas(); };
+  $('fg').onchange = e => { S.filtro.grupo = e.target.value; pintarFilas(); };
+  $('fp').onchange = e => { S.filtro.programa = e.target.value; pintarFilas(); };
+  $('fa').onchange = e => { S.filtro.analista = e.target.value; pintarFilas(); };
+  pintarFilas();
+}
+function pintarFilas() {
+  const l = filtrar();
+  $('cont').textContent = l.length + ' de ' + S.bandeja.length;
+  $('tabla').innerHTML = '<div class="fila enc"><div>Folio</div><div>Solicitante</div><div>Programa · tipo</div><div>Estado</div><div>Analista</div><div>Recibida</div><div>Días</div></div>' +
+    (l.length ? l.map(s => '<div class="fila" data-f="' + h(s.folio) + '" tabindex="0"><div class="mono" style="font-weight:600;font-size:12px">' + h(s.folio) + (s.revisar === 'SÍ' ? ' <span title="Revisar (migración)" style="color:#94571B">●</span>' : '') + '</div>' +
+      '<div><div class="nom">' + h(s.nombre) + '</div><div class="sub mono">' + h(s.run) + '</div></div>' +
+      '<div style="min-width:0"><div class="sub" style="color:var(--tinta);font-weight:600">' + h(s.programa) + '</div><div class="sub">' + h(s.tipo) + '</div></div>' +
+      '<div>' + tag(s.estado) + '</div><div class="sub">' + h(s.analistaNombre || 'Sin asignar') + '</div>' +
+      '<div class="mono" style="font-size:11.5px;color:var(--apagado)">' + fecha(s.fecha_recepcion) + '</div>' +
+      '<div class="mono" style="font-weight:600;font-size:12px;color:' + (cierre(s.estado) ? 'var(--deshab)' : 'var(--naranja)') + '">' + (cierre(s.estado) ? '—' : dias(s.estado_desde)) + '</div></div>').join('')
+      : '<div class="cargando">Sin solicitudes con estos filtros.</div>');
+  $('tabla').querySelectorAll('.fila[data-f]').forEach(r => { r.onclick = () => abrir(r.dataset.f); r.onkeydown = e => { if (e.key === 'Enter') abrir(r.dataset.f); }; });
+}
+
+/* ── Expediente ── */
+function abrir(folio) {
+  S.vista = 'exp'; pintarNav();
+  $('app').innerHTML = '<div class="cargando">Abriendo expediente ' + h(folio) + '…</div>';
+  return run('api_expediente', folio).then(e => { S.exp = e; pintarExp(); window.scrollTo(0, 0); }).catch(e => { fallo(e); ir('bandeja'); });
+}
+function pintarExp() {
+  const e = S.exp, edita = nivel('edicion');
+  const nombre = [e.nombres, e.apellido1, e.apellido2].filter(Boolean).join(' ');
+  // Orden de registro (cronológico); las notas migradas sin fecha quedan junto a su caso.
+  const bit = e.bitacora.map(b => {
+    const color = b.tipo === 'estado' ? '#EF7A00' : b.tipo === 'nota' ? '#C9C2B0' : b.tipo === 'archivo' ? '#2F6B4F' : '#00A0A0';
+    return '<div class="it" style="--c:' + color + '"><div class="meta">' + h(fechaHora(b.fecha)) + ' · ' + h(b.quien) + '</div><div class="tx">' + h(b.texto) + '</div>' +
+      (b.evento && b.para ? '<span class="chip">✉ ' + h(b.asunto || b.evento) + ' → ' + h(b.para) + (b.cc ? ' · cc ' + h(b.cc) : '') + (b.editado === 'SÍ' ? ' · texto editado' : '') + '</span>' : '') + '</div>';
+  }).join('');
+  const archivos = (e.archivos || []).map(a => '<div style="display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid var(--fila)"><div><div style="font:600 13px Archivo,sans-serif">' + h(a.nombre) + '</div><div class="sub">' + h(a.categoria) + ' · ' + h(a.tamano_mb) + ' MB · ' + fecha(a.fecha) + '</div></div><button data-arch="' + h(a.id) + '">Abrir</button></div>').join('') || '<div class="sub">Sin archivos.</div>';
+  const cats = Object.keys(S.ini.categorias).filter(k => k !== 'antecedentes_formulario');
+  $('app').innerHTML =
+    '<a href="#" id="volver" style="font:600 12px Archivo,sans-serif">← Volver a la bandeja</a>' +
+    '<div style="display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:12px 0 20px"><div><div class="kicker">Folio ' + h(e.folio) + '</div>' +
+    '<h1 style="font:800 clamp(22px,3vw,28px) Archivo,sans-serif;margin:4px 0">' + h(nombre) + '</h1><div class="resumen">' + h(e.programa) + ' · ' + h(e.semestre) + ' ' + h(e.anio) + '</div></div>' +
+    '<div style="text-align:right">' + tag(e.estado, true) + '<div class="mono" style="font-size:11.5px;color:var(--apagado);margin-top:8px">Recibida ' + fecha(e.fecha_recepcion) + (cierre(e.estado) ? '' : ' · ' + dias(e.estado_desde) + ' días en este estado') + '</div></div></div>' +
+    (e.revisar === 'SÍ' ? '<div class="aviso a-amb" style="margin-bottom:16px">Revisar (migración): ' + h(e.nota_migracion) + '</div>' : '') +
+    '<div class="grid2"><div class="pila">' +
+      '<div class="tarjeta"><h3>I. Persona solicitante</h3><div class="dl"><div><span class="et">RUN o pasaporte</span><div class="mono">' + h(e.run || '—') + '</div></div>' +
+      '<div><span class="et">Correo</span><a href="mailto:' + h(e.correo) + '">' + h(e.correo) + '</a></div><div><span class="et">Teléfono</span><div class="mono">' + h(e.telefono || '—') + '</div></div></div></div>' +
+      '<div class="tarjeta"><h3>II. Requerimiento</h3>' + (e.tipo_catalogo ? '<span class="tag t-tra">' + h(e.tipo_catalogo) + '</span> ' : '') + (e.tipo_texto_libre ? '<span class="tag t-adm">Otro: ' + h(e.tipo_texto_libre) + '</span>' : '') +
+      (e.verDetalle ? '<p style="font:400 14px/1.65 Spectral,serif;white-space:pre-line">' + h(e.fundamentacion) + '</p>' : '<p class="sub" style="margin-top:12px">La fundamentación y los archivos son visibles solo con nivel Edición.</p>') + '</div>' +
+      (e.verDetalle ? '<div class="tarjeta"><h3>Archivos del expediente</h3>' + archivos +
+        (edita ? '<div style="margin-top:14px;border:1px dashed #D8D3C5;background:#FBFAF6;border-radius:12px;padding:14px"><span class="et">Agregar archivo (máx. ' + S.ini.maxMb + ' MB)</span>' +
+          '<div style="display:grid;grid-template-columns:1fr 1fr auto;gap:8px"><select id="cat">' + cats.map(k => '<option value="' + k + '">' + h(S.ini.categorias[k]) + '</option>').join('') + '</select><input type="file" id="archivo"><button class="prim" id="subir">Subir</button></div></div>' : '') + '</div>' : '') +
+      '<div class="tarjeta"><div style="display:flex;justify-content:space-between;gap:10px"><h3>Bitácora</h3><span class="sub" style="font-style:italic">Cada cambio de estado y correo queda registrado</span></div><div class="bit">' + bit + '</div>' +
+      (edita ? '<div style="display:flex;gap:10px;margin-top:6px"><textarea id="nota" rows="2" placeholder="Agregar nota interna…"></textarea><button id="anotar">Anotar</button></div>' : '') + '</div>' +
+    '</div><div class="lado pila">' + panelGestion(e, edita) +
+      '<div class="tarjeta"><span class="et">Seguimiento del estudiante</span><div class="sub" style="white-space:normal">El estudiante ve el estado de sus solicitudes ingresando con su cuenta USACH en:</div><div class="mono" style="font-size:11px;word-break:break-all;margin-top:6px">' + h(S.ini.urlSeguimiento) + '</div></div>' +
+    '</div></div>';
+  $('volver').onclick = ev => { ev.preventDefault(); ir('bandeja'); };
+  document.querySelectorAll('[data-arch]').forEach(b => b.onclick = () => descargar(b.dataset.arch));
+  if ($('subir')) $('subir').onclick = subir;
+  if ($('anotar')) $('anotar').onclick = () => {
+    const t = $('nota').value.trim(); if (!t) return;
+    run('api_anotar', e.folio, t).then(() => { toast('Nota registrada'); abrir(e.folio); }).catch(fallo);
+  };
+  document.querySelectorAll('[data-hacia]').forEach(b => b.onclick = () => dialogo(b.dataset.hacia));
+  if ($('guardar')) $('guardar').onclick = guardarGestion;
+}
+function panelGestion(e, edita) {
+  if (!edita) return '<div class="tarjeta"><span class="et">Estado actual</span><div style="font:700 14px Archivo,sans-serif">' + h(e.estadoEtiqueta) + '</div><div class="sub">Analista: ' + h(e.analistaNombre || 'Sin asignar') + ' · STD ' + h(e.n_std || '—') + '</div></div>';
+  const soyVice = S.ini.usuario.rol === 'Vicedecano/a';
+  const esVice = soyVice && ['recibida', 'vb_informe', 'vb'].indexOf(e.estado) >= 0;
+  // Textos de los botones de decisión del Vicedecano/a
+  const TXT = {
+    'recibida>revision': 'Autorizar inicio del análisis', 'recibida>no_procede': 'No procede · vía Registro Curricular',
+    'vb_informe>programa': 'V°B° → consultar al programa (vía STD)',
+    'programa>vb': 'Solicitar al Vicedecano/a autorizar o rechazar',
+    'vb>autorizada': 'Autorizar la solicitud', 'vb>denegada_vb': 'Rechazar la solicitud', 'vb>programa': 'Devolver al programa (STD) con observación',
+    'autorizada>aceptada': 'Comunicar aceptación al estudiante', 'denegada_vb>rechazada': 'Comunicar rechazo al estudiante'
+  };
+  const PRIM = ['recibida>revision', 'vb_informe>programa', 'vb>autorizada', 'programa>vb', 'autorizada>aceptada', 'denegada_vb>rechazada'], AMB = ['vb>programa'];
+  let botones;
+  if (!e.siguientes.length) botones = '<div class="aviso a-teal">Trámite cerrado.</div>';
+  else if (e.decideVicedecano && !soyVice) botones = '<div class="aviso a-amb">' + (e.estado === 'recibida' ? 'Pendiente de la autorización de inicio del Vicedecano/a.' : 'Pendiente del V°B° del Vicedecano/a.') + ' Esta decisión le corresponde exclusivamente.</div>';
+  else botones = e.siguientes.map(s => {
+    const k = e.estado + '>' + s.id, prim = PRIM.indexOf(k) >= 0, amb = AMB.indexOf(k) >= 0;
+    const txt = TXT[k] || s.etiqueta;
+    return '<button data-hacia="' + s.id + '" class="' + (prim ? 'prim' : amb ? 'ambar' : '') + '" style="width:100%;text-align:left;display:flex;justify-content:space-between;margin-bottom:6px">' + h(txt) + (s.evento ? ' <span title="Envía correo" style="color:' + (prim ? '#fff' : 'var(--naranja)') + '">✉</span>' : '') + '</button>';
+  }).join('') + '<div class="sub" style="font-style:italic;white-space:normal">✉ = el cambio envía un correo; verá la vista previa antes de confirmar.</div>';
+  const campo = (k, rot, tipo) => '<div style="margin-top:12px"><label class="et" for="g_' + k + '">' + rot + '</label>' +
+    (tipo === 'area' ? '<textarea id="g_' + k + '" rows="3">' + h(e[k]) + '</textarea>' : '<input id="g_' + k + '" value="' + h(e[k]) + '"' + (k === 'n_std' ? ' class="mono"' : '') + '>') + '</div>';
+  return '<div class="tarjeta"><h3>' + (esVice ? (e.estado === 'recibida' ? 'Autorización de inicio' : 'Visto bueno') : 'Gestión del trámite') + '</h3><span class="et">Estado actual</span><div style="font:700 14px Archivo,sans-serif;margin-bottom:12px">' + h(e.estadoEtiqueta) + '</div>' +
+    (e.propuesta_comite ? '<div style="background:var(--fcampo);border-radius:10px;padding:10px 12px;margin-bottom:12px;font:400 13px/1.5 Spectral,serif"><span class="et">Propuesta del Comité</span>' + h(e.propuesta_comite) + '</div>' : '') +
+    '<span class="et">Pasar a</span>' + botones + '<hr style="border:0;border-top:1px solid var(--fila);margin:16px 0">' +
+    '<label class="et" for="g_analista">Analista a cargo</label><select id="g_analista"><option value="">Sin asignar</option>' + S.ini.analistas.map(a => '<option value="' + h(a.correo) + '"' + (a.correo === e.analista ? ' selected' : '') + '>' + h(a.nombre) + '</option>').join('') + '</select>' +
+    campo('n_std', 'N° STD') + campo('comentarios_analista', 'Comentarios analista', 'area') + campo('obs_vicedecano', 'Observación Vicedecano/a', 'area') +
+    campo('propuesta_comite', 'Propuesta del Comité', 'area') + campo('resolucion', 'Resolución (N° y fecha)') +
+    (e.revisar === 'SÍ' ? '<label class="chk" style="margin-top:12px"><input type="checkbox" id="g_revisado"> Marcar como revisado (migración)</label>' : '') +
+    '<button class="prim" id="guardar" style="width:100%;margin-top:14px">Guardar cambios</button></div>';
+}
+function guardarGestion() {
+  const e = S.exp, c = {};
+  ['analista', 'n_std', 'comentarios_analista', 'obs_vicedecano', 'propuesta_comite', 'resolucion'].forEach(k => { c[k] = $('g_' + k).value; });
+  if ($('g_revisado') && $('g_revisado').checked) c.revisar = '';
+  if (c.analista !== (e.analista || '') && c.analista && !confirm('Se reasignará la solicitud y se enviará un aviso a la nueva analista. ¿Continuar?')) return;
+  run('api_guardarGestion', e.folio, c).then(r => { toast(r.sinCambios ? 'Sin cambios' : 'Cambios guardados'); abrir(e.folio); }).catch(fallo);
+}
+function subir() {
+  const f = $('archivo').files[0];
+  if (!f) return toast('Seleccione un archivo', true);
+  if (f.size > S.ini.maxMb * 1048576) return toast('El archivo supera ' + S.ini.maxMb + ' MB', true);
+  const b = $('subir'); b.disabled = true; b.textContent = 'Subiendo…';
+  const lector = new FileReader();
+  lector.onload = () => {
+    const b64 = String(lector.result).split(',')[1];
+    run('api_subirArchivo', S.exp.folio, f.name, f.type, b64, $('cat').value).then(() => { toast('Archivo agregado'); abrir(S.exp.folio); }).catch(e => { fallo(e); b.disabled = false; b.textContent = 'Subir'; });
+  };
+  lector.readAsDataURL(f);
+}
+function descargar(id) {
+  run('api_descargarArchivo', S.exp.folio, id).then(r => {
+    if (r.modo === 'enlace') { window.open(r.url, '_blank'); toast('Se abrió el archivo en Drive (acceso de lectura registrado en la bitácora)'); return; }
+    const a = document.createElement('a'); a.href = 'data:' + r.mime + ';base64,' + r.base64; a.download = r.nombre; document.body.appendChild(a); a.click(); a.remove();
+  }).catch(fallo);
+}
+
+/* ── Diálogo de cambio de estado ── */
+const ROT_CAMPO = { motivo: 'Motivo del rechazo (se incluye en el correo al estudiante)', observacion: 'Observación del Vicedecano/a (queda en el expediente y en el aviso a la analista)', propuesta_comite: 'Pronunciamiento del programa (resumen de la respuesta en STD)', resolucion: 'Resolución (N° y fecha)' };
+function cerrarDlg() { $('fondo').style.display = 'none'; }
+function dialogo(hacia) {
+  const e = S.exp;
+  $('dlg').innerHTML = '<div class="cargando">Preparando vista previa…</div>'; $('fondo').style.display = 'flex';
+  // Primero se consulta qué campos exige la transición; solo esos se piden como marcadores, para reemplazarlos en vivo
+  // con lo que escriba la persona (los no obligatorios toman su valor por defecto en el servidor).
+  run('api_previsualizar', e.folio, hacia, {}).then(pv0 => {
+    if (!pv0.conCorreo || !pv0.requeridos.length) return pv0;
+    const marcas = {}; pv0.requeridos.forEach(k => { marcas[k] = '{' + k + '}'; });
+    return run('api_previsualizar', e.folio, hacia, marcas);
+  }).then(pv => {
+    const req = pv.requeridos || [];
+    let html = '<div class="kicker" style="color:var(--apagado)">Cambio de estado</div><div style="font:800 18px Archivo,sans-serif;margin:6px 0 14px">' + h(pv.desdeEtiqueta) + ' <span style="color:var(--naranja)">→</span> ' + h(pv.haciaEtiqueta) + '</div>';
+    html += req.map(k => '<label class="et" for="c_' + k + '">' + h(ROT_CAMPO[k] || k) + ' *</label><textarea id="c_' + k + '" rows="2" style="margin-bottom:10px">' + h(k === 'propuesta_comite' ? e.propuesta_comite : k === 'resolucion' ? e.resolucion : (k === 'motivo' && e.estado === 'denegada_vb') ? e.obs_vicedecano : '') + '</textarea>').join('');
+    if (!pv.conCorreo) {
+      html += '<p class="resumen">Este cambio no envía correo. Quedará registrado en la bitácora del expediente.</p>';
+    } else {
+      const c = pv.correo;
+      html += '<div class="aviso a-amb" style="margin-bottom:12px">✉ Al confirmar se enviará este correo' + (c.replyTo ? ' (las respuestas llegarán a ' + h(c.replyTo) + ')' : '') + '.</div>';
+      if (c.faltantes.length) html += '<div class="aviso a-rojo" style="margin-bottom:12px">No se puede enviar: falta ' + h(c.faltantes.join('; ')) + '. Complételo en Configuración o Cuentas.</div>';
+      if (c.omitidos && c.omitidos.length) html += '<div class="aviso a-amb" style="margin-bottom:12px">Copia omitida (no bloquea el envío): falta ' + h(c.omitidos.join('; ')) + '.</div>';
+      html += '<div style="border:1px solid var(--borde);border-radius:12px;padding:14px 16px"><div class="sub" style="white-space:normal">Para: <b>' + h(c.para.join(', ') || '—') + '</b>' + (c.cc.length ? '<br>CC: ' + h(c.cc.join(', ')) : '') + '</div>' +
+        '<label class="et" style="margin-top:10px" for="c_asunto">Asunto</label><input id="c_asunto" value="' + h(c.asunto) + '">' +
+        '<label class="et" style="margin-top:10px" for="c_cuerpo">Cuerpo (puede editarlo para este envío)</label><textarea id="c_cuerpo" rows="12">' + h(c.cuerpo) + '</textarea>';
+      const arch = (e.archivos || []).filter(a => a.categoria !== S.ini.categorias.antecedentes_formulario);
+      if (arch.length) html += '<span class="et" style="margin-top:10px">Adjuntar</span>' + arch.map(a => '<label class="chk"><input type="checkbox" class="adj" value="' + h(a.id) + '" data-mb="' + h(a.tamano_mb) + '"> ' + h(a.nombre) + ' <span class="sub">(' + h(a.tamano_mb) + ' MB)</span></label>').join('') + '<div class="sub" id="totadj"></div>';
+      html += '</div>';
+    }
+    html += '<div class="acciones" style="justify-content:flex-end;margin-top:16px"><button id="cancelar">Cancelar</button><button class="prim" id="confirmar"' + (pv.conCorreo && pv.correo.faltantes.length ? ' disabled' : '') + '>' + (pv.conCorreo ? 'Confirmar y enviar correo' : 'Confirmar cambio') + '</button></div>';
+    $('dlg').innerHTML = html;
+    $('cancelar').onclick = cerrarDlg;
+    // Los campos obligatorios se reflejan en vivo en el cuerpo del correo.
+    req.forEach(k => { const el = $('c_' + k); el.oninput = () => reflejar(pv); });
+    if (req.length && pv.conCorreo) reflejar(pv);
+    document.querySelectorAll('.adj').forEach(x => x.onchange = () => {
+      const mb = [...document.querySelectorAll('.adj:checked')].reduce((s, y) => s + Number(y.dataset.mb || 0), 0);
+      $('totadj').textContent = mb ? 'Total adjuntos: ' + mb.toFixed(1) + ' MB (máx. 24)' : '';
+    });
+    $('confirmar').onclick = () => {
+      const campos = {};
+      for (const k of req) { campos[k] = $('c_' + k).value.trim(); if (!campos[k]) return toast('Complete «' + (ROT_CAMPO[k] || k) + '»', true); }
+      const envio = { campos };
+      if (pv.conCorreo) { envio.asunto = $('c_asunto').value; envio.cuerpo = $('c_cuerpo').value; envio.adjuntos = [...document.querySelectorAll('.adj:checked')].map(x => x.value); }
+      $('confirmar').disabled = true; $('confirmar').textContent = 'Enviando…';
+      run('api_cambiarEstado', e.folio, hacia, envio).then(r => {
+        cerrarDlg(); toast(r.conCorreo ? 'Estado actualizado y correo enviado' : 'Estado actualizado'); abrir(e.folio);
+      }).catch(err => { fallo(err); $('confirmar').disabled = false; $('confirmar').textContent = pv.conCorreo ? 'Confirmar y enviar correo' : 'Confirmar cambio'; });
+    };
+  }).catch(err => { cerrarDlg(); fallo(err); });
+}
+function reflejar(pv) {
+  const vars = { motivo: 'motivo', observacion: 'observacion', propuesta_comite: 'propuesta_comite', resolucion: 'resolucion' };
+  let cuerpo = pv.correo.cuerpo, asunto = pv.correo.asunto;
+  Object.keys(vars).forEach(k => {
+    const el = $('c_' + k); if (!el || !el.value.trim()) return;
+    cuerpo = cuerpo.split('{' + k + '}').join(el.value.trim()); asunto = asunto.split('{' + k + '}').join(el.value.trim());
+  });
+  $('c_cuerpo').value = cuerpo; $('c_asunto').value = asunto;
+}
+
+/* ── Indicadores ── */
+function pintarIndicadores() {
+  const l = S.bandeja, anio = String(new Date().getFullYear());
+  const delAnio = l.filter(s => String(s.folio).slice(-4) === anio);
+  const cerradas = delAnio.filter(s => cierre(s.estado));
+  const kpi = (n, t, c) => '<div class="kpi" style="--c:' + c + '"><b>' + n + '</b><span>' + t + '</span></div>';
+  const barras = (titulo, pares) => { const max = Math.max(1, ...pares.map(p => p[1])); return '<div class="tarjeta"><h3>' + titulo + '</h3>' + pares.map(p => '<div style="display:flex;justify-content:space-between;font:400 12.5px Archivo,sans-serif"><span>' + h(p[0]) + '</span><span class="mono">' + p[1] + '</span></div><div class="barra"><i style="width:' + (100 * p[1] / max) + '%"></i></div>').join('') + '</div>'; };
+  const contar = f => { const m = {}; delAnio.forEach(s => f(s).forEach(k => { if (k) m[k] = (m[k] || 0) + 1; })); return Object.entries(m).sort((a, b) => b[1] - a[1]); };
+  $('app').innerHTML = '<h2>Indicadores ' + anio + '</h2><div class="resumen" style="margin-bottom:16px">Solicitudes con folio del año en curso. «Cerradas» incluye resueltas, rechazadas, no procede y negadas.</div>' +
+    '<div class="kpis">' + kpi(delAnio.length, 'Solicitudes recibidas', 'var(--teal2)') + kpi(delAnio.length - cerradas.length, 'En curso', 'var(--naranja)') +
+    kpi(cerradas.length + ' <small style="font-size:14px">(' + cerradas.filter(s => s.estado === 'resuelto').length + ' favorables)</small>', 'Cerradas', 'var(--verde)') +
+    kpi(delAnio.filter(s => s.revisar === 'SÍ').length, 'Por revisar', '#C9C2B0') + '</div>' +
+    '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin-top:16px">' +
+    barras('Por estado', contar(s => [etq(s.estado)])) + barras('Por programa', contar(s => [s.programa])) +
+    barras('Por tipo de requerimiento', contar(s => String(s.tipo).split(',').map(x => x.trim()))) + '</div>';
+}
+
+/* ── Plantillas ── */
+function cargarPlantillas() {
+  $('app').innerHTML = '<div class="cargando">Cargando plantillas…</div>';
+  run('api_plantillas').then(l => { S.plantillas = l; if (!S.plSel && l.length) S.plSel = l[0].evento; pintarPlantillas(); }).catch(fallo);
+}
+function pintarPlantillas() {
+  const t = S.plantillas.find(x => x.evento === S.plSel) || {}, edita = nivel('edicion');
+  const VARS = ['nombre', 'folio', 'programa', 'tipo', 'analista', 'enlace', 'enlace_panel', 'std', 'vicedecano', 'motivo', 'observacion', 'propuesta_comite', 'resolucion', 'plazo', 'enlace_rc'];
+  $('app').innerHTML = '<h2>Plantillas de correo</h2><div class="resumen" style="margin-bottom:16px">Los destinatarios son roles; el sistema los traduce a correos según Cuentas y Programas al momento de enviar.</div>' +
+    '<div style="display:grid;grid-template-columns:320px minmax(0,1fr);gap:20px" class="grid-pl"><div class="tabla">' +
+    S.plantillas.map(p => '<div class="lista-item' + (p.evento === S.plSel ? ' sel' : '') + '" data-ev="' + h(p.evento) + '"><div class="nom">' + h(p.descripcion) + '</div><div class="sub">Para: ' + h(p.para) + (p.cc ? ' · CC: ' + h(p.cc) : '') + '</div></div>').join('') +
+    '</div><div class="tarjeta"><div class="kicker" style="color:var(--apagado)">Evento · <span class="mono">' + h(t.evento) + '</span></div><h3 style="margin-top:6px">' + h(t.descripcion) + '</h3>' +
+    '<label class="et" for="pl_a">Asunto</label><input id="pl_a" value="' + h(t.asunto) + '"' + (edita ? '' : ' disabled') + '>' +
+    '<label class="et" style="margin-top:12px" for="pl_c">Cuerpo</label><textarea id="pl_c" rows="14"' + (edita ? '' : ' disabled') + '>' + h(t.cuerpo) + '</textarea>' +
+    '<div class="vars" style="margin:8px 0">' + VARS.map(v => '<code>{' + v + '}</code>').join('') + '</div>' +
+    (t.actualizado_por ? '<div class="sub">Última edición: ' + h(t.actualizado_por) + ' · ' + fecha(t.actualizado_en) + '</div>' : '') +
+    (edita ? '<div class="acciones" style="justify-content:flex-end;margin-top:12px"><button id="pl_rest">Restaurar original</button><button class="prim" id="pl_guardar">Guardar plantilla</button></div>' : '') + '</div></div>';
+  document.querySelectorAll('[data-ev]').forEach(x => x.onclick = () => { S.plSel = x.dataset.ev; pintarPlantillas(); });
+  if (!edita) return;
+  $('pl_guardar').onclick = () => run('api_guardarPlantilla', t.evento, $('pl_a').value, $('pl_c').value).then(() => { toast('Plantilla guardada'); cargarPlantillas(); }).catch(fallo);
+  $('pl_rest').onclick = () => { if (confirm('¿Restaurar el texto original de esta plantilla?')) run('api_restaurarPlantilla', t.evento).then(() => { toast('Plantilla restaurada'); cargarPlantillas(); }).catch(fallo); };
+}
+
+/* ── Cuentas (Administración) ── */
+function cargarCuentas() {
+  $('app').innerHTML = '<div class="cargando">Cargando cuentas…</div>';
+  run('api_cuentas').then(r => { S.cuentas = r; pintarCuentas(); }).catch(fallo);
+}
+function pintarCuentas(editando) {
+  const r = S.cuentas;
+  const NIV = { sin_acceso: 'Sin acceso (solo recibe correos)', consulta: 'Consulta', edicion: 'Edición', administracion: 'Administración' };
+  const filas = r.cuentas.map(c => '<div class="fila" style="grid-template-columns:1.4fr 1fr 1fr 1fr 70px;cursor:default"><div><div class="nom">' + h(c.nombre) + '</div><div class="sub mono">' + h(c.correo) + '</div></div>' +
+    '<div class="sub">' + h(c.rol) + '</div><div class="sub">' + h(NIV[c.nivel] || c.nivel) + '<br>' + h(c.programas) + '</div><div class="sub">' + h(c.recibe_eventos || '—') + '</div>' +
+    '<div><span class="tag ' + (c.activo === 'SÍ' ? 't-ok' : 't-no') + '">' + (c.activo === 'SÍ' ? 'Activa' : 'Inactiva') + '</span><br><button data-ed="' + h(c.correo) + '" style="margin-top:6px;padding:5px 9px">Editar</button></div></div>').join('');
+  const c = editando ? r.cuentas.find(x => x.correo === editando) : null, nueva = !c;
+  const v = c || { correo: '', nombre: '', rol: 'Analista', nivel: 'edicion', programas: 'todos', activo: 'SÍ', recibe_eventos: '', notas: '' };
+  const evs = String(v.recibe_eventos || '').split(',').map(x => x.trim());
+  const progSel = String(v.programas || 'todos').split(';').map(x => x.trim());
+  const form = '<div class="tarjeta" id="fcuenta"><h3>' + (nueva ? 'Agregar cuenta' : 'Editar cuenta') + '</h3>' +
+    '<label class="et" for="k_correo">Correo @usach.cl</label><input id="k_correo" class="mono" value="' + h(v.correo) + '"' + (nueva ? '' : ' disabled') + '>' +
+    '<label class="et" style="margin-top:10px" for="k_nombre">Nombre</label><input id="k_nombre" value="' + h(v.nombre) + '">' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px"><div><label class="et" for="k_rol">Rol</label><select id="k_rol">' + r.roles.map(x => '<option' + (x === v.rol ? ' selected' : '') + '>' + h(x) + '</option>').join('') + '</select></div>' +
+    '<div><label class="et" for="k_nivel">Nivel</label><select id="k_nivel">' + r.niveles.map(x => '<option value="' + x + '"' + (x === v.nivel ? ' selected' : '') + '>' + h(NIV[x]) + '</option>').join('') + '</select></div></div>' +
+    '<span class="et" style="margin-top:12px">Programas que ve</span><label class="chk"><input type="checkbox" id="k_todos"' + (progSel[0] === 'todos' ? ' checked' : '') + '> Todos</label>' +
+    '<div id="k_progs" style="max-height:150px;overflow:auto;' + (progSel[0] === 'todos' ? 'display:none' : '') + '">' + r.programas.map(p => '<label class="chk"><input type="checkbox" class="kp" value="' + h(p) + '"' + (progSel.indexOf(p) >= 0 ? ' checked' : '') + '> ' + h(p) + '</label>').join('') + '</div>' +
+    '<span class="et" style="margin-top:12px">Recibe copia de estos correos (además de los de su rol)</span><div style="max-height:150px;overflow:auto">' +
+    r.eventos.map(ev => '<label class="chk"><input type="checkbox" class="ke" value="' + h(ev) + '"' + (evs.indexOf(ev) >= 0 ? ' checked' : '') + '> <span class="mono" style="font-size:12px">' + h(ev) + '</span></label>').join('') + '</div>' +
+    '<label class="chk" style="margin-top:10px"><input type="checkbox" id="k_activo"' + (v.activo === 'SÍ' ? ' checked' : '') + '> Cuenta activa</label>' +
+    '<label class="et" style="margin-top:10px" for="k_notas">Notas</label><input id="k_notas" value="' + h(v.notas) + '">' +
+    '<div class="acciones" style="justify-content:flex-end;margin-top:14px">' + (nueva ? '' : '<button id="k_nueva">Nueva cuenta</button><button id="k_aviso">Enviar enlace de acceso</button>') + '<button class="prim" id="k_guardar">' + (nueva ? 'Crear cuenta' : 'Guardar') + '</button></div></div>';
+  $('app').innerHTML = '<h2>Cuentas</h2><div class="resumen" style="margin-bottom:16px">El ingreso es con la cuenta Google USACH; aquí se decide qué puede hacer cada persona y qué correos recibe. Los cambios rigen desde la siguiente acción de esa persona. La cuenta institucional (' + h(r.duenia) + ') es administradora fija.</div>' +
+    '<div class="grid2"><div class="tabla">' + filas + '</div><div class="lado">' + form + '</div></div>';
+  document.querySelectorAll('[data-ed]').forEach(b => b.onclick = () => pintarCuentas(b.dataset.ed));
+  $('k_todos').onchange = e => { $('k_progs').style.display = e.target.checked ? 'none' : ''; };
+  if ($('k_nueva')) $('k_nueva').onclick = () => pintarCuentas();
+  if ($('k_aviso')) $('k_aviso').onclick = () => run('api_avisarCuenta', v.correo).then(() => toast('Enlace enviado a ' + v.correo)).catch(fallo);
+  $('k_guardar').onclick = () => {
+    const progs = $('k_todos').checked ? 'todos' : [...document.querySelectorAll('.kp:checked')].map(x => x.value).join('; ');
+    if (!progs) return toast('Seleccione al menos un programa o «Todos»', true);
+    const datos = { correo: $('k_correo').value, nombre: $('k_nombre').value, rol: $('k_rol').value, nivel: $('k_nivel').value, programas: progs,
+      activo: $('k_activo').checked ? 'SÍ' : 'NO', recibe_eventos: [...document.querySelectorAll('.ke:checked')].map(x => x.value).join(', '), notas: $('k_notas').value };
+    run('api_guardarCuenta', datos, nueva).then(res => {
+      toast(res.sinCambios ? 'Sin cambios' : nueva ? 'Cuenta creada' : 'Cuenta actualizada');
+      if (nueva && confirm('¿Enviar a ' + datos.correo.trim().toLowerCase() + ' el enlace de acceso al panel?')) run('api_avisarCuenta', datos.correo.trim().toLowerCase()).then(() => toast('Enlace enviado')).catch(fallo);
+      cargarCuentas();
+    }).catch(fallo);
+  };
+}
+
+/* ── Configuración ── */
+function cargarConfig() {
+  $('app').innerHTML = '<div class="cargando">Cargando configuración…</div>';
+  run('api_config').then(r => { S.config = r; pintarConfig(); }).catch(fallo);
+}
+function pintarConfig() {
+  const r = S.config, adm = nivel('administracion');
+  const filas = r.programas.map((p, i) => '<div class="fila" style="grid-template-columns:1.5fr 1.2fr 1fr 60px 70px;cursor:default"><div class="nom" style="font-size:13px">' + h(p.programa) + '</div>' +
+    (adm ? '<input data-i="' + i + '" data-k="correo_direccion" class="mono" style="font-size:12px" value="' + h(p.correo_direccion) + '" placeholder="dirección@usach.cl">' +
+      '<select data-i="' + i + '" data-k="analista"><option value="">Sin asignar</option>' + S.ini.analistas.map(a => '<option value="' + h(a.correo) + '"' + (a.correo === p.analista ? ' selected' : '') + '>' + h(a.nombre) + '</option>').join('') + '</select>' +
+      '<label class="chk"><input type="checkbox" data-i="' + i + '" data-k="activo"' + (p.activo === 'SÍ' ? ' checked' : '') + '></label><button data-gp="' + i + '" style="padding:6px 9px">Guardar</button>'
+      : '<div class="sub mono">' + h(p.correo_direccion || '—') + '</div><div class="sub">' + h(p.analista || '—') + '</div><div class="sub">' + h(p.activo) + '</div><div></div>') + '</div>').join('');
+  const pars = r.parametros.map(p => '<div style="margin-bottom:12px"><label class="et" for="p_' + h(p.clave) + '">' + h(p.clave) + '</label><input id="p_' + h(p.clave) + '" data-clave="' + h(p.clave) + '" value="' + h(p.valor) + '"' + (adm ? '' : ' disabled') + '><div class="sub" style="white-space:normal">' + h(p.descripcion) + '</div></div>').join('');
+  $('app').innerHTML = '<h2>Configuración</h2><div class="resumen" style="margin-bottom:16px">Cada programa define a quién llegan los correos para «Dirección de programa» y qué analista recibe las solicitudes nuevas.</div>' +
+    '<div class="grid2"><div class="pila"><div class="tabla"><div class="fila enc" style="grid-template-columns:1.5fr 1.2fr 1fr 60px 70px"><div>Programa</div><div>Correo dirección</div><div>Analista</div><div>Activo</div><div></div></div>' + filas + '</div>' +
+    (adm ? '<div class="tarjeta"><h3>Agregar programa</h3><div style="display:grid;grid-template-columns:1.5fr 1fr auto;gap:8px"><input id="np_nombre" placeholder="Nombre exacto, como aparece en el Formulario"><input id="np_correo" class="mono" placeholder="dirección@usach.cl"><button class="prim" id="np_ok">Agregar</button></div><div class="sub" style="white-space:normal;margin-top:6px">Si agrega un programa aquí, agréguelo también como opción en el Formulario de Google.</div></div>' : '') +
+    '</div><div class="lado pila"><div class="tarjeta"><h3>Parámetros</h3>' + pars + (adm ? '<button class="prim" id="par_ok" style="width:100%">Guardar parámetros</button>' : '') + '</div>' +
+    '<div class="tarjeta"><h3>Feriados cargados</h3><div class="mono" style="font-size:11.5px;line-height:1.7">' + r.feriados.map(h).join('<br>') + '</div><div class="sub" style="white-space:normal;margin-top:8px">Se editan en la pestaña «Feriados» de la planilla (cuenta institucional). Agregue cada año los feriados móviles.</div></div></div></div>';
+  if (!adm) return;
+  document.querySelectorAll('[data-gp]').forEach(b => b.onclick = () => {
+    const i = b.dataset.gp, p = Object.assign({}, r.programas[i]);
+    document.querySelectorAll('[data-i="' + i + '"]').forEach(el => { p[el.dataset.k] = el.type === 'checkbox' ? (el.checked ? 'SÍ' : 'NO') : el.value; });
+    run('api_guardarPrograma', p, false).then(() => { toast('Programa guardado'); cargarConfig(); }).catch(fallo);
+  });
+  $('np_ok').onclick = () => run('api_guardarPrograma', { programa: $('np_nombre').value, correo_direccion: $('np_correo').value, analista: '', activo: 'SÍ' }, true).then(() => { toast('Programa agregado'); cargarConfig(); }).catch(fallo);
+  $('par_ok').onclick = () => {
+    const v = {}; document.querySelectorAll('[data-clave]').forEach(el => { v[el.dataset.clave] = el.value; });
+    run('api_guardarParametros', v).then(() => { toast('Parámetros guardados'); cargarConfig(); }).catch(fallo);
+  };
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarDlg(); });
+</script>
+</body>
+</html>

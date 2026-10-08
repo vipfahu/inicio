@@ -1,0 +1,5 @@
+# Identificador del proyecto de Apps Script de la cuenta institucional (se crea en cada computador)
+.clasp.json
+
+# ID de la implementación publicada (lo guarda desplegar.js en cada computador)
+.despliegue.json
