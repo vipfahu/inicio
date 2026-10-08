@@ -4,54 +4,30 @@
  * Se comparten entre el servidor (Apps Script) y las pruebas en Node (tests/).
  */
 
-/**
- * Máquina de estados (flujo acordado con el Vicedecanato, oct. 2026):
- *   Recibida → [Vicedecano/a autoriza el inicio] → Análisis y antecedentes → Informe de Registro Curricular
- *   → V°B° al informe → Pronunciamiento del programa → [V°B° del Vicedecano/a] → Presentación aceptada
- *   → Resolución en trámite → Resuelto / Negado.   Rechazos y «no procede» en el análisis o en el V°B°.
- * `correo` = plantilla que se envía al entrar al estado ('' = sin correo).
- */
+/** Máquina de estados. `correo` = plantilla que se envía al entrar al estado ('' = sin correo). */
 const ESTADOS = [
-  { id: 'recibida',    etiqueta: 'Recibida · pendiente de autorización de inicio',  fase: 'Admisibilidad', correo: 'recepcion',  siguientes: ['revision', 'no_procede'] },
-  { id: 'revision',    etiqueta: 'En análisis · solicitud de antecedentes',         fase: 'Análisis',      correo: 'inicio_autorizado', siguientes: ['informe_rc', 'rechazada', 'no_procede'] },
-  { id: 'informe_rc',  etiqueta: 'Informe académico de Registro Curricular',       fase: 'Análisis',      correo: '',           siguientes: ['vb_informe'] },
-  { id: 'vb_informe',  etiqueta: 'V°B° Vicedecano/a al informe',                    fase: 'Análisis',      correo: 'vb_informe', siguientes: ['programa'] },
-  { id: 'programa',    etiqueta: 'Pronunciamiento del programa (vía STD)',          fase: 'Análisis',      correo: '',           siguientes: ['vb'] },
-  { id: 'vb',          etiqueta: 'Decisión del Vicedecano/a (autorizar o rechazar)', fase: 'Decisión',     correo: 'vb',         siguientes: ['autorizada', 'denegada_vb', 'programa'] },
-  { id: 'autorizada',  etiqueta: 'Autorizada por el Vicedecano/a · por comunicar',  fase: 'Decisión',      correo: 'decision',   siguientes: ['aceptada'] },
-  { id: 'denegada_vb', etiqueta: 'Rechazada por el Vicedecano/a · por comunicar',   fase: 'Decisión',      correo: 'decision',   siguientes: ['rechazada'] },
-  { id: 'aceptada',    etiqueta: 'Presentación aceptada · comunicada',              fase: 'Resolución',    correo: 'aceptada',   siguientes: ['resolucion'] },
-  { id: 'resolucion',  etiqueta: 'Resolución en trámite',                           fase: 'Resolución',    correo: 'registro',   siguientes: ['resuelto', 'negado'] },
-  { id: 'resuelto',    etiqueta: 'Resuelto',                                        fase: 'Cierre',        correo: 'resuelto',   siguientes: [] },
-  { id: 'rechazada',   etiqueta: 'Presentación rechazada · comunicada',             fase: 'Cierre',        correo: 'rechazada',  siguientes: [] },
-  { id: 'no_procede',  etiqueta: 'No procede · vía Registro Curricular',            fase: 'Cierre',        correo: 'no_procede', siguientes: [] },
-  { id: 'negado',      etiqueta: 'Negado',                                          fase: 'Cierre',        correo: 'negado',     siguientes: [] }
+  { id: 'recibida',   etiqueta: 'Recibida',                                  fase: 'Admisibilidad', correo: 'recepcion',  siguientes: ['revision'] },
+  { id: 'revision',   etiqueta: 'En revisión de admisibilidad',              fase: 'Admisibilidad', correo: '',           siguientes: ['aceptada', 'rechazada', 'no_procede'] },
+  { id: 'aceptada',   etiqueta: 'Presentación aceptada',                     fase: 'Tramitación',   correo: 'aceptada',   siguientes: ['informe_rc'] },
+  { id: 'informe_rc', etiqueta: 'Informe de Registro Curricular',            fase: 'Tramitación',   correo: '',           siguientes: ['vb_informe'] },
+  { id: 'vb_informe', etiqueta: 'V°B° Vicedecano/a al informe',              fase: 'Tramitación',   correo: 'vb_informe', siguientes: ['programa'] },
+  { id: 'programa',   etiqueta: 'Pronunciamiento del programa',              fase: 'Tramitación',   correo: 'programa',   siguientes: ['vb'] },
+  { id: 'vb',         etiqueta: 'V°B° Vicedecano/a a respuesta del Comité',  fase: 'Tramitación',   correo: 'vb',         siguientes: ['resolucion', 'programa'] },
+  { id: 'resolucion', etiqueta: 'Resolución en trámite',                     fase: 'Resolución',    correo: 'registro',   siguientes: ['resuelto', 'negado'] },
+  { id: 'resuelto',   etiqueta: 'Resuelto',                                  fase: 'Cierre',        correo: 'resuelto',   siguientes: [] },
+  { id: 'rechazada',  etiqueta: 'Presentación rechazada',                    fase: 'Cierre',        correo: 'rechazada',  siguientes: [] },
+  { id: 'no_procede', etiqueta: 'No procede · vía Registro Curricular',      fase: 'Cierre',        correo: 'no_procede', siguientes: [] },
+  { id: 'negado',     etiqueta: 'Negado',                                    fase: 'Cierre',        correo: 'negado',     siguientes: [] }
 ];
 
-/** Estados intermedios de decisión que el estudiante no ve hasta que la analista le comunica la definición. */
-const PENDIENTES_DE_COMUNICAR = ['autorizada', 'denegada_vb'];
-
-/** Estados cuya salida (autorización de inicio y V°B° a la respuesta del programa) solo puede decidir el Vicedecano/a. */
-const DECIDE_VICEDECANO = ['recibida', 'vb'];
-
-function requiereVicedecano(desde) {
-  return DECIDE_VICEDECANO.indexOf(desde) >= 0;
-}
-
-/** Datos que hay que escribir en el diálogo de cada transición (se guardan y, si corresponde, van en el correo). */
+/** Datos que la persona debe escribir en el diálogo antes de enviar cada correo. */
 const CAMPOS_REQUERIDOS = {
-  'revision>rechazada': ['motivo'],
-  'denegada_vb>rechazada': ['motivo'],
-  'programa>vb': ['propuesta_comite'],
-  'vb>denegada_vb': ['observacion'],
-  'vb>programa': ['observacion'],
-  'resolucion>resuelto': ['resolucion'],
-  'resolucion>negado': ['resolucion']
+  rechazada: ['motivo'],
+  devolucion: ['observacion'],
+  vb: ['propuesta_comite'],
+  resuelto: ['resolucion'],
+  negado: ['resolucion']
 };
-
-function camposRequeridos(desde, hacia) {
-  return CAMPOS_REQUERIDOS[desde + '>' + hacia] || [];
-}
 
 const TIPOS_CATALOGO = [
   'Reincorporación Simple', 'Reincorporación para Requisito de Graduación', 'Prórroga de Periodo Lectivo',
@@ -78,8 +54,7 @@ function transicionValida(desde, hacia) {
 
 /** Plantilla que dispara una transición. Devolver al programa desde el V°B° no reenvía la remisión inicial. */
 function eventoTransicion(desde, hacia) {
-  // Devolver al programa (vía STD) no escribe al programa: avisa a la analista la decisión del Vicedecano/a.
-  if (desde === 'vb' && hacia === 'programa') return 'decision';
+  if (desde === 'vb' && hacia === 'programa') return 'devolucion';
   const e = estadoPorId(hacia);
   return e ? e.correo : '';
 }
@@ -176,13 +151,6 @@ function resolverDestinatarios(rolesPara, rolesCc, ctx) {
     const s = ctx.solicitud || {};
     if (rol === 'Estudiante') return s.correo ? [s.correo] : (faltantes.push('correo del estudiante'), []);
     if (rol === 'Analista') return s.analista ? [s.analista] : (faltantes.push('analista asignada/o'), []);
-    if (rol === 'Analista o analistas') {
-      // La analista asignada; si aún no hay, todas las analistas con cuenta activa.
-      if (s.analista) return [s.analista];
-      const r = activas.filter(c => c.rol === 'Analista').map(c => c.correo);
-      if (!r.length) faltantes.push('cuentas activas con rol «Analista»');
-      return r;
-    }
     if (rol === 'Equipo') {
       // Toda cuenta activa con acceso al panel (consulta, edición o administración).
       const r = activas.filter(c => c.nivel && c.nivel !== 'sin_acceso').map(c => c.correo);
@@ -204,18 +172,14 @@ function resolverDestinatarios(rolesPara, rolesCc, ctx) {
   };
   const para = [], cc = [];
   listaRoles(rolesPara).forEach(r => porRol(r).forEach(x => para.push(x)));
-  // Una copia que no se puede resolver no bloquea el envío: se informa como omitida.
-  const bloqueantes = faltantes.slice();
   listaRoles(rolesCc).forEach(r => porRol(r).forEach(x => cc.push(x)));
-  const omitidos = faltantes.filter(f => bloqueantes.indexOf(f) < 0);
-  faltantes.length = 0; bloqueantes.forEach(f => faltantes.push(f));
   if (ctx.evento) {
     activas.filter(c => listaRoles(c.recibe_eventos).indexOf(ctx.evento) >= 0).forEach(c => cc.push(c.correo));
   }
   const norm = x => String(x).trim().toLowerCase();
   const paraU = unicos(para.map(norm));
   const ccU = unicos(cc.map(norm)).filter(x => paraU.indexOf(x) < 0);
-  return { para: paraU, cc: ccU, faltantes: unicos(faltantes), omitidos: unicos(omitidos) };
+  return { para: paraU, cc: ccU, faltantes: unicos(faltantes) };
 }
 
 function unicos(a) {
@@ -312,7 +276,7 @@ function validarSolicitud(d, ctx) {
 
 if (typeof module !== 'undefined') {
   module.exports = {
-    ESTADOS, DECIDE_VICEDECANO, PENDIENTES_DE_COMUNICAR, requiereVicedecano, CAMPOS_REQUERIDOS, camposRequeridos, TIPOS_CATALOGO, NIVELES, ROLES, estadoPorId, esCierre, transicionValida, eventoTransicion,
+    ESTADOS, CAMPOS_REQUERIDOS, TIPOS_CATALOGO, NIVELES, ROLES, estadoPorId, esCierre, transicionValida, eventoTransicion,
     normalizarFolio, siguienteFolio, estadoMigrado, separarTipos, rellenar, variablesSinResolver, resolverDestinatarios,
     diasHabilesEntre, necesitaRecordatorio, nivelSuficiente, puedeVerSolicitud, validarCuenta, esSi, listaRoles, validarSolicitud
   };

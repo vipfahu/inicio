@@ -22,5 +22,6 @@ nuevo (una corrección o un enfoque confirmado), agregar o actualizar la nota co
 - La planilla se actualiza sola en la primera visita tras publicar (`actualizarSiCorresponde_` en `Instalar.gs`).
 
 ## Flujo vigente (resumen)
-Recibida → Vicedecano/a autoriza inicio → análisis → informe RC → V°B° informe → programa vía STD (sin correo) → analista solicita
-decisión → Vicedecano/a autoriza/rechaza/devuelve (exclusivo; aviso interno) → analista comunica al estudiante → resolución → cierre.
+Recibida → revisión de admisibilidad → aceptada / rechazada / no procede → informe RC → V°B° informe → programa (correo a la dirección)
+→ V°B° a la respuesta del Comité (o devolución al programa) → resolución → resuelto / negado. Una versión con autorización de inicio
+del Vicedecano/a y paso del programa vía STD se probó y se revirtió a pedido (ver `memoria/flujo-cae-vigente.md`).

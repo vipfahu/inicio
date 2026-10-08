@@ -72,23 +72,6 @@ function analistaActiva_(correo) {
   return leer_(HOJAS.cuentas).some(x => String(x.correo).trim().toLowerCase() === c && x.rol === 'Analista' && esSi(x.activo)) ? c : '';
 }
 
-/** Variables del aviso de decisión del Vicedecano/a a la analista. */
-function camposDecision_(desde, hacia) {
-  if (desde !== 'vb') return {};
-  return {
-    autorizada: { decision: 'AUTORIZÓ', siguiente_paso: 'comunicar la aceptación al estudiante desde el expediente («Comunicar aceptación al estudiante»).' },
-    denegada_vb: { decision: 'RECHAZÓ', siguiente_paso: 'comunicar el rechazo al estudiante desde el expediente («Comunicar rechazo al estudiante»), indicando el motivo.' },
-    programa: { decision: 'DEVOLVIÓ AL PROGRAMA', siguiente_paso: 'gestionar la observación con el programa vía STD y, con su nueva respuesta, volver a solicitar la decisión.' }
-  }[hacia] || {};
-}
-
-/** La autorización de inicio y el V°B° a la respuesta del programa son exclusivos del Vicedecano/a. */
-function exigeVicedecano_(u, desde) {
-  if (requiereVicedecano(desde) && u.rol !== 'Vicedecano/a') {
-    throw new Error('SIN_ACCESO: esta decisión corresponde exclusivamente al Vicedecano/a.');
-  }
-}
-
 /* ── Panel: bandeja y expediente ── */
 
 function resumen_(s) {
@@ -123,7 +106,6 @@ function api_expediente(folio) {
   out.siguientes = ((estadoPorId(s.estado) || {}).siguientes || []).map(id => ({
     id: id, etiqueta: estadoPorId(id).etiqueta, evento: eventoTransicion(s.estado, id)
   }));
-  out.decideVicedecano = requiereVicedecano(s.estado);
   out.bitacora = leer_(HOJAS.bitacora).filter(b => String(b.folio) === String(folio)).map(b => { const o = Object.assign({}, b); delete o._fila; return o; });
   // La fundamentación y los archivos (pueden contener datos de salud) solo para Edición o superior.
   out.verDetalle = nivelSuficiente(u.nivel, 'edicion');
@@ -144,13 +126,11 @@ function api_previsualizar(folio, hacia, campos) {
   const s = buscarSolicitud_(folio);
   if (!puedeVerSolicitud(u, s)) throw new Error('SIN_ACCESO: la solicitud no pertenece a sus programas.');
   if (!transicionValida(s.estado, hacia)) throw new Error('Transición no permitida: ' + s.estado + ' → ' + hacia + '.');
-  exigeVicedecano_(u, s.estado);
   const evento = eventoTransicion(s.estado, hacia);
-  const requeridos = camposRequeridos(s.estado, hacia);
-  const base = { desde: s.estado, hacia: hacia, desdeEtiqueta: estadoPorId(s.estado).etiqueta, haciaEtiqueta: estadoPorId(hacia).etiqueta, evento: evento, requeridos: requeridos };
-  if (!evento) return Object.assign(base, { conCorreo: false });
-  const c = componer_(evento, s, Object.assign({}, campos || {}, camposDecision_(s.estado, hacia)));
-  return Object.assign(base, { conCorreo: true, correo: c });
+  const base = { desde: s.estado, hacia: hacia, desdeEtiqueta: estadoPorId(s.estado).etiqueta, haciaEtiqueta: estadoPorId(hacia).etiqueta, evento: evento };
+  if (!evento) return Object.assign(base, { conCorreo: false, requeridos: [] });
+  const c = componer_(evento, s, campos || {});
+  return Object.assign(base, { conCorreo: true, requeridos: CAMPOS_REQUERIDOS[evento] || [], correo: c });
 }
 
 /**
@@ -168,10 +148,8 @@ function api_cambiarEstado(folio, hacia, envio) {
     const s = buscarSolicitud_(folio);
     if (!puedeVerSolicitud(u, s)) throw new Error('SIN_ACCESO: la solicitud no pertenece a sus programas.');
     if (!transicionValida(s.estado, hacia)) throw new Error('La solicitud cambió de estado mientras tanto (' + s.estado + '). Recargue el expediente.');
-    exigeVicedecano_(u, s.estado);
     const evento = eventoTransicion(s.estado, hacia);
-    Object.assign(campos, camposDecision_(s.estado, hacia));
-    camposRequeridos(s.estado, hacia).forEach(k => {
+    (CAMPOS_REQUERIDOS[evento] || []).forEach(k => {
       if (!String(campos[k] || '').trim()) throw new Error('Falta completar «' + k.replace('_', ' ') + '».');
     });
     const cambios = { estado: hacia, estado_desde: new Date(), recordatorios: 0, ultimo_recordatorio: '', actualizado: new Date() };

@@ -80,60 +80,26 @@ Al terminar, **recargar el panel** (la lista de analistas para asignar se lee al
 
 ---
 
-## Fase D · Flujo y correos (referencia)
+## Fase D · Quién recibe qué correo (referencia)
 
-Flujo: **Recibida** → *(Vicedecano/a autoriza el inicio)* → **En análisis · solicitud de antecedentes** → **Informe académico de
-Registro Curricular** → **V°B° al informe** → **Pronunciamiento del programa (vía STD)** → **Decisión del Vicedecano/a** →
-**Autorizada / Rechazada por el Vicedecano/a · por comunicar** → *(la analista comunica)* → **Presentación aceptada** o **Rechazada**
-→ **Resolución en trámite** → **Resuelto / Negado**.
-
-- El pronunciamiento del programa se tramita en el **STD**: la plataforma no envía correo a la dirección de programa en ese paso;
-  la analista solo registra el avance.
-- Con la respuesta del programa, la analista pulsa **«Solicitar al Vicedecano/a autorizar o rechazar»** (pide la propuesta del Comité).
-- **Solo una cuenta con rol Vicedecano/a** puede autorizar, rechazar (pide observación) o devolver al programa vía STD (pide
-  observación); el resto ve «Pendiente del Vicedecano/a». La decisión **no llega al estudiante**: avisa internamente a la analista.
-- La analista, desde el expediente, pulsa **«Comunicar aceptación al estudiante»** o **«Comunicar rechazo al estudiante»** (el motivo
-  viene precargado con la observación del Vicedecano/a). Ese es el correo con la definición.
-- En el seguimiento, el estudiante ve «Decisión del Vicedecano/a» hasta que la analista comunica.
+Flujo: **Recibida** → **En revisión de admisibilidad** → **Presentación aceptada** (o Rechazada / No procede) → **Informe de
+Registro Curricular** → **V°B° al informe** → **Pronunciamiento del programa** → **V°B° a respuesta del Comité** (o devolución al
+programa) → **Resolución en trámite** → **Resuelto / Negado**. El diagrama completo está en el flujograma publicado.
 
 Todos salen desde la cuenta institucional; las respuestas llegan a la analista del caso.
 
 | Momento | Correo | Para | Copia |
 |---|---|---|---|
 | Llega una solicitud | Recepción (folio + enlace de seguimiento) | Estudiante | — |
-| Llega una solicitud | Nueva solicitud CAE (pendiente de autorización) | Todas las cuentas activas con acceso al panel | — |
+| Llega una solicitud | Nueva solicitud CAE | Todas las cuentas activas con acceso al panel | — |
 | Llega una solicitud con analista por programa, o se asigna/reasigna en el expediente | Solicitud asignada | Analista asignada | — |
-| **Vicedecano/a autoriza el inicio** (exclusivo) | Inicio autorizado | Analista asignada (o todas las analistas, si no hay) | — |
-| No procede (Vicedecano/a al inicio, o analista en el análisis) | No procede (con `enlace_rc`) | Estudiante | — |
-| Rechazo en el análisis (pide motivo) | Rechazada | Estudiante | Dirección de programa |
-| Informe académico → V°B° al informe | V°B° informe | Vicedecano/a | — |
-| Paso al pronunciamiento del programa | *(sin correo: va por STD)* | — | — |
-| Analista solicita la decisión (pide propuesta del Comité) | Decisión requerida · autorizar o rechazar | Vicedecano/a | — |
-| **Vicedecano/a** autoriza, rechaza o devuelve al programa (exclusivo) | Decisión del Vicedecano/a (interno) | Analista del caso | — |
-| Analista comunica la aceptación | Presentación aceptada | Estudiante | Dirección de programa |
-| Analista comunica el rechazo (pide motivo) | Rechazada | Estudiante | Dirección de programa |
-| Resolución en trámite (requiere N° STD) | Registro | Registro Curricular | Estudiante |
-| Resuelto / Negado (pide resolución) | Resolución | Estudiante | Dirección de programa |
-| Plazo del programa vencido en STD (automático) | Recordatorio interno (para hacer seguimiento en STD) | Analista del caso | — |
-| Falla un correo automático | Aviso de falla | Analista del caso, Administración, cuenta institucional | — |
-
-Además, cada cuenta recibe copia de los eventos marcados en «Recibe copia de estos correos». Todo correo que no es automático se
-muestra antes de enviarse, se puede editar y no sale si falta un destinatario o un dato. Un destinatario en copia que falte (p. ej.,
-programa sin correo de dirección) ya no bloquea el envío: la vista previa lo advierte y el correo sale sin esa copia.
-
----|---|---|---|
-| Llega una solicitud | Recepción (folio + enlace de seguimiento) | Estudiante | — |
-| Llega una solicitud | Nueva solicitud CAE (pendiente de autorización) | Todas las cuentas activas con acceso al panel | — |
-| Llega una solicitud con analista por programa, o se asigna/reasigna en el expediente | Solicitud asignada | Analista asignada | — |
-| **Vicedecano/a autoriza el inicio** (exclusivo) | Inicio autorizado | Analista asignada (o todas las analistas, si no hay) | — |
-| No procede (Vicedecano/a al inicio, o analista en el análisis) | No procede (con `enlace_rc`) | Estudiante | — |
-| Rechazo en el análisis (pide motivo) | Rechazada | Estudiante | Dirección de programa |
-| Informe académico → V°B° al informe | V°B° informe | Vicedecano/a | — |
+| Presentación aceptada | Aceptada | Estudiante | Dirección de programa |
+| Presentación rechazada (pide motivo) | Rechazada | Estudiante | Dirección de programa |
+| No procede | No procede (con `enlace_rc`) | Estudiante | — |
+| V°B° al informe | V°B° informe | Vicedecano/a | — |
 | Envío al programa | Pronunciamiento | Dirección de programa | Analista |
-| Respuesta del programa → V°B° (pide propuesta del Comité) | V°B° Comité | Vicedecano/a | — |
-| **V°B° del Vicedecano/a** (exclusivo): presentación aceptada | Aceptada | Estudiante | Dirección de programa |
-| **V°B° del Vicedecano/a** (exclusivo): presentación rechazada (pide motivo) | Rechazada | Estudiante | Dirección de programa |
-| **V°B° del Vicedecano/a** (exclusivo): devolución al programa (pide observación) | Devolución | Dirección de programa | Analista |
+| Devolución al programa (pide observación) | Devolución | Dirección de programa | Analista |
+| V°B° a respuesta del Comité (pide propuesta) | V°B° Comité | Vicedecano/a | — |
 | Resolución en trámite (requiere N° STD) | Registro | Registro Curricular | Estudiante |
 | Resuelto / Negado (pide resolución) | Resolución | Estudiante | Dirección de programa |
 | Plazo del programa vencido (automático) | Recordatorio | Dirección de programa | Analista |
@@ -154,14 +120,8 @@ muestra antes de enviarse, se puede editar y no sale si falta un destinatario o 
    - Todas las cuentas del panel: «Nueva solicitud CAE · NN/2026 · programa».
    - Analista del programa: «Nueva solicitud CAE asignada · NN/2026».
    - `URL?v=seguimiento` con la cuenta del estudiante: aparece la solicitud en «Recibida».
-3. En el panel, con la cuenta del Vicedecano/a: abrir el expediente → «Autorizar inicio del análisis» → confirmar. Debe llegar
-   «Inicio autorizado» a la analista. Con una cuenta de analista: comprobar que en «Recibida» solo ve «Pendiente del Vicedecano/a».
-   Luego, como analista: ver la fundamentación y el PDF → pasar a «No procede» → revisar la vista previa → confirmar. Debe llegar el
-   correo al estudiante y quedar todo en la Bitácora.
-   Para probar el cierre con decisión, en un segundo caso de prueba avanzar hasta «Pronunciamiento del programa (vía STD)» →
-   «Solicitar al Vicedecano/a autorizar o rechazar» (llega «Decisión requerida» al Vicedecano/a) → con la cuenta del Vicedecano/a,
-   «Autorizar la solicitud» (llega «Decisión del Vicedecano/a… AUTORIZÓ» a la analista) → como analista, «Comunicar aceptación al
-   estudiante» (llega «Presentación aceptada» al estudiante).
+3. En el panel (cuenta de analista): abrir el expediente → ver la fundamentación y el PDF → pasar a «En revisión» → pasar a
+   «No procede» → revisar la vista previa → confirmar. Debe llegar el correo al estudiante y quedar todo en la Bitácora.
 4. Con una cuenta de nivel Consulta: el expediente se ve **sin** fundamentación ni archivos.
 5. Limpiar la prueba [Inst.]: borrar su fila en «Solicitudes», sus filas en «Bitácora» y «Archivos», y la carpeta
    `Plataforma CAE · NO COMPARTIR / Expedientes / 2026 / NN-2026`. El folio queda libre para el siguiente caso real.
