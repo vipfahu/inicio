@@ -67,10 +67,14 @@ function crearEntorno() {
   // ── Drive ──
   function archivo(id, nombre, bytes, mime) {
     return {
-      id, nombre, bytes: bytes || 10, mime: mime || 'application/pdf', viewers: [], editors: [], acceso: 'PRIVATE',
+      id, nombre, bytes: bytes || 10, mime: mime || 'application/pdf', viewers: [], editors: [], acceso: 'PRIVATE', desc: '', creado: new Date(), papelera: false, padres: [],
+      setDescription(d) { this.desc = d; return this; }, getDescription() { return this.desc; }, getDateCreated() { return this.creado; },
+      setTrashed(t) { this.papelera = t; this.padres.forEach(c => { c.archivosIn = c.archivosIn.filter(x => x !== this); }); return this; },
+      getParents() { const l = this.padres.slice(); let i = 0; return { hasNext: () => i < l.length, next: () => l[i++] }; },
       getId() { return this.id; }, getName() { return this.nombre; }, getSize() { return this.bytes; },
       getBlob() { const b = this; return { getBytes: () => ({ length: b.bytes }), getContentType: () => b.mime, getName: () => b.nombre }; },
-      getUrl() { return 'https://drive.google.com/file/d/' + this.id; }, moveTo() { return this; },
+      getUrl() { return 'https://drive.google.com/file/d/' + this.id; },
+      moveTo(dest) { this.padres.forEach(c => { if (c.archivosIn) c.archivosIn = c.archivosIn.filter(x => x !== this); }); this.padres = [dest]; if (dest.archivosIn) dest.archivosIn.push(this); return this; },
       addViewer(c) { this.viewers.push(c); return this; },
       getEditors() { return this.editors.map(e => ({ getEmail: () => e })); }, getViewers() { return this.viewers.map(e => ({ getEmail: () => e })); },
       getSharingAccess() { return this.acceso; }
@@ -81,7 +85,8 @@ function crearEntorno() {
       padre, hijos: [], archivosIn: [], atajos: [],
       getFoldersByName(n) { const l = this.hijos.filter(h => h.nombre === n); let i = 0; return { hasNext: () => i < l.length, next: () => l[i++] }; },
       createFolder(n) { const h = carpeta(n, this); this.hijos.push(h); return h; },
-      createFile(blob) { const a = archivo(nid('file'), blob.getName(), blob.getBytes().length, blob.getContentType()); estado.archivos[a.id] = a; this.archivosIn.push(a); return a; },
+      createFile(blob) { const a = archivo(nid('file'), blob.getName(), blob.getBytes().length, blob.getContentType()); a.padres = [this]; estado.archivos[a.id] = a; this.archivosIn.push(a); return a; },
+      getFiles() { const l = this.archivosIn.slice(); let i = 0; return { hasNext: () => i < l.length, next: () => l[i++] }; },
       createShortcut(id) { this.atajos.push(id); return archivo(nid('atajo'), 'atajo'); }
     });
     estado.carpetas[c.id] = c;

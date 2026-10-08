@@ -22,29 +22,44 @@ function alRecibirFormulario(e) {
   try {
     if (leer_(HOJAS.solicitudes).some(s => Number(s.fila_respuesta) === fila)) return; // ya procesada
     const r = leerRespuesta_(fila);
-    const marca = r.marca instanceof Date ? r.marca : new Date();
-    const folio = siguienteFolio(leer_(HOJAS.solicitudes).map(s => s.folio), marca.getFullYear());
     const tipos = separarTipos(r.tipos);
-    const prog = leer_(HOJAS.programas).find(p => p.programa === r.programa);
-    sol = {
-      folio: folio, fila_respuesta: fila, fecha_recepcion: marca, correo_verificado: String(r.correoVerificado || '').toLowerCase(),
+    sol = crearSolicitud_({
+      fila_respuesta: fila, fecha_recepcion: r.marca instanceof Date ? r.marca : new Date(), correo_verificado: String(r.correoVerificado || '').toLowerCase(),
       apellido1: r.apellido1, apellido2: r.apellido2, nombres: r.nombres, run: String(r.run || ''), correo: r.correo || r.correoVerificado,
       telefono: String(r.telefono || ''), programa: r.programa, anio: r.anio, semestre: r.semestre,
-      tipo_catalogo: tipos.catalogo, tipo_texto_libre: tipos.libre, estado: 'recibida', estado_desde: marca,
-      analista: analistaActiva_(prog && prog.analista), recordatorios: 0, actualizado: new Date()
-    };
-    anexar_(HOJAS.solicitudes, sol);
+      tipo_catalogo: tipos.catalogo, tipo_texto_libre: tipos.libre, origen: 'Formulario de Google'
+    });
     // El folio también se escribe en la columna A de las respuestas, donde el equipo lo buscaba antes.
-    hojaRespuestas_().getRange(fila, 1).setNumberFormat('@').setValue(folio);
-    sol = buscarSolicitud_(folio);
-    anexar_(HOJAS.bitacora, { fecha: marca, folio: folio, tipo: 'estado', quien: 'Formulario', texto: 'Solicitud recibida desde el formulario.', estado_nuevo: 'recibida' });
-    anexar_(HOJAS.bitacora, { fecha: new Date(), folio: folio, tipo: 'sistema', quien: 'Sistema',
-      texto: sol.analista ? 'Asignada a ' + nombreDe_(sol.analista) + ' según el programa.'
-        : (prog && prog.analista ? 'Sin analista: «' + prog.analista + '» (Programas) no tiene una cuenta activa con rol Analista.' : 'Sin analista: asignar desde el expediente.') });
+    hojaRespuestas_().getRange(fila, 1).setNumberFormat('@').setValue(sol.folio);
   } finally {
     lock.releaseLock();
   }
   vincularAntecedentes_(sol, leerRespuesta_(sol.fila_respuesta).adjunto);
+  avisosNuevaSolicitud_(sol);
+}
+
+/**
+ * Registra una solicitud nueva (formulario web o de Google). Debe llamarse con el bloqueo tomado.
+ * Asigna folio correlativo y, si el programa tiene analista con cuenta activa, la asigna.
+ */
+function crearSolicitud_(campos) {
+  const marca = campos.fecha_recepcion || new Date();
+  const folio = siguienteFolio(leer_(HOJAS.solicitudes).map(s => s.folio), marca.getFullYear());
+  const prog = leer_(HOJAS.programas).find(p => p.programa === campos.programa);
+  const sol = Object.assign({}, campos, {
+    folio: folio, fecha_recepcion: marca, estado: 'recibida', estado_desde: marca,
+    analista: analistaActiva_(prog && prog.analista), recordatorios: 0, actualizado: new Date()
+  });
+  anexar_(HOJAS.solicitudes, sol);
+  anexar_(HOJAS.bitacora, { fecha: marca, folio: folio, tipo: 'estado', quien: campos.origen || 'Formulario', texto: 'Solicitud recibida (' + (campos.origen || 'formulario') + ').', estado_nuevo: 'recibida' });
+  anexar_(HOJAS.bitacora, { fecha: new Date(), folio: folio, tipo: 'sistema', quien: 'Sistema',
+    texto: sol.analista ? 'Asignada a ' + nombreDe_(sol.analista) + ' según el programa.'
+      : (prog && prog.analista ? 'Sin analista: «' + prog.analista + '» (Programas) no tiene una cuenta activa con rol Analista.' : 'Sin analista: asignar desde el expediente.') });
+  return buscarSolicitud_(folio);
+}
+
+/** Correos al llegar una solicitud: recepción (estudiante), aviso al equipo y, si corresponde, asignación. */
+function avisosNuevaSolicitud_(sol) {
   enviarAutomatico_('recepcion', sol);
   enviarAutomatico_('nueva_solicitud', sol);
   if (sol.analista) enviarAutomatico_('asignacion', sol);
@@ -95,10 +110,11 @@ function api_expediente(folio) {
   // La fundamentación y los archivos (pueden contener datos de salud) solo para Edición o superior.
   out.verDetalle = nivelSuficiente(u.nivel, 'edicion');
   if (out.verDetalle) {
-    const r = leerRespuesta_(s.fila_respuesta);
-    out.fundamentacion = r.fundamentacion;
+    out.fundamentacion = s.fundamentacion || (s.fila_respuesta ? leerRespuesta_(s.fila_respuesta).fundamentacion : '');
     out.archivos = archivosDe_(folio).map(a => ({ id: a.archivo_id, nombre: a.nombre, categoria: CATEGORIAS_ARCHIVO[a.categoria] || a.categoria, tamano_mb: a.tamano_mb, fecha: a.fecha }));
   } else {
+    // La fundamentación (ahora también guardada en «Solicitudes») no debe llegar a Consulta.
+    delete out.fundamentacion;
     out.run = ''; out.telefono = '';
   }
   return serializar_(out);

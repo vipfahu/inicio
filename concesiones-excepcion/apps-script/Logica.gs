@@ -245,10 +245,39 @@ function validarCuenta(c, cuentas, duenia, esNueva) {
   return '';
 }
 
+/**
+ * Valida y normaliza una solicitud enviada desde el formulario web.
+ * ctx = { programas: [nombres activos], anio: año actual }. Devuelve { error } o { datos }.
+ */
+function validarSolicitud(d, ctx) {
+  d = d || {};
+  const t = (k, max) => String(d[k] === undefined || d[k] === null ? '' : d[k]).trim().slice(0, max || 200);
+  const datos = {
+    apellido1: t('apellido1', 80), apellido2: t('apellido2', 80), nombres: t('nombres', 120), run: t('run', 30),
+    telefono: t('telefono', 30), correo: t('correo', 120).toLowerCase(), programa: t('programa', 200),
+    anio: Number(d.anio), semestre: t('semestre', 20), otro: t('otro', 300), fundamentacion: t('fundamentacion', 8000)
+  };
+  const tipos = (Array.isArray(d.tipos) ? d.tipos : []).map(x => String(x).trim()).filter(x => TIPOS_CATALOGO.indexOf(x) >= 0);
+  datos.tipo_catalogo = unicos(tipos).join(', ');
+  datos.tipo_texto_libre = datos.otro;
+  const faltan = [['apellido1', 'primer apellido'], ['apellido2', 'segundo apellido'], ['nombres', 'nombres'], ['run', 'RUN o pasaporte'],
+    ['telefono', 'teléfono'], ['correo', 'correo electrónico'], ['programa', 'programa'], ['fundamentacion', 'fundamentación']]
+    .filter(x => !datos[x[0]]).map(x => x[1]);
+  if (faltan.length) return { error: 'Complete: ' + faltan.join(', ') + '.' };
+  if (!/^[^@\s]+@[^@\s]+\.[a-z]{2,}$/.test(datos.correo)) return { error: 'El correo electrónico no es válido.' };
+  if ((ctx.programas || []).indexOf(datos.programa) < 0) return { error: 'Seleccione un programa de la lista.' };
+  if (!(datos.anio >= ctx.anio - 1 && datos.anio <= ctx.anio + 1)) return { error: 'El año debe estar entre ' + (ctx.anio - 1) + ' y ' + (ctx.anio + 1) + '.' };
+  if (['Semestre I', 'Semestre II'].indexOf(datos.semestre) < 0) return { error: 'Seleccione el semestre.' };
+  if (!datos.tipo_catalogo && !datos.tipo_texto_libre) return { error: 'Indique al menos una autorización solicitada o complete «Otros».' };
+  if (datos.fundamentacion.length < 20) return { error: 'La fundamentación es demasiado breve.' };
+  delete datos.otro;
+  return { datos: datos };
+}
+
 if (typeof module !== 'undefined') {
   module.exports = {
     ESTADOS, CAMPOS_REQUERIDOS, TIPOS_CATALOGO, NIVELES, ROLES, estadoPorId, esCierre, transicionValida, eventoTransicion,
     normalizarFolio, siguienteFolio, estadoMigrado, separarTipos, rellenar, variablesSinResolver, resolverDestinatarios,
-    diasHabilesEntre, necesitaRecordatorio, nivelSuficiente, puedeVerSolicitud, validarCuenta, esSi, listaRoles
+    diasHabilesEntre, necesitaRecordatorio, nivelSuficiente, puedeVerSolicitud, validarCuenta, esSi, listaRoles, validarSolicitud
   };
 }

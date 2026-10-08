@@ -9,7 +9,10 @@
   *{box-sizing:border-box}
   body{margin:0;background:#F6F4EF;color:#3A4450;font-family:Spectral,Georgia,serif}
   a{color:#007E80}
-  header{background:#fff;border-bottom:1px solid #E8E4DA;padding:18px clamp(16px,5vw,60px);display:flex;align-items:center;gap:14px}
+  header{background:#fff;border-bottom:1px solid #E8E4DA;padding:18px clamp(16px,5vw,60px);display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+  .navp{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .navp a{font:600 11px Archivo,sans-serif;background:#F6F4EF;border:1px solid #E0DCD0;border-radius:8px;padding:8px 12px;text-decoration:none;color:#3A4450}
+  .navp a.act{border-color:#00A0A0;color:#007E80} .navp a.discreto{background:none;border:0;color:#8A8272}
   header img{height:60px}
   .tit{font:800 17px Archivo,sans-serif;color:#007E80} .sub{font:400 12px Archivo,sans-serif;color:#8A8272}
   main{max-width:720px;margin:0 auto;padding:34px clamp(16px,5vw,24px) 70px}
@@ -27,8 +30,16 @@
 </head>
 <body>
 <header>
-  <img src="https://vipfahu.netlify.app/assets/logo-fahu.png" alt="Facultad de Humanidades USACH">
-  <div><div class="tit">Concesiones Académicas de Excepción</div><div class="sub">Vicedecanato de Investigación y Postgrado · FAHU USACH</div></div>
+  <div style="display:flex;align-items:center;gap:14px">
+    <img src="https://vipfahu.netlify.app/assets/logo-fahu.png" alt="Facultad de Humanidades USACH">
+    <div><div class="tit">Concesiones Académicas de Excepción</div><div class="sub">Vicedecanato de Investigación y Postgrado · FAHU USACH</div></div>
+  </div>
+  <nav class="navp">
+    <a href="<?= url ?>?v=solicitud">Nueva solicitud</a>
+    <a class="act" href="<?= url ?>?v=seguimiento">Seguimiento</a>
+    <a href="https://vipfahu.netlify.app">Portal VIP</a>
+    <a class="discreto" href="<?= url ?>">Panel del equipo →</a>
+  </nav>
 </header>
 <main>
   <div class="kicker">Estado de su trámite</div>

@@ -1,17 +1,23 @@
 /**
  * Web.gs · Puntos de entrada web.
  *   …/exec                 → Panel del equipo (según la matriz «Cuentas»)
+ *   …/exec?v=solicitud     → Formulario de solicitud para estudiantes (requiere cuenta USACH)
  *   …/exec?v=seguimiento   → Seguimiento para estudiantes (ven solo sus propias solicitudes)
  * Publicación: «Ejecutar como: yo (cuenta institucional)» · «Quién tiene acceso: cualquier usuario de usach.cl».
  */
 
 function doGet(e) {
   const v = e && e.parameter && e.parameter.v;
-  const archivo = v === 'seguimiento' ? 'Seguimiento' : 'Panel';
-  const t = HtmlService.createTemplateFromFile(archivo);
+  const rutas = {
+    seguimiento: ['Seguimiento', 'Seguimiento · Solicitud CAE'],
+    solicitud: ['Solicitud', 'Solicitud CAE · Vicedecanato de Investigación y Postgrado FAHU']
+  };
+  const r = rutas[v] || ['Panel', 'Panel CAE · Vicedecanato de Investigación y Postgrado'];
+  const t = HtmlService.createTemplateFromFile(r[0]);
   t.folioInicial = (e && e.parameter && e.parameter.folio) || '';
+  t.url = urlPanel_();
   return t.evaluate()
-    .setTitle(v === 'seguimiento' ? 'Seguimiento · Solicitud CAE' : 'Panel CAE · Vicedecanato de Investigación y Postgrado')
+    .setTitle(r[1])
     .addMetaTag('viewport', 'width=device-width, initial-scale=1');
 }
 

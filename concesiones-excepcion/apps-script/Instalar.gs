@@ -277,11 +277,26 @@ function abrirPanel() {
  */
 function actualizarInstalacion() {
   soloDuenia_();
+  const cambios = [];
+  Object.keys(COLUMNAS).forEach(n => {
+    const h = asegurarHoja_(n);
+    const enc = encabezados_(n);
+    const faltan = COLUMNAS[n].filter(c => enc.indexOf(c) < 0);
+    if (faltan.length) {
+      h.getRange(1, h.getLastColumn() + 1, 1, faltan.length).setValues([faltan]).setFontWeight('bold').setBackground('#3A4450').setFontColor('#FFFFFF');
+      cambios.push(n + ': columnas ' + faltan.join(', '));
+    }
+  });
+  const yaPar = leer_(HOJAS.parametros).map(p => p.clave);
+  const parNuevos = PARAMETROS_INICIALES.filter(p => yaPar.indexOf(p[0]) < 0);
+  anexarVarias_(HOJAS.parametros, parNuevos.map(p => ({ clave: p[0], valor: p[1], descripcion: p[2] })));
+  if (parNuevos.length) cambios.push('Parámetros: ' + parNuevos.map(p => p[0]).join(', '));
   const ya = leer_(HOJAS.plantillas).map(t => t.evento);
   const nuevas = PLANTILLAS_INICIALES.filter(t => ya.indexOf(t[0]) < 0);
   anexarVarias_(HOJAS.plantillas, nuevas.map(t => ({
     evento: t[0], descripcion: t[1], para: t[2], cc: t[3], asunto: t[4], cuerpo: t[5], asunto_original: t[4], cuerpo_original: t[5]
   })));
   if (nuevas.length) anexar_(HOJAS.bitacora, { fecha: new Date(), folio: '—', tipo: 'sistema', quien: duenia_(), texto: 'Actualización: plantillas agregadas ' + nuevas.map(t => t[0]).join(', ') });
-  avisar_('Actualización CAE', nuevas.length ? 'Plantillas agregadas: ' + nuevas.map(t => t[0]).join(', ') + '.' : 'No había plantillas nuevas.');
+  if (nuevas.length) cambios.push('Plantillas: ' + nuevas.map(t => t[0]).join(', '));
+  avisar_('Actualización CAE', cambios.length ? 'Agregado:\n- ' + cambios.join('\n- ') + '\n\nFormulario para estudiantes: ' + urlPanel_() + '?v=solicitud' : 'No había nada nuevo que agregar.');
 }

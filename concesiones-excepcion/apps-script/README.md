@@ -3,7 +3,9 @@
 Gestión de las Concesiones Académicas de Excepción (CAE) del Vicedecanato de Investigación y Postgrado FAHU,
 montada sobre la planilla y el Formulario de Google que ya se usan, en la cuenta `viceinvestigacionfahu@usach.cl`.
 
-- **Ingreso de solicitudes:** el Formulario de Google actual (sin cambios). Los antecedentes quedan en Drive.
+- **Ingreso de solicitudes:** formulario propio con la estética VIP (`…/exec?v=solicitud`), con ingreso por cuenta USACH. Los antecedentes
+  (hasta 3 archivos, 10 MB c/u, 20 MB en total) quedan en la carpeta del expediente. El Formulario de Google anterior sigue conectado
+  mientras se mantenga abierto; ambos comparten el mismo correlativo de folios.
 - **Base de datos:** pestañas nuevas en la misma planilla (privada; solo la cuenta institucional tiene acceso directo).
 - **Panel del equipo:** aplicación web de Apps Script. La identidad la da la cuenta Google USACH; los privilegios, la pestaña «Cuentas».
 - **Correos:** salen desde la cuenta institucional; las respuestas llegan a la analista del caso.
@@ -24,9 +26,10 @@ Este directorio no contiene datos personales y no se publica en el sitio (ver `n
 | `Archivos.gs` | Carpetas por expediente, subida y descarga |
 | `Flujo.gs` | Recepción del Formulario, bandeja, expediente, cambios de estado |
 | `Web.gs` | Puntos de entrada web, configuración y seguimiento |
+| `Solicitud.gs`, `Solicitud.html` | Formulario web para estudiantes (validación, antecedentes, límite de 3 solicitudes por cuenta al día) |
 | `Diario.gs` | Recordatorios al programa y control de compartición (08:00) |
 | `Instalar.gs` | Menú «CAE», instalación en dos pasos y diagnóstico |
-| `Panel.html`, `Seguimiento.html` | Interfaces |
+| `Panel.html`, `Seguimiento.html` | Panel del equipo y seguimiento del estudiante |
 | `appsscript.json` | Manifiesto (zona horaria, permisos, publicación web) |
 | `tests/` | Pruebas en Node con un simulador de los servicios de Google |
 | `.claspignore`, `configurar-clasp.js` | Subida del código con `clasp` (lo que no se sube; creación de `.clasp.json`) |
@@ -47,7 +50,7 @@ agrega pestañas y oculta (no elimina) las columnas de gestión antiguas.
      npx @google/clasp@3.4.1 status
      npx @google/clasp@3.4.1 push --force
      ```
-     `status` debe listar 13 archivos (11 de código, 2 páginas y `appsscript.json`); `--force` reemplaza el manifiesto.
+     `status` debe listar 15 archivos (11 de código, 3 páginas y `appsscript.json`); `--force` reemplaza el manifiesto.
    - Al terminar la instalación: `npx @google/clasp@3.4.1 logout` (borra la credencial del computador).
    - Alternativa sin `clasp`: en *Configuración del proyecto* marque «Mostrar el archivo de manifiesto», cree un archivo por cada
      `.gs` y `.html` con el mismo nombre y pegue el contenido; reemplace `appsscript.json`.
@@ -73,7 +76,8 @@ agrega pestañas y oculta (no elimina) las columnas de gestión antiguas.
 8. **Diagnóstico.** *CAE → Diagnóstico* lista lo que falte (correos, disparadores, feriados, accesos no autorizados).
 9. **Retirar accesos directos.** Quite de «Compartir» a quienes hoy editan la planilla: desde ahora trabajan en el panel.
    La tarea diaria avisará por correo si vuelve a aparecer un acceso no autorizado.
-10. **Avisar a estudiantes.** En el Formulario, agregue al mensaje de confirmación el enlace `URL?v=seguimiento`.
+10. **Formulario para estudiantes.** Comparta `URL?v=solicitud` (y `URL?v=seguimiento`). Cuando el formulario web esté probado, cierre el
+    Formulario de Google (*Respuestas → No aceptar respuestas*) con un mensaje que indique la nueva dirección.
 
 **Actualizar el código más adelante:** `npx @google/clasp@3.4.1 push --force`; luego *Implementar → Gestionar implementaciones → Editar (lápiz) → Versión: Nueva versión → Implementar* (la URL no cambia); y en la planilla *CAE → Actualizar (tras subir código nuevo)*, que agrega las plantillas nuevas sin tocar las que el equipo haya editado.
 
@@ -126,7 +130,7 @@ un acceso directo; si superan el máximo de descarga por el panel, se concede ac
 node --test concesiones-excepcion/apps-script/tests/*.test.js
 ```
 
-`tests/logica.test.js` cubre las reglas puras. `tests/flujo.test.js` ejecuta el código real contra un simulador de Sheets, Drive, Gmail,
+`tests/logica.test.js` cubre las reglas puras. `tests/solicitud.test.js` cubre el formulario web. `tests/flujo.test.js` ejecuta el código real contra un simulador de Sheets, Drive, Gmail,
 sesiones y disparadores (`tests/simulador.js`), con un escenario sintético que reproduce los problemas de la planilla original
 (folio guardado como fecha, folio duplicado, folio vacío, estados en conflicto, «En trámite», tipos en texto libre). El simulador no
 reemplaza la prueba real del paso 7.

@@ -18,7 +18,7 @@ const COLUMNAS = {
   Solicitudes: ['folio', 'fila_respuesta', 'fecha_recepcion', 'correo_verificado', 'apellido1', 'apellido2', 'nombres', 'run',
     'correo', 'telefono', 'programa', 'anio', 'semestre', 'tipo_catalogo', 'tipo_texto_libre', 'estado', 'estado_desde',
     'analista', 'n_std', 'comentarios_analista', 'obs_vicedecano', 'propuesta_comite', 'motivo', 'resolucion',
-    'carpeta_id', 'recordatorios', 'ultimo_recordatorio', 'revisar', 'nota_migracion', 'actualizado'],
+    'carpeta_id', 'recordatorios', 'ultimo_recordatorio', 'revisar', 'nota_migracion', 'actualizado', 'origen', 'fundamentacion'],
   'Bitácora': ['fecha', 'folio', 'tipo', 'quien', 'texto', 'estado_nuevo', 'evento', 'para', 'cc', 'asunto', 'editado'],
   Plantillas: ['evento', 'descripcion', 'para', 'cc', 'asunto', 'cuerpo', 'asunto_original', 'cuerpo_original', 'actualizado_por', 'actualizado_en'],
   Cuentas: ['correo', 'nombre', 'rol', 'nivel', 'programas', 'activo', 'recibe_eventos', 'creada_por', 'creada_en', 'notas'],
@@ -67,6 +67,8 @@ const PARAMETROS_INICIALES = [
   ['recordatorio_cada_dias', '2', 'Días hábiles entre recordatorios al programa, una vez vencido el plazo.'],
   ['recordatorios_max', '3', 'Máximo de recordatorios por solicitud (0 = desactivados).'],
   ['max_mb_archivo', '20', 'Tamaño máximo por archivo subido desde el panel (MB). Gmail admite 25 MB por correo en total.'],
+  ['max_mb_antecedente', '10', 'Formulario web: tamaño máximo por archivo de antecedentes (MB); hasta 3 archivos y 20 MB en total.'],
+  ['max_solicitudes_dia', '3', 'Formulario web: máximo de solicitudes por cuenta en 24 horas.'],
   ['enlace_rc', 'COMPLETAR', 'Enlace a la plataforma de Registro Curricular FAHU ({enlace_rc}).'],
   ['compartido_permitido', '', 'Correos (separados por coma) que pueden tener acceso directo a la planilla. Vacío = solo la cuenta dueña.'],
   ['carpeta_raiz_id', '', 'Lo completa la instalación. Carpeta «Plataforma CAE · NO COMPARTIR».']
