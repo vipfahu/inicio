@@ -1,6 +1,6 @@
 /**
  * Diario.gs · Tarea diaria (disparador de tiempo, ~08:00).
- *  1. Recordatorios al programa cuando vence el plazo (única excepción a «todo correo pasa por confirmación humana»).
+ *  1. Recordatorio interno a la analista cuando vence el plazo del programa en STD (automático, sin confirmación humana).
  *  2. Control de compartición: avisa si la planilla o la carpeta de la plataforma tienen accesos no autorizados.
  */
 

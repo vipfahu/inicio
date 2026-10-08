@@ -2,6 +2,6 @@ Ningún correo sale por editar una celda: cambio de estado = vista previa editab
 
 Tipo: diseño
 
-Automáticos solo: recepción, aviso al equipo, asignación y recordatorio a la dirección de programa. Si falla un automático: aviso a analista, administración e institucional, y fila en Bitácora.
+Automáticos solo: recepción, aviso al equipo, asignación y recordatorio interno a la analista (el programa se consulta por STD). Si falla un automático: aviso a analista, administración e institucional, y fila en Bitácora.
 
 **Por qué importa:** Control humano sobre lo que llega a estudiantes.

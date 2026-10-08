@@ -112,7 +112,7 @@ const cierre = id => ['resuelto', 'rechazada', 'no_procede', 'negado'].indexOf(i
 function clase(id) {
   if (id === 'resuelto') return 't-ok';
   if (['rechazada', 'no_procede', 'negado'].indexOf(id) >= 0) return 't-no';
-  if (id === 'vb' || id === 'vb_informe') return 't-vb';
+  if (id === 'vb') return 't-vb';
   if (id === 'recibida' || id === 'revision') return 't-adm';
   return 't-tra';
 }
@@ -158,7 +158,7 @@ function filtrar() {
   const f = S.filtro, q = f.q.trim().toLowerCase();
   return S.bandeja.filter(s => {
     if (f.grupo === 'curso' && cierre(s.estado)) return false;
-    if (f.grupo === 'vb' && s.estado !== 'vb' && s.estado !== 'vb_informe') return false;
+    if (f.grupo === 'vb' && s.estado !== 'vb') return false;
     if (f.grupo === 'cerradas' && !cierre(s.estado)) return false;
     if (f.grupo === 'revisar' && s.revisar !== 'SÍ') return false;
     if (f.programa && s.programa !== f.programa) return false;
@@ -167,7 +167,7 @@ function filtrar() {
   }).sort((a, b) => String(b.fecha_recepcion).localeCompare(String(a.fecha_recepcion)));
 }
 function pintarBandeja() {
-  const l = S.bandeja, curso = l.filter(s => !cierre(s.estado)).length, vb = l.filter(s => s.estado === 'vb' || s.estado === 'vb_informe').length, rev = l.filter(s => s.revisar === 'SÍ').length;
+  const l = S.bandeja, curso = l.filter(s => !cierre(s.estado)).length, vb = l.filter(s => s.estado === 'vb').length, rev = l.filter(s => s.revisar === 'SÍ').length;
   const progs = [...new Set(l.map(s => s.programa))].sort();
   const sel = (id, ops, val) => '<select id="' + id + '">' + ops.map(o => '<option value="' + h(o[0]) + '"' + (o[0] === val ? ' selected' : '') + '>' + h(o[1]) + '</option>').join('') + '</select>';
   $('app').innerHTML =
@@ -246,11 +246,13 @@ function pintarExp() {
 }
 function panelGestion(e, edita) {
   if (!edita) return '<div class="tarjeta"><span class="et">Estado actual</span><div style="font:700 14px Archivo,sans-serif">' + h(e.estadoEtiqueta) + '</div><div class="sub">Analista: ' + h(e.analistaNombre || 'Sin asignar') + ' · STD ' + h(e.n_std || '—') + '</div></div>';
-  const esVice = S.ini.usuario.rol === 'Vicedecano/a' && (e.estado === 'vb' || e.estado === 'vb_informe');
+  const esVice = S.ini.usuario.rol === 'Vicedecano/a' && e.estado === 'vb';
   const botones = e.siguientes.length ? e.siguientes.map(s => {
-    const prim = esVice && (s.id === 'resolucion' || s.id === 'programa' && e.estado === 'vb_informe');
-    const amb = esVice && s.id === 'programa' && e.estado === 'vb';
-    const txt = esVice ? (s.id === 'resolucion' || (e.estado === 'vb_informe') ? 'Dar V°B° → ' + s.etiqueta : amb ? 'Devolver al programa con observación' : s.etiqueta) : s.etiqueta;
+    const prim = esVice && s.id === 'resolucion';
+    const amb = esVice && s.id === 'programa';
+    // El programa se consulta por STD: aquí solo se registra que se solicitó (o que se devolvió con observación).
+    const txt = s.id === 'programa' ? (e.estado === 'vb' ? 'Registrar devolución al programa (vía STD) con observación' : 'Registrar solicitud de pronunciamiento al programa (vía STD)')
+      : esVice && s.id === 'resolucion' ? 'Dar V°B° → ' + s.etiqueta : s.etiqueta;
     return '<button data-hacia="' + s.id + '" class="' + (prim ? 'prim' : amb ? 'ambar' : '') + '" style="width:100%;text-align:left;display:flex;justify-content:space-between;margin-bottom:6px">' + h(txt) + (s.evento ? ' <span title="Envía correo" style="color:' + (prim ? '#fff' : 'var(--naranja)') + '">✉</span>' : '') + '</button>';
   }).join('') + '<div class="sub" style="font-style:italic;white-space:normal">✉ = el cambio envía un correo; verá la vista previa antes de confirmar.</div>'
     : '<div class="aviso a-teal">Trámite cerrado.</div>';

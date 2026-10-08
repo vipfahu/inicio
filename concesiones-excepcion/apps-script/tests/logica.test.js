@@ -7,14 +7,18 @@ const L = require('../Logica.gs');
 test('transiciones: solo las declaradas', () => {
   assert.ok(L.transicionValida('recibida', 'revision'));
   assert.ok(!L.transicionValida('recibida', 'resuelto'));
-  assert.ok(L.transicionValida('informe_rc', 'vb_informe'));
+  assert.ok(L.transicionValida('informe_rc', 'programa'), 'la analista registra directo el envío al programa');
+  assert.ok(!L.transicionValida('informe_rc', 'vb_informe'), 'ya no existe el V°B° al informe');
   assert.ok(!L.transicionValida('resuelto', 'revision'));
   assert.ok(L.esCierre('negado') && !L.esCierre('vb'));
 });
 
-test('devolver al programa usa la plantilla de devolución, no la remisión inicial', () => {
-  assert.equal(L.eventoTransicion('vb', 'programa'), 'devolucion');
-  assert.equal(L.eventoTransicion('vb_informe', 'programa'), 'programa');
+test('el programa se consulta por STD: registrar el envío o la devolución no genera correo', () => {
+  assert.equal(L.eventoTransicion('informe_rc', 'programa'), '');
+  assert.equal(L.eventoTransicion('vb', 'programa'), '');
+  assert.deepEqual([...L.camposRequeridos('vb', 'programa')], ['observacion']);
+  assert.deepEqual([...L.camposRequeridos('informe_rc', 'programa')], []);
+  assert.deepEqual([...L.camposRequeridos('revision', 'rechazada')], ['motivo']);
   assert.equal(L.eventoTransicion('revision', 'aceptada'), 'aceptada');
   assert.equal(L.eventoTransicion('aceptada', 'informe_rc'), '');
 });

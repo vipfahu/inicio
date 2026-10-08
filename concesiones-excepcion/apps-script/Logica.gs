@@ -9,9 +9,9 @@ const ESTADOS = [
   { id: 'recibida',   etiqueta: 'Recibida',                                  fase: 'Admisibilidad', correo: 'recepcion',  siguientes: ['revision'] },
   { id: 'revision',   etiqueta: 'En revisión de admisibilidad',              fase: 'Admisibilidad', correo: '',           siguientes: ['aceptada', 'rechazada', 'no_procede'] },
   { id: 'aceptada',   etiqueta: 'Presentación aceptada',                     fase: 'Tramitación',   correo: 'aceptada',   siguientes: ['informe_rc'] },
-  { id: 'informe_rc', etiqueta: 'Informe de Registro Curricular',            fase: 'Tramitación',   correo: '',           siguientes: ['vb_informe'] },
-  { id: 'vb_informe', etiqueta: 'V°B° Vicedecano/a al informe',              fase: 'Tramitación',   correo: 'vb_informe', siguientes: ['programa'] },
-  { id: 'programa',   etiqueta: 'Pronunciamiento del programa',              fase: 'Tramitación',   correo: 'programa',   siguientes: ['vb'] },
+  { id: 'informe_rc', etiqueta: 'Informe de Registro Curricular',            fase: 'Tramitación',   correo: '',           siguientes: ['programa'] },
+  // El pronunciamiento se solicita al programa por STD (Sistema de Trazabilidad Documental): aquí solo se registra, sin correo.
+  { id: 'programa',   etiqueta: 'Pronunciamiento del programa (solicitado vía STD)', fase: 'Tramitación', correo: '',     siguientes: ['vb'] },
   { id: 'vb',         etiqueta: 'V°B° Vicedecano/a a respuesta del Comité',  fase: 'Tramitación',   correo: 'vb',         siguientes: ['resolucion', 'programa'] },
   { id: 'resolucion', etiqueta: 'Resolución en trámite',                     fase: 'Resolución',    correo: 'registro',   siguientes: ['resuelto', 'negado'] },
   { id: 'resuelto',   etiqueta: 'Resuelto',                                  fase: 'Cierre',        correo: 'resuelto',   siguientes: [] },
@@ -20,10 +20,10 @@ const ESTADOS = [
   { id: 'negado',     etiqueta: 'Negado',                                    fase: 'Cierre',        correo: 'negado',     siguientes: [] }
 ];
 
-/** Datos que la persona debe escribir en el diálogo antes de enviar cada correo. */
+/** Datos que la persona debe escribir en el diálogo: por correo (evento) o por transición sin correo ('desde>hacia'). */
 const CAMPOS_REQUERIDOS = {
   rechazada: ['motivo'],
-  devolucion: ['observacion'],
+  'vb>programa': ['observacion'],
   vb: ['propuesta_comite'],
   resuelto: ['resolucion'],
   negado: ['resolucion']
@@ -54,9 +54,13 @@ function transicionValida(desde, hacia) {
 
 /** Plantilla que dispara una transición. Devolver al programa desde el V°B° no reenvía la remisión inicial. */
 function eventoTransicion(desde, hacia) {
-  if (desde === 'vb' && hacia === 'programa') return 'devolucion';
+  if (desde === 'vb' && hacia === 'programa') return ''; // devolución al programa: también vía STD, solo se registra
   const e = estadoPorId(hacia);
   return e ? e.correo : '';
+}
+
+function camposRequeridos(desde, hacia) {
+  return CAMPOS_REQUERIDOS[eventoTransicion(desde, hacia)] || CAMPOS_REQUERIDOS[desde + '>' + hacia] || [];
 }
 
 /** Folio canónico NN/AAAA. Acepta '01 /2025', '8 / 2026' o una fecha (Sheets convierte '01/2026' en 1-ene-2026). */
@@ -275,7 +279,7 @@ function validarSolicitud(d, ctx) {
 }
 
 if (typeof module !== 'undefined') {
-  module.exports = {
+  module.exports = { camposRequeridos,
     ESTADOS, CAMPOS_REQUERIDOS, TIPOS_CATALOGO, NIVELES, ROLES, estadoPorId, esCierre, transicionValida, eventoTransicion,
     normalizarFolio, siguienteFolio, estadoMigrado, separarTipos, rellenar, variablesSinResolver, resolverDestinatarios,
     diasHabilesEntre, necesitaRecordatorio, nivelSuficiente, puedeVerSolicitud, validarCuenta, esSi, listaRoles, validarSolicitud

@@ -128,9 +128,10 @@ function api_previsualizar(folio, hacia, campos) {
   if (!transicionValida(s.estado, hacia)) throw new Error('Transición no permitida: ' + s.estado + ' → ' + hacia + '.');
   const evento = eventoTransicion(s.estado, hacia);
   const base = { desde: s.estado, hacia: hacia, desdeEtiqueta: estadoPorId(s.estado).etiqueta, haciaEtiqueta: estadoPorId(hacia).etiqueta, evento: evento };
-  if (!evento) return Object.assign(base, { conCorreo: false, requeridos: [] });
+  const requeridos = camposRequeridos(s.estado, hacia);
+  if (!evento) return Object.assign(base, { conCorreo: false, requeridos: requeridos });
   const c = componer_(evento, s, campos || {});
-  return Object.assign(base, { conCorreo: true, requeridos: CAMPOS_REQUERIDOS[evento] || [], correo: c });
+  return Object.assign(base, { conCorreo: true, requeridos: requeridos, correo: c });
 }
 
 /**
@@ -149,7 +150,7 @@ function api_cambiarEstado(folio, hacia, envio) {
     if (!puedeVerSolicitud(u, s)) throw new Error('SIN_ACCESO: la solicitud no pertenece a sus programas.');
     if (!transicionValida(s.estado, hacia)) throw new Error('La solicitud cambió de estado mientras tanto (' + s.estado + '). Recargue el expediente.');
     const evento = eventoTransicion(s.estado, hacia);
-    (CAMPOS_REQUERIDOS[evento] || []).forEach(k => {
+    camposRequeridos(s.estado, hacia).forEach(k => {
       if (!String(campos[k] || '').trim()) throw new Error('Falta completar «' + k.replace('_', ' ') + '».');
     });
     const cambios = { estado: hacia, estado_desde: new Date(), recordatorios: 0, ultimo_recordatorio: '', actualizado: new Date() };

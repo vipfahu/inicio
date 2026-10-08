@@ -320,7 +320,7 @@ function aplicarActualizacion_() {
   const cambios = [];
   // Casos en estados que el flujo vigente ya no tiene (p. ej., tras volver a una versión anterior): se llevan al estado
   // equivalente y se marcan «Por revisar» para que el equipo confirme el paso siguiente. No se envía ningún correo.
-  const equivalente = { autorizada: 'vb', denegada_vb: 'vb' };
+  const equivalente = { autorizada: 'vb', denegada_vb: 'vb', vb_informe: 'informe_rc' };
   if (libro_().getSheetByName(HOJAS.solicitudes)) {
     const huerfanos = leer_(HOJAS.solicitudes).filter(x => x.estado && !estadoPorId(x.estado));
     huerfanos.forEach(x => {

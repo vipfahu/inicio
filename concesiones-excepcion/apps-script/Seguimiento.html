@@ -51,12 +51,12 @@
 <script>
 const h = s => String(s === null || s === undefined ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const fecha = iso => { if (!iso) return ''; const d = new Date(iso); return isNaN(d) ? '' : ('0' + d.getDate()).slice(-2) + '.' + ('0' + (d.getMonth() + 1)).slice(-2) + '.' + d.getFullYear(); };
-const RUTA = ['recibida', 'revision', 'aceptada', 'informe_rc', 'vb_informe', 'programa', 'vb', 'resolucion', 'resuelto'];
+const RUTA = ['recibida', 'revision', 'aceptada', 'informe_rc', 'programa', 'vb', 'resolucion', 'resuelto'];
 const CIERRE = { rechazada: 'revision', no_procede: 'revision', negado: 'resolucion' };
 const DETALLE = {
   recibida: 'Confirmación enviada a su correo.', revision: 'Se evalúa la admisibilidad de la presentación.',
   aceptada: 'Presentación aceptada por el Vicedecanato.', informe_rc: 'Registro Curricular emite el informe académico.',
-  vb_informe: 'Revisión del informe por el Vicedecanato.', programa: 'El Comité del programa se pronuncia sobre la solicitud.',
+  programa: 'Se solicitó al programa su pronunciamiento a través del STD (Sistema de Trazabilidad Documental); el Comité del programa se pronuncia sobre la solicitud.',
   vb: 'Revisión del Vicedecanato a la propuesta del Comité.', resolucion: 'La resolución se encuentra en firma y tramitación.',
   resuelto: 'La resolución fue notificada a su correo.', rechazada: 'Se le notificó el motivo a su correo.',
   no_procede: 'El trámite corresponde a la plataforma de Registro Curricular.', negado: 'La resolución fue notificada a su correo.'

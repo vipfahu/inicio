@@ -128,16 +128,39 @@ test('tramitación: vista previa, campos obligatorios, envío y orden seguro', (
   const ultima = tabla(env, 'Bitácora').pop();
   assert.equal(ultima.estado_nuevo, 'rechazada');
   assert.equal(ultima.editado, 'SÍ');
-  // devolver al programa desde el V°B° usa la plantilla de devolución y exige observación
+  // devolver al programa (vía STD) desde el V°B°: sin correo, pero exige y guarda la observación
   const s = tabla(env, 'Solicitudes').find(x => x.folio === '05/2026');
   assert.equal(s.estado, 'programa');
   ctx.api_cambiarEstado('05/2026', 'vb', { campos: { propuesta_comite: 'Acoger con condiciones' } });
   assert.match(estado.correos.pop().to, /vice@usach\.cl/);
-  assert.equal(ctx.api_previsualizar('05/2026', 'programa', {}).evento, 'devolucion');
-  ctx.api_cambiarEstado('05/2026', 'programa', { campos: { observacion: 'Precisar condiciones' } });
-  const dev = estado.correos.pop();
-  assert.match(dev.subject, /observación del Vicedecanato/);
-  assert.match(dev.body, /Precisar condiciones/);
+  const pvDev = ctx.api_previsualizar('05/2026', 'programa', {});
+  assert.equal(pvDev.conCorreo, false);
+  assert.deepEqual([...pvDev.requeridos], ['observacion']);
+  assert.throws(() => ctx.api_cambiarEstado('05/2026', 'programa', { campos: {} }), /observacion/);
+  const enviados = estado.correos.length;
+  assert.equal(ctx.api_cambiarEstado('05/2026', 'programa', { campos: { observacion: 'Precisar condiciones' } }).conCorreo, false);
+  assert.equal(estado.correos.length, enviados, 'la devolución va por STD: no sale correo');
+  const s2 = tabla(env, 'Solicitudes').find(x => x.folio === '05/2026');
+  assert.equal(s2.estado, 'programa');
+  assert.equal(s2.obs_vicedecano, 'Precisar condiciones');
+  assert.match(tabla(env, 'Bitácora').pop().texto, /Observación: Precisar condiciones/);
+});
+
+test('informe → programa: la analista registra la solicitud vía STD, sin correo, y el estudiante la ve', () => {
+  const env = instalar(preparar());
+  const { ctx, estado } = env;
+  estado.usuario = 'analista.uno@usach.cl';
+  ctx.api_cambiarEstado('03/2026', 'informe_rc', {});
+  const pv = ctx.api_previsualizar('03/2026', 'programa', {});
+  assert.equal(pv.conCorreo, false);
+  assert.match(pv.haciaEtiqueta, /vía STD/);
+  const antes = estado.correos.length;
+  assert.equal(ctx.api_cambiarEstado('03/2026', 'programa', {}).conCorreo, false);
+  assert.equal(estado.correos.length, antes, 'no se notifica a nadie');
+  assert.equal(tabla(env, 'Solicitudes').find(x => x.folio === '03/2026').estado, 'programa');
+  const b = tabla(env, 'Bitácora').pop();
+  assert.equal(b.estado_nuevo, 'programa');
+  assert.equal(b.evento, '');
 });
 
 test('correo a Registro Curricular exige N° STD (variable sin completar bloquea)', () => {
@@ -165,7 +188,8 @@ test('archivos: subida con límite, adjunto en correo, descarga o acceso puntual
   const exp = ctx.api_expediente('03/2026');
   assert.equal(exp.archivos.length, 1);
   ctx.api_cambiarEstado('03/2026', 'informe_rc', {});
-  ctx.api_cambiarEstado('03/2026', 'vb_informe', { adjuntos: [exp.archivos[0].id, 'idAjeno'] });
+  ctx.api_cambiarEstado('03/2026', 'programa', {});
+  ctx.api_cambiarEstado('03/2026', 'vb', { campos: { propuesta_comite: 'Acoger' }, adjuntos: [exp.archivos[0].id, 'idAjeno'] });
   const m = estado.correos.pop();
   assert.equal(m.attachments.length, 1, 'solo se adjuntan archivos del propio expediente');
   // Antecedentes del Formulario de 90 MB: acceso de lectura puntual, registrado
@@ -234,6 +258,8 @@ test('tarea diaria: recordatorios con plazo y aviso de compartición', () => {
   ctx.tareaDiaria();
   const r = estado.correos.slice(n).filter(m => /Recordatorio/.test(m.subject));
   assert.equal(r.length, 1);
+  assert.equal(r[0].to, 'analista.uno@usach.cl', 'recordatorio interno: el seguimiento se hace en STD');
+  assert.ok(!r[0].cc, 'no se escribe a la dirección de programa');
   assert.equal(h.datos[f][enc.indexOf('recordatorios')], 1);
   // El mismo aviso de compartición no se repite
   assert.ok(!estado.correos.slice(n).some(m => /accesos no autorizados/.test(m.subject)));
@@ -367,11 +393,13 @@ test('código nuevo: la planilla se actualiza sola, una sola vez, y repara estad
   const sh = libro.getSheetByName('Solicitudes');
   const enc = sh.datos[0];
   sh.datos[2][enc.indexOf('estado')] = 'autorizada';
+  sh.datos[3][enc.indexOf('estado')] = 'vb_informe';
   delete estado.props.huella_estructura; // como si se acabara de subir código nuevo
   ctx.actualizarSiCorresponde_();
   assert.ok(!h.datos.some(r => r[0] === 'decision'), 'retira plantillas que el flujo vigente no usa');
-  assert.ok(h.datos.some(r => r[0] === 'programa') && h.datos.some(r => r[0] === 'devolucion'));
+  assert.ok(!h.datos.some(r => ['vb_informe', 'programa', 'devolucion'].indexOf(r[0]) >= 0), 'el programa va por STD: sin plantillas de correo');
   assert.equal(sh.datos[2][enc.indexOf('estado')], 'vb');
+  assert.equal(sh.datos[3][enc.indexOf('estado')], 'informe_rc', 'un caso esperando V°B° al informe queda listo para registrar el envío al programa');
   assert.equal(sh.datos[2][enc.indexOf('revisar')], 'SÍ');
   const n = () => tabla(env, 'Bitácora').filter(b => /Actualización automática/.test(b.texto)).length;
   assert.equal(n(), 1);

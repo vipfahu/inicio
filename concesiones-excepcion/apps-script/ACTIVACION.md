@@ -83,8 +83,9 @@ Al terminar, **recargar el panel** (la lista de analistas para asignar se lee al
 ## Fase D · Quién recibe qué correo (referencia)
 
 Flujo: **Recibida** → **En revisión de admisibilidad** → **Presentación aceptada** (o Rechazada / No procede) → **Informe de
-Registro Curricular** → **V°B° al informe** → **Pronunciamiento del programa** → **V°B° a respuesta del Comité** (o devolución al
-programa) → **Resolución en trámite** → **Resuelto / Negado**. El diagrama completo está en el flujograma publicado.
+Registro Curricular** → **Pronunciamiento del programa (solicitado vía STD)** → **V°B° a respuesta del Comité** (o devolución al
+programa vía STD) → **Resolución en trámite** → **Resuelto / Negado**. La solicitud al programa y la devolución se tramitan en el STD:
+la plataforma solo registra el estado (sin correo) y el estudiante lo ve en su seguimiento. El diagrama completo está en el flujograma publicado.
 
 Todos salen desde la cuenta institucional; las respuestas llegan a la analista del caso.
 
@@ -96,13 +97,12 @@ Todos salen desde la cuenta institucional; las respuestas llegan a la analista d
 | Presentación aceptada | Aceptada | Estudiante | Dirección de programa |
 | Presentación rechazada (pide motivo) | Rechazada | Estudiante | Dirección de programa |
 | No procede | No procede (con `enlace_rc`) | Estudiante | — |
-| V°B° al informe | V°B° informe | Vicedecano/a | — |
-| Envío al programa | Pronunciamiento | Dirección de programa | Analista |
-| Devolución al programa (pide observación) | Devolución | Dirección de programa | Analista |
+| Registro de solicitud de pronunciamiento al programa (STD) | *(sin correo)* | — | — |
+| Registro de devolución al programa vía STD (pide observación) | *(sin correo)* | — | — |
 | V°B° a respuesta del Comité (pide propuesta) | V°B° Comité | Vicedecano/a | — |
 | Resolución en trámite (requiere N° STD) | Registro | Registro Curricular | Estudiante |
 | Resuelto / Negado (pide resolución) | Resolución | Estudiante | Dirección de programa |
-| Plazo del programa vencido (automático) | Recordatorio | Dirección de programa | Analista |
+| Plazo del programa vencido en STD (automático) | Recordatorio interno (seguimiento en STD) | Analista del caso | — |
 | Falla un correo automático | Aviso de falla | Analista del caso, Administración, cuenta institucional | — |
 
 Además, cada cuenta recibe copia de los eventos marcados en «Recibe copia de estos correos». Todo correo que no es automático se
