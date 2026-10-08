@@ -291,6 +291,11 @@ function actualizarInstalacion() {
   const parNuevos = PARAMETROS_INICIALES.filter(p => yaPar.indexOf(p[0]) < 0);
   anexarVarias_(HOJAS.parametros, parNuevos.map(p => ({ clave: p[0], valor: p[1], descripcion: p[2] })));
   if (parNuevos.length) cambios.push('Parámetros: ' + parNuevos.map(p => p[0]).join(', '));
+  // Plantillas de eventos que ya no existen en el flujo (p. ej., correos al programa, que ahora va por STD).
+  const vigentes = PLANTILLAS_INICIALES.map(t => t[0]);
+  const obsoletas = leer_(HOJAS.plantillas).filter(t => vigentes.indexOf(t.evento) < 0);
+  obsoletas.map(t => t._fila).sort((a, b) => b - a).forEach(f => hoja_(HOJAS.plantillas).deleteRow(f));
+  if (obsoletas.length) cambios.push('Plantillas retiradas (ya no se usan): ' + obsoletas.map(t => t.evento).join(', '));
   // Plantillas que el equipo no ha editado: se actualizan al texto de esta versión.
   const actualizadas = [], conservadas = [];
   leer_(HOJAS.plantillas).forEach(t => {

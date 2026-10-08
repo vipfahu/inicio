@@ -46,6 +46,7 @@ function crearEntorno() {
     appendRow(v) { const f = this.getLastRow() + 1; v.forEach((x, j) => this.set(f, j + 1, x)); }
     setFrozenRows() {}
     hideColumns(c, n) { for (let i = 0; i < n; i++) this.ocultas.push(c + i); }
+    deleteRow(f) { this.datos.splice(f - 1, 1); }
   }
   class Libro {
     constructor(nombre) { this.id = nid('ss'); this.nombre = nombre; this.hojas = [new Hoja('Hoja 1', this)]; estado.archivos[this.id] = archivo(this.id, nombre, 1000); }

@@ -72,6 +72,16 @@ function analistaActiva_(correo) {
   return leer_(HOJAS.cuentas).some(x => String(x.correo).trim().toLowerCase() === c && x.rol === 'Analista' && esSi(x.activo)) ? c : '';
 }
 
+/** Variables del aviso de decisión del Vicedecano/a a la analista. */
+function camposDecision_(desde, hacia) {
+  if (desde !== 'vb') return {};
+  return {
+    autorizada: { decision: 'AUTORIZÓ', siguiente_paso: 'comunicar la aceptación al estudiante desde el expediente («Comunicar aceptación al estudiante»).' },
+    denegada_vb: { decision: 'RECHAZÓ', siguiente_paso: 'comunicar el rechazo al estudiante desde el expediente («Comunicar rechazo al estudiante»), indicando el motivo.' },
+    programa: { decision: 'DEVOLVIÓ AL PROGRAMA', siguiente_paso: 'gestionar la observación con el programa vía STD y, con su nueva respuesta, volver a solicitar la decisión.' }
+  }[hacia] || {};
+}
+
 /** La autorización de inicio y el V°B° a la respuesta del programa son exclusivos del Vicedecano/a. */
 function exigeVicedecano_(u, desde) {
   if (requiereVicedecano(desde) && u.rol !== 'Vicedecano/a') {
@@ -136,10 +146,11 @@ function api_previsualizar(folio, hacia, campos) {
   if (!transicionValida(s.estado, hacia)) throw new Error('Transición no permitida: ' + s.estado + ' → ' + hacia + '.');
   exigeVicedecano_(u, s.estado);
   const evento = eventoTransicion(s.estado, hacia);
-  const base = { desde: s.estado, hacia: hacia, desdeEtiqueta: estadoPorId(s.estado).etiqueta, haciaEtiqueta: estadoPorId(hacia).etiqueta, evento: evento };
-  if (!evento) return Object.assign(base, { conCorreo: false, requeridos: [] });
-  const c = componer_(evento, s, campos || {});
-  return Object.assign(base, { conCorreo: true, requeridos: CAMPOS_REQUERIDOS[evento] || [], correo: c });
+  const requeridos = camposRequeridos(s.estado, hacia);
+  const base = { desde: s.estado, hacia: hacia, desdeEtiqueta: estadoPorId(s.estado).etiqueta, haciaEtiqueta: estadoPorId(hacia).etiqueta, evento: evento, requeridos: requeridos };
+  if (!evento) return Object.assign(base, { conCorreo: false });
+  const c = componer_(evento, s, Object.assign({}, campos || {}, camposDecision_(s.estado, hacia)));
+  return Object.assign(base, { conCorreo: true, correo: c });
 }
 
 /**
@@ -159,7 +170,8 @@ function api_cambiarEstado(folio, hacia, envio) {
     if (!transicionValida(s.estado, hacia)) throw new Error('La solicitud cambió de estado mientras tanto (' + s.estado + '). Recargue el expediente.');
     exigeVicedecano_(u, s.estado);
     const evento = eventoTransicion(s.estado, hacia);
-    (CAMPOS_REQUERIDOS[evento] || []).forEach(k => {
+    Object.assign(campos, camposDecision_(s.estado, hacia));
+    camposRequeridos(s.estado, hacia).forEach(k => {
       if (!String(campos[k] || '').trim()) throw new Error('Falta completar «' + k.replace('_', ' ') + '».');
     });
     const cambios = { estado: hacia, estado_desde: new Date(), recordatorios: 0, ultimo_recordatorio: '', actualizado: new Date() };

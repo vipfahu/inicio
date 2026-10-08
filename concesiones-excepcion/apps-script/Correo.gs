@@ -23,7 +23,9 @@ function variables_(sol, campos, cuentas) {
     std: campos.n_std || sol.n_std || '',
     vicedecano: p.vicedecano_nombre,
     motivo: campos.motivo || sol.motivo || '',
-    observacion: campos.observacion || sol.obs_vicedecano || '',
+    observacion: campos.observacion || sol.obs_vicedecano || 'sin observaciones',
+    decision: campos.decision || '',
+    siguiente_paso: campos.siguiente_paso || '',
     propuesta_comite: campos.propuesta_comite || sol.propuesta_comite || '',
     resolucion: campos.resolucion || sol.resolucion || '',
     plazo: p.plazo_programa_dias,
@@ -53,6 +55,7 @@ function componer_(evento, sol, campos) {
     para: dest.para,
     cc: dest.cc,
     faltantes: dest.faltantes,
+    omitidos: dest.omitidos,
     asunto: rellenar(t.asunto, v),
     cuerpo: rellenar(t.cuerpo, v),
     replyTo: sol.analista || ''

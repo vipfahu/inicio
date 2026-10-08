@@ -32,6 +32,7 @@ function api_inicio() {
     usuario: u,
     estados: ESTADOS,
     camposRequeridos: CAMPOS_REQUERIDOS,
+    pendientesComunicar: PENDIENTES_DE_COMUNICAR,
     categorias: CATEGORIAS_ARCHIVO,
     analistas: cuentas.filter(c => c.rol === 'Analista' && esSi(c.activo)).map(c => ({ correo: c.correo, nombre: c.nombre })),
     programas: leer_(HOJAS.programas).map(p => p.programa),
@@ -95,12 +96,14 @@ function api_misSolicitudes() {
   const lista = leer_(HOJAS.solicitudes)
     .filter(s => String(s.correo_verificado || s.correo).trim().toLowerCase() === correo)
     .map(s => {
-      const e = estadoPorId(s.estado) || {};
+      // Mientras la analista no comunica la decisión, el estudiante sigue viendo «Decisión del Vicedecano/a».
+      const visible = PENDIENTES_DE_COMUNICAR.indexOf(s.estado) >= 0 ? 'vb' : s.estado;
+      const e = estadoPorId(visible) || {};
       return {
         folio: s.folio, programa: s.programa, anio: s.anio, semestre: s.semestre,
         tipo: [s.tipo_catalogo, s.tipo_texto_libre].filter(Boolean).join(', '),
-        estado: s.estado, estadoEtiqueta: e.etiqueta, fecha_recepcion: s.fecha_recepcion,
-        hitos: bit.filter(b => String(b.folio) === String(s.folio) && b.estado_nuevo).map(b => ({ fecha: b.fecha, estado: b.estado_nuevo })),
+        estado: visible, estadoEtiqueta: e.etiqueta, fecha_recepcion: s.fecha_recepcion,
+        hitos: bit.filter(b => String(b.folio) === String(s.folio) && b.estado_nuevo && PENDIENTES_DE_COMUNICAR.indexOf(b.estado_nuevo) < 0).map(b => ({ fecha: b.fecha, estado: b.estado_nuevo })),
         analistaNombre: s.analista ? nombreDe_(s.analista, cuentas) : '', analistaCorreo: s.analista || ''
       };
     });

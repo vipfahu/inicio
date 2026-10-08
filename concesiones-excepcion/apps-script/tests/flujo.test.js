@@ -135,31 +135,51 @@ test('tramitación: vista previa, campos obligatorios, envío y orden seguro', (
   const ultima = tabla(env, 'Bitácora').pop();
   assert.equal(ultima.estado_nuevo, 'rechazada');
   assert.equal(ultima.editado, 'SÍ');
-  // Programa → V°B° (la analista envía); el V°B° solo lo da el Vicedecano/a
+  // Programa (vía STD) → la analista solicita la decisión; solo el Vicedecano/a decide
   const s = tabla(env, 'Solicitudes').find(x => x.folio === '05/2026');
   assert.equal(s.estado, 'programa');
+  assert.deepEqual([...ctx.api_previsualizar('05/2026', 'vb', {}).requeridos], ['propuesta_comite']);
   ctx.api_cambiarEstado('05/2026', 'vb', { campos: { propuesta_comite: 'Acoger con condiciones' } });
-  assert.match(estado.correos.pop().to, /vice@usach\.cl/);
-  assert.throws(() => ctx.api_cambiarEstado('05/2026', 'aceptada', {}), /exclusivamente al Vicedecano/);
+  const sol = estado.correos.pop();
+  assert.match(sol.to, /vice@usach\.cl/);
+  assert.match(sol.subject, /autorizar o rechazar/);
+  assert.throws(() => ctx.api_cambiarEstado('05/2026', 'autorizada', {}), /exclusivamente al Vicedecano/);
   assert.throws(() => ctx.api_cambiarEstado('05/2026', 'programa', { campos: { observacion: 'x' } }), /exclusivamente al Vicedecano/);
+  // Devolver al programa: sin correo al programa; aviso interno a la analista con la observación
   estado.usuario = 'vice@usach.cl';
-  assert.equal(ctx.api_previsualizar('05/2026', 'programa', {}).evento, 'devolucion');
+  assert.equal(ctx.api_previsualizar('05/2026', 'programa', {}).evento, 'decision');
+  assert.throws(() => ctx.api_cambiarEstado('05/2026', 'programa', { campos: {} }), /observacion/);
   ctx.api_cambiarEstado('05/2026', 'programa', { campos: { observacion: 'Precisar condiciones' } });
   const dev = estado.correos.pop();
-  assert.match(dev.subject, /observación del Vicedecanato/);
+  assert.equal(dev.to, 'analista.uno@usach.cl');
+  assert.match(dev.subject, /DEVOLVIÓ AL PROGRAMA/);
   assert.match(dev.body, /Precisar condiciones/);
+  assert.ok(!/dir\d*@usach/.test(dev.to + (dev.cc || '')), 'el programa no recibe correo: va por STD');
 });
 
-test('flujo completo hasta resolución; correo a Registro Curricular exige N° STD', () => {
+test('flujo completo: decisión del Vicedecano/a, comunicación al estudiante por la analista, resolución', () => {
   const env = instalar(preparar());
   const { ctx, estado } = env;
   estado.usuario = 'analista.uno@usach.cl';
   ctx.api_cambiarEstado('05/2026', 'vb', { campos: { propuesta_comite: 'Acoger' } });
   estado.usuario = 'vice@usach.cl';
+  const n = estado.correos.length;
+  ctx.api_cambiarEstado('05/2026', 'autorizada', {});
+  const aviso = estado.correos.pop();
+  assert.equal(estado.correos.length, n, 'solo un correo: el aviso interno');
+  assert.equal(aviso.to, 'analista.uno@usach.cl');
+  assert.match(aviso.subject, /AUTORIZÓ/);
+  // El estudiante aún no ve la decisión
+  estado.usuario = 'est4@usach.cl';
+  assert.equal(ctx.api_misSolicitudes().solicitudes[0].estado, 'vb');
+  // La analista comunica la definición
+  estado.usuario = 'analista.uno@usach.cl';
   ctx.api_cambiarEstado('05/2026', 'aceptada', {});
   const acept = estado.correos.pop();
   assert.equal(acept.to, 'est4@usach.cl');
   assert.match(acept.body, /informe académico de Registro Curricular y el pronunciamiento del programa/);
+  estado.usuario = 'est4@usach.cl';
+  assert.equal(ctx.api_misSolicitudes().solicitudes[0].estado, 'aceptada');
   estado.usuario = 'analista.uno@usach.cl';
   assert.throws(() => ctx.api_cambiarEstado('05/2026', 'resolucion', {}), /\{std\}/);
   ctx.api_guardarGestion('05/2026', { n_std: '12345' });
@@ -167,9 +187,25 @@ test('flujo completo hasta resolución; correo a Registro Curricular exige N° S
   const m = estado.correos.pop();
   assert.equal(m.to, 'rc@usach.cl');
   assert.match(m.subject, /STD 12345/);
-  assert.equal(m.cc, 'est4@usach.cl');
   ctx.api_cambiarEstado('05/2026', 'resuelto', { campos: { resolucion: 'Res. 123 del 10.10.2026' } });
   assert.match(estado.correos.pop().body, /Res\. 123/);
+});
+
+test('rechazo del Vicedecano/a: observación obligatoria, la analista comunica con motivo', () => {
+  const env = instalar(preparar());
+  const { ctx, estado } = env;
+  estado.usuario = 'analista.uno@usach.cl';
+  ctx.api_cambiarEstado('05/2026', 'vb', { campos: { propuesta_comite: 'No acoger' } });
+  estado.usuario = 'vice@usach.cl';
+  assert.throws(() => ctx.api_cambiarEstado('05/2026', 'denegada_vb', {}), /observacion/);
+  ctx.api_cambiarEstado('05/2026', 'denegada_vb', { campos: { observacion: 'No cumple requisito de permanencia' } });
+  assert.match(estado.correos.pop().subject, /RECHAZÓ/);
+  estado.usuario = 'analista.uno@usach.cl';
+  assert.throws(() => ctx.api_cambiarEstado('05/2026', 'rechazada', { campos: {} }), /motivo/);
+  ctx.api_cambiarEstado('05/2026', 'rechazada', { campos: { motivo: 'No cumple requisito de permanencia' } });
+  const m = estado.correos.pop();
+  assert.equal(m.to, 'est4@usach.cl');
+  assert.match(m.body, /Motivo: No cumple requisito de permanencia/);
 });
 
 test('archivos: subida con límite, adjunto en correo, descarga o acceso puntual', () => {
@@ -220,7 +256,7 @@ test('cuentas: crear, editar, desactivar con efecto inmediato y salvaguardas', (
   assert.match(reg[1].texto, /programas: «Magíster en Prueba A» → «Otro programa»/);
 });
 
-test('cuentas con recibe_eventos reciben copia; programas sin correo bloquean', () => {
+test('cuentas con recibe_eventos reciben copia; una copia sin dirección no bloquea', () => {
   const env = instalar(preparar());
   const { ctx, estado } = env;
   estado.usuario = 'analista.uno@usach.cl';
@@ -228,7 +264,15 @@ test('cuentas con recibe_eventos reciben copia; programas sin correo bloquean', 
   assert.equal(estado.correos.pop().cc, 'consulta@usach.cl');
   estado.usuario = 'vice@usach.cl';
   ctx.api_guardarPrograma({ programa: 'Magíster en Prueba A', correo_direccion: '', analista: 'analista.uno@usach.cl', activo: 'SÍ' }, false);
-  assert.throws(() => ctx.api_cambiarEstado('05/2026', 'aceptada', {}), /dirección de «Magíster en Prueba A»/);
+  ctx.api_cambiarEstado('05/2026', 'autorizada', {});
+  estado.usuario = 'analista.uno@usach.cl';
+  const pv = ctx.api_previsualizar('05/2026', 'aceptada', {});
+  assert.equal(pv.correo.faltantes.length, 0);
+  assert.match(pv.correo.omitidos[0], /dirección de «Magíster en Prueba A»/);
+  ctx.api_cambiarEstado('05/2026', 'aceptada', {});
+  const m = estado.correos.pop();
+  assert.equal(m.to, 'est4@usach.cl');
+  assert.equal(m.cc, undefined);
 });
 
 test('tarea diaria: recordatorios con plazo y aviso de compartición', () => {
@@ -390,10 +434,12 @@ test('actualizar instalación: plantillas sin editar toman el texto nuevo; las e
   const v = fila('vb');
   v[enc.indexOf('cuerpo_original')] = 'vb antiguo';
   v[enc.indexOf('cuerpo')] = 'vb editado por el equipo';
+  h.appendRow(['devolucion', 'obsoleta', 'Dirección de programa', '', 'a', 'b', 'a', 'b', '', '']);
   estado.usuario = estado.duenia;
   ctx.actualizarInstalacion();
   assert.match(fila('aceptada')[enc.indexOf('cuerpo')], /pronunciamiento del programa/);
   assert.equal(fila('vb')[enc.indexOf('cuerpo')], 'vb editado por el equipo');
-  assert.match(fila('vb')[enc.indexOf('cuerpo_original')], /Con su V°B°/);
+  assert.match(fila('vb')[enc.indexOf('cuerpo_original')], /autorización o rechazo/);
+  assert.equal(fila('devolucion'), undefined, 'las plantillas que ya no se usan se retiran');
   assert.ok(fila('inicio_autorizado'));
 });

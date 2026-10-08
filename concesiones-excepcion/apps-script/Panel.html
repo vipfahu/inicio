@@ -112,7 +112,7 @@ const cierre = id => ['resuelto', 'rechazada', 'no_procede', 'negado'].indexOf(i
 function clase(id) {
   if (id === 'resuelto') return 't-ok';
   if (['rechazada', 'no_procede', 'negado'].indexOf(id) >= 0) return 't-no';
-  if (id === 'vb' || id === 'vb_informe' || id === 'recibida') return 't-vb';
+  if (id === 'vb' || id === 'vb_informe' || id === 'recibida' || id === 'autorizada' || id === 'denegada_vb') return 't-vb';
   return 't-tra';
 }
 const tag = (id, grande) => '<span class="tag ' + clase(id) + '"' + (grande ? ' style="font-size:10.5px;border-radius:999px;padding:5px 10px"' : '') + '>' + h(etq(id)) + '</span>';
@@ -158,6 +158,7 @@ function filtrar() {
   return S.bandeja.filter(s => {
     if (f.grupo === 'curso' && cierre(s.estado)) return false;
     if (f.grupo === 'vb' && ['recibida', 'vb_informe', 'vb'].indexOf(s.estado) < 0) return false;
+    if (f.grupo === 'comunicar' && ['autorizada', 'denegada_vb'].indexOf(s.estado) < 0) return false;
     if (f.grupo === 'cerradas' && !cierre(s.estado)) return false;
     if (f.grupo === 'revisar' && s.revisar !== 'SÍ') return false;
     if (f.programa && s.programa !== f.programa) return false;
@@ -173,7 +174,7 @@ function pintarBandeja() {
     '<div style="display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap"><div><h2>Bandeja de solicitudes <span class="mono" style="font-size:12px;color:var(--apagado)" id="cont"></span></h2>' +
     '<div class="resumen">' + curso + ' en curso · ' + vb + ' pendientes del Vicedecano/a · ' + (l.length - curso) + ' cerradas' + (rev ? ' · <b style="color:#94571B">' + rev + ' por revisar (migración)</b>' : '') + '</div></div></div>' +
     '<div class="tarjeta filtros" style="padding:14px 16px"><input id="fq" placeholder="Buscar por folio, nombre, RUN o tipo…" value="' + h(S.filtro.q) + '">' +
-    sel('fg', [['todas', 'Todos los estados'], ['curso', 'En curso'], ['vb', 'Pendiente Vicedecano/a'], ['cerradas', 'Cerradas'], ['revisar', 'Por revisar']], S.filtro.grupo) +
+    sel('fg', [['todas', 'Todos los estados'], ['curso', 'En curso'], ['vb', 'Pendiente Vicedecano/a'], ['comunicar', 'Por comunicar al estudiante'], ['cerradas', 'Cerradas'], ['revisar', 'Por revisar']], S.filtro.grupo) +
     sel('fp', [['', 'Todos los programas']].concat(progs.map(p => [p, p])), S.filtro.programa) +
     sel('fa', [['', 'Todas las analistas'], ['__sin', 'Sin asignar']].concat(S.ini.analistas.map(a => [a.correo, a.nombre])), S.filtro.analista) + '</div>' +
     '<div class="tabla" id="tabla"></div>';
@@ -250,16 +251,18 @@ function panelGestion(e, edita) {
   // Textos de los botones de decisión del Vicedecano/a
   const TXT = {
     'recibida>revision': 'Autorizar inicio del análisis', 'recibida>no_procede': 'No procede · vía Registro Curricular',
-    'vb_informe>programa': 'Dar V°B° → enviar al programa',
-    'vb>aceptada': 'Dar V°B° → Presentación aceptada', 'vb>rechazada': 'V°B° → Presentación rechazada', 'vb>programa': 'Devolver al programa con observación'
+    'vb_informe>programa': 'V°B° → consultar al programa (vía STD)',
+    'programa>vb': 'Solicitar al Vicedecano/a autorizar o rechazar',
+    'vb>autorizada': 'Autorizar la solicitud', 'vb>denegada_vb': 'Rechazar la solicitud', 'vb>programa': 'Devolver al programa (STD) con observación',
+    'autorizada>aceptada': 'Comunicar aceptación al estudiante', 'denegada_vb>rechazada': 'Comunicar rechazo al estudiante'
   };
-  const PRIM = ['recibida>revision', 'vb_informe>programa', 'vb>aceptada'], AMB = ['vb>programa'];
+  const PRIM = ['recibida>revision', 'vb_informe>programa', 'vb>autorizada', 'programa>vb', 'autorizada>aceptada', 'denegada_vb>rechazada'], AMB = ['vb>programa'];
   let botones;
   if (!e.siguientes.length) botones = '<div class="aviso a-teal">Trámite cerrado.</div>';
   else if (e.decideVicedecano && !soyVice) botones = '<div class="aviso a-amb">' + (e.estado === 'recibida' ? 'Pendiente de la autorización de inicio del Vicedecano/a.' : 'Pendiente del V°B° del Vicedecano/a.') + ' Esta decisión le corresponde exclusivamente.</div>';
   else botones = e.siguientes.map(s => {
-    const k = e.estado + '>' + s.id, prim = esVice && PRIM.indexOf(k) >= 0, amb = esVice && AMB.indexOf(k) >= 0;
-    const txt = esVice && TXT[k] ? TXT[k] : s.etiqueta;
+    const k = e.estado + '>' + s.id, prim = PRIM.indexOf(k) >= 0, amb = AMB.indexOf(k) >= 0;
+    const txt = TXT[k] || s.etiqueta;
     return '<button data-hacia="' + s.id + '" class="' + (prim ? 'prim' : amb ? 'ambar' : '') + '" style="width:100%;text-align:left;display:flex;justify-content:space-between;margin-bottom:6px">' + h(txt) + (s.evento ? ' <span title="Envía correo" style="color:' + (prim ? '#fff' : 'var(--naranja)') + '">✉</span>' : '') + '</button>';
   }).join('') + '<div class="sub" style="font-style:italic;white-space:normal">✉ = el cambio envía un correo; verá la vista previa antes de confirmar.</div>';
   const campo = (k, rot, tipo) => '<div style="margin-top:12px"><label class="et" for="g_' + k + '">' + rot + '</label>' +
@@ -300,22 +303,28 @@ function descargar(id) {
 }
 
 /* ── Diálogo de cambio de estado ── */
-const ROT_CAMPO = { motivo: 'Motivo (se incluye en el correo)', observacion: 'Observación del Vicedecanato (se incluye en el correo)', propuesta_comite: 'Propuesta del Comité', resolucion: 'Resolución (N° y fecha)' };
+const ROT_CAMPO = { motivo: 'Motivo del rechazo (se incluye en el correo al estudiante)', observacion: 'Observación del Vicedecano/a (queda en el expediente y en el aviso a la analista)', propuesta_comite: 'Pronunciamiento del programa (resumen de la respuesta en STD)', resolucion: 'Resolución (N° y fecha)' };
 function cerrarDlg() { $('fondo').style.display = 'none'; }
 function dialogo(hacia) {
   const e = S.exp;
   $('dlg').innerHTML = '<div class="cargando">Preparando vista previa…</div>'; $('fondo').style.display = 'flex';
-  // Se piden los campos como marcadores para reemplazarlos en vivo con lo que escriba la persona.
-  run('api_previsualizar', e.folio, hacia, { motivo: '{motivo}', observacion: '{observacion}', propuesta_comite: '{propuesta_comite}', resolucion: '{resolucion}' }).then(pv => {
+  // Primero se consulta qué campos exige la transición; solo esos se piden como marcadores, para reemplazarlos en vivo
+  // con lo que escriba la persona (los no obligatorios toman su valor por defecto en el servidor).
+  run('api_previsualizar', e.folio, hacia, {}).then(pv0 => {
+    if (!pv0.conCorreo || !pv0.requeridos.length) return pv0;
+    const marcas = {}; pv0.requeridos.forEach(k => { marcas[k] = '{' + k + '}'; });
+    return run('api_previsualizar', e.folio, hacia, marcas);
+  }).then(pv => {
     const req = pv.requeridos || [];
     let html = '<div class="kicker" style="color:var(--apagado)">Cambio de estado</div><div style="font:800 18px Archivo,sans-serif;margin:6px 0 14px">' + h(pv.desdeEtiqueta) + ' <span style="color:var(--naranja)">→</span> ' + h(pv.haciaEtiqueta) + '</div>';
-    html += req.map(k => '<label class="et" for="c_' + k + '">' + h(ROT_CAMPO[k] || k) + ' *</label><textarea id="c_' + k + '" rows="2" style="margin-bottom:10px">' + h(k === 'propuesta_comite' ? e.propuesta_comite : k === 'resolucion' ? e.resolucion : '') + '</textarea>').join('');
+    html += req.map(k => '<label class="et" for="c_' + k + '">' + h(ROT_CAMPO[k] || k) + ' *</label><textarea id="c_' + k + '" rows="2" style="margin-bottom:10px">' + h(k === 'propuesta_comite' ? e.propuesta_comite : k === 'resolucion' ? e.resolucion : (k === 'motivo' && e.estado === 'denegada_vb') ? e.obs_vicedecano : '') + '</textarea>').join('');
     if (!pv.conCorreo) {
       html += '<p class="resumen">Este cambio no envía correo. Quedará registrado en la bitácora del expediente.</p>';
     } else {
       const c = pv.correo;
       html += '<div class="aviso a-amb" style="margin-bottom:12px">✉ Al confirmar se enviará este correo' + (c.replyTo ? ' (las respuestas llegarán a ' + h(c.replyTo) + ')' : '') + '.</div>';
       if (c.faltantes.length) html += '<div class="aviso a-rojo" style="margin-bottom:12px">No se puede enviar: falta ' + h(c.faltantes.join('; ')) + '. Complételo en Configuración o Cuentas.</div>';
+      if (c.omitidos && c.omitidos.length) html += '<div class="aviso a-amb" style="margin-bottom:12px">Copia omitida (no bloquea el envío): falta ' + h(c.omitidos.join('; ')) + '.</div>';
       html += '<div style="border:1px solid var(--borde);border-radius:12px;padding:14px 16px"><div class="sub" style="white-space:normal">Para: <b>' + h(c.para.join(', ') || '—') + '</b>' + (c.cc.length ? '<br>CC: ' + h(c.cc.join(', ')) : '') + '</div>' +
         '<label class="et" style="margin-top:10px" for="c_asunto">Asunto</label><input id="c_asunto" value="' + h(c.asunto) + '">' +
         '<label class="et" style="margin-top:10px" for="c_cuerpo">Cuerpo (puede editarlo para este envío)</label><textarea id="c_cuerpo" rows="12">' + h(c.cuerpo) + '</textarea>';

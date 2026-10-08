@@ -12,15 +12,19 @@ test('transiciones: solo las declaradas', () => {
   assert.ok(L.esCierre('negado') && !L.esCierre('vb'));
 });
 
-test('devolver al programa usa la plantilla de devolución, no la remisión inicial', () => {
-  assert.equal(L.eventoTransicion('vb', 'programa'), 'devolucion');
-  assert.equal(L.eventoTransicion('vb_informe', 'programa'), 'programa');
-  assert.equal(L.eventoTransicion('vb', 'aceptada'), 'aceptada');
+test('eventos: el programa va por STD (sin correo); las decisiones avisan a la analista', () => {
+  assert.equal(L.eventoTransicion('vb', 'programa'), 'decision');
+  assert.equal(L.eventoTransicion('vb_informe', 'programa'), '');
+  assert.equal(L.eventoTransicion('vb', 'autorizada'), 'decision');
+  assert.equal(L.eventoTransicion('autorizada', 'aceptada'), 'aceptada');
+  assert.deepEqual([...L.camposRequeridos('vb', 'denegada_vb')], ['observacion']);
+  assert.deepEqual([...L.camposRequeridos('vb', 'autorizada')], []);
+  assert.ok(!L.transicionValida('vb', 'aceptada'), 'el estudiante solo se entera cuando la analista comunica');
   assert.equal(L.eventoTransicion('revision', 'informe_rc'), '');
   assert.equal(L.eventoTransicion('recibida', 'revision'), 'inicio_autorizado');
   // La presentación solo se acepta después del informe y del programa (desde el V°B°)
   assert.ok(!L.transicionValida('revision', 'aceptada'));
-  assert.ok(L.transicionValida('vb', 'aceptada'));
+  assert.ok(L.transicionValida('vb', 'autorizada') && L.transicionValida('autorizada', 'aceptada'));
   assert.deepEqual([...L.DECIDE_VICEDECANO], ['recibida', 'vb']);
 });
 
