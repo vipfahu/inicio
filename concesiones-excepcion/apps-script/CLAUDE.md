@@ -4,6 +4,9 @@ Plataforma de Concesiones Académicas de Excepción del Vicedecanato de Investig
 vinculado a la planilla de respuestas, propiedad de la cuenta institucional. Leer `README.md` (diseño) y `ACTIVACION.md` (operación)
 antes de cambiar algo.
 
+**Memoria del proyecto:** `memoria/README.md` (índice; una lección por archivo). Leerla al iniciar la sesión. Al aprender algo
+nuevo (una corrección o un enfoque confirmado), agregar o actualizar la nota correspondiente; borrar las que resulten erróneas.
+
 ## Reglas
 - El repositorio es **público**: nunca escribir datos personales, folios reales con nombres, correos de estudiantes ni contenido de
   la planilla (que incluye datos de salud). Las pruebas usan solo datos sintéticos.
