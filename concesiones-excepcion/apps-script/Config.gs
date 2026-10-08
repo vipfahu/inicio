@@ -84,6 +84,9 @@ function feriadosFijos_(anios) {
 
 const FIRMA = '\n\nAtentamente,\n{analista}\nVicedecanato de Investigación y Postgrado · FAHU';
 
+/** Se agrega a todo correo dirigido al estudiante. */
+const SEGUIMIENTO = '\n\nPuede revisar el estado de su solicitud en cualquier momento, ingresando con la cuenta USACH con que envió el formulario, en: {enlace}';
+
 /** [evento, descripción, para, cc, asunto, cuerpo] */
 const PLANTILLAS_INICIALES = [
   ['recepcion', 'Recepción de la solicitud (automático)', 'Estudiante', '', 'Confirmación de recepción · Solicitud CAE {folio}',
@@ -91,11 +94,11 @@ const PLANTILLAS_INICIALES = [
   ['asignacion', 'Asignación de analista (automático)', 'Analista', '', 'Nueva solicitud CAE asignada · {folio}',
     'Se le ha asignado la solicitud {folio} de {nombre} ({programa}).\nTipo: {tipo}\n\nExpediente: {enlace_panel}'],
   ['aceptada', 'Presentación aceptada', 'Estudiante', 'Dirección de programa', 'Presentación aceptada · Solicitud CAE {folio}',
-    'Estimado/a {nombre}:\n\nJunto con saludar cordialmente, y por especial encargo del {vicedecano}, Vicedecano de Investigación y Postgrado de la FAHU, informo a usted que se ha aceptado la presentación de su Solicitud de Concesión Académica de Excepción (CAE). Por este motivo, la analista a cargo de su programa lo contactará para proseguir con el trámite correspondiente.\n\nEn los próximos días, la solicitud será remitida a la Unidad de Registro Curricular para su ingreso, revisión e informe.\n\nCabe mencionar que la resolución final de su solicitud le será notificada vía correo electrónico.' + FIRMA],
+    'Estimado/a {nombre}:\n\nJunto con saludar cordialmente, y por especial encargo del {vicedecano}, Vicedecano de Investigación y Postgrado de la FAHU, informo a usted que se ha aceptado la presentación de su Solicitud de Concesión Académica de Excepción (CAE). Por este motivo, la analista a cargo de su programa lo contactará para proseguir con el trámite correspondiente.\n\nEn los próximos días, la solicitud será remitida a la Unidad de Registro Curricular para su ingreso, revisión e informe.\n\nCabe mencionar que la resolución final de su solicitud le será notificada vía correo electrónico.' + SEGUIMIENTO + FIRMA],
   ['rechazada', 'Presentación rechazada', 'Estudiante', 'Dirección de programa', 'Resultado de admisibilidad · Solicitud CAE {folio}',
-    'Estimado/a {nombre}:\n\nJunto con saludar cordialmente, y en atención a su Solicitud de Concesión Académica de Excepción (CAE), cumplo con informar que, tras la revisión de sus antecedentes y de acuerdo con la normativa y procedimientos vigentes, no se ha aceptado la presentación de la solicitud.\n\nMotivo: {motivo}\n\nAnte cualquier duda o consulta, quedamos atentos.' + FIRMA],
+    'Estimado/a {nombre}:\n\nJunto con saludar cordialmente, y en atención a su Solicitud de Concesión Académica de Excepción (CAE), cumplo con informar que, tras la revisión de sus antecedentes y de acuerdo con la normativa y procedimientos vigentes, no se ha aceptado la presentación de la solicitud.\n\nMotivo: {motivo}\n\nAnte cualquier duda o consulta, quedamos atentos.' + SEGUIMIENTO + FIRMA],
   ['no_procede', 'No procede · vía Registro Curricular', 'Estudiante', '', 'Solicitud CAE {folio} · debe ingresarse en Registro Curricular',
-    'Estimado/a {nombre}:\n\nJunto con saludarle cordialmente, y en atención a su solicitud de Concesión Académica de Excepción (CAE), cumplo con informar que, tras la revisión de sus antecedentes y de acuerdo con la normativa y procedimientos vigentes, no procede dar continuidad al proceso por esta vía, por lo que la presente solicitud se dejará sin efecto.\n\nLo anterior se debe a que el trámite solicitado corresponde a una Concesión Académica que usted debe ingresar directamente a través de la plataforma de Registro Curricular: {enlace_rc}\n\nAnte cualquier duda o consulta, quedamos atentos.' + FIRMA],
+    'Estimado/a {nombre}:\n\nJunto con saludarle cordialmente, y en atención a su solicitud de Concesión Académica de Excepción (CAE), cumplo con informar que, tras la revisión de sus antecedentes y de acuerdo con la normativa y procedimientos vigentes, no procede dar continuidad al proceso por esta vía, por lo que la presente solicitud se dejará sin efecto.\n\nLo anterior se debe a que el trámite solicitado corresponde a una Concesión Académica que usted debe ingresar directamente a través de la plataforma de Registro Curricular: {enlace_rc}\n\nAnte cualquier duda o consulta, quedamos atentos.' + SEGUIMIENTO + FIRMA],
   ['vb_informe', 'V°B° al informe académico', 'Vicedecano/a', '', 'V°B° informe académico · Solicitud CAE {folio}',
     'Estimado/a Vicedecano/a:\n\nJunto con un cordial saludo, remito a usted el informe académico de {nombre} ({programa}) para su revisión y V°B°. Se sugiere aprobar la continuidad del trámite para realizar el envío al programa, con el fin de que se pronuncie sobre la solicitud CAE {folio}.\n\nExpediente: {enlace_panel}' + FIRMA],
   ['programa', 'Envío a programa con informe', 'Dirección de programa', 'Analista', 'Solicitud CAE {folio} · pronunciamiento del programa',
@@ -107,9 +110,9 @@ const PLANTILLAS_INICIALES = [
   ['registro', 'Envío a Registro Curricular', 'Registro Curricular', 'Estudiante', 'Autorización de presentación · Solicitud CAE {folio} · STD {std}',
     'Estimada/o Registrador/a Curricular:\n\nJunto con saludar cordialmente, y por especial encargo del {vicedecano}, Vicedecano de Investigación y Postgrado, informo a usted que, tras la revisión de los antecedentes y propuesta del Comité del Programa, se procede a autorizar la presentación de la Solicitud CAE {folio}.\n\nAgradecemos dar curso a dicha solicitud.' + FIRMA],
   ['resuelto', 'Resolución favorable', 'Estudiante', 'Dirección de programa', 'Resolución · Solicitud CAE {folio}',
-    'Estimado/a {nombre}:\n\nJunto con saludar, se informa que su Solicitud de Concesión Académica de Excepción {folio} ha sido resuelta favorablemente. Resolución: {resolucion}.' + FIRMA],
+    'Estimado/a {nombre}:\n\nJunto con saludar, se informa que su Solicitud de Concesión Académica de Excepción {folio} ha sido resuelta favorablemente. Resolución: {resolucion}.' + SEGUIMIENTO + FIRMA],
   ['negado', 'Resolución desfavorable', 'Estudiante', 'Dirección de programa', 'Resolución · Solicitud CAE {folio}',
-    'Estimado/a {nombre}:\n\nJunto con saludar, se informa que su Solicitud de Concesión Académica de Excepción {folio} ha sido resuelta y no ha sido acogida. Resolución: {resolucion}.\n\nAnte cualquier duda o consulta, quedamos atentos.' + FIRMA],
+    'Estimado/a {nombre}:\n\nJunto con saludar, se informa que su Solicitud de Concesión Académica de Excepción {folio} ha sido resuelta y no ha sido acogida. Resolución: {resolucion}.\n\nAnte cualquier duda o consulta, quedamos atentos.' + SEGUIMIENTO + FIRMA],
   ['recordatorio', 'Recordatorio al programa (automático, plazo vencido)', 'Dirección de programa', 'Analista', 'Recordatorio · Solicitud CAE {folio} · pronunciamiento pendiente',
     'Estimado/a Director/a:\n\nJunto con saludar, le recordamos que la Solicitud de Concesión Académica de Excepción {folio} de {nombre} se encuentra a la espera del pronunciamiento del programa. El plazo de {plazo} días hábiles se encuentra vencido.\n\nAgradecemos su pronta respuesta.' + FIRMA]
 ];

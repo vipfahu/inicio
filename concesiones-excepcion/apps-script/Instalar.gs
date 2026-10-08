@@ -110,7 +110,8 @@ function instalarPaso1() {
 
   informe.push('Pestañas creadas: ' + Object.keys(COLUMNAS).join(', ') + '.');
   informe.push('AHORA: complete los correos en «Cuentas» (incluya al menos una persona con nivel administracion), ' +
-    '«correo_direccion» y «analista» en «Programas», y «enlace_rc» en «Parámetros». Luego ejecute el paso 2.');
+    '«correo_direccion» y «analista» en «Programas», y «enlace_rc» en «Parámetros». Luego publique el panel ' +
+    '(Implementar → Nueva implementación → Aplicación web) y recién entonces ejecute el paso 2.');
   avisar_('Instalación · paso 1 listo', informe.join('\n\n'));
 }
 
@@ -118,6 +119,8 @@ function instalarPaso2() {
   soloDuenia_();
   const informe = [];
   if (leer_(HOJAS.solicitudes).length) throw new Error('«Solicitudes» ya tiene datos: la migración ya se hizo.');
+  // Sin el panel publicado no existe el enlace de seguimiento y los correos al estudiante no podrían salir.
+  if (!urlPanel_()) throw new Error('Primero publique el panel: Implementar → Nueva implementación → Aplicación web. Luego vuelva a ejecutar el paso 2.');
   const cuentas = leer_(HOJAS.cuentas);
   const sinCorreo = cuentas.filter(c => !/@usach\.cl$/i.test(String(c.correo).trim()));
   if (sinCorreo.length) throw new Error('Faltan correos @usach.cl en «Cuentas» para: ' + sinCorreo.map(c => c.nombre).join(', '));
@@ -228,7 +231,7 @@ function instalarPaso2() {
 
   const acc = accesosNoAutorizados_();
   if (acc.length) informe.push('ATENCIÓN · accesos directos no autorizados (retírelos cuando el panel esté en uso):\n- ' + acc.join('\n- '));
-  informe.push('Siguiente: Implementar → Nueva implementación → Aplicación web («Ejecutar como: yo», «Acceso: usuarios de usach.cl»). Luego ejecute «Diagnóstico».');
+  informe.push('Panel: ' + urlPanel_() + '\nSiguiente: pruebe el panel con la cuenta de una analista y ejecute «Diagnóstico».');
   avisar_('Instalación · paso 2 listo', informe.join('\n\n'));
 }
 

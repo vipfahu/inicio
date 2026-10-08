@@ -245,3 +245,53 @@ test('seguimiento: cada estudiante ve solo lo suyo y sin notas internas', () => 
   estado.usuario = 'otro@usach.cl';
   assert.equal(ctx.api_misSolicitudes().solicitudes.length, 0);
 });
+
+test('paso 2 exige el panel publicado (sin enlace de seguimiento no se instala)', () => {
+  const env = preparar();
+  const url = env.estado.url;
+  env.estado.url = '';
+  env.estado.usuario = env.estado.duenia;
+  env.ctx.instalarPaso1();
+  const cu = env.libro.getSheetByName('Cuentas');
+  cu.set(2, 1, 'analista.uno@usach.cl');
+  cu.appendRow(['vice@usach.cl', 'Vice Decano', 'Vicedecano/a', 'administracion', 'todos', 'SÍ', '', '', '', '']);
+  assert.throws(() => env.ctx.instalarPaso2(), /Primero publique el panel/);
+  env.estado.url = url;
+  env.ctx.instalarPaso2();
+  assert.equal(tabla(env, 'Solicitudes').length, 6);
+});
+
+test('todo correo al estudiante lleva el enlace de seguimiento', () => {
+  const env = instalar(preparar());
+  const { ctx, estado } = env;
+  const plantillas = tabla(env, 'Plantillas');
+  plantillas.filter(p => /Estudiante/.test(p.para)).forEach(p => assert.match(p.cuerpo, /\{enlace\}/, p.evento));
+  estado.usuario = 'analista.uno@usach.cl';
+  ctx.api_cambiarEstado('06/2026', 'revision', {});
+  ctx.api_cambiarEstado('06/2026', 'no_procede', {});
+  const m = estado.correos.pop();
+  assert.equal(m.to, 'est6@usach.cl');
+  assert.match(m.body, /cuenta USACH con que envió el formulario, en: https:\/\/script\.google\.com\/.*\?v=seguimiento/);
+});
+
+test('si un correo automático falla, se avisa de inmediato a la analista y a la administración', () => {
+  const env = instalar(preparar());
+  const { ctx, estado, hoja } = env;
+  hoja.appendRow(fila('', new Date(2026, 9, 8), 8, ['', '', ''], { analista: '' }).slice(0, 15));
+  estado.usuario = '';
+  estado.fallaCorreo = m => /est8@usach\.cl/.test(m.to); // falla solo el correo al estudiante
+  ctx.alRecibirFormulario({ range: hoja.getRange(hoja.getLastRow(), 1) });
+  const aviso = estado.correos.find(m => /no se envió un correo automático/.test(m.subject));
+  assert.ok(aviso);
+  assert.match(aviso.subject, /07\/2026/);
+  assert.match(aviso.to, /analista\.uno@usach\.cl/);
+  assert.match(aviso.to, /vice@usach\.cl/);
+  assert.match(aviso.to, /institucional@usach\.cl/);
+  assert.match(aviso.body, /recepcion/);
+  assert.equal(aviso.body.indexOf('Fundamentación'), -1, 'el aviso no incluye datos del expediente');
+  // La solicitud quedó registrada y el error en la bitácora
+  assert.equal(tabla(env, 'Solicitudes').pop().folio, '07/2026');
+  assert.ok(tabla(env, 'Bitácora').some(b => /ERROR · no se envió «recepcion»/.test(b.texto)));
+  // La asignación (otro destinatario) sí salió
+  assert.ok(estado.correos.some(m => /Nueva solicitud CAE asignada · 07\/2026/.test(m.subject)));
+});

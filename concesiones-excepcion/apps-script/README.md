@@ -48,11 +48,13 @@ agrega pestañas y oculta (no elimina) las columnas de gestión antiguas.
    - **Programas:** `correo_direccion` y `analista` (correo) de cada programa.
    - **Parámetros:** `enlace_rc` (plataforma de Registro Curricular).
    - **Feriados:** se precargan los de fecha fija del año en curso y el siguiente; agregue los móviles desde una fuente oficial.
-5. **Paso 2.** *CAE → Instalación · paso 2*: migra las solicitudes existentes (regla: vale el último estado registrado, de derecha
-   a izquierda ESTADO ACTUAL → ESTADO → Estado de Presentación), corrige folios, crea los expedientes en Drive, oculta las columnas
-   antiguas y activa los disparadores. **No envía correos.**
-6. **Publicar el panel.** En el editor: *Implementar → Nueva implementación → Aplicación web*.
+5. **Publicar el panel (antes del paso 2).** En el editor: *Implementar → Nueva implementación → Aplicación web*.
    «Ejecutar como: **yo**» · «Quién tiene acceso: **cualquier usuario de usach.cl**». Copie la URL.
+   Este orden importa: la dirección del panel es el enlace de seguimiento que llevan los correos al estudiante, y el paso 2 se niega
+   a ejecutarse sin ella.
+6. **Paso 2.** *CAE → Instalación · paso 2*: migra las solicitudes existentes (regla: vale el último estado registrado, de derecha
+   a izquierda ESTADO ACTUAL → ESTADO → Estado de Presentación), corrige folios, crea los expedientes en Drive, oculta las columnas
+   antiguas y activa los disparadores. **No envía correos.** Desde aquí, cada solicitud nueva recibe su correo de recepción.
 7. **Probar la identidad (crítico).** Abra la URL con la cuenta USACH de una analista (no la institucional).
    Debe ver la bandeja con su nombre arriba a la derecha. Si ve «Google no entregó su correo», el dominio no está entregando
    la identidad a aplicaciones ejecutadas como la cuenta dueña: **no use el sistema** y avise (ver «Riesgos»).
@@ -73,7 +75,10 @@ Cada llamada del panel vuelve a leer la matriz, así que un cambio rige en la si
 no se borran. La cuenta institucional es administradora fija y no se puede dejar el sistema sin otra administración activa.
 
 **Correos.** Automáticos solo: recepción (estudiante), asignación (analista) y recordatorio al programa cuando vence el plazo
-(`plazo_programa_dias`, luego cada `recordatorio_cada_dias`, hasta `recordatorios_max`). Todo otro correo sale al cambiar de estado
+(`plazo_programa_dias`, luego cada `recordatorio_cada_dias`, hasta `recordatorios_max`). Si uno de ellos no sale, se avisa de inmediato
+por correo a la analista del caso, a la administración y a la cuenta institucional (además de quedar en la bitácora).
+Todo correo dirigido al estudiante (recepción, aceptada, rechazada, no procede, resuelto, negado) lleva el enlace de seguimiento
+`URL?v=seguimiento`; el estudiante ve sus casos ingresando con la cuenta USACH con que envió el formulario. Todo otro correo sale al cambiar de estado
 en el panel, tras una vista previa editable; si falta un destinatario o una variable (por ejemplo `{std}`), no se envía; si el envío
 falla, el estado no cambia. Los destinatarios son roles que se traducen al enviar:
 

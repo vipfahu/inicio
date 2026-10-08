@@ -98,7 +98,7 @@ function crearEntorno() {
     console, Date, Logger: { log() {} },
     SpreadsheetApp, DriveApp,
     FormApp: { openByUrl: () => { throw new Error('Formulario no simulado'); }, ItemType: { LIST: 'LIST', MULTIPLE_CHOICE: 'MC' } },
-    MailApp: { sendEmail: m => { if (estado.fallaCorreo) throw new Error('Fallo simulado de envío'); estado.correos.push(m); }, getRemainingDailyQuota: () => 1500 },
+    MailApp: { sendEmail: m => { const f = estado.fallaCorreo; if (f === true || (typeof f === 'function' && f(m))) throw new Error('Fallo simulado de envío'); estado.correos.push(m); }, getRemainingDailyQuota: () => 1500 },
     Session: {
       getActiveUser: () => ({ getEmail: () => estado.usuario }),
       getEffectiveUser: () => ({ getEmail: () => estado.duenia }),

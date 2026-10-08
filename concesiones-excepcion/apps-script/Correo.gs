@@ -90,7 +90,26 @@ function enviarAutomatico_(evento, sol) {
       fecha: new Date(), folio: sol.folio, tipo: 'sistema', quien: 'Sistema',
       texto: 'ERROR · no se envió «' + evento + '»: ' + err.message, evento: evento
     });
+    avisarFalloCorreo_(evento, sol, err);
     return false;
+  }
+}
+
+/** Avisa de inmediato a la analista del caso y a la administración que un correo automático no salió. */
+function avisarFalloCorreo_(evento, sol, err) {
+  try {
+    const admins = leer_(HOJAS.cuentas).filter(c => c.nivel === 'administracion' && esSi(c.activo)).map(c => String(c.correo).toLowerCase());
+    const para = unicos([sol.analista].concat(admins, [duenia_()]).filter(Boolean));
+    const enlace = urlPanel_() ? urlPanel_() + '?folio=' + encodeURIComponent(sol.folio) : '(panel no publicado)';
+    MailApp.sendEmail({
+      to: para.join(','),
+      subject: 'Plataforma CAE · no se envió un correo automático · ' + sol.folio,
+      body: 'El sistema no pudo enviar el correo «' + evento + '» de la solicitud ' + sol.folio + '.\n\nMotivo: ' + err.message +
+        '\n\nRevise el expediente y, si corresponde, avise directamente a quien debía recibirlo: ' + enlace,
+      name: parametros_().remitente_nombre
+    });
+  } catch (e) {
+    // Si tampoco sale el aviso (p. ej., cuota agotada), el error ya quedó en la bitácora.
   }
 }
 
