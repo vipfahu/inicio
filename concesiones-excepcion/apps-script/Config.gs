@@ -91,7 +91,7 @@ const SEGUIMIENTO = '\n\nPuede revisar el estado de su solicitud en cualquier mo
 const PLANTILLAS_INICIALES = [
   ['recepcion', 'Recepción de la solicitud (automático)', 'Estudiante', '', 'Confirmación de recepción · Solicitud CAE {folio}',
     'Estimado/a {nombre}:\n\nJunto con saludarle cordialmente, le informamos que hemos recibido su Solicitud de Concesión Académica de Excepción (CAE), folio {folio}. Actualmente, el trámite se encuentra en etapa de revisión de antecedentes para evaluar su admisibilidad.\n\nPuede consultar el avance de su solicitud, ingresando con su cuenta USACH, en: {enlace}\n\nLe mantendremos informado/a sobre el avance o resolución de su solicitud.' + FIRMA],
-  ['nueva_solicitud', 'Nueva solicitud recibida (automático, al equipo)', 'Vicedecano/a, Analistas', '', 'Nueva solicitud CAE · {folio} · {programa}',
+  ['nueva_solicitud', 'Nueva solicitud recibida (automático, a todas las cuentas con acceso al panel)', 'Equipo', '', 'Nueva solicitud CAE · {folio} · {programa}',
     'Se ha recibido una nueva Solicitud de Concesión Académica de Excepción.\n\nFolio: {folio}\nEstudiante: {nombre}\nPrograma: {programa}\nTipo: {tipo}\nAnalista: {analista_asignada}\n\nExpediente: {enlace_panel}'],
   ['asignacion', 'Asignación de analista (automático)', 'Analista', '', 'Nueva solicitud CAE asignada · {folio}',
     'Se le ha asignado la solicitud {folio} de {nombre} ({programa}).\nTipo: {tipo}\n\nExpediente: {enlace_panel}'],

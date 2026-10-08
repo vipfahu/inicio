@@ -66,7 +66,7 @@ test('recepción desde el formulario: folio, analista, correos automáticos', ()
   assert.equal(estado.correos[0].replyTo, 'analista.uno@usach.cl');
   // Aviso al equipo: Vicedecano/a + todas las analistas con cuenta activa
   assert.match(estado.correos[1].subject, /Nueva solicitud CAE · 07\/2026/);
-  assert.equal(estado.correos[1].to, 'vice@usach.cl,analista.uno@usach.cl');
+  assert.equal(estado.correos[1].to, 'analista.uno@usach.cl,vice@usach.cl,consulta@usach.cl', 'todas las cuentas con acceso al panel; no Registro Curricular (sin acceso)');
   assert.match(estado.correos[1].body, /Analista: Analista Uno/);
   // Aviso de asignación a la analista asignada
   assert.equal(estado.correos[2].to, 'analista.uno@usach.cl');
@@ -317,7 +317,7 @@ test('nueva solicitud sin analista en el programa: aviso al equipo, sin asignaci
   const nuevos = estado.correos.slice(n);
   assert.equal(nuevos.length, 2, 'recepción + aviso al equipo, sin asignación');
   const equipo = nuevos.find(m => /Nueva solicitud CAE/.test(m.subject));
-  assert.equal(equipo.to, 'vice@usach.cl,analista.uno@usach.cl,analista.dos@usach.cl', 'sin la analista inactiva');
+  assert.equal(equipo.to, 'analista.uno@usach.cl,vice@usach.cl,consulta@usach.cl,analista.dos@usach.cl', 'sin la cuenta inactiva ni Registro Curricular');
   assert.match(equipo.body, /sin asignar \(asígnela desde el expediente\)/);
   const s = tabla(env, 'Solicitudes').pop();
   assert.equal(s.analista, '');
