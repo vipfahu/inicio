@@ -19,6 +19,7 @@ function variables_(sol, campos, cuentas) {
     programa: sol.programa,
     tipo: tipo,
     analista: sol.analista ? nombreDe_(sol.analista, cuentas) : 'Vicedecanato de Investigación y Postgrado',
+    analista_asignada: sol.analista ? nombreDe_(sol.analista, cuentas) : 'sin asignar (asígnela desde el expediente)',
     std: campos.n_std || sol.n_std || '',
     vicedecano: p.vicedecano_nombre,
     motivo: campos.motivo || sol.motivo || '',

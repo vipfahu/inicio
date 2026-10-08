@@ -31,7 +31,7 @@ function alRecibirFormulario(e) {
       apellido1: r.apellido1, apellido2: r.apellido2, nombres: r.nombres, run: String(r.run || ''), correo: r.correo || r.correoVerificado,
       telefono: String(r.telefono || ''), programa: r.programa, anio: r.anio, semestre: r.semestre,
       tipo_catalogo: tipos.catalogo, tipo_texto_libre: tipos.libre, estado: 'recibida', estado_desde: marca,
-      analista: prog && prog.analista ? String(prog.analista).toLowerCase() : '', recordatorios: 0, actualizado: new Date()
+      analista: analistaActiva_(prog && prog.analista), recordatorios: 0, actualizado: new Date()
     };
     anexar_(HOJAS.solicitudes, sol);
     // El folio también se escribe en la columna A de las respuestas, donde el equipo lo buscaba antes.
@@ -39,13 +39,22 @@ function alRecibirFormulario(e) {
     sol = buscarSolicitud_(folio);
     anexar_(HOJAS.bitacora, { fecha: marca, folio: folio, tipo: 'estado', quien: 'Formulario', texto: 'Solicitud recibida desde el formulario.', estado_nuevo: 'recibida' });
     anexar_(HOJAS.bitacora, { fecha: new Date(), folio: folio, tipo: 'sistema', quien: 'Sistema',
-      texto: sol.analista ? 'Asignada a ' + nombreDe_(sol.analista) + ' según el programa.' : 'Sin analista: el programa no tiene analista asignada/o en «Programas».' });
+      texto: sol.analista ? 'Asignada a ' + nombreDe_(sol.analista) + ' según el programa.'
+        : (prog && prog.analista ? 'Sin analista: «' + prog.analista + '» (Programas) no tiene una cuenta activa con rol Analista.' : 'Sin analista: asignar desde el expediente.') });
   } finally {
     lock.releaseLock();
   }
   vincularAntecedentes_(sol, leerRespuesta_(sol.fila_respuesta).adjunto);
   enviarAutomatico_('recepcion', sol);
+  enviarAutomatico_('nueva_solicitud', sol);
   if (sol.analista) enviarAutomatico_('asignacion', sol);
+}
+
+/** Correo de la analista solo si tiene una cuenta activa con rol Analista; si no, ''. */
+function analistaActiva_(correo) {
+  const c = String(correo || '').trim().toLowerCase();
+  if (!c) return '';
+  return leer_(HOJAS.cuentas).some(x => String(x.correo).trim().toLowerCase() === c && x.rol === 'Analista' && esSi(x.activo)) ? c : '';
 }
 
 /* ── Panel: bandeja y expediente ── */
@@ -176,7 +185,7 @@ function api_guardarGestion(folio, campos) {
     });
     if (cambios.analista) {
       const c = leer_(HOJAS.cuentas).find(x => String(x.correo).toLowerCase() === cambios.analista && esSi(x.activo));
-      if (!c) throw new Error('La analista seleccionada no tiene una cuenta activa.');
+      if (!c || c.rol !== 'Analista') throw new Error('La persona seleccionada no tiene una cuenta activa con rol Analista.');
       reasignada = true;
     }
     if (!texto.length) return { ok: true, sinCambios: true };

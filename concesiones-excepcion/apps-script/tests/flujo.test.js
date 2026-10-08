@@ -59,12 +59,18 @@ test('recepción desde el formulario: folio, analista, correos automáticos', ()
   assert.equal(s.folio, '07/2026');
   assert.equal(s.estado, 'recibida');
   assert.equal(s.analista, 'analista.uno@usach.cl');
-  assert.equal(estado.correos.length, 2);
+  assert.equal(estado.correos.length, 3);
   assert.equal(estado.correos[0].to, 'est7@usach.cl');
   assert.match(estado.correos[0].subject, /07\/2026/);
   assert.match(estado.correos[0].body, /\?v=seguimiento/);
   assert.equal(estado.correos[0].replyTo, 'analista.uno@usach.cl');
-  assert.equal(estado.correos[1].to, 'analista.uno@usach.cl');
+  // Aviso al equipo: Vicedecano/a + todas las analistas con cuenta activa
+  assert.match(estado.correos[1].subject, /Nueva solicitud CAE · 07\/2026/);
+  assert.equal(estado.correos[1].to, 'vice@usach.cl,analista.uno@usach.cl');
+  assert.match(estado.correos[1].body, /Analista: Analista Uno/);
+  // Aviso de asignación a la analista asignada
+  assert.equal(estado.correos[2].to, 'analista.uno@usach.cl');
+  assert.match(estado.correos[2].subject, /asignada/);
   // Idempotente: la misma fila no se procesa dos veces
   ctx.alRecibirFormulario({ range: hoja.getRange(r, 1) });
   assert.equal(tabla(env, 'Solicitudes').length, 7);
@@ -294,4 +300,61 @@ test('si un correo automático falla, se avisa de inmediato a la analista y a la
   assert.ok(tabla(env, 'Bitácora').some(b => /ERROR · no se envió «recepcion»/.test(b.texto)));
   // La asignación (otro destinatario) sí salió
   assert.ok(estado.correos.some(m => /Nueva solicitud CAE asignada · 07\/2026/.test(m.subject)));
+});
+
+test('nueva solicitud sin analista en el programa: aviso al equipo, sin asignación; reasignar envía aviso', () => {
+  const env = instalar(preparar());
+  const { ctx, estado, hoja, libro } = env;
+  // Una segunda analista con cuenta y el programa sin analista asignada
+  libro.getSheetByName('Cuentas').appendRow(['analista.dos@usach.cl', 'Analista Dos', 'Analista', 'edicion', 'todos', 'SÍ', '', '', '', '']);
+  libro.getSheetByName('Cuentas').appendRow(['analista.tres@usach.cl', 'Analista Tres', 'Analista', 'edicion', 'todos', 'NO', '', '', '', '']);
+  estado.usuario = 'vice@usach.cl';
+  ctx.api_guardarPrograma({ programa: 'Magíster en Prueba A', correo_direccion: 'dir@usach.cl', analista: '', activo: 'SÍ' }, false);
+  hoja.appendRow(fila('', new Date(2026, 9, 9), 9, ['', '', ''], { analista: '' }).slice(0, 15));
+  estado.usuario = '';
+  const n = estado.correos.length;
+  ctx.alRecibirFormulario({ range: hoja.getRange(hoja.getLastRow(), 1) });
+  const nuevos = estado.correos.slice(n);
+  assert.equal(nuevos.length, 2, 'recepción + aviso al equipo, sin asignación');
+  const equipo = nuevos.find(m => /Nueva solicitud CAE/.test(m.subject));
+  assert.equal(equipo.to, 'vice@usach.cl,analista.uno@usach.cl,analista.dos@usach.cl', 'sin la analista inactiva');
+  assert.match(equipo.body, /sin asignar \(asígnela desde el expediente\)/);
+  const s = tabla(env, 'Solicitudes').pop();
+  assert.equal(s.analista, '');
+  // Asignar desde el panel envía el aviso a la analista asignada
+  estado.usuario = 'analista.uno@usach.cl';
+  ctx.api_guardarGestion(s.folio, { analista: 'analista.dos@usach.cl' });
+  const m = estado.correos.pop();
+  assert.equal(m.to, 'analista.dos@usach.cl');
+  assert.match(m.subject, /asignada · 07\/2026/);
+  // No se puede asignar a una cuenta inactiva ni a quien no es Analista
+  assert.throws(() => ctx.api_guardarGestion(s.folio, { analista: 'analista.tres@usach.cl' }), /rol Analista/);
+  assert.throws(() => ctx.api_guardarGestion(s.folio, { analista: 'vice@usach.cl' }), /rol Analista/);
+});
+
+test('asignación automática solo hacia cuentas activas con rol Analista', () => {
+  const env = instalar(preparar());
+  const { ctx, estado, hoja } = env;
+  estado.usuario = 'vice@usach.cl';
+  ctx.api_guardarPrograma({ programa: 'Magíster en Prueba A', correo_direccion: 'dir@usach.cl', analista: 'sin.cuenta@usach.cl', activo: 'SÍ' }, false);
+  hoja.appendRow(fila('', new Date(2026, 9, 9), 9, ['', '', ''], { analista: '' }).slice(0, 15));
+  estado.usuario = '';
+  ctx.alRecibirFormulario({ range: hoja.getRange(hoja.getLastRow(), 1) });
+  assert.equal(tabla(env, 'Solicitudes').pop().analista, '');
+  assert.ok(!estado.correos.some(m => m.to === 'sin.cuenta@usach.cl'));
+  assert.ok(tabla(env, 'Bitácora').some(b => /sin\.cuenta@usach\.cl.*no tiene una cuenta activa/.test(b.texto)));
+});
+
+test('actualizar instalación agrega plantillas nuevas sin tocar las editadas', () => {
+  const env = instalar(preparar());
+  const { ctx, estado, libro } = env;
+  const h = libro.getSheetByName('Plantillas');
+  const i = h.datos.findIndex(r => r[0] === 'nueva_solicitud');
+  h.datos.splice(i, 1); // instalación anterior, sin la plantilla nueva
+  const j = h.datos.findIndex(r => r[0] === 'recepcion');
+  h.datos[j][5] = 'Texto editado por el equipo {enlace}';
+  estado.usuario = estado.duenia;
+  ctx.actualizarInstalacion();
+  assert.ok(tabla(env, 'Plantillas').some(t => t.evento === 'nueva_solicitud'));
+  assert.equal(tabla(env, 'Plantillas').find(t => t.evento === 'recepcion').cuerpo, 'Texto editado por el equipo {enlace}');
 });

@@ -162,7 +162,7 @@ function filtrar() {
     if (f.grupo === 'cerradas' && !cierre(s.estado)) return false;
     if (f.grupo === 'revisar' && s.revisar !== 'SÍ') return false;
     if (f.programa && s.programa !== f.programa) return false;
-    if (f.analista && s.analista !== f.analista) return false;
+    if (f.analista === '__sin' ? !!s.analista : (f.analista && s.analista !== f.analista)) return false;
     return !q || [s.folio, s.nombre, s.run, s.programa, s.tipo].join(' ').toLowerCase().indexOf(q) >= 0;
   }).sort((a, b) => String(b.fecha_recepcion).localeCompare(String(a.fecha_recepcion)));
 }
@@ -176,7 +176,7 @@ function pintarBandeja() {
     '<div class="tarjeta filtros" style="padding:14px 16px"><input id="fq" placeholder="Buscar por folio, nombre, RUN o tipo…" value="' + h(S.filtro.q) + '">' +
     sel('fg', [['todas', 'Todos los estados'], ['curso', 'En curso'], ['vb', 'Pendiente V°B°'], ['cerradas', 'Cerradas'], ['revisar', 'Por revisar']], S.filtro.grupo) +
     sel('fp', [['', 'Todos los programas']].concat(progs.map(p => [p, p])), S.filtro.programa) +
-    sel('fa', [['', 'Todas las analistas']].concat(S.ini.analistas.map(a => [a.correo, a.nombre])), S.filtro.analista) + '</div>' +
+    sel('fa', [['', 'Todas las analistas'], ['__sin', 'Sin asignar']].concat(S.ini.analistas.map(a => [a.correo, a.nombre])), S.filtro.analista) + '</div>' +
     '<div class="tabla" id="tabla"></div>';
   $('fq').oninput = e => { S.filtro.q = e.target.value; pintarFilas(); };
   $('fg').onchange = e => { S.filtro.grupo = e.target.value; pintarFilas(); };

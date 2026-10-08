@@ -151,6 +151,11 @@ function resolverDestinatarios(rolesPara, rolesCc, ctx) {
     const s = ctx.solicitud || {};
     if (rol === 'Estudiante') return s.correo ? [s.correo] : (faltantes.push('correo del estudiante'), []);
     if (rol === 'Analista') return s.analista ? [s.analista] : (faltantes.push('analista asignada/o'), []);
+    if (rol === 'Analistas') {
+      const r = activas.filter(c => c.rol === 'Analista').map(c => c.correo);
+      if (!r.length) faltantes.push('cuentas activas con rol «Analista»');
+      return r;
+    }
     if (rol === 'Dirección de programa') {
       const p = (ctx.programas || []).find(x => x.programa === s.programa);
       return p && p.correo_direccion && p.correo_direccion.indexOf('@') > 0 ? [p.correo_direccion] : (faltantes.push('correo de dirección de «' + s.programa + '»'), []);

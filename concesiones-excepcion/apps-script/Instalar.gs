@@ -13,6 +13,7 @@ function onOpen() {
   SpreadsheetApp.getUi().createMenu('CAE')
     .addItem('Abrir panel', 'abrirPanel')
     .addItem('Diagnóstico', 'diagnostico')
+    .addItem('Actualizar (tras subir código nuevo)', 'actualizarInstalacion')
     .addSeparator()
     .addItem('Instalación · paso 1 (estructura)', 'instalarPaso1')
     .addItem('Instalación · paso 2 (migrar y activar)', 'instalarPaso2')
@@ -242,10 +243,11 @@ function diagnostico() {
   const cuentas = leer_(HOJAS.cuentas);
   cuentas.filter(c => !/@usach\.cl$/i.test(String(c.correo))).forEach(c => p.push('Cuenta sin correo @usach.cl: ' + c.nombre));
   if (!cuentas.some(c => c.nivel === 'administracion' && esSi(c.activo))) p.push('No hay cuentas activas con nivel administracion.');
+  if (!cuentas.some(c => c.rol === 'Analista' && esSi(c.activo))) p.push('No hay cuentas activas con rol «Analista» (nadie recibirá avisos de solicitudes nuevas).');
+  leer_(HOJAS.programas).filter(x => esSi(x.activo) && x.analista && !analistaActiva_(x.analista)).forEach(x => p.push('Analista de «' + x.programa + '» sin cuenta activa con rol Analista: ' + x.analista));
   ['Vicedecano/a', 'Registro Curricular'].forEach(r => { if (!cuentas.some(c => c.rol === r && esSi(c.activo))) p.push('No hay cuenta activa con rol «' + r + '» (no recibirá correos).'); });
   leer_(HOJAS.programas).filter(x => esSi(x.activo)).forEach(x => {
     if (!x.correo_direccion) p.push('Programa sin correo de dirección: ' + x.programa);
-    if (!x.analista) p.push('Programa sin analista asignada/o: ' + x.programa);
   });
   const par = parametros_();
   if (!par.enlace_rc || par.enlace_rc === 'COMPLETAR') p.push('Falta «enlace_rc» en Parámetros (lo usa el correo «No procede»).');
@@ -267,4 +269,19 @@ function abrirPanel() {
     ? '<p style="font-family:sans-serif">Panel: <a href="' + url + '" target="_blank">' + url + '</a></p>'
     : '<p style="font-family:sans-serif">El panel aún no está publicado. Use Implementar → Nueva implementación → Aplicación web.</p>';
   SpreadsheetApp.getUi().showModalDialog(HtmlService.createHtmlOutput(html).setWidth(520).setHeight(120), 'Panel CAE');
+}
+
+/**
+ * Tras subir una versión nueva del código: agrega las plantillas nuevas que falten
+ * (no modifica las existentes, que pueden haber sido editadas por el equipo).
+ */
+function actualizarInstalacion() {
+  soloDuenia_();
+  const ya = leer_(HOJAS.plantillas).map(t => t.evento);
+  const nuevas = PLANTILLAS_INICIALES.filter(t => ya.indexOf(t[0]) < 0);
+  anexarVarias_(HOJAS.plantillas, nuevas.map(t => ({
+    evento: t[0], descripcion: t[1], para: t[2], cc: t[3], asunto: t[4], cuerpo: t[5], asunto_original: t[4], cuerpo_original: t[5]
+  })));
+  if (nuevas.length) anexar_(HOJAS.bitacora, { fecha: new Date(), folio: '—', tipo: 'sistema', quien: duenia_(), texto: 'Actualización: plantillas agregadas ' + nuevas.map(t => t[0]).join(', ') });
+  avisar_('Actualización CAE', nuevas.length ? 'Plantillas agregadas: ' + nuevas.map(t => t[0]).join(', ') + '.' : 'No había plantillas nuevas.');
 }

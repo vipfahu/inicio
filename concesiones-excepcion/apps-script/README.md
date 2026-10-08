@@ -17,7 +17,7 @@ Este directorio no contiene datos personales y no se publica en el sitio (ver `n
 | Archivo | Contenido |
 |---|---|
 | `Logica.gs` | Reglas puras: estados, transiciones, folios, migración, destinatarios, días hábiles, validación de cuentas |
-| `Config.gs` | Pestañas, columnas, parámetros, feriados fijos y textos iniciales de los 13 correos |
+| `Config.gs` | Pestañas, columnas, parámetros, feriados fijos y textos iniciales de los 14 correos |
 | `Datos.gs` | Lectura/escritura de pestañas como tablas |
 | `Cuentas.gs` | Identidad, niveles y pantalla «Cuentas» |
 | `Correo.gs` | Plantillas, variables y envío |
@@ -75,8 +75,7 @@ agrega pestañas y oculta (no elimina) las columnas de gestión antiguas.
    La tarea diaria avisará por correo si vuelve a aparecer un acceso no autorizado.
 10. **Avisar a estudiantes.** En el Formulario, agregue al mensaje de confirmación el enlace `URL?v=seguimiento`.
 
-Para actualizar el código más adelante: pegar los archivos nuevos y *Implementar → Gestionar implementaciones → Editar → Nueva versión*
-(la URL no cambia).
+**Actualizar el código más adelante:** `npx @google/clasp@3.4.1 push --force`; luego *Implementar → Gestionar implementaciones → Editar (lápiz) → Versión: Nueva versión → Implementar* (la URL no cambia); y en la planilla *CAE → Actualizar (tras subir código nuevo)*, que agrega las plantillas nuevas sin tocar las que el equipo haya editado.
 
 ## Cómo opera
 
@@ -86,7 +85,11 @@ se ingresa con Google. Niveles: `sin_acceso` (solo recibe correos) · `consulta`
 Cada llamada del panel vuelve a leer la matriz, así que un cambio rige en la siguiente acción de esa persona. Las cuentas se desactivan,
 no se borran. La cuenta institucional es administradora fija y no se puede dejar el sistema sin otra administración activa.
 
-**Correos.** Automáticos solo: recepción (estudiante), asignación (analista) y recordatorio al programa cuando vence el plazo
+**Usuarios.** El panel es solo para el equipo del Vicedecanato (analistas y Vicedecano/a). Las direcciones de programa y Registro Curricular no entran: solo reciben correos.
+
+**Al llegar una solicitud** salen tres correos automáticos: recepción al estudiante; «Nueva solicitud CAE» al Vicedecano/a y a **todas las analistas con cuenta activa**; y, si el programa tiene analista en Configuración (y esa persona tiene cuenta activa con rol Analista), «Nueva solicitud CAE asignada» a esa analista. Si el programa no tiene analista, el caso queda «Sin asignar» (filtro en la bandeja) y se asigna desde el expediente; **cada asignación o reasignación envía el aviso a la analista asignada**. Solo se puede asignar a cuentas activas con rol Analista.
+
+**Correos.** Automáticos solo: recepción (estudiante), nueva solicitud (equipo), asignación (analista) y recordatorio al programa cuando vence el plazo
 (`plazo_programa_dias`, luego cada `recordatorio_cada_dias`, hasta `recordatorios_max`). Si uno de ellos no sale, se avisa de inmediato
 por correo a la analista del caso, a la administración y a la cuenta institucional (además de quedar en la bitácora).
 Todo correo dirigido al estudiante (recepción, aceptada, rechazada, no procede, resuelto, negado) lleva el enlace de seguimiento
