@@ -7,6 +7,7 @@
  */
 
 function doGet(e) {
+  actualizarSiCorresponde_();
   const v = e && e.parameter && e.parameter.v;
   const rutas = {
     seguimiento: ['Seguimiento', 'Seguimiento · Solicitud CAE'],

@@ -443,3 +443,17 @@ test('actualizar instalación: plantillas sin editar toman el texto nuevo; las e
   assert.equal(fila('devolucion'), undefined, 'las plantillas que ya no se usan se retiran');
   assert.ok(fila('inicio_autorizado'));
 });
+
+test('código nuevo: la planilla se actualiza sola en la siguiente visita, una sola vez', () => {
+  const env = instalar(preparar());
+  const { ctx, estado, libro } = env;
+  const h = libro.getSheetByName('Plantillas');
+  h.appendRow(['devolucion', 'obsoleta', 'Dirección de programa', '', 'a', 'b', 'a', 'b', '', '']);
+  delete estado.props.huella_estructura; // como si se acabara de subir código nuevo
+  ctx.actualizarSiCorresponde_();
+  assert.ok(!h.datos.some(r => r[0] === 'devolucion'));
+  const n = tabla(env, 'Bitácora').filter(b => /Actualización automática/.test(b.texto)).length;
+  assert.equal(n, 1);
+  ctx.actualizarSiCorresponde_();
+  assert.equal(tabla(env, 'Bitácora').filter(b => /Actualización automática/.test(b.texto)).length, 1);
+});

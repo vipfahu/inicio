@@ -6,6 +6,7 @@
 
 function tareaDiaria() {
   soloSistema_();
+  actualizarSiCorresponde_();
   enviarRecordatorios_();
   limpiarTemporales_();
   controlarComparticion_();

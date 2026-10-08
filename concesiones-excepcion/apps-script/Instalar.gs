@@ -277,6 +277,46 @@ function abrirPanel() {
  */
 function actualizarInstalacion() {
   soloDuenia_();
+  const cambios = aplicarActualizacion_();
+  PropertiesService.getScriptProperties().setProperty('huella_estructura', huellaEstructura_());
+  avisar_('Actualización CAE', cambios.length ? 'Agregado:\n- ' + cambios.join('\n- ') + '\n\nFormulario para estudiantes: ' + urlPanel_() + '?v=solicitud' : 'No había nada nuevo que agregar.');
+}
+
+/**
+ * Huella de lo que la planilla debe tener (columnas, parámetros, plantillas). Cuando se sube código nuevo y la huella cambia,
+ * la planilla se pone al día sola en la siguiente visita al panel o al formulario, sin pasar por el menú.
+ */
+function huellaEstructura_() {
+  const txt = JSON.stringify([COLUMNAS, PARAMETROS_INICIALES.map(p => p[0]), PLANTILLAS_INICIALES]);
+  let h = 2166136261;
+  for (let i = 0; i < txt.length; i++) { h ^= txt.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; }
+  return h.toString(16) + '-' + txt.length;
+}
+
+function actualizarSiCorresponde_() {
+  try {
+    const props = PropertiesService.getScriptProperties();
+    const huella = huellaEstructura_();
+    if (props.getProperty('huella_estructura') === huella) return;
+    if (!props.getProperty('SS_ID') || !libro_().getSheetByName(HOJAS.parametros)) return; // aún sin instalar
+    const lock = LockService.getScriptLock();
+    lock.waitLock(20000);
+    try {
+      if (props.getProperty('huella_estructura') === huella) return;
+      const cambios = aplicarActualizacion_();
+      props.setProperty('huella_estructura', huella);
+      anexar_(HOJAS.bitacora, {
+        fecha: new Date(), folio: '—', tipo: 'sistema', quien: 'Sistema',
+        texto: 'Actualización automática tras código nuevo' + (cambios.length ? ': ' + cambios.join(' · ') : ' (sin cambios en la planilla).')
+      });
+    } finally { lock.releaseLock(); }
+  } catch (err) {
+    console.error('Actualización automática no aplicada: ' + err.message); // se reintenta en la próxima visita; queda el menú manual
+  }
+}
+
+/** Pone la planilla al día con el código vigente. No muestra nada: devuelve la lista de cambios. */
+function aplicarActualizacion_() {
   const cambios = [];
   Object.keys(COLUMNAS).forEach(n => {
     const h = asegurarHoja_(n);
@@ -315,5 +355,5 @@ function actualizarInstalacion() {
   })));
   if (nuevas.length) anexar_(HOJAS.bitacora, { fecha: new Date(), folio: '—', tipo: 'sistema', quien: duenia_(), texto: 'Actualización: plantillas agregadas ' + nuevas.map(t => t[0]).join(', ') });
   if (nuevas.length) cambios.push('Plantillas: ' + nuevas.map(t => t[0]).join(', '));
-  avisar_('Actualización CAE', cambios.length ? 'Agregado:\n- ' + cambios.join('\n- ') + '\n\nFormulario para estudiantes: ' + urlPanel_() + '?v=solicitud' : 'No había nada nuevo que agregar.');
+  return cambios;
 }
