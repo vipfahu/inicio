@@ -1,0 +1,6 @@
+# Lo que clasp NO sube a Apps Script
+tests/**
+*.md
+.clasp.json
+.claspignore
+configurar-clasp.js

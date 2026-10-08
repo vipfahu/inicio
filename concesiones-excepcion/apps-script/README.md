@@ -29,6 +29,7 @@ Este directorio no contiene datos personales y no se publica en el sitio (ver `n
 | `Panel.html`, `Seguimiento.html` | Interfaces |
 | `appsscript.json` | Manifiesto (zona horaria, permisos, publicación web) |
 | `tests/` | Pruebas en Node con un simulador de los servicios de Google |
+| `.claspignore`, `configurar-clasp.js` | Subida del código con `clasp` (lo que no se sube; creación de `.clasp.json`) |
 
 ## Instalación (cuenta institucional, ~20 minutos)
 
@@ -36,9 +37,20 @@ Todo se hace **con la sesión de `viceinvestigacionfahu@usach.cl`**. La instalac
 agrega pestañas y oculta (no elimina) las columnas de gestión antiguas.
 
 1. **Abrir el editor.** En la planilla «Concesión Académica de Excepción Postgrado (Respuestas)»: *Extensiones → Apps Script*.
-2. **Copiar el código.** En *Configuración del proyecto* marque «Mostrar el archivo de manifiesto `appsscript.json`».
-   Cree un archivo por cada `.gs` y `.html` de este directorio, con el mismo nombre (sin extensión), y pegue el contenido.
-   Reemplace el contenido de `appsscript.json`. Guarde (Ctrl+S).
+2. **Subir el código con `clasp`** (requiere Node.js en el computador):
+   - Una vez, con la sesión institucional: activar «Google Apps Script API» en https://script.google.com/home/usersettings
+   - Copiar el «ID de la secuencia de comandos» desde *Configuración del proyecto* (engranaje) del editor.
+   - En una terminal, dentro de esta carpeta:
+     ```
+     node configurar-clasp.js <ID>
+     npx @google/clasp@3.4.1 login
+     npx @google/clasp@3.4.1 status
+     npx @google/clasp@3.4.1 push --force
+     ```
+     `status` debe listar 13 archivos (11 de código, 2 páginas y `appsscript.json`); `--force` reemplaza el manifiesto.
+   - Al terminar la instalación: `npx @google/clasp@3.4.1 logout` (borra la credencial del computador).
+   - Alternativa sin `clasp`: en *Configuración del proyecto* marque «Mostrar el archivo de manifiesto», cree un archivo por cada
+     `.gs` y `.html` con el mismo nombre y pegue el contenido; reemplace `appsscript.json`.
 3. **Paso 1.** Vuelva a la planilla y recárguela. Aparece el menú **CAE**. Ejecute *CAE → Instalación · paso 1* y autorice
    los permisos que Google solicita (Drive, Hojas, Formularios, envío de correo, disparadores).
 4. **Completar a mano** en la planilla:
