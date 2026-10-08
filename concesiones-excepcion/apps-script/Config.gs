@@ -1,0 +1,115 @@
+/**
+ * Config.gs · Estructura de la planilla, parámetros y textos iniciales.
+ * Los valores de esta hoja solo se usan al instalar: después se editan desde el panel o la planilla.
+ */
+
+const HOJAS = {
+  solicitudes: 'Solicitudes',
+  bitacora: 'Bitácora',
+  plantillas: 'Plantillas',
+  cuentas: 'Cuentas',
+  programas: 'Programas',
+  parametros: 'Parámetros',
+  feriados: 'Feriados',
+  archivos: 'Archivos'
+};
+
+const COLUMNAS = {
+  Solicitudes: ['folio', 'fila_respuesta', 'fecha_recepcion', 'correo_verificado', 'apellido1', 'apellido2', 'nombres', 'run',
+    'correo', 'telefono', 'programa', 'anio', 'semestre', 'tipo_catalogo', 'tipo_texto_libre', 'estado', 'estado_desde',
+    'analista', 'n_std', 'comentarios_analista', 'obs_vicedecano', 'propuesta_comite', 'motivo', 'resolucion',
+    'carpeta_id', 'recordatorios', 'ultimo_recordatorio', 'revisar', 'nota_migracion', 'actualizado'],
+  'Bitácora': ['fecha', 'folio', 'tipo', 'quien', 'texto', 'estado_nuevo', 'evento', 'para', 'cc', 'asunto', 'editado'],
+  Plantillas: ['evento', 'descripcion', 'para', 'cc', 'asunto', 'cuerpo', 'asunto_original', 'cuerpo_original', 'actualizado_por', 'actualizado_en'],
+  Cuentas: ['correo', 'nombre', 'rol', 'nivel', 'programas', 'activo', 'recibe_eventos', 'creada_por', 'creada_en', 'notas'],
+  Programas: ['programa', 'correo_direccion', 'analista', 'activo'],
+  'Parámetros': ['clave', 'valor', 'descripcion'],
+  Feriados: ['fecha', 'descripcion'],
+  Archivos: ['fecha', 'folio', 'archivo_id', 'nombre', 'categoria', 'tamano_mb', 'subido_por']
+};
+
+/** Encabezados del Formulario (se buscan por el comienzo del texto, para tolerar cambios menores). */
+const RESPUESTA = {
+  marca: 'Marca temporal',
+  correoVerificado: 'Dirección de correo electrónico',
+  apellido1: 'Primer Apellido',
+  apellido2: 'Segundo Apellido',
+  nombres: 'Nombres',
+  run: 'Rol Único Nacional',
+  correo: 'Correo electrónico',
+  telefono: 'Teléfono de contacto',
+  programa: 'Programa de Postgrado',
+  anio: 'Año asociado',
+  semestre: 'Semestre asociado',
+  tipos: 'Solicito autorización para',
+  fundamentacion: 'Fundamentación',
+  adjunto: 'Adjuntar antecedentes'
+};
+
+/** Columnas de gestión manual de la planilla anterior (solo se leen al migrar; luego se ocultan). */
+const LEGADO = {
+  presentacion: 'Estado de Presentación',
+  estado: 'ESTADO',
+  actual: 'ESTADO ACTUAL',
+  analista: 'Analista a cargo',
+  obsVicedecano: 'Observación Vicedecano',
+  comentarios: 'Comentarios Analista',
+  std: 'N° STD',
+  extras: 'OBSERVACIONES EXTRAS',
+  archivoCae: 'Archivo CAE',
+  resolucion: 'archivo resolución'
+};
+
+const PARAMETROS_INICIALES = [
+  ['vicedecano_nombre', 'Dr. Jorge Castillo S.', 'Nombre que aparece en los correos ({vicedecano}).'],
+  ['remitente_nombre', 'Vicedecanato de Investigación y Postgrado · FAHU', 'Nombre visible del remitente.'],
+  ['plazo_programa_dias', '2', 'Días hábiles que tiene el programa para pronunciarse.'],
+  ['recordatorio_cada_dias', '2', 'Días hábiles entre recordatorios al programa, una vez vencido el plazo.'],
+  ['recordatorios_max', '3', 'Máximo de recordatorios por solicitud (0 = desactivados).'],
+  ['max_mb_archivo', '20', 'Tamaño máximo por archivo subido desde el panel (MB). Gmail admite 25 MB por correo en total.'],
+  ['enlace_rc', 'COMPLETAR', 'Enlace a la plataforma de Registro Curricular FAHU ({enlace_rc}).'],
+  ['compartido_permitido', '', 'Correos (separados por coma) que pueden tener acceso directo a la planilla. Vacío = solo la cuenta dueña.'],
+  ['carpeta_raiz_id', '', 'Lo completa la instalación. Carpeta «Plataforma CAE · NO COMPARTIR».']
+];
+
+/** Feriados de fecha fija. Los feriados móviles (Viernes y Sábado Santo, San Pedro y San Pablo, Encuentro de Dos Mundos,
+ *  Iglesias Evangélicas, elecciones, interferiados) deben agregarse a mano cada año desde una fuente oficial. */
+function feriadosFijos_(anios) {
+  const fijos = [['01-01', 'Año Nuevo'], ['05-01', 'Día del Trabajo'], ['05-21', 'Glorias Navales'], ['09-18', 'Independencia Nacional'],
+    ['09-19', 'Glorias del Ejército'], ['11-01', 'Todos los Santos'], ['12-08', 'Inmaculada Concepción'], ['12-25', 'Navidad']];
+  const out = [];
+  anios.forEach(a => fijos.forEach(f => out.push([a + '-' + f[0], f[1]])));
+  return out;
+}
+
+const FIRMA = '\n\nAtentamente,\n{analista}\nVicedecanato de Investigación y Postgrado · FAHU';
+
+/** [evento, descripción, para, cc, asunto, cuerpo] */
+const PLANTILLAS_INICIALES = [
+  ['recepcion', 'Recepción de la solicitud (automático)', 'Estudiante', '', 'Confirmación de recepción · Solicitud CAE {folio}',
+    'Estimado/a {nombre}:\n\nJunto con saludarle cordialmente, le informamos que hemos recibido su Solicitud de Concesión Académica de Excepción (CAE), folio {folio}. Actualmente, el trámite se encuentra en etapa de revisión de antecedentes para evaluar su admisibilidad.\n\nPuede consultar el avance de su solicitud, ingresando con su cuenta USACH, en: {enlace}\n\nLe mantendremos informado/a sobre el avance o resolución de su solicitud.' + FIRMA],
+  ['asignacion', 'Asignación de analista (automático)', 'Analista', '', 'Nueva solicitud CAE asignada · {folio}',
+    'Se le ha asignado la solicitud {folio} de {nombre} ({programa}).\nTipo: {tipo}\n\nExpediente: {enlace_panel}'],
+  ['aceptada', 'Presentación aceptada', 'Estudiante', 'Dirección de programa', 'Presentación aceptada · Solicitud CAE {folio}',
+    'Estimado/a {nombre}:\n\nJunto con saludar cordialmente, y por especial encargo del {vicedecano}, Vicedecano de Investigación y Postgrado de la FAHU, informo a usted que se ha aceptado la presentación de su Solicitud de Concesión Académica de Excepción (CAE). Por este motivo, la analista a cargo de su programa lo contactará para proseguir con el trámite correspondiente.\n\nEn los próximos días, la solicitud será remitida a la Unidad de Registro Curricular para su ingreso, revisión e informe.\n\nCabe mencionar que la resolución final de su solicitud le será notificada vía correo electrónico.' + FIRMA],
+  ['rechazada', 'Presentación rechazada', 'Estudiante', 'Dirección de programa', 'Resultado de admisibilidad · Solicitud CAE {folio}',
+    'Estimado/a {nombre}:\n\nJunto con saludar cordialmente, y en atención a su Solicitud de Concesión Académica de Excepción (CAE), cumplo con informar que, tras la revisión de sus antecedentes y de acuerdo con la normativa y procedimientos vigentes, no se ha aceptado la presentación de la solicitud.\n\nMotivo: {motivo}\n\nAnte cualquier duda o consulta, quedamos atentos.' + FIRMA],
+  ['no_procede', 'No procede · vía Registro Curricular', 'Estudiante', '', 'Solicitud CAE {folio} · debe ingresarse en Registro Curricular',
+    'Estimado/a {nombre}:\n\nJunto con saludarle cordialmente, y en atención a su solicitud de Concesión Académica de Excepción (CAE), cumplo con informar que, tras la revisión de sus antecedentes y de acuerdo con la normativa y procedimientos vigentes, no procede dar continuidad al proceso por esta vía, por lo que la presente solicitud se dejará sin efecto.\n\nLo anterior se debe a que el trámite solicitado corresponde a una Concesión Académica que usted debe ingresar directamente a través de la plataforma de Registro Curricular: {enlace_rc}\n\nAnte cualquier duda o consulta, quedamos atentos.' + FIRMA],
+  ['vb_informe', 'V°B° al informe académico', 'Vicedecano/a', '', 'V°B° informe académico · Solicitud CAE {folio}',
+    'Estimado/a Vicedecano/a:\n\nJunto con un cordial saludo, remito a usted el informe académico de {nombre} ({programa}) para su revisión y V°B°. Se sugiere aprobar la continuidad del trámite para realizar el envío al programa, con el fin de que se pronuncie sobre la solicitud CAE {folio}.\n\nExpediente: {enlace_panel}' + FIRMA],
+  ['programa', 'Envío a programa con informe', 'Dirección de programa', 'Analista', 'Solicitud CAE {folio} · pronunciamiento del programa',
+    'Estimado/a Director/a:\n\nJunto con saludar, remito a usted la Solicitud de Concesión Académica de Excepción de {nombre}, adjuntando a la presente el Informe Académico emitido por Registro Curricular.\n\nSegún el nuevo flujograma establecido, el programa debe emitir su parecer respecto a la aceptación o rechazo de esta presentación (dentro de un plazo de {plazo} días hábiles). En caso de ser aceptada, la decisión debe ser respaldada por el Comité del programa, especificando detalladamente las condiciones de dicha aceptación.\n\nLa respuesta debe ser incluida tanto en el Acta del Comité como en los comentarios externos. Agradecemos seguir la trazabilidad a través de este mismo instrumento, evitando la apertura de trámites paralelos o secundarios.\n\nQuedamos atentos a su pronta respuesta.' + FIRMA],
+  ['devolucion', 'Devolución al programa con observación', 'Dirección de programa', 'Analista', 'Solicitud CAE {folio} · observación del Vicedecanato',
+    'Estimado/a Director/a:\n\nJunto con saludar, la solicitud CAE {folio} de {nombre} se devuelve al programa con la siguiente observación del Vicedecanato:\n\n{observacion}\n\nAgradecemos revisar y emitir un nuevo pronunciamiento del Comité.' + FIRMA],
+  ['vb', 'V°B° a la respuesta del Comité', 'Vicedecano/a', '', 'V°B° respuesta del Comité · Solicitud CAE {folio}',
+    'Estimado/a Vicedecano/a:\n\nJunto con saludarle cordialmente, adjunto la respuesta emitida por el Comité del Programa respecto de la solicitud CAE {folio} de {nombre}, para su revisión y posterior V°B°.\n\nPropuesta del Comité: {propuesta_comite}\n\nExpediente: {enlace_panel}\n\nQuedo a su disposición ante cualquier duda o comentario.' + FIRMA],
+  ['registro', 'Envío a Registro Curricular', 'Registro Curricular', 'Estudiante', 'Autorización de presentación · Solicitud CAE {folio} · STD {std}',
+    'Estimada/o Registrador/a Curricular:\n\nJunto con saludar cordialmente, y por especial encargo del {vicedecano}, Vicedecano de Investigación y Postgrado, informo a usted que, tras la revisión de los antecedentes y propuesta del Comité del Programa, se procede a autorizar la presentación de la Solicitud CAE {folio}.\n\nAgradecemos dar curso a dicha solicitud.' + FIRMA],
+  ['resuelto', 'Resolución favorable', 'Estudiante', 'Dirección de programa', 'Resolución · Solicitud CAE {folio}',
+    'Estimado/a {nombre}:\n\nJunto con saludar, se informa que su Solicitud de Concesión Académica de Excepción {folio} ha sido resuelta favorablemente. Resolución: {resolucion}.' + FIRMA],
+  ['negado', 'Resolución desfavorable', 'Estudiante', 'Dirección de programa', 'Resolución · Solicitud CAE {folio}',
+    'Estimado/a {nombre}:\n\nJunto con saludar, se informa que su Solicitud de Concesión Académica de Excepción {folio} ha sido resuelta y no ha sido acogida. Resolución: {resolucion}.\n\nAnte cualquier duda o consulta, quedamos atentos.' + FIRMA],
+  ['recordatorio', 'Recordatorio al programa (automático, plazo vencido)', 'Dirección de programa', 'Analista', 'Recordatorio · Solicitud CAE {folio} · pronunciamiento pendiente',
+    'Estimado/a Director/a:\n\nJunto con saludar, le recordamos que la Solicitud de Concesión Académica de Excepción {folio} de {nombre} se encuentra a la espera del pronunciamiento del programa. El plazo de {plazo} días hábiles se encuentra vencido.\n\nAgradecemos su pronta respuesta.' + FIRMA]
+];

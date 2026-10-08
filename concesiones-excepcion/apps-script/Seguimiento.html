@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<base target="_top">
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700;800&family=Spectral:wght@400;600&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:#F6F4EF;color:#3A4450;font-family:Spectral,Georgia,serif}
+  a{color:#007E80}
+  header{background:#fff;border-bottom:1px solid #E8E4DA;padding:18px clamp(16px,5vw,60px);display:flex;align-items:center;gap:14px}
+  header img{height:60px}
+  .tit{font:800 17px Archivo,sans-serif;color:#007E80} .sub{font:400 12px Archivo,sans-serif;color:#8A8272}
+  main{max-width:720px;margin:0 auto;padding:34px clamp(16px,5vw,24px) 70px}
+  .kicker{font:600 11px Archivo,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#EF7A00}
+  h1{font:800 clamp(26px,3.8vw,34px)/1.12 Archivo,sans-serif;margin:8px 0}
+  .intro{font:400 16px/1.6 Spectral,serif;color:#5A6470}
+  .tarjeta{background:#fff;border:1px solid #E8E4DA;border-radius:14px;padding:22px;margin-top:18px}
+  .pill{display:inline-block;font:600 10.5px Archivo,sans-serif;letter-spacing:.06em;text-transform:uppercase;border-radius:999px;padding:5px 10px}
+  .paso{display:flex;gap:14px;position:relative;padding-bottom:16px}
+  .paso .pt{width:16px;height:16px;border-radius:50%;flex:none;margin-top:2px;position:relative;z-index:1}
+  .paso:not(:last-child)::after{content:'';position:absolute;left:7px;top:18px;bottom:0;width:2px;background:#F0EDE4}
+  .paso b{font:700 13.5px Archivo,sans-serif;display:block} .paso span{font:400 13px Spectral,serif;color:#5A6470}
+  footer{border-top:1px solid #E8E4DA;padding:18px clamp(16px,5vw,60px);font:400 12px Archivo,sans-serif;color:#8A8272}
+</style>
+</head>
+<body>
+<header>
+  <img src="https://vipfahu.netlify.app/assets/logo-fahu.png" alt="Facultad de Humanidades USACH">
+  <div><div class="tit">Concesiones Académicas de Excepción</div><div class="sub">Vicedecanato de Investigación y Postgrado · FAHU USACH</div></div>
+</header>
+<main>
+  <div class="kicker">Estado de su trámite</div>
+  <h1>Seguimiento de solicitud</h1>
+  <p class="intro">Aquí aparecen las solicitudes enviadas desde su cuenta USACH.</p>
+  <div id="app"><div class="tarjeta sub">Cargando…</div></div>
+</main>
+<footer>Vicedecanato de Investigación y Postgrado · Facultad de Humanidades · Universidad de Santiago de Chile</footer>
+<script>
+const h = s => String(s === null || s === undefined ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const fecha = iso => { if (!iso) return ''; const d = new Date(iso); return isNaN(d) ? '' : ('0' + d.getDate()).slice(-2) + '.' + ('0' + (d.getMonth() + 1)).slice(-2) + '.' + d.getFullYear(); };
+const RUTA = ['recibida', 'revision', 'aceptada', 'informe_rc', 'vb_informe', 'programa', 'vb', 'resolucion', 'resuelto'];
+const CIERRE = { rechazada: 'revision', no_procede: 'revision', negado: 'resolucion' };
+const DETALLE = {
+  recibida: 'Confirmación enviada a su correo.', revision: 'Se evalúa la admisibilidad de la presentación.',
+  aceptada: 'Presentación aceptada por el Vicedecanato.', informe_rc: 'Registro Curricular emite el informe académico.',
+  vb_informe: 'Revisión del informe por el Vicedecanato.', programa: 'El Comité del programa se pronuncia sobre la solicitud.',
+  vb: 'Revisión del Vicedecanato a la propuesta del Comité.', resolucion: 'La resolución se encuentra en firma y tramitación.',
+  resuelto: 'La resolución fue notificada a su correo.', rechazada: 'Se le notificó el motivo a su correo.',
+  no_procede: 'El trámite corresponde a la plataforma de Registro Curricular.', negado: 'La resolución fue notificada a su correo.'
+};
+function pasos(s, estados) {
+  const etq = id => (estados.find(e => e.id === id) || {}).etiqueta || id;
+  const fechaDe = id => { const x = s.hitos.filter(b => b.estado === id).pop(); return x ? fecha(x.fecha) : ''; };
+  let ruta = RUTA.slice(), actual = s.estado, negativo = false;
+  if (CIERRE[s.estado]) { ruta = RUTA.slice(0, RUTA.indexOf(CIERRE[s.estado]) + 1).concat([s.estado]); negativo = true; }
+  const idx = ruta.indexOf(actual);
+  return ruta.map((id, i) => {
+    const hecho = i < idx, cur = i === idx;
+    const color = hecho ? 'background:#00A0A0' : cur ? 'background:' + (negativo ? '#8A3D2E' : '#EF7A00') : 'background:#fff;border:2px solid #E0DCD0';
+    const f = (hecho || cur) ? fechaDe(id) : '';
+    return '<div class="paso"><div class="pt" style="' + color + '"></div><div><b style="color:' + (hecho || cur ? '#3A4450' : '#A8A192') + '">' + h(etq(id)) + (f ? ' <span class="sub">· ' + f + '</span>' : '') + '</b><span>' + h(DETALLE[id] || '') + '</span></div></div>';
+  }).join('');
+}
+google.script.run.withSuccessHandler(r => {
+  const app = document.getElementById('app');
+  if (!r.identidad) { app.innerHTML = '<div class="tarjeta">Ingrese con su cuenta <b>@usach.cl</b> para ver sus solicitudes.</div>'; return; }
+  if (!r.solicitudes.length) { app.innerHTML = '<div class="tarjeta">No hay solicitudes asociadas a <b>' + h(r.correo) + '</b>. Si envió una solicitud con otra cuenta, ingrese con esa cuenta.</div>'; return; }
+  app.innerHTML = r.solicitudes.slice().reverse().map(s => {
+    const neg = ['rechazada', 'no_procede', 'negado'].indexOf(s.estado) >= 0, ok = s.estado === 'resuelto';
+    const pill = neg ? 'color:#8A3D2E;background:#F9EDE9' : ok ? 'color:#2F6B4F;background:#E7F3EB' : 'color:#007E80;background:#E4F2F2';
+    return '<div class="tarjeta"><div style="font:600 12px IBM Plex Mono,monospace;color:#8A8272">Folio ' + h(s.folio) + ' · recibida ' + fecha(s.fecha_recepcion) + '</div>' +
+      '<div style="font:800 18px Archivo,sans-serif;margin:4px 0">' + h(s.tipo || 'Solicitud CAE') + '</div><div class="sub">' + h(s.programa) + ' · ' + h(s.semestre) + ' ' + h(s.anio) + '</div>' +
+      '<div style="margin:12px 0 18px"><span class="pill" style="' + pill + '">' + h(s.estadoEtiqueta) + '</span></div>' + pasos(s, r.estados) +
+      (s.analistaCorreo ? '<div class="sub" style="border-top:1px solid #F0EDE4;padding-top:12px">Consultas: ' + h(s.analistaNombre) + ' · <a href="mailto:' + h(s.analistaCorreo) + '">' + h(s.analistaCorreo) + '</a></div>' : '') + '</div>';
+  }).join('');
+}).withFailureHandler(e => { document.getElementById('app').innerHTML = '<div class="tarjeta">No se pudo cargar: ' + h(e.message) + '</div>'; }).api_misSolicitudes();
+</script>
+</body>
+</html>

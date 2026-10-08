@@ -7,6 +7,7 @@ Carpeta `vipfahu/` = raíz del sitio. Sitio estático publicado en Netlify: http
 - `normativa-postgrados/` — Normativa Postgrados: `index.html` público, `admin.html` panel, `data/`, `support.js`, `assets/`.
 - `cursos-formacion/` — Cursos de Formación Multidisciplinar: `index.html` oferta pública por semestre + estadísticas, `admin.html` panel (programas, semestres, cuentas), `data/`, `support.js`, `assets/`.
 - `trayectorias-academicas/` — Trayectorias Académicas: `index.html` (todo requiere cuenta; sin vista pública), `data/supabase/config.js`, `support.js`, `assets/`.
+- `concesiones-excepcion/apps-script/` — Concesiones Académicas de Excepción: plataforma en Google Workspace (Apps Script sobre la planilla y el Formulario de la cuenta institucional). No se publica en el sitio; instalación en su `README.md`.
 - `netlify.toml` — cabeceras, caché y rutas cortas: `/normativa`, `/admin`, `/cursos`, `/cursos/admin`, `/trayectorias`.
 - `404.html` — página de error propia.
 
