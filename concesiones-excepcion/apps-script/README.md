@@ -32,7 +32,7 @@ Este directorio no contiene datos personales y no se publica en el sitio (ver `n
 | `Panel.html`, `Seguimiento.html` | Panel del equipo y seguimiento del estudiante |
 | `appsscript.json` | Manifiesto (zona horaria, permisos, publicación web) |
 | `tests/` | Pruebas en Node con un simulador de los servicios de Google |
-| `.claspignore`, `configurar-clasp.js` | Subida del código con `clasp` (lo que no se sube; creación de `.clasp.json`) |
+| `.claspignore`, `configurar-clasp.js`, `desplegar.js` | Subida del código con `clasp` (lo que no se sube; creación de `.clasp.json`; subir y publicar en un comando) |
 
 ## Instalación (cuenta institucional, ~20 minutos)
 
@@ -79,7 +79,7 @@ agrega pestañas y oculta (no elimina) las columnas de gestión antiguas.
 10. **Formulario para estudiantes.** Comparta `URL?v=solicitud` (y `URL?v=seguimiento`). Cuando el formulario web esté probado, cierre el
     Formulario de Google (*Respuestas → No aceptar respuestas*) con un mensaje que indique la nueva dirección.
 
-**Actualizar el código más adelante:** `npx @google/clasp@3.4.1 push --force`; luego *Implementar → Gestionar implementaciones → Editar (lápiz) → Versión: Nueva versión → Implementar* (la URL no cambia); y en la planilla *CAE → Actualizar (tras subir código nuevo)*, que agrega las plantillas nuevas sin tocar las que el equipo haya editado.
+**Actualizar el código más adelante:** `node desplegar.js` (la primera vez, `node desplegar.js <ID de la implementación>`): corre las pruebas, sube el código y publica una versión nueva en la misma URL. La planilla se pone al día sola en la primera visita al panel o al formulario (agrega lo nuevo sin tocar las plantillas que el equipo haya editado y lo anota en la Bitácora); *CAE → Actualizar* queda como respaldo.
 
 ## Cómo opera
 

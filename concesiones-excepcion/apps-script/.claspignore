@@ -4,3 +4,5 @@ tests/**
 .clasp.json
 .claspignore
 configurar-clasp.js
+desplegar.js
+.despliegue.json
