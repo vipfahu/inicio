@@ -291,6 +291,18 @@ function actualizarInstalacion() {
   const parNuevos = PARAMETROS_INICIALES.filter(p => yaPar.indexOf(p[0]) < 0);
   anexarVarias_(HOJAS.parametros, parNuevos.map(p => ({ clave: p[0], valor: p[1], descripcion: p[2] })));
   if (parNuevos.length) cambios.push('Parámetros: ' + parNuevos.map(p => p[0]).join(', '));
+  // Plantillas que el equipo no ha editado: se actualizan al texto de esta versión.
+  const actualizadas = [], conservadas = [];
+  leer_(HOJAS.plantillas).forEach(t => {
+    const nueva = PLANTILLAS_INICIALES.find(x => x[0] === t.evento);
+    if (!nueva || (t.asunto_original === nueva[4] && t.cuerpo_original === nueva[5] && t.para === nueva[2] && t.cc === nueva[3])) return;
+    const sinEditar = t.asunto === t.asunto_original && t.cuerpo === t.cuerpo_original;
+    const c = { descripcion: nueva[1], para: nueva[2], cc: nueva[3], asunto_original: nueva[4], cuerpo_original: nueva[5] };
+    if (sinEditar) { c.asunto = nueva[4]; c.cuerpo = nueva[5]; actualizadas.push(t.evento); } else { conservadas.push(t.evento); }
+    actualizar_(HOJAS.plantillas, t._fila, c);
+  });
+  if (actualizadas.length) cambios.push('Plantillas actualizadas: ' + actualizadas.join(', '));
+  if (conservadas.length) cambios.push('Plantillas editadas por el equipo (se conservó su texto; «Restaurar original» trae el nuevo): ' + conservadas.join(', '));
   const ya = leer_(HOJAS.plantillas).map(t => t.evento);
   const nuevas = PLANTILLAS_INICIALES.filter(t => ya.indexOf(t[0]) < 0);
   anexarVarias_(HOJAS.plantillas, nuevas.map(t => ({

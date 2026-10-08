@@ -112,8 +112,7 @@ const cierre = id => ['resuelto', 'rechazada', 'no_procede', 'negado'].indexOf(i
 function clase(id) {
   if (id === 'resuelto') return 't-ok';
   if (['rechazada', 'no_procede', 'negado'].indexOf(id) >= 0) return 't-no';
-  if (id === 'vb' || id === 'vb_informe') return 't-vb';
-  if (id === 'recibida' || id === 'revision') return 't-adm';
+  if (id === 'vb' || id === 'vb_informe' || id === 'recibida') return 't-vb';
   return 't-tra';
 }
 const tag = (id, grande) => '<span class="tag ' + clase(id) + '"' + (grande ? ' style="font-size:10.5px;border-radius:999px;padding:5px 10px"' : '') + '>' + h(etq(id)) + '</span>';
@@ -158,7 +157,7 @@ function filtrar() {
   const f = S.filtro, q = f.q.trim().toLowerCase();
   return S.bandeja.filter(s => {
     if (f.grupo === 'curso' && cierre(s.estado)) return false;
-    if (f.grupo === 'vb' && s.estado !== 'vb' && s.estado !== 'vb_informe') return false;
+    if (f.grupo === 'vb' && ['recibida', 'vb_informe', 'vb'].indexOf(s.estado) < 0) return false;
     if (f.grupo === 'cerradas' && !cierre(s.estado)) return false;
     if (f.grupo === 'revisar' && s.revisar !== 'SÍ') return false;
     if (f.programa && s.programa !== f.programa) return false;
@@ -167,14 +166,14 @@ function filtrar() {
   }).sort((a, b) => String(b.fecha_recepcion).localeCompare(String(a.fecha_recepcion)));
 }
 function pintarBandeja() {
-  const l = S.bandeja, curso = l.filter(s => !cierre(s.estado)).length, vb = l.filter(s => s.estado === 'vb' || s.estado === 'vb_informe').length, rev = l.filter(s => s.revisar === 'SÍ').length;
+  const l = S.bandeja, curso = l.filter(s => !cierre(s.estado)).length, vb = l.filter(s => ['recibida', 'vb_informe', 'vb'].indexOf(s.estado) >= 0).length, rev = l.filter(s => s.revisar === 'SÍ').length;
   const progs = [...new Set(l.map(s => s.programa))].sort();
   const sel = (id, ops, val) => '<select id="' + id + '">' + ops.map(o => '<option value="' + h(o[0]) + '"' + (o[0] === val ? ' selected' : '') + '>' + h(o[1]) + '</option>').join('') + '</select>';
   $('app').innerHTML =
     '<div style="display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap"><div><h2>Bandeja de solicitudes <span class="mono" style="font-size:12px;color:var(--apagado)" id="cont"></span></h2>' +
-    '<div class="resumen">' + curso + ' en curso · ' + vb + ' pendientes de V°B° · ' + (l.length - curso) + ' cerradas' + (rev ? ' · <b style="color:#94571B">' + rev + ' por revisar (migración)</b>' : '') + '</div></div></div>' +
+    '<div class="resumen">' + curso + ' en curso · ' + vb + ' pendientes del Vicedecano/a · ' + (l.length - curso) + ' cerradas' + (rev ? ' · <b style="color:#94571B">' + rev + ' por revisar (migración)</b>' : '') + '</div></div></div>' +
     '<div class="tarjeta filtros" style="padding:14px 16px"><input id="fq" placeholder="Buscar por folio, nombre, RUN o tipo…" value="' + h(S.filtro.q) + '">' +
-    sel('fg', [['todas', 'Todos los estados'], ['curso', 'En curso'], ['vb', 'Pendiente V°B°'], ['cerradas', 'Cerradas'], ['revisar', 'Por revisar']], S.filtro.grupo) +
+    sel('fg', [['todas', 'Todos los estados'], ['curso', 'En curso'], ['vb', 'Pendiente Vicedecano/a'], ['cerradas', 'Cerradas'], ['revisar', 'Por revisar']], S.filtro.grupo) +
     sel('fp', [['', 'Todos los programas']].concat(progs.map(p => [p, p])), S.filtro.programa) +
     sel('fa', [['', 'Todas las analistas'], ['__sin', 'Sin asignar']].concat(S.ini.analistas.map(a => [a.correo, a.nombre])), S.filtro.analista) + '</div>' +
     '<div class="tabla" id="tabla"></div>';
@@ -246,17 +245,26 @@ function pintarExp() {
 }
 function panelGestion(e, edita) {
   if (!edita) return '<div class="tarjeta"><span class="et">Estado actual</span><div style="font:700 14px Archivo,sans-serif">' + h(e.estadoEtiqueta) + '</div><div class="sub">Analista: ' + h(e.analistaNombre || 'Sin asignar') + ' · STD ' + h(e.n_std || '—') + '</div></div>';
-  const esVice = S.ini.usuario.rol === 'Vicedecano/a' && (e.estado === 'vb' || e.estado === 'vb_informe');
-  const botones = e.siguientes.length ? e.siguientes.map(s => {
-    const prim = esVice && (s.id === 'resolucion' || s.id === 'programa' && e.estado === 'vb_informe');
-    const amb = esVice && s.id === 'programa' && e.estado === 'vb';
-    const txt = esVice ? (s.id === 'resolucion' || (e.estado === 'vb_informe') ? 'Dar V°B° → ' + s.etiqueta : amb ? 'Devolver al programa con observación' : s.etiqueta) : s.etiqueta;
+  const soyVice = S.ini.usuario.rol === 'Vicedecano/a';
+  const esVice = soyVice && ['recibida', 'vb_informe', 'vb'].indexOf(e.estado) >= 0;
+  // Textos de los botones de decisión del Vicedecano/a
+  const TXT = {
+    'recibida>revision': 'Autorizar inicio del análisis', 'recibida>no_procede': 'No procede · vía Registro Curricular',
+    'vb_informe>programa': 'Dar V°B° → enviar al programa',
+    'vb>aceptada': 'Dar V°B° → Presentación aceptada', 'vb>rechazada': 'V°B° → Presentación rechazada', 'vb>programa': 'Devolver al programa con observación'
+  };
+  const PRIM = ['recibida>revision', 'vb_informe>programa', 'vb>aceptada'], AMB = ['vb>programa'];
+  let botones;
+  if (!e.siguientes.length) botones = '<div class="aviso a-teal">Trámite cerrado.</div>';
+  else if (e.decideVicedecano && !soyVice) botones = '<div class="aviso a-amb">' + (e.estado === 'recibida' ? 'Pendiente de la autorización de inicio del Vicedecano/a.' : 'Pendiente del V°B° del Vicedecano/a.') + ' Esta decisión le corresponde exclusivamente.</div>';
+  else botones = e.siguientes.map(s => {
+    const k = e.estado + '>' + s.id, prim = esVice && PRIM.indexOf(k) >= 0, amb = esVice && AMB.indexOf(k) >= 0;
+    const txt = esVice && TXT[k] ? TXT[k] : s.etiqueta;
     return '<button data-hacia="' + s.id + '" class="' + (prim ? 'prim' : amb ? 'ambar' : '') + '" style="width:100%;text-align:left;display:flex;justify-content:space-between;margin-bottom:6px">' + h(txt) + (s.evento ? ' <span title="Envía correo" style="color:' + (prim ? '#fff' : 'var(--naranja)') + '">✉</span>' : '') + '</button>';
-  }).join('') + '<div class="sub" style="font-style:italic;white-space:normal">✉ = el cambio envía un correo; verá la vista previa antes de confirmar.</div>'
-    : '<div class="aviso a-teal">Trámite cerrado.</div>';
+  }).join('') + '<div class="sub" style="font-style:italic;white-space:normal">✉ = el cambio envía un correo; verá la vista previa antes de confirmar.</div>';
   const campo = (k, rot, tipo) => '<div style="margin-top:12px"><label class="et" for="g_' + k + '">' + rot + '</label>' +
     (tipo === 'area' ? '<textarea id="g_' + k + '" rows="3">' + h(e[k]) + '</textarea>' : '<input id="g_' + k + '" value="' + h(e[k]) + '"' + (k === 'n_std' ? ' class="mono"' : '') + '>') + '</div>';
-  return '<div class="tarjeta"><h3>' + (esVice ? 'Visto bueno' : 'Gestión del trámite') + '</h3><span class="et">Estado actual</span><div style="font:700 14px Archivo,sans-serif;margin-bottom:12px">' + h(e.estadoEtiqueta) + '</div>' +
+  return '<div class="tarjeta"><h3>' + (esVice ? (e.estado === 'recibida' ? 'Autorización de inicio' : 'Visto bueno') : 'Gestión del trámite') + '</h3><span class="et">Estado actual</span><div style="font:700 14px Archivo,sans-serif;margin-bottom:12px">' + h(e.estadoEtiqueta) + '</div>' +
     (e.propuesta_comite ? '<div style="background:var(--fcampo);border-radius:10px;padding:10px 12px;margin-bottom:12px;font:400 13px/1.5 Spectral,serif"><span class="et">Propuesta del Comité</span>' + h(e.propuesta_comite) + '</div>' : '') +
     '<span class="et">Pasar a</span>' + botones + '<hr style="border:0;border-top:1px solid var(--fila);margin:16px 0">' +
     '<label class="et" for="g_analista">Analista a cargo</label><select id="g_analista"><option value="">Sin asignar</option>' + S.ini.analistas.map(a => '<option value="' + h(a.correo) + '"' + (a.correo === e.analista ? ' selected' : '') + '>' + h(a.nombre) + '</option>').join('') + '</select>' +

@@ -15,8 +15,13 @@ test('transiciones: solo las declaradas', () => {
 test('devolver al programa usa la plantilla de devolución, no la remisión inicial', () => {
   assert.equal(L.eventoTransicion('vb', 'programa'), 'devolucion');
   assert.equal(L.eventoTransicion('vb_informe', 'programa'), 'programa');
-  assert.equal(L.eventoTransicion('revision', 'aceptada'), 'aceptada');
-  assert.equal(L.eventoTransicion('aceptada', 'informe_rc'), '');
+  assert.equal(L.eventoTransicion('vb', 'aceptada'), 'aceptada');
+  assert.equal(L.eventoTransicion('revision', 'informe_rc'), '');
+  assert.equal(L.eventoTransicion('recibida', 'revision'), 'inicio_autorizado');
+  // La presentación solo se acepta después del informe y del programa (desde el V°B°)
+  assert.ok(!L.transicionValida('revision', 'aceptada'));
+  assert.ok(L.transicionValida('vb', 'aceptada'));
+  assert.deepEqual([...L.DECIDE_VICEDECANO], ['recibida', 'vb']);
 });
 
 test('folios: normalización y correlativo', () => {

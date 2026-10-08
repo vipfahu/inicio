@@ -27,7 +27,7 @@ Administración · `URL` = dirección del panel (termina en `/exec`).
 4. En la planilla (recargarla): **CAE → Actualizar (tras subir código nuevo)**. Debe informar que agregó:
    - columnas `origen` y `fundamentacion` en Solicitudes;
    - parámetros `max_mb_antecedente` y `max_solicitudes_dia`;
-   - plantilla `nueva_solicitud`;
+   - plantillas `nueva_solicitud` e `inicio_autorizado`, y el texto nuevo de las plantillas que el equipo no haya editado;
    - y mostrar la dirección del formulario: `URL?v=solicitud`.
 5. En el editor, ícono de reloj (**Activadores**): deben existir **solo dos**, `alRecibirFormulario` y `tareaDiaria`.
 
@@ -71,29 +71,36 @@ Al terminar, **recargar el panel** (la lista de analistas para asignar se lee al
      `max_solicitudes_dia` (3), `vicedecano_nombre`.
 3. **Feriados** [Inst., en la planilla, pestaña «Feriados»]: agregar los feriados móviles de 2026 y 2027 (formato `AAAA-MM-DD`).
    Solo vienen cargados los de fecha fija. Se usan para contar los días hábiles del plazo del programa.
-4. **Plantillas de correo** [Panel → Plantillas]: revisar los 14 textos. Si se edita alguno, mantener las variables entre llaves
+4. **Plantillas de correo** [Panel → Plantillas]: revisar los 15 textos. Si se edita alguno, mantener las variables entre llaves
    (`{folio}`, `{enlace}`, etc.); «Restaurar original» deshace los cambios.
 5. [Inst.] **CAE → Diagnóstico**: no debe quedar nada pendiente salvo los accesos directos a la planilla (Fase F) y las solicitudes
    por revisar (Fase F).
 
 ---
 
-## Fase D · Quién recibe qué correo (referencia)
+## Fase D · Flujo y correos (referencia)
+
+Flujo: **Recibida** → *(Vicedecano/a autoriza el inicio)* → **En análisis · solicitud de antecedentes** → **Informe académico de
+Registro Curricular** → **V°B° al informe** → **Pronunciamiento del programa** → *(V°B° del Vicedecano/a)* → **Presentación aceptada**
+→ **Resolución en trámite** → **Resuelto / Negado**. La autorización de inicio y el V°B° a la respuesta del programa solo los puede
+registrar una cuenta con rol Vicedecano/a; el resto del equipo ve «Pendiente del Vicedecano/a».
 
 Todos salen desde la cuenta institucional; las respuestas llegan a la analista del caso.
 
 | Momento | Correo | Para | Copia |
 |---|---|---|---|
 | Llega una solicitud | Recepción (folio + enlace de seguimiento) | Estudiante | — |
-| Llega una solicitud | Nueva solicitud CAE | Todas las cuentas activas con acceso al panel | — |
+| Llega una solicitud | Nueva solicitud CAE (pendiente de autorización) | Todas las cuentas activas con acceso al panel | — |
 | Llega una solicitud con analista por programa, o se asigna/reasigna en el expediente | Solicitud asignada | Analista asignada | — |
-| Presentación aceptada | Aceptada | Estudiante | Dirección de programa |
-| Presentación rechazada (pide motivo) | Rechazada | Estudiante | Dirección de programa |
-| No procede | No procede (con `enlace_rc`) | Estudiante | — |
-| V°B° al informe | V°B° informe | Vicedecano/a | — |
+| **Vicedecano/a autoriza el inicio** (exclusivo) | Inicio autorizado | Analista asignada (o todas las analistas, si no hay) | — |
+| No procede (Vicedecano/a al inicio, o analista en el análisis) | No procede (con `enlace_rc`) | Estudiante | — |
+| Rechazo en el análisis (pide motivo) | Rechazada | Estudiante | Dirección de programa |
+| Informe académico → V°B° al informe | V°B° informe | Vicedecano/a | — |
 | Envío al programa | Pronunciamiento | Dirección de programa | Analista |
-| Devolución al programa (pide observación) | Devolución | Dirección de programa | Analista |
-| V°B° a respuesta del Comité (pide propuesta) | V°B° Comité | Vicedecano/a | — |
+| Respuesta del programa → V°B° (pide propuesta del Comité) | V°B° Comité | Vicedecano/a | — |
+| **V°B° del Vicedecano/a** (exclusivo): presentación aceptada | Aceptada | Estudiante | Dirección de programa |
+| **V°B° del Vicedecano/a** (exclusivo): presentación rechazada (pide motivo) | Rechazada | Estudiante | Dirección de programa |
+| **V°B° del Vicedecano/a** (exclusivo): devolución al programa (pide observación) | Devolución | Dirección de programa | Analista |
 | Resolución en trámite (requiere N° STD) | Registro | Registro Curricular | Estudiante |
 | Resuelto / Negado (pide resolución) | Resolución | Estudiante | Dirección de programa |
 | Plazo del programa vencido (automático) | Recordatorio | Dirección de programa | Analista |
@@ -114,8 +121,10 @@ muestra antes de enviarse, se puede editar y no sale si falta un destinatario o 
    - Todas las cuentas del panel: «Nueva solicitud CAE · NN/2026 · programa».
    - Analista del programa: «Nueva solicitud CAE asignada · NN/2026».
    - `URL?v=seguimiento` con la cuenta del estudiante: aparece la solicitud en «Recibida».
-3. En el panel (cuenta de analista): abrir el expediente → ver la fundamentación y el PDF → pasar a «En revisión» → pasar a
-   «No procede» → revisar la vista previa → confirmar. Debe llegar el correo al estudiante y quedar todo en la Bitácora.
+3. En el panel, con la cuenta del Vicedecano/a: abrir el expediente → «Autorizar inicio del análisis» → confirmar. Debe llegar
+   «Inicio autorizado» a la analista. Con una cuenta de analista: comprobar que en «Recibida» solo ve «Pendiente del Vicedecano/a».
+   Luego, como analista: ver la fundamentación y el PDF → pasar a «No procede» → revisar la vista previa → confirmar. Debe llegar el
+   correo al estudiante y quedar todo en la Bitácora.
 4. Con una cuenta de nivel Consulta: el expediente se ve **sin** fundamentación ni archivos.
 5. Limpiar la prueba [Inst.]: borrar su fila en «Solicitudes», sus filas en «Bitácora» y «Archivos», y la carpeta
    `Plataforma CAE · NO COMPARTIR / Expedientes / 2026 / NN-2026`. El folio queda libre para el siguiente caso real.

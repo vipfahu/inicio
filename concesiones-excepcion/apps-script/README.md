@@ -19,7 +19,7 @@ Este directorio no contiene datos personales y no se publica en el sitio (ver `n
 | Archivo | Contenido |
 |---|---|
 | `Logica.gs` | Reglas puras: estados, transiciones, folios, migración, destinatarios, días hábiles, validación de cuentas |
-| `Config.gs` | Pestañas, columnas, parámetros, feriados fijos y textos iniciales de los 14 correos |
+| `Config.gs` | Pestañas, columnas, parámetros, feriados fijos y textos iniciales de los 15 correos |
 | `Datos.gs` | Lectura/escritura de pestañas como tablas |
 | `Cuentas.gs` | Identidad, niveles y pantalla «Cuentas» |
 | `Correo.gs` | Plantillas, variables y envío |
@@ -88,6 +88,10 @@ se ingresa con Google. Niveles: `sin_acceso` (solo recibe correos) · `consulta`
 · `edicion` (tramita, anota, sube archivos, edita plantillas) · `administracion` (además cuentas, programas y parámetros).
 Cada llamada del panel vuelve a leer la matriz, así que un cambio rige en la siguiente acción de esa persona. Las cuentas se desactivan,
 no se borran. La cuenta institucional es administradora fija y no se puede dejar el sistema sin otra administración activa.
+
+**Flujo.** Recibida → (Vicedecano/a autoriza el inicio) → En análisis y solicitud de antecedentes → Informe académico de Registro
+Curricular → V°B° al informe → Pronunciamiento del programa → (V°B° del Vicedecano/a) → Presentación aceptada → Resolución en trámite →
+Resuelto / Negado. La autorización de inicio y el V°B° final son exclusivos de cuentas con rol Vicedecano/a.
 
 **Usuarios.** El panel es solo para el equipo del Vicedecanato (analistas y Vicedecano/a). Las direcciones de programa y Registro Curricular no entran: solo reciben correos.
 

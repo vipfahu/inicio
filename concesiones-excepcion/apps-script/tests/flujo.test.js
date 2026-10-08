@@ -106,9 +106,16 @@ test('tramitación: vista previa, campos obligatorios, envío y orden seguro', (
   const { ctx, estado } = env;
   estado.usuario = 'analista.uno@usach.cl';
   assert.throws(() => ctx.api_cambiarEstado('06/2026', 'resuelto', {}), /cambió de estado|no permitida/);
-  // recibida → revisión: sin correo
-  assert.equal(ctx.api_cambiarEstado('06/2026', 'revision', {}).conCorreo, false);
-  // revisión → rechazada exige motivo
+  // La autorización de inicio es exclusiva del Vicedecano/a
+  assert.throws(() => ctx.api_cambiarEstado('06/2026', 'revision', {}), /exclusivamente al Vicedecano/);
+  assert.throws(() => ctx.api_previsualizar('06/2026', 'revision', {}), /exclusivamente al Vicedecano/);
+  estado.usuario = 'vice@usach.cl';
+  assert.equal(ctx.api_cambiarEstado('06/2026', 'revision', {}).conCorreo, true);
+  const aviso = estado.correos.pop();
+  assert.match(aviso.subject, /Inicio autorizado · Solicitud CAE 06\/2026/);
+  assert.equal(aviso.to, 'analista.uno@usach.cl', 'sin analista asignada: a todas las analistas con cuenta');
+  // En análisis → rechazada (analista) exige motivo
+  estado.usuario = 'analista.uno@usach.cl';
   const pv = ctx.api_previsualizar('06/2026', 'rechazada', {});
   assert.deepEqual([...pv.requeridos], ['motivo']);
   assert.equal(pv.correo.para[0], 'est6@usach.cl');
@@ -128,11 +135,14 @@ test('tramitación: vista previa, campos obligatorios, envío y orden seguro', (
   const ultima = tabla(env, 'Bitácora').pop();
   assert.equal(ultima.estado_nuevo, 'rechazada');
   assert.equal(ultima.editado, 'SÍ');
-  // devolver al programa desde el V°B° usa la plantilla de devolución y exige observación
+  // Programa → V°B° (la analista envía); el V°B° solo lo da el Vicedecano/a
   const s = tabla(env, 'Solicitudes').find(x => x.folio === '05/2026');
   assert.equal(s.estado, 'programa');
   ctx.api_cambiarEstado('05/2026', 'vb', { campos: { propuesta_comite: 'Acoger con condiciones' } });
   assert.match(estado.correos.pop().to, /vice@usach\.cl/);
+  assert.throws(() => ctx.api_cambiarEstado('05/2026', 'aceptada', {}), /exclusivamente al Vicedecano/);
+  assert.throws(() => ctx.api_cambiarEstado('05/2026', 'programa', { campos: { observacion: 'x' } }), /exclusivamente al Vicedecano/);
+  estado.usuario = 'vice@usach.cl';
   assert.equal(ctx.api_previsualizar('05/2026', 'programa', {}).evento, 'devolucion');
   ctx.api_cambiarEstado('05/2026', 'programa', { campos: { observacion: 'Precisar condiciones' } });
   const dev = estado.correos.pop();
@@ -140,11 +150,17 @@ test('tramitación: vista previa, campos obligatorios, envío y orden seguro', (
   assert.match(dev.body, /Precisar condiciones/);
 });
 
-test('correo a Registro Curricular exige N° STD (variable sin completar bloquea)', () => {
+test('flujo completo hasta resolución; correo a Registro Curricular exige N° STD', () => {
   const env = instalar(preparar());
   const { ctx, estado } = env;
   estado.usuario = 'analista.uno@usach.cl';
   ctx.api_cambiarEstado('05/2026', 'vb', { campos: { propuesta_comite: 'Acoger' } });
+  estado.usuario = 'vice@usach.cl';
+  ctx.api_cambiarEstado('05/2026', 'aceptada', {});
+  const acept = estado.correos.pop();
+  assert.equal(acept.to, 'est4@usach.cl');
+  assert.match(acept.body, /informe académico de Registro Curricular y el pronunciamiento del programa/);
+  estado.usuario = 'analista.uno@usach.cl';
   assert.throws(() => ctx.api_cambiarEstado('05/2026', 'resolucion', {}), /\{std\}/);
   ctx.api_guardarGestion('05/2026', { n_std: '12345' });
   ctx.api_cambiarEstado('05/2026', 'resolucion', {});
@@ -152,6 +168,8 @@ test('correo a Registro Curricular exige N° STD (variable sin completar bloquea
   assert.equal(m.to, 'rc@usach.cl');
   assert.match(m.subject, /STD 12345/);
   assert.equal(m.cc, 'est4@usach.cl');
+  ctx.api_cambiarEstado('05/2026', 'resuelto', { campos: { resolucion: 'Res. 123 del 10.10.2026' } });
+  assert.match(estado.correos.pop().body, /Res\. 123/);
 });
 
 test('archivos: subida con límite, adjunto en correo, descarga o acceso puntual', () => {
@@ -162,10 +180,14 @@ test('archivos: subida con límite, adjunto en correo, descarga o acceso puntual
   ctx.api_subirArchivo('03/2026', 'informe.pdf', 'application/pdf', b64, 'informe_academico');
   assert.throws(() => ctx.api_subirArchivo('03/2026', 'x.pdf', 'application/pdf', Buffer.alloc(21 * 1048576).toString('base64'), 'otro'), /máximo es 20/);
   assert.throws(() => ctx.api_subirArchivo('03/2026', 'x.pdf', 'application/pdf', b64, 'antecedentes_formulario'), /Categoría/);
-  const exp = ctx.api_expediente('03/2026');
-  assert.equal(exp.archivos.length, 1);
-  ctx.api_cambiarEstado('03/2026', 'informe_rc', {});
-  ctx.api_cambiarEstado('03/2026', 'vb_informe', { adjuntos: [exp.archivos[0].id, 'idAjeno'] });
+  assert.equal(ctx.api_expediente('03/2026').archivos.length, 1);
+  ctx.api_subirArchivo('06/2026', 'informe.pdf', 'application/pdf', b64, 'informe_academico');
+  estado.usuario = 'vice@usach.cl';
+  ctx.api_cambiarEstado('06/2026', 'revision', {});
+  estado.usuario = 'analista.uno@usach.cl';
+  ctx.api_cambiarEstado('06/2026', 'informe_rc', {});
+  const exp6 = ctx.api_expediente('06/2026');
+  ctx.api_cambiarEstado('06/2026', 'vb_informe', { adjuntos: [exp6.archivos[0].id, 'idAjeno'] });
   const m = estado.correos.pop();
   assert.equal(m.attachments.length, 1, 'solo se adjuntan archivos del propio expediente');
   // Antecedentes del Formulario de 90 MB: acceso de lectura puntual, registrado
@@ -206,9 +228,7 @@ test('cuentas con recibe_eventos reciben copia; programas sin correo bloquean', 
   assert.equal(estado.correos.pop().cc, 'consulta@usach.cl');
   estado.usuario = 'vice@usach.cl';
   ctx.api_guardarPrograma({ programa: 'Magíster en Prueba A', correo_direccion: '', analista: 'analista.uno@usach.cl', activo: 'SÍ' }, false);
-  estado.usuario = 'analista.uno@usach.cl';
-  ctx.api_cambiarEstado('06/2026', 'revision', {});
-  assert.throws(() => ctx.api_cambiarEstado('06/2026', 'aceptada', {}), /dirección de «Magíster en Prueba A»/);
+  assert.throws(() => ctx.api_cambiarEstado('05/2026', 'aceptada', {}), /dirección de «Magíster en Prueba A»/);
 });
 
 test('tarea diaria: recordatorios con plazo y aviso de compartición', () => {
@@ -272,8 +292,7 @@ test('todo correo al estudiante lleva el enlace de seguimiento', () => {
   const { ctx, estado } = env;
   const plantillas = tabla(env, 'Plantillas');
   plantillas.filter(p => /Estudiante/.test(p.para)).forEach(p => assert.match(p.cuerpo, /\{enlace\}/, p.evento));
-  estado.usuario = 'analista.uno@usach.cl';
-  ctx.api_cambiarEstado('06/2026', 'revision', {});
+  estado.usuario = 'vice@usach.cl';
   ctx.api_cambiarEstado('06/2026', 'no_procede', {});
   const m = estado.correos.pop();
   assert.equal(m.to, 'est6@usach.cl');
@@ -357,4 +376,24 @@ test('actualizar instalación agrega plantillas nuevas sin tocar las editadas', 
   ctx.actualizarInstalacion();
   assert.ok(tabla(env, 'Plantillas').some(t => t.evento === 'nueva_solicitud'));
   assert.equal(tabla(env, 'Plantillas').find(t => t.evento === 'recepcion').cuerpo, 'Texto editado por el equipo {enlace}');
+});
+
+test('actualizar instalación: plantillas sin editar toman el texto nuevo; las editadas se conservan', () => {
+  const env = instalar(preparar());
+  const { ctx, estado, libro } = env;
+  const h = libro.getSheetByName('Plantillas');
+  const enc = h.datos[0];
+  const fila = ev => h.datos.find(r => r[0] === ev);
+  // Simula una instalación anterior: 'aceptada' con texto antiguo sin editar, 'vb' antiguo y editado
+  const a = fila('aceptada');
+  a[enc.indexOf('cuerpo')] = a[enc.indexOf('cuerpo_original')] = 'texto antiguo';
+  const v = fila('vb');
+  v[enc.indexOf('cuerpo_original')] = 'vb antiguo';
+  v[enc.indexOf('cuerpo')] = 'vb editado por el equipo';
+  estado.usuario = estado.duenia;
+  ctx.actualizarInstalacion();
+  assert.match(fila('aceptada')[enc.indexOf('cuerpo')], /pronunciamiento del programa/);
+  assert.equal(fila('vb')[enc.indexOf('cuerpo')], 'vb editado por el equipo');
+  assert.match(fila('vb')[enc.indexOf('cuerpo_original')], /Con su V°B°/);
+  assert.ok(fila('inicio_autorizado'));
 });
