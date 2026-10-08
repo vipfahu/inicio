@@ -100,6 +100,23 @@ test('recordatorios: tras vencer el plazo, cada N días hábiles, hasta el máxi
   assert.ok(!L.necesitaRecordatorio({ ...base, estado: 'vb' }, new Date(2026, 9, 30), p, []));
 });
 
+test('recordatorio de admisibilidad: caso «Recibida» sin revisión tras 2 días hábiles', () => {
+  const p = { plazo_admisibilidad_dias: 2, plazo_programa_dias: 2, recordatorio_cada_dias: 2, recordatorios_max: 3 };
+  const base = { estado: 'recibida', estado_desde: new Date(2026, 9, 5), recordatorios: 0 }; // lun 05-10
+  assert.equal(L.recordatorioPendiente(base, new Date(2026, 9, 7), p, []), '');                       // 2 días hábiles: en plazo
+  assert.equal(L.recordatorioPendiente(base, new Date(2026, 9, 8), p, []), 'recordatorio_admisibilidad');
+  assert.equal(L.recordatorioPendiente({ ...base, estado: 'revision' }, new Date(2026, 9, 30), p, []), '', 'abierta la revisión, no hay recordatorio');
+  assert.equal(L.recordatorioPendiente({ ...base, estado: 'programa' }, new Date(2026, 9, 8), p, []), 'recordatorio');
+  assert.equal(L.recordatorioPendiente(base, new Date(2026, 9, 8), { ...p, recordatorios_max: 0 }, []), '');
+});
+
+test('destinatario «Analista o equipo»: la asignada, o quienes pueden asignar', () => {
+  const sinAnalista = L.resolverDestinatarios('Analista o equipo', '', { solicitud: { ...sol, analista: '' }, cuentas, programas });
+  assert.deepEqual(sinAnalista.para, ['analista.a@usach.cl', 'vice@usach.cl']);
+  const conAnalista = L.resolverDestinatarios('Analista o equipo', '', { solicitud: sol, cuentas, programas });
+  assert.deepEqual(conAnalista.para, ['analista.a@usach.cl']);
+});
+
 test('niveles y alcance por programa', () => {
   assert.ok(L.nivelSuficiente('administracion', 'edicion'));
   assert.ok(!L.nivelSuficiente('consulta', 'edicion'));

@@ -27,6 +27,8 @@ function variables_(sol, campos, cuentas) {
     propuesta_comite: campos.propuesta_comite || sol.propuesta_comite || '',
     resolucion: campos.resolucion || sol.resolucion || '',
     plazo: p.plazo_programa_dias,
+    plazo_admisibilidad: p.plazo_admisibilidad_dias || 2,
+    accion_admisibilidad: sol.analista ? 'abrir la revisión de admisibilidad' : 'asignar analista y abrir la revisión de admisibilidad',
     enlace_rc: p.enlace_rc && p.enlace_rc !== 'COMPLETAR' ? p.enlace_rc : '',
     enlace: urlPanel_() ? urlPanel_() + '?v=seguimiento' : '',
     enlace_panel: urlPanel_() ? urlPanel_() + '?folio=' + encodeURIComponent(sol.folio) : ''

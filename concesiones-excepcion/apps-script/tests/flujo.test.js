@@ -245,7 +245,7 @@ test('tarea diaria: recordatorios con plazo y aviso de compartición', () => {
   const antes = estado.correos.length;
   ctx.tareaDiaria();
   const recordatorios = estado.correos.slice(antes).filter(m => /Recordatorio/.test(m.subject));
-  assert.equal(recordatorios.length, 0);
+  assert.equal(recordatorios.length, 0, 'los plazos corren desde la migración (hoy)');
   const aviso = estado.correos.slice(antes).find(m => /accesos no autorizados/.test(m.subject));
   assert.ok(aviso, 'avisa del editor antiguo con acceso directo');
   assert.match(aviso.body, /editor\.antiguo@usach\.cl/);
@@ -254,10 +254,23 @@ test('tarea diaria: recordatorios con plazo y aviso de compartición', () => {
   const enc = h.datos[0];
   const f = h.datos.findIndex(r => r[0] === '05/2026');
   h.datos[f][enc.indexOf('estado_desde')] = new Date(Date.now() - 10 * 86400000);
+  const g = h.datos.findIndex(r => r[0] === '06/2026'); // «Recibida», sin analista
+  h.datos[g][enc.indexOf('estado_desde')] = new Date(Date.now() - 10 * 86400000);
   const n = estado.correos.length;
   ctx.tareaDiaria();
-  const r = estado.correos.slice(n).filter(m => /Recordatorio/.test(m.subject));
+  const r = estado.correos.slice(n).filter(m => /Recordatorio · Solicitud CAE 05/.test(m.subject));
   assert.equal(r.length, 1);
+  const adm = estado.correos.slice(n).filter(m => /06\/2026 · admisibilidad pendiente/.test(m.subject));
+  assert.equal(adm.length, 1, 'recordatorio de admisibilidad del caso sin revisión');
+  assert.match(adm[0].body, /asignar analista y abrir la revisión/);
+  assert.match(adm[0].to, /analista\.uno@usach\.cl/);
+  assert.ok(!/est6@usach\.cl/.test(adm[0].to + (adm[0].cc || '')), 'es interno: no se escribe al estudiante');
+  assert.equal(h.datos[g][enc.indexOf('recordatorios')], 1);
+  // Al asignar analista, el contador se reinicia para que ella reciba sus propios recordatorios
+  estado.usuario = 'analista.uno@usach.cl';
+  ctx.api_guardarGestion('06/2026', { analista: 'analista.uno@usach.cl' });
+  assert.equal(Number(h.datos[g][enc.indexOf('recordatorios')]), 0);
+  estado.usuario = '';
   assert.equal(r[0].to, 'analista.uno@usach.cl', 'recordatorio interno: el seguimiento se hace en STD');
   assert.ok(!r[0].cc, 'no se escribe a la dirección de programa');
   assert.equal(h.datos[f][enc.indexOf('recordatorios')], 1);

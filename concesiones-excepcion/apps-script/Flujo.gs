@@ -204,6 +204,8 @@ function api_guardarGestion(folio, campos) {
       const c = leer_(HOJAS.cuentas).find(x => String(x.correo).toLowerCase() === cambios.analista && esSi(x.activo));
       if (!c || c.rol !== 'Analista') throw new Error('La persona seleccionada no tiene una cuenta activa con rol Analista.');
       reasignada = true;
+      // En «Recibida», la nueva analista recibe sus propios recordatorios de admisibilidad (el plazo sigue contando desde la recepción).
+      if (s.estado === 'recibida') { cambios.recordatorios = 0; cambios.ultimo_recordatorio = ''; }
     }
     if (!texto.length) return { ok: true, sinCambios: true };
     cambios.actualizado = new Date();

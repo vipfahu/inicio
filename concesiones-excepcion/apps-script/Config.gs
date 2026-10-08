@@ -63,8 +63,9 @@ const LEGADO = {
 const PARAMETROS_INICIALES = [
   ['vicedecano_nombre', 'Dr. Jorge Castillo S.', 'Nombre que aparece en los correos ({vicedecano}).'],
   ['remitente_nombre', 'Vicedecanato de Investigación y Postgrado · FAHU', 'Nombre visible del remitente.'],
+  ['plazo_admisibilidad_dias', '2', 'Días hábiles desde la recepción para asignar analista e iniciar la revisión de admisibilidad.'],
   ['plazo_programa_dias', '2', 'Días hábiles que tiene el programa para pronunciarse.'],
-  ['recordatorio_cada_dias', '2', 'Días hábiles entre recordatorios al programa, una vez vencido el plazo.'],
+  ['recordatorio_cada_dias', '2', 'Días hábiles entre recordatorios, una vez vencido el plazo.'],
   ['recordatorios_max', '3', 'Máximo de recordatorios por solicitud (0 = desactivados).'],
   ['max_mb_archivo', '20', 'Tamaño máximo por archivo subido desde el panel (MB). Gmail admite 25 MB por correo en total.'],
   ['max_mb_antecedente', '10', 'Formulario web: tamaño máximo por archivo de antecedentes (MB); hasta 3 archivos y 20 MB en total.'],
@@ -111,6 +112,8 @@ const PLANTILLAS_INICIALES = [
     'Estimado/a {nombre}:\n\nJunto con saludar, se informa que su Solicitud de Concesión Académica de Excepción {folio} ha sido resuelta favorablemente. Resolución: {resolucion}.' + SEGUIMIENTO + FIRMA],
   ['negado', 'Resolución desfavorable', 'Estudiante', 'Dirección de programa', 'Resolución · Solicitud CAE {folio}',
     'Estimado/a {nombre}:\n\nJunto con saludar, se informa que su Solicitud de Concesión Académica de Excepción {folio} ha sido resuelta y no ha sido acogida. Resolución: {resolucion}.\n\nAnte cualquier duda o consulta, quedamos atentos.' + SEGUIMIENTO + FIRMA],
+  ['recordatorio_admisibilidad', 'Recordatorio interno (automático): admisibilidad pendiente tras el plazo', 'Analista o equipo', '', 'Recordatorio · Solicitud CAE {folio} · admisibilidad pendiente',
+    'La solicitud CAE {folio} de {nombre} ({programa}) fue recibida hace más de {plazo_admisibilidad} días hábiles y sigue en «Recibida».\n\nPendiente: {accion_admisibilidad}.\nAnalista: {analista_asignada}\n\nExpediente: {enlace_panel}'],
   ['recordatorio', 'Recordatorio interno (automático): plazo del programa vencido en STD', 'Analista', '', 'Recordatorio · Solicitud CAE {folio} · pronunciamiento del programa pendiente (STD)',
     'La solicitud CAE {folio} de {nombre} ({programa}) está en «Pronunciamiento del programa» y el plazo de {plazo} días hábiles se encuentra vencido.\n\nSe sugiere hacer seguimiento del trámite en el STD.\n\nExpediente: {enlace_panel}']
 ];

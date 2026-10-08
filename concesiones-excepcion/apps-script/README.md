@@ -97,8 +97,8 @@ no se borran. La cuenta institucional es administradora fija y no se puede dejar
 
 **Al llegar una solicitud** salen tres correos automáticos: recepción al estudiante; «Nueva solicitud CAE» a **todas las cuentas activas con acceso al panel** (Vicedecano/a, analistas y consulta; no a las de nivel `sin_acceso`, como Registro Curricular); y, si el programa tiene analista en Configuración (y esa persona tiene cuenta activa con rol Analista), «Nueva solicitud CAE asignada» a esa analista. Si el programa no tiene analista, el caso queda «Sin asignar» (filtro en la bandeja) y se asigna desde el expediente; **cada asignación o reasignación envía el aviso a la analista asignada**. Solo se puede asignar a cuentas activas con rol Analista.
 
-**Correos.** Automáticos solo: recepción (estudiante), nueva solicitud (equipo), asignación (analista) y recordatorio interno a la analista cuando vence el plazo del programa en STD
-(`plazo_programa_dias`, luego cada `recordatorio_cada_dias`, hasta `recordatorios_max`). Si uno de ellos no sale, se avisa de inmediato
+**Correos.** Automáticos solo: recepción (estudiante), nueva solicitud (equipo), asignación (analista) y recordatorios internos: de admisibilidad, si el caso sigue «Recibida» tras `plazo_admisibilidad_dias` (2) días hábiles (a la analista asignada o, si no hay, a las cuentas con nivel edición o administración), y del programa, cuando vence su plazo en STD (a la analista)
+(tras el plazo, cada `recordatorio_cada_dias`, hasta `recordatorios_max`). Si uno de ellos no sale, se avisa de inmediato
 por correo a la analista del caso, a la administración y a la cuenta institucional (además de quedar en la bitácora).
 Todo correo dirigido al estudiante (recepción, aceptada, rechazada, no procede, resuelto, negado) lleva el enlace de seguimiento
 `URL?v=seguimiento`; el estudiante ve sus casos ingresando con la cuenta USACH con que envió el formulario. Todo otro correo sale al cambiar de estado

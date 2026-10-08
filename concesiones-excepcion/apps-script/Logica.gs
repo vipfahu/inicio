@@ -161,6 +161,13 @@ function resolverDestinatarios(rolesPara, rolesCc, ctx) {
       if (!r.length) faltantes.push('cuentas activas con acceso al panel');
       return r;
     }
+    if (rol === 'Analista o equipo') {
+      // La analista asignada; si aún no hay, quienes pueden asignarla (cuentas activas con nivel edición o administración).
+      if (s.analista) return [s.analista];
+      const r = activas.filter(c => c.nivel === 'edicion' || c.nivel === 'administracion').map(c => c.correo);
+      if (!r.length) faltantes.push('cuentas activas con nivel edición o administración');
+      return r;
+    }
     if (rol === 'Analistas') {
       const r = activas.filter(c => c.rol === 'Analista').map(c => c.correo);
       if (!r.length) faltantes.push('cuentas activas con rol «Analista»');
@@ -205,13 +212,29 @@ function diasHabilesEntre(desde, hasta, feriados) {
   return n;
 }
 
-/** ¿Corresponde enviar un recordatorio al programa? */
+/**
+ * Recordatorios internos por plazo vencido (días hábiles desde que el caso entró al estado):
+ *  - recibida: asignar analista y abrir la revisión de admisibilidad (plazo_admisibilidad_dias);
+ *  - programa: pronunciamiento del programa pendiente en STD (plazo_programa_dias).
+ */
+const RECORDATORIOS = {
+  recibida: { evento: 'recordatorio_admisibilidad', plazo: 'plazo_admisibilidad_dias' },
+  programa: { evento: 'recordatorio', plazo: 'plazo_programa_dias' }
+};
+
+/** Evento de recordatorio que corresponde enviar hoy, o '' si ninguno. */
+function recordatorioPendiente(sol, hoy, p, feriados) {
+  const r = RECORDATORIOS[sol.estado];
+  return r && necesitaRecordatorio(sol, hoy, p, feriados) ? r.evento : '';
+}
+
 function necesitaRecordatorio(sol, hoy, p, feriados) {
-  if (sol.estado !== 'programa' || !sol.estado_desde) return false;
+  const r = RECORDATORIOS[sol.estado];
+  if (!r || !sol.estado_desde) return false;
   const enviados = Number(sol.recordatorios || 0);
   if (enviados >= Number(p.recordatorios_max || 0)) return false;
   const desdeUltimo = sol.ultimo_recordatorio ? new Date(sol.ultimo_recordatorio) : null;
-  if (!desdeUltimo) return diasHabilesEntre(new Date(sol.estado_desde), hoy, feriados) > Number(p.plazo_programa_dias || 2);
+  if (!desdeUltimo) return diasHabilesEntre(new Date(sol.estado_desde), hoy, feriados) > Number(p[r.plazo] || 2);
   return diasHabilesEntre(desdeUltimo, hoy, feriados) >= Number(p.recordatorio_cada_dias || 2);
 }
 
@@ -279,7 +302,7 @@ function validarSolicitud(d, ctx) {
 }
 
 if (typeof module !== 'undefined') {
-  module.exports = { camposRequeridos,
+  module.exports = { recordatorioPendiente, RECORDATORIOS, camposRequeridos,
     ESTADOS, CAMPOS_REQUERIDOS, TIPOS_CATALOGO, NIVELES, ROLES, estadoPorId, esCierre, transicionValida, eventoTransicion,
     normalizarFolio, siguienteFolio, estadoMigrado, separarTipos, rellenar, variablesSinResolver, resolverDestinatarios,
     diasHabilesEntre, necesitaRecordatorio, nivelSuficiente, puedeVerSolicitud, validarCuenta, esSi, listaRoles, validarSolicitud
