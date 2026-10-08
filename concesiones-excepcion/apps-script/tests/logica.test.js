@@ -115,3 +115,11 @@ test('cuentas: validación y última administración', () => {
   assert.match(L.validarCuenta({ ...cuentas[1], activo: 'NO' }, cuentas, duenia, false), /al menos una/);
   assert.match(L.validarCuenta({ ...nueva, correo: duenia }, cuentas, duenia, true), /dueña/);
 });
+
+test('Apps Script: ningún .gs y .html comparten nombre (el editor no lo permite)', () => {
+  const fs = require('fs');
+  const path = require('path');
+  const nombres = fs.readdirSync(path.join(__dirname, '..')).filter(f => /\.(gs|html)$/.test(f)).map(f => f.replace(/\.(gs|html)$/, ''));
+  const repetidos = nombres.filter((n, i) => nombres.indexOf(n) !== i);
+  assert.deepEqual(repetidos, []);
+});

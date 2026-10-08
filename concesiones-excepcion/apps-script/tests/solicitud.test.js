@@ -1,4 +1,4 @@
-// Formulario web para estudiantes (Solicitud.gs / Solicitud.html). Datos sintéticos.
+// Formulario web para estudiantes (Formulario.gs / Solicitud.html). Datos sintéticos.
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const L = require('../Logica.gs');

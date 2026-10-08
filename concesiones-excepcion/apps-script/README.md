@@ -26,7 +26,7 @@ Este directorio no contiene datos personales y no se publica en el sitio (ver `n
 | `Archivos.gs` | Carpetas por expediente, subida y descarga |
 | `Flujo.gs` | Recepción del Formulario, bandeja, expediente, cambios de estado |
 | `Web.gs` | Puntos de entrada web, configuración y seguimiento |
-| `Solicitud.gs`, `Solicitud.html` | Formulario web para estudiantes (validación, antecedentes, límite de 3 solicitudes por cuenta al día) |
+| `Formulario.gs`, `Solicitud.html` | Formulario web para estudiantes (validación, antecedentes, límite de 3 solicitudes por cuenta al día) |
 | `Diario.gs` | Recordatorios al programa y control de compartición (08:00) |
 | `Instalar.gs` | Menú «CAE», instalación en dos pasos y diagnóstico |
 | `Panel.html`, `Seguimiento.html` | Panel del equipo y seguimiento del estudiante |

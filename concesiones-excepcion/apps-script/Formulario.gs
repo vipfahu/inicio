@@ -1,5 +1,5 @@
 /**
- * Solicitud.gs · Formulario web para estudiantes (…/exec?v=solicitud).
+ * Formulario.gs · Formulario web para estudiantes (…/exec?v=solicitud).
  *
  * El estudiante ingresa con su cuenta USACH (la publicación web es solo para el dominio); ese correo verificado
  * es el que luego le permite ver su caso en «Seguimiento». Los antecedentes se suben uno a uno a una carpeta

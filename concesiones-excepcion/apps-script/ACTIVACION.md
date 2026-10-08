@@ -21,7 +21,7 @@ Administración · `URL` = dirección del panel (termina en `/exec`).
    ```
    - El ID está en el editor de Apps Script → engranaje (*Configuración del proyecto*) → «ID de la secuencia de comandos».
    - En `login`, elegir la cuenta institucional.
-   - `status` debe listar **15 archivos**: 11 `.gs`, `Panel.html`, `Seguimiento.html`, `Solicitud.html` y `appsscript.json`.
+   - `status` debe listar **15 archivos**: 11 `.gs` (incluido `Formulario.gs`), `Panel.html`, `Seguimiento.html`, `Solicitud.html` y `appsscript.json`.
 3. En el editor de Apps Script: **Implementar → Gestionar implementaciones → lápiz → Versión: «Nueva versión» → Implementar**.
    La URL no cambia.
 4. En la planilla (recargarla): **CAE → Actualizar (tras subir código nuevo)**. Debe informar que agregó:
