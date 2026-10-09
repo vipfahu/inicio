@@ -322,12 +322,16 @@ function panelGestion(e, edita) {
       : s.etiqueta;
     return '<button data-hacia="' + s.id + '"' + (vbAjeno ? ' data-vb disabled' : '') + ' class="' + (prim ? 'prim' : amb ? 'ambar' : '') + '" style="width:100%;text-align:left;display:flex;justify-content:space-between;margin-bottom:6px">' + h(txt) + (s.evento ? ' <span title="Envía correo" style="color:' + (prim ? '#fff' : 'var(--naranja)') + '">✉</span>' : '') + '</button>';
   }).join('') + '<div class="sub" style="font-style:italic;white-space:normal">✉ = el cambio envía un correo; verá la vista previa antes de confirmar.</div>'
-    : '<div class="aviso a-teal">Trámite cerrado.</div>';
+    : '';
+  // Estado final: no hay a qué pasar; se muestra el cierre con la resolución anotada (si la hay).
+  const cierre = e.siguientes.length ? '' : '<div class="aviso a-teal" style="white-space:normal">Trámite cerrado' +
+    (e.estado === 'no_procede' ? ' · derivado a la plataforma de Registro Curricular' : e.estado === 'rechazada' ? ' · presentación rechazada' : '') +
+    (e.resolucion ? ' · Resolución ' + h(e.resolucion) : '') + '.</div>';
   const campo = (k, rot, tipo) => '<div style="margin-top:12px"><label class="et" for="g_' + k + '">' + rot + '</label>' +
     (tipo === 'area' ? '<textarea id="g_' + k + '" rows="3">' + h(e[k]) + '</textarea>' : '<input id="g_' + k + '" value="' + h(e[k]) + '"' + (k === 'n_std' ? ' class="mono"' : '') + '>') + '</div>';
   return '<div class="tarjeta"><h3>' + (esVice ? 'Visto bueno' : 'Gestión del trámite') + '</h3><span class="et">Estado actual</span><div style="font:700 14px Archivo,sans-serif;margin-bottom:12px">' + h(e.estadoEtiqueta) + '</div>' +
     (e.propuesta_comite ? '<div style="background:var(--fcampo);border-radius:10px;padding:10px 12px;margin-bottom:12px;font:400 13px/1.5 Spectral,serif"><span class="et">Propuesta del Comité</span>' + h(e.propuesta_comite) + '</div>' : '') +
-    '<span class="et">Pasar a</span>' + botones + '<hr style="border:0;border-top:1px solid var(--fila);margin:16px 0">' +
+    (e.siguientes.length ? '<span class="et">Pasar a</span>' + botones : cierre) + '<hr style="border:0;border-top:1px solid var(--fila);margin:16px 0">' +
     '<label class="et" for="g_analista">Analista a cargo</label><select id="g_analista"><option value="">Sin asignar</option>' + S.ini.analistas.map(a => '<option value="' + h(a.correo) + '"' + (a.correo === e.analista ? ' selected' : '') + '>' + h(a.nombre) + '</option>').join('') + '</select>' +
     (S.ini.usuario.rol === 'Analista' && e.analista !== S.ini.usuario.correo ? '<button id="asignarme" style="width:100%;margin-top:6px">Asignármela</button>' : '') +
     '<div class="sub" style="white-space:normal;margin-top:4px">Al cambiar la analista a cargo y guardar, se le envía un aviso por correo.</div>' +
