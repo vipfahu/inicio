@@ -447,7 +447,7 @@ function cargarPlantillas() {
 }
 function pintarPlantillas() {
   const t = S.plantillas.find(x => x.evento === S.plSel) || {}, edita = nivel('edicion');
-  const VARS = ['nombre', 'folio', 'programa', 'tipo', 'analista', 'enlace', 'enlace_panel', 'std', 'vicedecano', 'motivo', 'observacion', 'propuesta_comite', 'resolucion', 'plazo', 'enlace_rc'];
+  const VARS = ['nombre', 'folio', 'programa', 'tipo', 'analista', 'contacto', 'destino_respuesta', 'firmante', 'enlace', 'enlace_panel', 'std', 'vicedecano', 'motivo', 'observacion', 'propuesta_comite', 'resolucion', 'plazo', 'enlace_rc'];
   $('app').innerHTML = '<h2>Plantillas de correo</h2><div class="resumen" style="margin-bottom:16px">Los destinatarios son roles; el sistema los traduce a correos según Cuentas y Programas al momento de enviar.</div>' +
     '<div style="display:grid;grid-template-columns:320px minmax(0,1fr);gap:20px" class="grid-pl"><div class="tabla">' +
     S.plantillas.map(p => '<div class="lista-item' + (p.evento === S.plSel ? ' sel' : '') + '" data-ev="' + h(p.evento) + '"><div class="nom">' + h(p.descripcion) + '</div><div class="sub">Para: ' + h(p.para) + (p.cc ? ' · CC: ' + h(p.cc) : '') + '</div></div>').join('') +

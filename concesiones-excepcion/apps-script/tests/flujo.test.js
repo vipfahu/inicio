@@ -491,3 +491,24 @@ test('feriados automáticos: oficial primero, respaldo, caché y sin carga manua
   assert.equal(cfg.feriados.total, 1);
   assert.ok(cfg.feriados.error);
 });
+
+test('correos se leen bien con y sin analista asignada', () => {
+  const env = instalar(preparar());
+  const { ctx } = env;
+  const base = tabla(env, 'Solicitudes').find(s => s.folio === '06/2026');
+  const con = Object.assign({}, base, { analista: 'analista.uno@usach.cl', estado: 'programa', estado_desde: new Date(2026, 9, 1) });
+  const sin = Object.assign({}, con, { analista: '' });
+  const nombre = ctx.nombreDe_('analista.uno@usach.cl', tabla(env, 'Cuentas'));
+
+  const a1 = ctx.componer_('aceptada', con).cuerpo;
+  assert.match(a1, new RegExp('La analista a cargo, ' + nombre + ', podrá contactarle'));
+  assert.match(a1, new RegExp('Atentamente,\\n' + nombre + '\\nVicedecanato de Investigación y Postgrado · FAHU$'));
+  const a2 = ctx.componer_('aceptada', sin).cuerpo;
+  assert.match(a2, /El equipo del Vicedecanato podrá contactarle/);
+  assert.doesNotMatch(a2, /analista a cargo/);
+  assert.match(a2, /Atentamente,\nVicedecanato de Investigación y Postgrado · FAHU$/);
+
+  assert.match(ctx.componer_('recordatorio', con).cuerpo, new RegExp('llegará a la analista a cargo, ' + nombre + '\\.'));
+  assert.match(ctx.componer_('recordatorio', sin).cuerpo, /llegará al equipo del Vicedecanato\./);
+  [a1, a2].forEach(c => assert.doesNotMatch(c, /\{\w+\}/));
+});

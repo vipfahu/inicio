@@ -13,13 +13,18 @@ function variables_(sol, campos, cuentas) {
   const p = parametros_();
   campos = campos || {};
   const tipo = [sol.tipo_catalogo, sol.tipo_texto_libre].filter(Boolean).join(', ');
+  const analista = sol.analista ? nombreDe_(sol.analista, cuentas) : '';
   return {
     nombre: [sol.nombres, sol.apellido1, sol.apellido2].filter(Boolean).join(' '),
     folio: sol.folio,
     programa: sol.programa,
     tipo: tipo,
-    analista: sol.analista ? nombreDe_(sol.analista, cuentas) : 'Vicedecanato de Investigación y Postgrado',
-    analista_asignada: sol.analista ? nombreDe_(sol.analista, cuentas) : 'sin asignar (asígnela desde el expediente)',
+    analista: analista || 'Vicedecanato de Investigación y Postgrado',
+    // Frases que se leen bien con o sin analista asignada (ver plantillas «aceptada», «recordatorio» y la firma).
+    contacto: analista ? 'La analista a cargo, ' + analista + ',' : 'El equipo del Vicedecanato',
+    destino_respuesta: analista ? 'a la analista a cargo, ' + analista : 'al equipo del Vicedecanato',
+    firmante: (analista ? analista + '\n' : '') + 'Vicedecanato de Investigación y Postgrado · FAHU',
+    analista_asignada: analista || 'sin asignar (asígnela desde el expediente)',
     std: campos.n_std || sol.n_std || '',
     vicedecano: p.vicedecano_nombre,
     motivo: campos.motivo || sol.motivo || '',
