@@ -28,4 +28,5 @@ Mantenimiento: actualizar la nota existente en vez de duplicar; borrar las que r
 - [presentar-opciones-con-recomendacion](presentar-opciones-con-recomendacion.md) — Presentar decisiones numeradas con una recomendación argumentada; la persona suele aprobarlas en bloque y matiza solo lo que importa.
 - [repo-publico-sin-datos-personales](repo-publico-sin-datos-personales.md) — `vipfahu/inicio` es público: nada de datos personales, IDs reales de planillas/formularios ni credenciales; pruebas solo con datos sintéticos.
 - [scriptid-vs-deploymentid](scriptid-vs-deploymentid.md) — `scriptId` (engranaje del editor; va en `.clasp.json`) ≠ `deploymentId` (`AKfycb…`, tramo de la URL entre /s/ y /exec; va en `desplegar.js`).
+- [sin-feriados](sin-feriados.md) — Los plazos cuentan días hábiles de lunes a viernes, sin feriados: la persona pidió quitar el registro de feriados por innecesario.
 - [trabajar-en-main](trabajar-en-main.md) — Se trabaja directamente en `main`: la persona lo pidió al ver que `git pull` en `main` no traía lo que estaba solo en la rama de trabajo.

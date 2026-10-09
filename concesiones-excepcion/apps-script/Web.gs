@@ -47,8 +47,7 @@ function api_config() {
   requiere_('consulta');
   return serializar_({
     programas: leer_(HOJAS.programas).map(p => { const o = Object.assign({}, p); delete o._fila; return o; }),
-    parametros: leer_(HOJAS.parametros).filter(p => p.clave !== 'carpeta_raiz_id').map(p => ({ clave: p.clave, valor: p.valor, descripcion: p.descripcion })),
-    feriados: feriados_()
+    parametros: leer_(HOJAS.parametros).filter(p => p.clave !== 'carpeta_raiz_id').map(p => ({ clave: p.clave, valor: p.valor, descripcion: p.descripcion }))
   });
 }
 

@@ -19,7 +19,7 @@ Este directorio no contiene datos personales y no se publica en el sitio (ver `n
 | Archivo | Contenido |
 |---|---|
 | `Logica.gs` | Reglas puras: estados, transiciones, folios, migración, destinatarios, días hábiles, validación de cuentas |
-| `Config.gs` | Pestañas, columnas, parámetros, feriados fijos y textos iniciales de los 15 correos |
+| `Config.gs` | Pestañas, columnas, parámetros y textos iniciales de los 15 correos |
 | `Datos.gs` | Lectura/escritura de pestañas como tablas |
 | `Cuentas.gs` | Identidad, niveles y pantalla «Cuentas» |
 | `Correo.gs` | Plantillas, variables y envío |
@@ -62,7 +62,6 @@ agrega pestañas y oculta (no elimina) las columnas de gestión antiguas.
      y a quien corresponda. Debe haber al menos una persona con nivel `administracion`.
    - **Programas:** `correo_direccion` y `analista` (correo) de cada programa.
    - **Parámetros:** `enlace_rc` (plataforma de Registro Curricular).
-   - **Feriados:** se precargan los de fecha fija del año en curso y el siguiente; agregue los móviles desde una fuente oficial.
 5. **Publicar el panel (antes del paso 2).** En el editor: *Implementar → Nueva implementación → Aplicación web*.
    «Ejecutar como: **yo**» · «Quién tiene acceso: **cualquier usuario de usach.cl**». Copie la URL.
    Este orden importa: la dirección del panel es el enlace de seguimiento que llevan los correos al estudiante, y el paso 2 se niega
@@ -73,7 +72,7 @@ agrega pestañas y oculta (no elimina) las columnas de gestión antiguas.
 7. **Probar la identidad (crítico).** Abra la URL con la cuenta USACH de una analista (no la institucional).
    Debe ver la bandeja con su nombre arriba a la derecha. Si ve «Google no entregó su correo», el dominio no está entregando
    la identidad a aplicaciones ejecutadas como la cuenta dueña: **no use el sistema** y avise (ver «Riesgos»).
-8. **Diagnóstico.** *CAE → Diagnóstico* lista lo que falte (correos, disparadores, feriados, accesos no autorizados).
+8. **Diagnóstico.** *CAE → Diagnóstico* lista lo que falte (correos, disparadores, accesos no autorizados).
 9. **Retirar accesos directos.** Quite de «Compartir» a quienes hoy editan la planilla: desde ahora trabajan en el panel.
    La tarea diaria avisará por correo si vuelve a aparecer un acceso no autorizado.
 10. **Formulario para estudiantes.** Comparta `URL?v=solicitud` (y `URL?v=seguimiento`). Cuando el formulario web esté probado, cierre el
@@ -134,7 +133,7 @@ un acceso directo; si superan el máximo de descarga por el panel, se concede ac
   Workspace, pero no lo garantiza para todas las configuraciones: por eso el paso 7. Si falla, el panel no muestra datos (falla cerrado).
 - **Cuotas de Gmail para Apps Script** (Workspace, según la documentación vigente al escribir esto): 1.500 destinatarios/día, 25 MB por
   correo. *CAE → Diagnóstico* muestra la cuota restante.
-- **Feriados móviles** no se calculan: hay que cargarlos cada año.
+- **Días hábiles = lunes a viernes.** No se descuentan feriados: un recordatorio puede salir en un feriado o contarlo como día de plazo.
 - **La planilla sigue siendo editable por la cuenta institucional.** Quien la abra directamente puede alterar datos sin pasar por las
   reglas del panel; el historial de versiones de Google Sheets es el respaldo.
 

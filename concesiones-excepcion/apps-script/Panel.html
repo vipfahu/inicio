@@ -525,7 +525,7 @@ function pintarConfig() {
     '<div class="grid2"><div class="pila"><div class="tabla"><div class="fila enc" style="grid-template-columns:1.5fr 1.2fr 1fr 60px 70px"><div>Programa</div><div>Correo dirección</div><div>Analista</div><div>Activo</div><div></div></div>' + filas + '</div>' +
     (adm ? '<div class="tarjeta"><h3>Agregar programa</h3><div style="display:grid;grid-template-columns:1.5fr 1fr auto;gap:8px"><input id="np_nombre" placeholder="Nombre exacto, como aparece en el Formulario"><input id="np_correo" class="mono" placeholder="dirección@usach.cl"><button class="prim" id="np_ok">Agregar</button></div><div class="sub" style="white-space:normal;margin-top:6px">Si agrega un programa aquí, agréguelo también como opción en el Formulario de Google.</div></div>' : '') +
     '</div><div class="lado pila"><div class="tarjeta"><h3>Parámetros</h3>' + pars + (adm ? '<button class="prim" id="par_ok" style="width:100%">Guardar parámetros</button>' : '') + '</div>' +
-    '<div class="tarjeta"><h3>Feriados cargados</h3><div class="mono" style="font-size:11.5px;line-height:1.7">' + r.feriados.map(h).join('<br>') + '</div><div class="sub" style="white-space:normal;margin-top:8px">Se editan en la pestaña «Feriados» de la planilla (cuenta institucional). Agregue cada año los feriados móviles.</div></div></div></div>';
+    '</div></div>';
   if (!adm) return;
   document.querySelectorAll('[data-gp]').forEach(b => b.onclick = () => {
     const i = b.dataset.gp, p = Object.assign({}, r.programas[i]);

@@ -85,14 +85,6 @@ function parametros_() {
   return p;
 }
 
-function feriados_() {
-  return leer_(HOJAS.feriados).map(r => {
-    const f = r.fecha;
-    if (Object.prototype.toString.call(f) === '[object Date]') return Utilities.formatDate(f, Session.getScriptTimeZone(), 'yyyy-MM-dd');
-    return String(f).trim();
-  });
-}
-
 /** google.script.run no admite Date: se convierten a texto ISO antes de responder al navegador. */
 function serializar_(x) {
   if (Object.prototype.toString.call(x) === '[object Date]') return isNaN(x) ? '' : x.toISOString();

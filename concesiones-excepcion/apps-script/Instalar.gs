@@ -68,11 +68,6 @@ function instalarPaso1() {
       evento: t[0], descripcion: t[1], para: t[2], cc: t[3], asunto: t[4], cuerpo: t[5], asunto_original: t[4], cuerpo_original: t[5]
     })));
   }
-  if (leer_(HOJAS.feriados).length === 0) {
-    const a = new Date().getFullYear();
-    anexarVarias_(HOJAS.feriados, feriadosFijos_([a, a + 1]).map(f => ({ fecha: f[0], descripcion: f[1] })));
-    informe.push('Feriados: se cargaron solo los de fecha fija. Agregue los móviles de ' + a + ' y ' + (a + 1) + '.');
-  }
 
   // Programas: los del Formulario (si se puede leer) y los que aparecen en respuestas antiguas.
   const resp = hojaRespuestas_();
@@ -254,8 +249,6 @@ function diagnostico() {
   const hs = ScriptApp.getProjectTriggers().map(t => t.getHandlerFunction());
   ['alRecibirFormulario', 'tareaDiaria'].forEach(h => { if (hs.indexOf(h) < 0) p.push('Falta el disparador «' + h + '» (ejecute el paso 2).'); });
   if (!urlPanel_()) p.push('El panel aún no está publicado como aplicación web.'); else ok.push('Panel: ' + urlPanel_());
-  const anio = new Date().getFullYear() + 1;
-  if (!feriados_().some(f => f.indexOf(String(anio)) === 0)) p.push('No hay feriados cargados para ' + anio + '.');
   accesosNoAutorizados_().forEach(a => p.push('Acceso no autorizado · ' + a));
   const pend = leer_(HOJAS.solicitudes).filter(s => esSi(s.revisar)).map(s => s.folio);
   if (pend.length) p.push('Solicitudes marcadas para revisar: ' + pend.join(', '));

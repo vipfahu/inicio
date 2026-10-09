@@ -211,7 +211,7 @@ function unicos(a) {
   return a.filter((x, i) => x && a.indexOf(x) === i);
 }
 
-/** Días hábiles transcurridos después de `desde` hasta `hasta` (lunes a viernes, sin feriados 'AAAA-MM-DD'). */
+/** Días hábiles (lunes a viernes) transcurridos después de `desde` hasta `hasta`. `feriados` es opcional ('AAAA-MM-DD'); la plataforma no los usa. */
 function diasHabilesEntre(desde, hasta, feriados) {
   const f = new Set(feriados || []);
   const d = new Date(desde.getFullYear(), desde.getMonth(), desde.getDate());
@@ -226,7 +226,7 @@ function diasHabilesEntre(desde, hasta, feriados) {
   return n;
 }
 
-/** Fecha que resulta de sumar n días hábiles (sin fines de semana ni feriados) a una fecha. */
+/** Fecha que resulta de sumar n días hábiles (lunes a viernes) a una fecha. */
 function sumarDiasHabiles(desde, n, feriados) {
   const f = new Set(feriados || []);
   const d = new Date(desde.getFullYear(), desde.getMonth(), desde.getDate());

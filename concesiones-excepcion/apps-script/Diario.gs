@@ -17,9 +17,8 @@ function enviarRecordatorios_() {
   const p = parametros_();
   if (Number(p.recordatorios_max || 0) <= 0) return;
   const hoy = new Date();
-  const fer = feriados_();
   leer_(HOJAS.solicitudes).forEach(s => {
-    const evento = recordatorioPendiente(s, hoy, p, fer);
+    const evento = recordatorioPendiente(s, hoy, p);
     if (!evento) return;
     if (enviarAutomatico_(evento, s)) {
       actualizar_(HOJAS.solicitudes, s._fila, { recordatorios: Number(s.recordatorios || 0) + 1, ultimo_recordatorio: hoy });

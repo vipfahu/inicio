@@ -10,7 +10,6 @@ const HOJAS = {
   cuentas: 'Cuentas',
   programas: 'Programas',
   parametros: 'Parámetros',
-  feriados: 'Feriados',
   archivos: 'Archivos'
 };
 
@@ -24,7 +23,6 @@ const COLUMNAS = {
   Cuentas: ['correo', 'nombre', 'rol', 'nivel', 'programas', 'activo', 'recibe_eventos', 'creada_por', 'creada_en', 'notas'],
   Programas: ['programa', 'correo_direccion', 'analista', 'activo'],
   'Parámetros': ['clave', 'valor', 'descripcion'],
-  Feriados: ['fecha', 'descripcion'],
   Archivos: ['fecha', 'folio', 'archivo_id', 'nombre', 'categoria', 'tamano_mb', 'subido_por']
 };
 
@@ -75,16 +73,6 @@ const PARAMETROS_INICIALES = [
   ['compartido_permitido', '', 'Correos (separados por coma) que pueden tener acceso directo a la planilla. Vacío = solo la cuenta dueña.'],
   ['carpeta_raiz_id', '', 'Lo completa la instalación. Carpeta «Plataforma CAE · NO COMPARTIR».']
 ];
-
-/** Feriados de fecha fija. Los feriados móviles (Viernes y Sábado Santo, San Pedro y San Pablo, Encuentro de Dos Mundos,
- *  Iglesias Evangélicas, elecciones, interferiados) deben agregarse a mano cada año desde una fuente oficial. */
-function feriadosFijos_(anios) {
-  const fijos = [['01-01', 'Año Nuevo'], ['05-01', 'Día del Trabajo'], ['05-21', 'Glorias Navales'], ['09-18', 'Independencia Nacional'],
-    ['09-19', 'Glorias del Ejército'], ['11-01', 'Todos los Santos'], ['12-08', 'Inmaculada Concepción'], ['12-25', 'Navidad']];
-  const out = [];
-  anios.forEach(a => fijos.forEach(f => out.push([a + '-' + f[0], f[1]])));
-  return out;
-}
 
 const FIRMA = '\n\nAtentamente,\n{analista}\nVicedecanato de Investigación y Postgrado · FAHU';
 

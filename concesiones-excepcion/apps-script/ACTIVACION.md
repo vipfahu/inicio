@@ -71,8 +71,8 @@ Al terminar, **recargar el panel** (la lista de analistas para asignar se lee al
    - `enlace_rc`: enlace a la plataforma de Registro Curricular (lo usa el correo «No procede»).
    - Revisar `plazo_admisibilidad_dias` (2), `primer_aviso_admisibilidad_dias` (1), `plazo_programa_dias` (2), `recordatorio_cada_dias` (2), `recordatorios_max` (3), `max_mb_antecedente` (10),
      `max_solicitudes_dia` (3), `vicedecano_nombre`.
-3. **Feriados** [Inst., en la planilla, pestaña «Feriados»]: agregar los feriados móviles de 2026 y 2027 (formato `AAAA-MM-DD`).
-   Solo vienen cargados los de fecha fija. Se usan para contar los días hábiles del plazo del programa.
+3. **Días hábiles:** los plazos cuentan de lunes a viernes; no hace falta cargar feriados (si existe una pestaña «Feriados» de una
+   instalación anterior, ya no se usa y se puede borrar).
 4. **Plantillas de correo** [Panel → Plantillas]: revisar los 15 textos. Si se edita alguno, mantener las variables entre llaves
    (`{folio}`, `{enlace}`, etc.); «Restaurar original» deshace los cambios.
 5. [Inst.] **CAE → Diagnóstico**: no debe quedar nada pendiente salvo los accesos directos a la planilla (Fase F) y las solicitudes
@@ -158,7 +158,6 @@ Si algún correo no llega: revisar la Bitácora (las filas «ERROR · no se envi
 
 - **Altas y bajas del equipo:** Panel → Cuentas (agregar o desactivar).
 - **Programa nuevo:** agregarlo en Configuración → Programas; aparece en el formulario web si está activo.
-- **Feriados:** cada diciembre, cargar los del año siguiente.
 - **Código nuevo:** repetir la Fase A (pasos 1–4).
 - **Correo de cuota:** la cuenta institucional puede enviar ~1.500 destinatarios/día desde Apps Script; *Diagnóstico* muestra lo que queda.
 
