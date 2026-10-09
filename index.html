@@ -19,6 +19,13 @@ document.addEventListener('DOMContentLoaded',function(){g();new MutationObserver
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700;800&amp;family=Spectral:ital,wght@0,400;0,600;1,400&amp;family=IBM+Plex+Mono:wght@400;600&amp;display=swap" rel="stylesheet">
 <style>
 body{margin:0;background:#F6F4EF}a{color:#007E80}a:hover{color:#EF7A00}
+.con-aviso{position:relative}
+.con-aviso .aviso-acceso{white-space:normal;position:absolute;left:0;right:0;bottom:calc(100% + 10px);z-index:5;background:#3A4450;color:#fff;font:400 12px/1.45 Archivo,sans-serif;text-align:left;border-radius:8px;padding:9px 11px;box-shadow:0 10px 26px rgba(58,68,80,.22);opacity:0;visibility:hidden;transform:translateY(4px);transition:opacity .15s,transform .15s,visibility .15s;pointer-events:none}
+.con-aviso .aviso-acceso::after{content:"";position:absolute;left:18px;top:100%;border:6px solid transparent;border-top-color:#3A4450}
+.con-aviso:hover .aviso-acceso,.con-aviso:focus-visible .aviso-acceso{opacity:1;visibility:visible;transform:none}
+header .con-aviso .aviso-acceso{left:auto;right:0;width:260px;bottom:auto;top:calc(100% + 10px)}
+header .con-aviso .aviso-acceso::after{top:auto;bottom:100%;left:auto;right:18px;border-top-color:transparent;border-bottom-color:#3A4450}
+@media (prefers-reduced-motion:reduce){.con-aviso .aviso-acceso{transition:none}}
 @media screen and (max-width:760px){
   [style*="repeat(3,"]{grid-template-columns:minmax(0,1fr) !important}
   [style*="repeat(3,"] > *{min-height:0 !important}
@@ -41,7 +48,7 @@ body{margin:0;background:#F6F4EF}a{color:#007E80}a:hover{color:#EF7A00}
       <a href="normativa-postgrados/admin.html" style="font:600 11px Archivo,sans-serif;color:#3A4450;background:#F6F4EF;border:1px solid #E0DCD0;border-radius:8px;padding:8px 12px;white-space:nowrap;text-decoration:none" style-hover="border-color:#00A0A0;color:#007E80">Normativa</a>
       <a href="cursos-formacion/admin.html" style="font:600 11px Archivo,sans-serif;color:#3A4450;background:#F6F4EF;border:1px solid #E0DCD0;border-radius:8px;padding:8px 12px;white-space:nowrap;text-decoration:none" style-hover="border-color:#EF7A00;color:#EF7A00">Cursos</a>
       <a href="trayectorias-academicas/index.html" style="font:600 11px Archivo,sans-serif;color:#3A4450;background:#F6F4EF;border:1px solid #E0DCD0;border-radius:8px;padding:8px 12px;white-space:nowrap;text-decoration:none" style-hover="border-color:#2F6B4F;color:#2F6B4F">Trayectorias</a>
-      <a href="https://script.google.com/a/macros/usach.cl/s/AKfycbwQaDOTEEptwgDHbJ5KHMrwofEA3lMegqa1KYD_8KuXf2By1QQ6quuyYh6fGgfOTOtpgA/exec" target="_blank" rel="noopener" style="font:600 11px Archivo,sans-serif;color:#3A4450;background:#F6F4EF;border:1px solid #E0DCD0;border-radius:8px;padding:8px 12px;white-space:nowrap;text-decoration:none" style-hover="border-color:#007E80;color:#007E80">Concesiones ↗</a>
+      <a class="con-aviso" href="https://script.google.com/a/macros/usach.cl/s/AKfycbwQaDOTEEptwgDHbJ5KHMrwofEA3lMegqa1KYD_8KuXf2By1QQ6quuyYh6fGgfOTOtpgA/exec" target="_blank" rel="noopener" style="font:600 11px Archivo,sans-serif;color:#3A4450;background:#F6F4EF;border:1px solid #E0DCD0;border-radius:8px;padding:8px 12px;white-space:nowrap;text-decoration:none" style-hover="border-color:#007E80;color:#007E80">Concesiones ↗<span class="aviso-acceso" role="tooltip">Para acceder, primero debe iniciar sesión en su cuenta institucional @usach.cl.</span></a>
     </div>
   </header>
 
@@ -111,8 +118,8 @@ body{margin:0;background:#F6F4EF}a{color:#007E80}a:hover{color:#EF7A00}
           <p style="font:400 14px/1.55 Spectral,serif;color:#5A6470;margin:0;text-wrap:pretty">Solicitud en línea de concesiones académicas de excepción y su tramitación por el Vicedecanato: admisibilidad, informe académico, pronunciamiento del programa, V°B° y seguimiento del estado. Ingreso con cuenta @usach.cl.</p>
         </div>
         <div style="display:flex;flex-direction:column;gap:8px">
-          <a href="https://script.google.com/a/macros/usach.cl/s/AKfycbwQaDOTEEptwgDHbJ5KHMrwofEA3lMegqa1KYD_8KuXf2By1QQ6quuyYh6fGgfOTOtpgA/exec?v=solicitud" target="_blank" rel="noopener" style="display:flex;justify-content:space-between;align-items:center;gap:10px;font:600 12.5px Archivo,sans-serif;color:#fff;background:#007E80;border:1.5px solid #007E80;border-radius:9px;padding:10px 13px;text-decoration:none" style-hover="background:#EF7A00;border-color:#EF7A00">Formulario de solicitud <span aria-hidden="true">↗</span></a>
-          <a href="https://script.google.com/a/macros/usach.cl/s/AKfycbwQaDOTEEptwgDHbJ5KHMrwofEA3lMegqa1KYD_8KuXf2By1QQ6quuyYh6fGgfOTOtpgA/exec" target="_blank" rel="noopener" style="display:flex;justify-content:space-between;align-items:center;gap:10px;font:600 12.5px Archivo,sans-serif;color:#007E80;background:#fff;border:1.5px solid #E0DCD0;border-radius:9px;padding:10px 13px;text-decoration:none" style-hover="border-color:#00A0A0;background:#F6F4EF">Plataforma de gestión interna <span aria-hidden="true">↗</span></a>
+          <a class="con-aviso" href="https://script.google.com/a/macros/usach.cl/s/AKfycbwQaDOTEEptwgDHbJ5KHMrwofEA3lMegqa1KYD_8KuXf2By1QQ6quuyYh6fGgfOTOtpgA/exec?v=solicitud" target="_blank" rel="noopener" style="display:flex;justify-content:space-between;align-items:center;gap:10px;font:600 12.5px Archivo,sans-serif;color:#fff;background:#007E80;border:1.5px solid #007E80;border-radius:9px;padding:10px 13px;text-decoration:none" style-hover="background:#EF7A00;border-color:#EF7A00">Formulario de solicitud <span aria-hidden="true">↗</span><span class="aviso-acceso" role="tooltip">Para acceder, primero debe iniciar sesión en su cuenta institucional @usach.cl.</span></a>
+          <a class="con-aviso" href="https://script.google.com/a/macros/usach.cl/s/AKfycbwQaDOTEEptwgDHbJ5KHMrwofEA3lMegqa1KYD_8KuXf2By1QQ6quuyYh6fGgfOTOtpgA/exec" target="_blank" rel="noopener" style="display:flex;justify-content:space-between;align-items:center;gap:10px;font:600 12.5px Archivo,sans-serif;color:#007E80;background:#fff;border:1.5px solid #E0DCD0;border-radius:9px;padding:10px 13px;text-decoration:none" style-hover="border-color:#00A0A0;background:#F6F4EF">Plataforma de gestión interna <span aria-hidden="true">↗</span><span class="aviso-acceso" role="tooltip">Para acceder, primero debe iniciar sesión en su cuenta institucional @usach.cl.</span></a>
         </div>
       </div>
 
