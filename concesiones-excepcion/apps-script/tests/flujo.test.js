@@ -187,7 +187,10 @@ test('resolución: CAE admisible y CAE rechazada solo cambian el estado que ve e
     const pvc = ctx.api_previsualizar(folio, 'negado', {});
     assert.equal(pvc.conCorreo, false);
     assert.deepEqual([...pvc.requeridos], ['resolucion']);
+    // Se puede cargar el archivo de la resolución (categoría «Resolución») antes de cerrar
+    ctx.api_subirArchivo(folio, 'resolucion.pdf', 'application/pdf', Buffer.from('%PDF').toString('base64'), 'resolucion');
     ctx.api_cambiarEstado(folio, 'negado', { campos: { resolucion: 'Res. 123 del 01-11-2026' } });
+    assert.ok(ctx.api_expediente(folio).archivos.some(a => a.nombre === 'resolucion.pdf' && a.categoria === 'Resolución'));
     assert.equal(estado.correos.length, antes);
     assert.equal(tabla(env, 'Solicitudes').find(x => x.folio === folio).resolucion, 'Res. 123 del 01-11-2026');
   }

@@ -93,7 +93,8 @@ no se borran. La cuenta institucional es administradora fija y no se puede dejar
 → Pronunciamiento del programa (solicitado vía STD; la plataforma solo registra el estado, sin correo) → V°B° a la respuesta del Comité
 (o devolución al programa vía STD, con observación) → decisión del V°B°: CAE admisible o CAE rechazada (ambas siguen a Registro
 Curricular por STD, que elabora y envía la resolución) → Resuelto / Negado. En la fase de resolución no hay correos: solo cambia el
-estado que el estudiante ve en su seguimiento.
+estado que el estudiante ve en su seguimiento. Al cerrar (Resuelto / Negado) se anota N° y fecha de la resolución y se puede cargar
+su archivo, que queda en el expediente con la categoría «Resolución».
 
 **Usuarios.** El panel es solo para el equipo del Vicedecanato (analistas y Vicedecano/a). Las direcciones de programa y Registro Curricular no entran: solo reciben correos.
 

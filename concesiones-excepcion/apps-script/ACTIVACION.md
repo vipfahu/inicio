@@ -103,7 +103,7 @@ Todos salen desde la cuenta institucional; las respuestas llegan a la analista d
 | Registro de devolución al programa vía STD (pide observación) | *(sin correo)* | — | — |
 | V°B° a respuesta del Comité (pide propuesta) | V°B° Comité | Vicedecano/a | — |
 | V°B° · CAE admisible o CAE rechazada (sigue a Registro Curricular vía STD) | *(sin correo; el estudiante ve el estado)* | — | — |
-| Resuelto / Negado (pide N° y fecha de la resolución de Registro Curricular) | *(sin correo; el estudiante ve el estado)* | — | — |
+| Resuelto / Negado (pide N° y fecha de la resolución de Registro Curricular; permite cargar el archivo de la resolución) | *(sin correo; el estudiante ve el estado)* | — | — |
 | Caso que sigue «Recibida»: primer aviso al día hábil siguiente a la recepción (`primer_aviso_admisibilidad_dias` = 1), luego cada 2 días hábiles, hasta 3 (automático; indica el vencimiento del plazo de `plazo_admisibilidad_dias` = 2) | Recordatorio de admisibilidad | Analista asignada; si no hay, cuentas con nivel Edición o Administración | — |
 | Pronunciamiento del programa sin respuesta tras `plazo_programa_dias` (2) días hábiles desde que se registró la solicitud por STD (automático; luego cada 2 días hábiles, hasta 3) | Recordatorio de pronunciamiento (pide responder por el STD) | Dirección de programa | Analista del caso |
 | Falla un correo automático | Aviso de falla | Analista del caso, Administración, cuenta institucional | — |

@@ -309,6 +309,9 @@ function dialogo(hacia) {
     let html = '<div class="kicker" style="color:var(--apagado)">Cambio de estado</div><div style="font:800 18px Archivo,sans-serif;margin:6px 0 14px">' + h(pv.desdeEtiqueta) + ' <span style="color:var(--naranja)">→</span> ' + h(pv.haciaEtiqueta) + '</div>';
     const rot = k => (ROT_CAMPO[k] || k).replace('(se incluye en el correo)', pv.conCorreo ? '(se incluye en el correo)' : '(queda en el expediente y la bitácora)');
     html += req.map(k => '<label class="et" for="c_' + k + '">' + h(rot(k)) + ' *</label><textarea id="c_' + k + '" rows="2" style="margin-bottom:10px">' + h(k === 'propuesta_comite' ? e.propuesta_comite : k === 'resolucion' ? e.resolucion : '') + '</textarea>').join('');
+    // Al cerrar (Resuelto / Negado) se puede cargar la resolución emitida por Registro Curricular.
+    const conResolucion = hacia === 'resuelto' || hacia === 'negado';
+    if (conResolucion) html += '<label class="et" for="c_archivo">Archivo de la resolución (opcional, máx. ' + h(S.ini.maxMb) + ' MB)</label><input type="file" id="c_archivo" accept=".pdf,application/pdf,image/*,.doc,.docx" style="margin-bottom:10px">';
     if (!pv.conCorreo) {
       html += '<p class="resumen">Este cambio no envía correo. Quedará registrado en la bitácora del expediente.</p>';
     } else {
@@ -326,7 +329,7 @@ function dialogo(hacia) {
     $('dlg').innerHTML = html;
     $('cancelar').onclick = cerrarDlg;
     // Los campos obligatorios se reflejan en vivo en el cuerpo del correo.
-    req.forEach(k => { const el = $('c_' + k); el.oninput = () => reflejar(pv); });
+    if (pv.conCorreo) req.forEach(k => { const el = $('c_' + k); el.oninput = () => reflejar(pv); });
     if (req.length && pv.conCorreo) reflejar(pv);
     document.querySelectorAll('.adj').forEach(x => x.onchange = () => {
       const mb = [...document.querySelectorAll('.adj:checked')].reduce((s, y) => s + Number(y.dataset.mb || 0), 0);
@@ -337,8 +340,17 @@ function dialogo(hacia) {
       for (const k of req) { campos[k] = $('c_' + k).value.trim(); if (!campos[k]) return toast('Complete «' + (ROT_CAMPO[k] || k) + '»', true); }
       const envio = { campos };
       if (pv.conCorreo) { envio.asunto = $('c_asunto').value; envio.cuerpo = $('c_cuerpo').value; envio.adjuntos = [...document.querySelectorAll('.adj:checked')].map(x => x.value); }
-      $('confirmar').disabled = true; $('confirmar').textContent = 'Enviando…';
-      run('api_cambiarEstado', e.folio, hacia, envio).then(r => {
+      const archivo = conResolucion && $('c_archivo').files[0];
+      if (archivo && archivo.size > S.ini.maxMb * 1048576) return toast('El archivo supera ' + S.ini.maxMb + ' MB', true);
+      $('confirmar').disabled = true; $('confirmar').textContent = archivo ? 'Subiendo resolución…' : 'Enviando…';
+      // Primero se guarda el archivo (categoría «Resolución») y luego se cambia el estado.
+      const subida = archivo ? new Promise((ok, mal) => {
+        const lector = new FileReader();
+        lector.onload = () => run('api_subirArchivo', e.folio, archivo.name, archivo.type, String(lector.result).split(',')[1], 'resolucion').then(ok, mal);
+        lector.onerror = () => mal(new Error('No se pudo leer el archivo.'));
+        lector.readAsDataURL(archivo);
+      }) : Promise.resolve();
+      subida.then(() => run('api_cambiarEstado', e.folio, hacia, envio)).then(r => {
         cerrarDlg(); toast(r.conCorreo ? 'Estado actualizado y correo enviado' : 'Estado actualizado'); abrir(e.folio);
       }).catch(err => { fallo(err); $('confirmar').disabled = false; $('confirmar').textContent = pv.conCorreo ? 'Confirmar y enviar correo' : 'Confirmar cambio'; });
     };
