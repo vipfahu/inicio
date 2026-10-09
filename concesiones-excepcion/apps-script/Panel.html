@@ -310,7 +310,9 @@ function pintarExp() {
   if ($('subir')) $('subir').onclick = subir;
   if ($('pdf_solicitud')) $('pdf_solicitud').onclick = () => {
     $('pdf_solicitud').disabled = true; $('pdf_solicitud').textContent = 'Generando PDF…';
-    run('api_pdfSolicitud', e.folio).then(r => abrir(e.folio).then(() => ofrecerPdfSolicitud(r, 'PDF del formulario de solicitud generado. Quedó en «Archivos del expediente».')))
+    run('api_pdfSolicitud', e.folio).then(r => abrir(e.folio).then(() => r.existente
+      ? ofrecerPdfSolicitud(r, 'El PDF del formulario de solicitud ya fue generado el ' + r.fecha + ' por ' + r.por + ', y no se vuelve a generar. Está en «Archivos del expediente».', 'PDF ya generado')
+      : ofrecerPdfSolicitud(r, 'PDF del formulario de solicitud generado. Quedó en «Archivos del expediente».')))
       .catch(err => { fallo(err); if ($('pdf_solicitud')) { $('pdf_solicitud').disabled = false; $('pdf_solicitud').textContent = 'PDF del formulario de solicitud'; } });
   };
   if ($('anotar')) $('anotar').onclick = () => {
@@ -478,9 +480,9 @@ async function pintarDocumento(r, n) {
 /* ── Diálogo de cambio de estado ── */
 const ROT_CAMPO = { motivo: 'Motivo (se incluye en el correo)', observacion: 'Observación del Vicedecanato (se incluye en el correo)', propuesta_comite: 'Propuesta del Comité', resolucion: 'Resolución (N° y fecha)' };
 function cerrarDlg() { $('fondo').style.display = 'none'; }
-function ofrecerPdfSolicitud(pdf, texto) {
-  $('dlg').innerHTML = '<div class="kicker" style="color:var(--apagado)">Formulario de solicitud</div><h3 style="margin-top:6px">' + h(pdf.nombre) + '</h3>' +
-    '<p class="resumen">' + h(texto) + '</p><div class="acciones" style="justify-content:flex-end;margin-top:16px">' +
+function ofrecerPdfSolicitud(pdf, texto, titulo) {
+  $('dlg').innerHTML = '<div class="kicker" style="color:var(--apagado)">' + h(titulo || 'Formulario de solicitud') + '</div><h3 style="margin-top:6px">' + h(pdf.nombre) + '</h3>' +
+    (titulo ? '<div class="aviso a-teal" style="white-space:normal;margin-top:8px">ℹ ' + h(texto) + '</div>' : '<p class="resumen">' + h(texto) + '</p>') + '<div class="acciones" style="justify-content:flex-end;margin-top:16px">' +
     '<button id="pdf_cerrar">Cerrar</button><button id="pdf_ver">Ver</button><button class="prim" id="pdf_desc">Descargar PDF</button></div>';
   $('fondo').style.display = 'flex';
   $('pdf_cerrar').onclick = cerrarDlg;
@@ -558,7 +560,8 @@ function dialogo(hacia) {
       subida.then(() => run('api_cambiarEstado', e.folio, hacia, envio)).then(r => {
         cerrarDlg(); toast(r.conCorreo ? 'Estado actualizado y correo enviado' : 'Estado actualizado');
         abrir(e.folio).then(() => {
-          if (r.pdfSolicitud) ofrecerPdfSolicitud(r.pdfSolicitud, 'Se generó el PDF del formulario de solicitud antes de pasar a Informe de Registro Curricular. Quedó en «Archivos del expediente».');
+          if (r.pdfSolicitud && r.pdfSolicitud.existente) ofrecerPdfSolicitud(r.pdfSolicitud, 'El PDF del formulario de solicitud ya había sido generado el ' + r.pdfSolicitud.fecha + ' por ' + r.pdfSolicitud.por + '; no se generó otro. Está en «Archivos del expediente».', 'PDF ya generado');
+          else if (r.pdfSolicitud) ofrecerPdfSolicitud(r.pdfSolicitud, 'Se generó el PDF del formulario de solicitud antes de pasar a Informe de Registro Curricular. Quedó en «Archivos del expediente».');
           else if (conResolucion) avisoDistribucion();
         });
       }).catch(err => { fallo(err); $('confirmar').disabled = false; $('confirmar').textContent = pv.conCorreo ? 'Confirmar y enviar correo' : 'Confirmar cambio'; });

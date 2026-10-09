@@ -106,6 +106,7 @@ function crearEntorno() {
     return {
       id, nombre, bytes: bytes || 10, mime: mime || 'application/pdf', viewers: [], editors: [], acceso: 'PRIVATE', desc: '', creado: new Date(), papelera: false, padres: [],
       setDescription(d) { this.desc = d; return this; }, getDescription() { return this.desc; }, getDateCreated() { return this.creado; },
+      isTrashed() { return this.papelera; },
       setTrashed(t) { this.papelera = t; this.padres.forEach(c => { c.archivosIn = c.archivosIn.filter(x => x !== this); }); return this; },
       getParents() { const l = this.padres.slice(); let i = 0; return { hasNext: () => i < l.length, next: () => l[i++] }; },
       getId() { return this.id; }, getName() { return this.nombre; }, getSize() { return this.bytes; },

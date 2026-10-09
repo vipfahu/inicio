@@ -244,3 +244,15 @@ test('visor: tipo según nombre, MIME y entradas útiles de un ZIP', () => {
   assert.ok(L.entradaZipUtil('docs/certificado.pdf'));
   ['docs/', '__MACOSX/docs/._certificado.pdf', 'docs/.DS_Store', 'Thumbs.db', ''].forEach(n => assert.ok(!L.entradaZipUtil(n), n));
 });
+
+test('HTML: el JavaScript de cada página se puede interpretar (un error de sintaxis deja la página en blanco)', () => {
+  const fs = require('fs');
+  const path = require('path');
+  const dir = path.join(__dirname, '..');
+  fs.readdirSync(dir).filter(f => f.endsWith('.html')).forEach(f => {
+    const html = fs.readFileSync(path.join(dir, f), 'utf8');
+    for (const m of html.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/g)) {
+      assert.doesNotThrow(() => new Function(m[1].replace(/<\?[\s\S]*?\?>/g, '""')), f + ': error de sintaxis en un <script>');
+    }
+  });
+});

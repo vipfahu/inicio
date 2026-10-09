@@ -700,8 +700,18 @@ test('PDF del formulario a pedido: analistas y administración sí; consulta no;
   const html = estado.pdfs[estado.pdfs.length - 1];
   assert.ok(html.indexOf('<script>') < 0);
   assert.match(html, /&lt;script&gt;alert\(1\)&lt;\/script&gt; &amp; símbolos/);
+  assert.ok(!r.existente);
+  const generados = estado.pdfs.length;
+  // Se genera una sola vez: si se pide de nuevo, se informa el existente y no se elabora otro.
   estado.usuario = 'vice@usach.cl';
-  assert.ok(ctx.api_pdfSolicitud('05/2026').id);
+  const r2 = ctx.api_pdfSolicitud('05/2026');
+  assert.equal(r2.existente, true); assert.equal(r2.id, r.id); assert.equal(r2.por, 'Analista Uno');
+  assert.equal(estado.pdfs.length, generados);
+  assert.equal(tabla(env, 'Archivos').filter(a => a.folio === '05/2026' && a.categoria === 'formulario_solicitud').length, 1);
+  // Si el archivo se borró de Drive, se puede volver a generar.
+  env.DriveApp.getFileById(r.id).setTrashed(true);
+  const r3 = ctx.api_pdfSolicitud('05/2026');
+  assert.ok(!r3.existente); assert.notEqual(r3.id, r.id);
   estado.usuario = 'consulta@usach.cl';
   assert.throws(() => ctx.api_pdfSolicitud('05/2026'), /nivel requerido/);
 });

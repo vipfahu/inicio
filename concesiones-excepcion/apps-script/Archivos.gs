@@ -200,8 +200,26 @@ function htmlSolicitud_(s, antecedentes, quien) {
     '<div class="pie">Documento generado el ' + esc_(ahora) + ' por ' + esc_(quien) + ' desde la plataforma CAE, a partir de los datos registrados en el formulario de solicitud.</div>' +
     '</body></html>';
 }
-/** Genera el PDF, lo guarda en la carpeta del caso (categoría «Formulario de solicitud (PDF)») y lo deja en la bitácora. */
+/**
+ * PDF del formulario ya generado para este folio (el más antiguo), si su archivo sigue en Drive y no está en la papelera.
+ * Se genera una sola vez: si alguien borró el archivo, se puede volver a generar.
+ */
+function pdfSolicitudExistente_(folio) {
+  const previos = archivosDe_(folio).filter(a => a.categoria === 'formulario_solicitud');
+  for (let i = 0; i < previos.length; i++) {
+    try {
+      if (!DriveApp.getFileById(previos[i].archivo_id).isTrashed()) {
+        const a = previos[i];
+        return { id: a.archivo_id, nombre: a.nombre, existente: true, fecha: fechaCorta_(a.fecha), por: nombreDe_(a.subido_por, leer_(HOJAS.cuentas)) };
+      }
+    } catch (e) { /* archivo eliminado de Drive: se ignora */ }
+  }
+  return null;
+}
+/** Genera el PDF (si no existe), lo guarda en la carpeta del caso (categoría «Formulario de solicitud (PDF)») y lo deja en la bitácora. */
 function generarPdfSolicitud_(s, u, motivo) {
+  const previo = pdfSolicitudExistente_(s.folio);
+  if (previo) return previo;
   const antecedentes = archivosDe_(s.folio).filter(a => a.categoria === 'antecedentes_formulario').map(a => a.nombre);
   const nombre = 'Solicitud CAE ' + String(s.folio).replace(/\//g, '-') + ' (formulario).pdf';
   let pdf;
