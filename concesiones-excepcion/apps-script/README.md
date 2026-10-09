@@ -98,6 +98,13 @@ su archivo, que queda en el expediente con la categoría «Resolución».
 
 **Usuarios.** El panel es solo para el equipo del Vicedecanato (analistas y Vicedecano/a). Las direcciones de programa y Registro Curricular no entran: solo reciben correos.
 
+**Ingreso y cierre de sesión.** El panel abre con una página «Iniciar sesión» que muestra la cuenta de Google con que la persona está
+conectada (nombre, rol y nivel) y el botón «Ingresar como …», o «Usar otra cuenta USACH» (selector de cuentas de Google). Si la cuenta
+no tiene acceso, lo dice y ofrece cambiar de cuenta. Dentro, «Cerrar sesión» ofrece: *Salir del panel* (vuelve a la página de ingreso;
+la cuenta de Google sigue abierta) o *Cerrar sesión de Google en este equipo* (cierra todas las cuentas de Google del navegador;
+recomendado en equipos compartidos). La identidad la da siempre Google (`Session.getActiveUser()`); la página de ingreso no agrega
+contraseñas ni seguridad adicional: es un paso explícito de entrada y salida. El ingreso se recuerda solo en esa pestaña.
+
 **Al llegar una solicitud** salen tres correos automáticos: recepción al estudiante; «Nueva solicitud CAE» a **todas las cuentas activas con acceso al panel** (Vicedecano/a, analistas y consulta; no a las de nivel `sin_acceso`, como Registro Curricular); y, si el programa tiene analista en Configuración (y esa persona tiene cuenta activa con rol Analista), «Nueva solicitud CAE asignada» a esa analista. Si el programa no tiene analista, el caso queda «Sin asignar» (filtro en la bandeja) y se asigna desde el expediente; **cada asignación o reasignación envía el aviso a la analista asignada**. Solo se puede asignar a cuentas activas con rol Analista.
 
 **Correos.** Automáticos solo: recepción (estudiante), nueva solicitud (equipo), asignación (analista) y recordatorios: de admisibilidad (interno), si el caso sigue «Recibida» al día hábil siguiente a la recepción (`primer_aviso_admisibilidad_dias` = 1; el plazo es `plazo_admisibilidad_dias` = 2), a la analista asignada o, si no hay, a las cuentas con nivel edición o administración, y del programa, cuando vencen los `plazo_programa_dias` (2) días hábiles desde que se registró la solicitud por STD (a la dirección de programa, con copia a la analista; pide responder por el STD)
