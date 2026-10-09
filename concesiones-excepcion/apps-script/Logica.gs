@@ -28,11 +28,8 @@ const ESTADOS = [
 const CAMPOS_REQUERIDOS = {
   rechazada: ['motivo'],
   'vb>programa': ['observacion'],
-  vb: ['propuesta_comite'],
-  // Cierre: se anota la resolución que emitió Registro Curricular (N° y fecha), sin correo.
-  'resolucion>resuelto': ['resolucion'],
-  'resolucion>negado': ['resolucion'],
-  'rechazo_vb>negado': ['resolucion']
+  vb: ['propuesta_comite']
+  // Cierre (Resuelto / Negado): sin campos obligatorios; admite un comentario opcional para el registro (bitácora).
 };
 
 const TIPOS_CATALOGO = [

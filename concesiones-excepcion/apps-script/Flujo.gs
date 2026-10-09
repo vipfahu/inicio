@@ -193,7 +193,7 @@ function api_cambiarEstado(folio, hacia, envio) {
     anexar_(HOJAS.bitacora, Object.assign({
       fecha: new Date(), folio: folio, tipo: 'estado', quien: u.correo,
       texto: desdeEtiqueta + ' → ' + haciaEtiqueta + (campos.motivo ? ' · Motivo: ' + campos.motivo : '') +
-        (campos.observacion ? ' · Observación: ' + campos.observacion : '') + (campos.resolucion ? ' · Resolución: ' + campos.resolucion : '') + notaVb,
+        (campos.observacion ? ' · Observación: ' + campos.observacion : '') + (campos.resolucion ? ' · Resolución: ' + campos.resolucion : '') + (campos.comentario ? ' · Comentario: ' + campos.comentario : '') + notaVb,
       estado_nuevo: hacia
     }, registroCorreo));
     return { ok: true, conCorreo: !!evento, pdfSolicitud: pdfSolicitud };

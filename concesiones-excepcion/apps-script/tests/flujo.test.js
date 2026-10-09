@@ -204,17 +204,18 @@ test('resolución: CAE admisible y CAE rechazada notifican al estudiante; el cie
     const mis = ctx.api_misSolicitudes().solicitudes.find(x => x.folio === folio);
     assert.equal(mis.estado, hacia);
     assert.ok(mis.hitos.some(h => h.estado === hacia));
-    // Cierre: se anota la resolución de Registro Curricular, sin correo
+    // Cierre: sin correo y sin campos obligatorios; comentario opcional que queda en la bitácora
     estado.usuario = 'analista.uno@usach.cl';
     const pvc = ctx.api_previsualizar(folio, 'negado', {});
     assert.equal(pvc.conCorreo, false);
-    assert.deepEqual([...pvc.requeridos], ['resolucion']);
+    assert.deepEqual([...pvc.requeridos], []);
     // Se puede cargar el archivo de la resolución (categoría «Resolución») antes de cerrar
     ctx.api_subirArchivo(folio, 'resolucion.pdf', 'application/pdf', Buffer.from('%PDF').toString('base64'), 'resolucion');
-    ctx.api_cambiarEstado(folio, 'negado', { campos: { resolucion: 'Res. 123 del 01-11-2026' } });
+    ctx.api_cambiarEstado(folio, 'negado', { campos: { comentario: 'Enviada a Registro Curricular por STD' } });
     assert.ok(ctx.api_expediente(folio).archivos.some(a => a.nombre === 'resolucion.pdf' && a.categoria === 'Resolución'));
     assert.equal(estado.correos.length, antes);
-    assert.equal(tabla(env, 'Solicitudes').find(x => x.folio === folio).resolucion, 'Res. 123 del 01-11-2026');
+    assert.equal(tabla(env, 'Solicitudes').find(x => x.folio === folio).estado, 'negado');
+    assert.ok(tabla(env, 'Bitácora').some(b => b.folio === folio && /Comentario: Enviada a Registro Curricular por STD/.test(b.texto)));
   }
 });
 

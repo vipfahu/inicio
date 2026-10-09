@@ -512,6 +512,7 @@ function dialogo(hacia) {
     // Al cerrar (Resuelto / Negado) se puede cargar la resolución emitida por Registro Curricular.
     const conResolucion = hacia === 'resuelto' || hacia === 'negado';
     if (conResolucion) html += '<div class="aviso a-amb" style="margin-bottom:12px;white-space:normal"><b>Recuerde: esta resolución debe enviarse inmediatamente a la Unidad de Registro Curricular para su distribución.</b></div>';
+    if (conResolucion) html += '<label class="et" for="c_comentario">Comentario para su registro</label><textarea id="c_comentario" rows="2" style="margin-bottom:10px" placeholder="Opcional: queda en la bitácora del expediente"></textarea>';
     if (conResolucion) html += '<label class="et" for="c_archivo">Archivo de la resolución (opcional, máx. ' + h(S.ini.maxMb) + ' MB)</label><input type="file" id="c_archivo" accept=".pdf,application/pdf,image/*,.doc,.docx" style="margin-bottom:10px">';
     if (!pv.conCorreo) {
       html += '<p class="resumen">Este cambio no envía correo. Quedará registrado en la bitácora del expediente.</p>';
@@ -541,6 +542,7 @@ function dialogo(hacia) {
       const campos = {};
       for (const k of req) { campos[k] = $('c_' + k).value.trim(); if (!campos[k]) return toast('Complete «' + (ROT_CAMPO[k] || k) + '»', true); }
       const envio = { campos };
+      if (conResolucion && $('c_comentario').value.trim()) campos.comentario = $('c_comentario').value.trim();
       if (porOtroMedio) {
         campos.otro_medio = $('c_otro_medio').value.trim();
         if (!campos.otro_medio) return toast('Indique por qué medio y cuándo dio el V°B° el Vicedecano/a', true);

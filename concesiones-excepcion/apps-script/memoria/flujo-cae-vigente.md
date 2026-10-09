@@ -14,7 +14,7 @@ Fase de resolución (pedidos sucesivos de la persona): en el V°B°, «CAE admis
 Registro Curricular por STD, que **elabora y distribuye** la resolución (esta unidad no la elabora). Primero se quitaron todos los
 correos de la fase; luego la persona pidió **reintegrar** un correo al estudiante en ambos casos (`cae_admisible`, `cae_rechazada`) que
 indica el estado y que la resolución está en elaboración para su distribución desde Registro Curricular. El cierre (Resuelto/Negado)
-sigue sin correo: se anota N° y fecha y se puede cargar el archivo de la resolución.
+sigue sin correo: comentario opcional para el registro (antes se exigía N° y fecha; la persona lo quitó el 2026-10-09) y se puede cargar el archivo de la resolución.
 
 Requisitos agregados (2026-10-09): pasar a Informe RC exige N° STD registrado y genera antes el PDF del formulario de solicitud (si falla,
 no cambia el estado); al registrar Resuelto/Negado se recuerda en negrita enviar la resolución de inmediato a la Unidad de Registro
