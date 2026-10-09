@@ -111,7 +111,7 @@ function api_expediente(folio) {
   out.verDetalle = nivelSuficiente(u.nivel, 'edicion');
   if (out.verDetalle) {
     out.fundamentacion = s.fundamentacion || (s.fila_respuesta ? leerRespuesta_(s.fila_respuesta).fundamentacion : '');
-    out.archivos = archivosDe_(folio).map(a => ({ id: a.archivo_id, nombre: a.nombre, categoria: CATEGORIAS_ARCHIVO[a.categoria] || a.categoria, tamano_mb: a.tamano_mb, fecha: a.fecha }));
+    out.archivos = archivosDe_(folio).map(a => ({ id: a.archivo_id, nombre: a.nombre, categoria: CATEGORIAS_ARCHIVO[a.categoria] || a.categoria, tamano_mb: a.tamano_mb, fecha: a.fecha, vista: tipoVista(a.nombre) }));
   } else {
     // La fundamentación (ahora también guardada en «Solicitudes») no debe llegar a Consulta.
     delete out.fundamentacion;

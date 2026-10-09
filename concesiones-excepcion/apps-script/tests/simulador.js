@@ -4,8 +4,44 @@ const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
 
+
+// ── ZIP mínimo (para simular Utilities.unzip y armar casos de prueba): entradas «stored» o «deflate». ──
+const zlib = require('zlib');
+function leerZip(buf) {
+  buf = Buffer.from(buf);
+  let fin = buf.length - 22;
+  while (fin >= 0 && buf.readUInt32LE(fin) !== 0x06054b50) fin--;
+  if (fin < 0) throw new Error('No es un ZIP válido');
+  const total = buf.readUInt16LE(fin + 10);
+  let p = buf.readUInt32LE(fin + 16);
+  const salida = [];
+  for (let k = 0; k < total; k++) {
+    const metodo = buf.readUInt16LE(p + 10), comp = buf.readUInt32LE(p + 20);
+    const ln = buf.readUInt16LE(p + 28), lx = buf.readUInt16LE(p + 30), lc = buf.readUInt16LE(p + 32), loc = buf.readUInt32LE(p + 42);
+    const nombre = buf.slice(p + 46, p + 46 + ln).toString('utf8');
+    const ini = loc + 30 + buf.readUInt16LE(loc + 26) + buf.readUInt16LE(loc + 28);
+    const datos = buf.slice(ini, ini + comp);
+    salida.push({ nombre, datos: metodo === 8 ? zlib.inflateRawSync(datos) : datos });
+    p += 46 + ln + lx + lc;
+  }
+  return salida;
+}
+function crearZip(entradas) {
+  const locales = [], centrales = [];
+  let off = 0;
+  entradas.forEach(([nombre, contenido]) => {
+    const n = Buffer.from(nombre), d = Buffer.from(contenido), crc = zlib.crc32(d);
+    const l = Buffer.alloc(30); l.writeUInt32LE(0x04034b50, 0); l.writeUInt16LE(20, 4); l.writeUInt32LE(crc, 14); l.writeUInt32LE(d.length, 18); l.writeUInt32LE(d.length, 22); l.writeUInt16LE(n.length, 26);
+    const c = Buffer.alloc(46); c.writeUInt32LE(0x02014b50, 0); c.writeUInt16LE(20, 4); c.writeUInt16LE(20, 6); c.writeUInt32LE(crc, 16); c.writeUInt32LE(d.length, 20); c.writeUInt32LE(d.length, 24); c.writeUInt16LE(n.length, 28); c.writeUInt32LE(off, 42);
+    locales.push(l, n, d); centrales.push(c, n); off += 30 + n.length + d.length;
+  });
+  const cd = Buffer.concat(centrales), e = Buffer.alloc(22);
+  e.writeUInt32LE(0x06054b50, 0); e.writeUInt16LE(entradas.length, 8); e.writeUInt16LE(entradas.length, 10); e.writeUInt32LE(cd.length, 12); e.writeUInt32LE(off, 16);
+  return Buffer.concat([...locales, cd, e]);
+}
+
 function crearEntorno() {
-  const estado = { usuario: '', duenia: 'institucional@usach.cl', correos: [], triggers: [], props: {}, archivos: {}, carpetas: {}, n: 0, url: 'https://script.google.com/a/macros/usach.cl/s/PRUEBA/exec' };
+  const estado = { usuario: '', duenia: 'institucional@usach.cl', correos: [], triggers: [], props: {}, archivos: {}, carpetas: {}, exportados: [], convertidos: [], borrados: [], n: 0, url: 'https://script.google.com/a/macros/usach.cl/s/PRUEBA/exec' };
   const nid = p => p + (++estado.n);
 
   // ── Sheets ──
@@ -73,7 +109,8 @@ function crearEntorno() {
       setTrashed(t) { this.papelera = t; this.padres.forEach(c => { c.archivosIn = c.archivosIn.filter(x => x !== this); }); return this; },
       getParents() { const l = this.padres.slice(); let i = 0; return { hasNext: () => i < l.length, next: () => l[i++] }; },
       getId() { return this.id; }, getName() { return this.nombre; }, getSize() { return this.bytes; },
-      getBlob() { const b = this; return { getBytes: () => ({ length: b.bytes }), getContentType: () => b.mime, getName: () => b.nombre }; },
+      getBlob() { const b = this; return { getBytes: () => b.contenido || ({ length: b.bytes }), getContentType: () => b.mime, getName: () => b.nombre }; },
+      getAs(mime) { estado.exportados.push({ id: this.id, mime }); const b = this; return { getBytes: () => Buffer.from('%PDF-convertido:' + b.nombre), getContentType: () => mime, getName: () => b.nombre + '.pdf' }; },
       getUrl() { return 'https://drive.google.com/file/d/' + this.id; },
       moveTo(dest) { this.padres.forEach(c => { if (c.archivosIn) c.archivosIn = c.archivosIn.filter(x => x !== this); }); this.padres = [dest]; if (dest.archivosIn) dest.archivosIn.push(this); return this; },
       addViewer(c) { this.viewers.push(c); return this; },
@@ -86,7 +123,7 @@ function crearEntorno() {
       padre, hijos: [], archivosIn: [], atajos: [],
       getFoldersByName(n) { const l = this.hijos.filter(h => h.nombre === n); let i = 0; return { hasNext: () => i < l.length, next: () => l[i++] }; },
       createFolder(n) { const h = carpeta(n, this); this.hijos.push(h); return h; },
-      createFile(blob) { const a = archivo(nid('file'), blob.getName(), blob.getBytes().length, blob.getContentType()); a.padres = [this]; estado.archivos[a.id] = a; this.archivosIn.push(a); return a; },
+      createFile(blob) { const a = archivo(nid('file'), blob.getName(), blob.getBytes().length, blob.getContentType()); if (Buffer.isBuffer(blob.getBytes())) a.contenido = blob.getBytes(); a.padres = [this]; estado.archivos[a.id] = a; this.archivosIn.push(a); return a; },
       getFiles() { const l = this.archivosIn.slice(); let i = 0; return { hasNext: () => i < l.length, next: () => l[i++] }; },
       createShortcut(id) { this.atajos.push(id); return archivo(nid('atajo'), 'atajo'); }
     });
@@ -100,7 +137,19 @@ function crearEntorno() {
     getFileById: id => { if (!estado.archivos[id]) throw new Error('No existe archivo ' + id); return estado.archivos[id]; }
   };
 
+  // Servicio avanzado de Drive (solo lo que usa el visor: subir convirtiendo y borrar).
+  const Drive = { Files: {
+    create(meta, blob) {
+      const padre = estado.carpetas[meta.parents[0]];
+      const a = padre.createFile({ getName: () => meta.name, getBytes: () => blob.getBytes(), getContentType: () => meta.mimeType });
+      estado.convertidos.push({ id: a.id, origen: blob.getName(), mime: meta.mimeType });
+      return { id: a.id };
+    },
+    remove(id) { const a = estado.archivos[id]; a.setTrashed(true); delete estado.archivos[id]; estado.borrados.push(id); }
+  } };
+
   const ctx = {
+    Drive,
     console, Date, Logger: { log() {} },
     SpreadsheetApp, DriveApp,
     FormApp: { openByUrl: () => { throw new Error('Formulario no simulado'); }, ItemType: { LIST: 'LIST', MULTIPLE_CHOICE: 'MC' } },
@@ -114,7 +163,9 @@ function crearEntorno() {
     PropertiesService: { getScriptProperties: () => ({ getProperty: k => estado.props[k] || null, setProperty: (k, v) => { estado.props[k] = v; } }) },
     Utilities: {
       formatDate: (d, tz, f) => d.toISOString().slice(0, 10) + (f.indexOf('HH') >= 0 ? ' 00:00' : ''),
-      base64Decode: s => Buffer.from(s, 'base64'), base64Encode: b => Buffer.from(b.length ? 'x' : '').toString('base64'),
+      base64Decode: s => Buffer.from(s, 'base64'), base64Encode: b => (Buffer.isBuffer(b) ? b : Buffer.from(b.length ? 'x' : '')).toString('base64'),
+      getUuid: () => nid('uuid'),
+      unzip: blob => leerZip(blob.getBytes()).map(e => ({ getBytes: () => e.datos, getName: () => e.nombre, getContentType: () => 'application/octet-stream' })),
       newBlob: (bytes, mime, nombre) => ({ getBytes: () => bytes, getContentType: () => mime, getName: () => nombre })
     },
     ScriptApp: {
@@ -155,4 +206,4 @@ function crearEntorno() {
   return { ctx, estado, libro, hoja: libro.hojas[0], archivo, DriveApp };
 }
 
-module.exports = { crearEntorno };
+module.exports = { crearEntorno, crearZip };

@@ -135,6 +135,28 @@ function separarTipos(texto, catalogo) {
 }
 
 /** Reemplaza {variables}. Las variables sin valor quedan visibles para que nadie envíe un correo incompleto sin notarlo. */
+/** Cómo se puede mostrar un archivo en el visor del panel, según su nombre. '' = solo descarga. */
+const TIPOS_VISTA = [[/\.pdf$/i, 'pdf'], [/\.(png|jpe?g|gif|webp)$/i, 'imagen'], [/\.txt$/i, 'texto'], [/\.(docx?|odt|rtf)$/i, 'word'], [/\.zip$/i, 'zip']];
+function tipoVista(nombre) {
+  const n = String(nombre || '');
+  for (let i = 0; i < TIPOS_VISTA.length; i++) if (TIPOS_VISTA[i][0].test(n)) return TIPOS_VISTA[i][1];
+  return '';
+}
+const MIME_POR_EXT = {
+  pdf: 'application/pdf', png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', gif: 'image/gif', webp: 'image/webp', txt: 'text/plain',
+  doc: 'application/msword', docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  odt: 'application/vnd.oasis.opendocument.text', rtf: 'application/rtf', zip: 'application/zip'
+};
+function mimePorNombre(nombre) {
+  const e = (String(nombre || '').match(/\.([a-z0-9]+)$/i) || [])[1];
+  return MIME_POR_EXT[String(e || '').toLowerCase()] || 'application/octet-stream';
+}
+/** Entradas de un ZIP que el visor lista: sin carpetas ni archivos de sistema (macOS, Windows). */
+function entradaZipUtil(nombre) {
+  const n = String(nombre || '');
+  return !!n && !/\/$/.test(n) && !/(^|\/)(__MACOSX\/|\.DS_Store$|Thumbs\.db$|\._)/i.test(n);
+}
+
 /**
  * «por especial encargo …» según cómo esté escrito el nombre del Vicedecano/a en su cuenta:
  * con grado académico → «del Dr. X» (o «de la Dra. X» si el grado es femenino); sin grado → «de X».
@@ -411,7 +433,7 @@ function validarSolicitud(d, ctx) {
 }
 
 if (typeof module !== 'undefined') {
-  module.exports = { encargoDe, requiereVicedecano, normalizarRun, normalizarPasaporte, feriadosDesdeEventos, OCULTOS_AL_ESTUDIANTE, sumarDiasHabiles, recordatorioPendiente, RECORDATORIOS, camposRequeridos,
+  module.exports = { tipoVista, mimePorNombre, entradaZipUtil, encargoDe, requiereVicedecano, normalizarRun, normalizarPasaporte, feriadosDesdeEventos, OCULTOS_AL_ESTUDIANTE, sumarDiasHabiles, recordatorioPendiente, RECORDATORIOS, camposRequeridos,
     ESTADOS, CAMPOS_REQUERIDOS, TIPOS_CATALOGO, NIVELES, ROLES, estadoPorId, esCierre, transicionValida, eventoTransicion,
     normalizarFolio, siguienteFolio, estadoMigrado, separarTipos, rellenar, variablesSinResolver, resolverDestinatarios,
     diasHabilesEntre, necesitaRecordatorio, nivelSuficiente, puedeVerSolicitud, validarCuenta, esSi, listaRoles, validarSolicitud

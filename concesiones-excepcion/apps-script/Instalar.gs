@@ -247,6 +247,7 @@ function diagnostico() {
   leer_(HOJAS.programas).filter(x => esSi(x.activo)).forEach(x => {
     if (!x.correo_direccion) p.push('Programa sin correo de dirección: ' + x.programa);
   });
+  if (typeof Drive === 'undefined') p.push('Servicio avanzado de Drive no activo: el panel no podrá mostrar documentos Word (ver ACTIVACION.md).');
   const par = parametros_();
   if (!par.enlace_rc || par.enlace_rc === 'COMPLETAR') p.push('Falta «enlace_rc» en Parámetros (lo usa el correo «No procede»).');
   const hs = ScriptApp.getProjectTriggers().map(t => t.getHandlerFunction());

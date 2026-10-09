@@ -74,6 +74,9 @@ Al terminar, **recargar el panel** (la lista de analistas para asignar se lee al
    - Revisar `plazo_admisibilidad_dias` (2), `primer_aviso_admisibilidad_dias` (1), `plazo_programa_dias` (2), `plazo_vb_dias` (2), `recordatorio_cada_dias` (2), `recordatorios_max` (3), `max_mb_antecedente` (10),
      `max_solicitudes_dia` (3).
    - En «Cuentas», la del Vicedecano/a debe tener su **nombre** completo: es el que aparece en los correos.
+   - **Visor de Word en el panel:** usa el servicio avanzado de Drive, que `appsscript.json` ya declara y `clasp push` activa. No pide
+     permisos nuevos (usa el de Drive que ya existe). Si el Diagnóstico dice «Servicio avanzado de Drive no activo», en el editor de Apps
+     Script: **Servicios (+) → Drive API → Agregar**, y vuelva a publicar.
 3. **Días hábiles y feriados (automáticos):** los plazos cuentan de lunes a viernes descontando los feriados de Chile, que la plataforma
    obtiene sola del calendario público de feriados de Chile de Google y renueva cada mes (año en curso y siguiente). No se cargan a
    mano. Configuración → «Feriados (automáticos)» muestra los próximos; *CAE → Diagnóstico* indica la fuente o si falló la consulta.

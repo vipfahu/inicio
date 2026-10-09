@@ -231,3 +231,16 @@ test('«por especial encargo»: del + grado, de la + grado femenino, de sin grad
   assert.equal(L.encargoDe('Drago Kusanovic'), 'de Drago Kusanovic'); // nombre que empieza como un grado
   assert.equal(L.encargoDe(''), '');
 });
+
+test('visor: tipo según nombre, MIME y entradas útiles de un ZIP', () => {
+  assert.equal(L.tipoVista('Certificado.PDF'), 'pdf');
+  assert.equal(L.tipoVista('foto.jpeg'), 'imagen');
+  assert.equal(L.tipoVista('carta.docx'), 'word');
+  assert.equal(L.tipoVista('carta.odt'), 'word');
+  assert.equal(L.tipoVista('antecedentes.zip'), 'zip');
+  assert.equal(L.tipoVista('planilla.xlsx'), '');
+  assert.equal(L.mimePorNombre('a/b/carta.DOCX'), 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+  assert.equal(L.mimePorNombre('sin-extension'), 'application/octet-stream');
+  assert.ok(L.entradaZipUtil('docs/certificado.pdf'));
+  ['docs/', '__MACOSX/docs/._certificado.pdf', 'docs/.DS_Store', 'Thumbs.db', ''].forEach(n => assert.ok(!L.entradaZipUtil(n), n));
+});

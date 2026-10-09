@@ -629,3 +629,45 @@ test('actualización: retira vicedecano_nombre y copia el nombre a la cuenta si 
   assert.ok(!tabla(env, 'Parámetros').some(p => p.clave === 'vicedecano_nombre'));
   assert.equal(tabla(env, 'Cuentas').find(c => c.rol === 'Vicedecano/a').nombre, 'Dr. Antiguo Nombre');
 });
+
+test('visor: PDF tal cual, Word convertido a PDF (copia temporal borrada) y ZIP por documento', () => {
+  const { crearZip } = require('./simulador');
+  const env = instalar(preparar());
+  const { ctx, estado } = env;
+  estado.usuario = 'analista.uno@usach.cl';
+  const pdf = Buffer.from('%PDF-1.4 certificado');
+  const docx = Buffer.from('PK-docx-simulado');
+  const zip = crearZip([['docs/', ''], ['docs/certificado.pdf', pdf], ['docs/carta.docx', docx], ['__MACOSX/docs/._carta.docx', 'x'], ['docs/planilla.xlsx', 'xx']]);
+  ctx.api_subirArchivo('05/2026', 'certificado.pdf', 'application/pdf', pdf.toString('base64'), 'otro');
+  ctx.api_subirArchivo('05/2026', 'carta.docx', 'application/octet-stream', docx.toString('base64'), 'otro');
+  ctx.api_subirArchivo('05/2026', 'antecedentes.zip', 'application/zip', zip.toString('base64'), 'otro');
+  const arch = ctx.api_expediente('05/2026').archivos;
+  const id = n => arch.find(a => a.nombre === n).id;
+  assert.deepEqual([...arch.filter(a => a.vista).map(a => a.vista)].sort(), ['pdf', 'word', 'zip']);
+
+  const vp = ctx.api_verArchivo('05/2026', id('certificado.pdf'));
+  assert.equal(vp.tipo, 'pdf');
+  assert.equal(Buffer.from(vp.base64, 'base64').toString(), '%PDF-1.4 certificado');
+
+  const vw = ctx.api_verArchivo('05/2026', id('carta.docx'));
+  assert.equal(vw.tipo, 'pdf'); assert.equal(vw.convertido, true); assert.equal(vw.nombre, 'carta.pdf');
+  assert.equal(estado.convertidos.length, 1);
+  assert.equal(estado.convertidos[0].mime, 'application/vnd.google-apps.document');
+  assert.deepEqual([...estado.borrados], [estado.convertidos[0].id], 'la copia convertida se borra en el acto');
+
+  const lista = ctx.api_verArchivo('05/2026', id('antecedentes.zip'));
+  assert.equal(lista.modo, 'zip');
+  assert.deepEqual([...lista.entradas].map(e => [e.nombre, e.vista]), [['docs/certificado.pdf', 'pdf'], ['docs/carta.docx', 'word'], ['docs/planilla.xlsx', '']]);
+  const e0 = ctx.api_verArchivo('05/2026', id('antecedentes.zip'), 0);
+  assert.equal(e0.nombre, 'certificado.pdf');
+  assert.equal(Buffer.from(e0.base64, 'base64').toString(), '%PDF-1.4 certificado');
+  const e1 = ctx.api_verArchivo('05/2026', id('antecedentes.zip'), 1);
+  assert.equal(e1.tipo, 'pdf'); assert.equal(e1.convertido, true);
+  assert.equal(estado.borrados.length, 2);
+  assert.throws(() => ctx.api_verArchivo('05/2026', id('antecedentes.zip'), 2), /no se puede mostrar/);
+  assert.throws(() => ctx.api_verArchivo('05/2026', id('antecedentes.zip'), 9), /ya no está/);
+
+  assert.throws(() => ctx.api_verArchivo('06/2026', id('certificado.pdf')), /no pertenece a este expediente/);
+  estado.usuario = 'consulta@usach.cl';
+  assert.throws(() => ctx.api_verArchivo('05/2026', id('certificado.pdf')), /nivel requerido/);
+});

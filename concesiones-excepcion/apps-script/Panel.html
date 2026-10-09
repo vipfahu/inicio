@@ -107,7 +107,7 @@
 <div id="fondo"><div id="dlg" role="dialog" aria-modal="true"></div></div>
 <div id="toast" role="status"></div>
 <div id="visor" role="dialog" aria-modal="true" aria-labelledby="v_nombre"><div class="vmarco">
-  <div class="vcab"><b id="v_nombre"></b><button id="v_desc">Descargar</button><button id="v_cerrar" class="prim">Cerrar</button></div>
+  <div class="vcab"><button id="v_volver" style="display:none">← Contenido del ZIP</button><b id="v_nombre"></b><button id="v_desc">Descargar</button><button id="v_cerrar" class="prim">Cerrar</button></div>
   <div id="v_cuerpo"></div>
 </div></div>
 
@@ -282,7 +282,7 @@ function pintarExp() {
     return '<div class="it" style="--c:' + color + '"><div class="meta">' + h(fechaHora(b.fecha)) + ' · ' + h(b.quien) + '</div><div class="tx">' + h(b.texto) + '</div>' +
       (b.evento && b.para ? '<span class="chip">✉ ' + h(b.asunto || b.evento) + ' → ' + h(b.para) + (b.cc ? ' · cc ' + h(b.cc) : '') + (b.editado === 'SÍ' ? ' · texto editado' : '') + '</span>' : '') + '</div>';
   }).join('');
-  const archivos = (e.archivos || []).map(a => '<div style="display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid var(--fila)"><div><div style="font:600 13px Archivo,sans-serif">' + h(a.nombre) + '</div><div class="sub">' + h(a.categoria) + ' · ' + h(a.tamano_mb) + ' MB · ' + fecha(a.fecha) + '</div></div><div style="display:flex;gap:6px;flex-shrink:0">' + (visible(a.nombre) ? '<button class="prim" data-ver="' + h(a.id) + '" data-nombre="' + h(a.nombre) + '">Ver</button>' : '') + '<button data-arch="' + h(a.id) + '">Descargar</button></div></div>').join('') || '<div class="sub">Sin archivos.</div>';
+  const archivos = (e.archivos || []).map(a => '<div style="display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid var(--fila)"><div><div style="font:600 13px Archivo,sans-serif">' + h(a.nombre) + '</div><div class="sub">' + h(a.categoria) + ' · ' + h(a.tamano_mb) + ' MB · ' + fecha(a.fecha) + '</div></div><div style="display:flex;gap:6px;flex-shrink:0">' + (a.vista ? '<button class="prim" data-ver="' + h(a.id) + '" data-nombre="' + h(a.nombre) + '">' + (a.vista === 'zip' ? 'Ver contenido' : 'Ver') + '</button>' : '') + '<button data-arch="' + h(a.id) + '">Descargar</button></div></div>').join('') || '<div class="sub">Sin archivos.</div>';
   const cats = Object.keys(S.ini.categorias).filter(k => k !== 'antecedentes_formulario');
   $('app').innerHTML =
     '<a href="#" id="volver" style="font:600 12px Archivo,sans-serif">← Volver a la bandeja</a>' +
@@ -382,9 +382,8 @@ function guardarArchivo(r) {
   const a = document.createElement('a'); a.href = 'data:' + r.mime + ';base64,' + r.base64; a.download = r.nombre; document.body.appendChild(a); a.click(); a.remove();
 }
 
-/* ── Visor de archivos dentro del panel (PDF, imágenes, texto). El archivo no sale del navegador. ── */
-const VISIBLES = /\.(pdf|png|jpe?g|gif|webp|txt)$/i;
-function visible(nombre) { return VISIBLES.test(String(nombre || '')); }
+/* ── Visor de archivos dentro del panel: PDF, imágenes, texto, Word (convertido a PDF en el servidor) y el contenido de
+   un ZIP, documento por documento. El archivo se dibuja en el navegador; no pasa por servicios externos. ── */
 const PDFJS = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/';
 let pdfjsListo = null;
 function cargarPdfjs() {
@@ -398,46 +397,74 @@ function cargarPdfjs() {
   return pdfjsListo;
 }
 const bytesDe = b64 => Uint8Array.from(atob(b64), c => c.charCodeAt(0));
-let visorN = 0;
-function cerrarVisor() { visorN++; $('visor').classList.remove('abierto'); $('v_cuerpo').innerHTML = ''; }
-function ver(id, nombre) {
-  const n = ++visorN;
-  $('v_nombre').textContent = nombre || 'Archivo';
-  $('v_cuerpo').innerHTML = '<div class="cargando">Cargando archivo…</div>';
+const V = { n: 0, zip: null };   // zip: { id, nombre, entradas } mientras se recorre un ZIP
+function cerrarVisor() { V.n++; V.zip = null; $('visor').classList.remove('abierto'); $('v_cuerpo').innerHTML = ''; }
+function visorCargando(titulo, texto) {
+  $('v_nombre').textContent = titulo;
+  $('v_cuerpo').innerHTML = '<div class="cargando">' + h(texto) + '</div>';
   $('v_desc').disabled = true;
+  $('v_volver').style.display = V.zip ? '' : 'none';
   $('visor').classList.add('abierto');
+}
+function avisoVisor(msj) { $('v_cuerpo').innerHTML = '<div class="aviso a-amb" style="text-align:left;max-width:640px;margin:0 auto">' + h(msj) + '</div>'; }
+/** Abre un archivo del expediente; «entrada» = índice de un documento dentro del ZIP «id». */
+function ver(id, nombre, entrada) {
+  const n = ++V.n, enZip = entrada !== undefined && entrada !== null;
+  if (!enZip) V.zip = null;
+  visorCargando(enZip ? V.zip.nombre + ' › ' + nombre : nombre || 'Archivo', /\.(docx?|odt|rtf)$/i.test(nombre || '') ? 'Convirtiendo a PDF…' : 'Cargando…');
   $('v_cerrar').focus();
-  run('api_descargarArchivo', S.exp.folio, id).then(async r => {
-    if (n !== visorN) return;
+  run('api_verArchivo', S.exp.folio, id, enZip ? entrada : null).then(async r => {
+    if (n !== V.n) return;
     if (r.modo === 'enlace') { cerrarVisor(); window.open(r.url, '_blank'); toast('El archivo supera el máximo para verlo aquí: se abrió en Drive (acceso de lectura registrado en la bitácora)'); return; }
+    if (r.modo === 'zip') return pintarZip(id, r);
     $('v_desc').disabled = false;
     $('v_desc').onclick = () => guardarArchivo(r);
-    const mime = String(r.mime || ''), cuerpo = $('v_cuerpo');
-    if (/pdf/.test(mime) || /\.pdf$/i.test(r.nombre)) {
-      const lib = await cargarPdfjs();
-      // isEvalSupported: false evita que una fuente maliciosa del PDF ejecute código (CVE-2024-4367).
-      const doc = await lib.getDocument({ data: bytesDe(r.base64), isEvalSupported: false }).promise;
-      if (n !== visorN) return;
-      cuerpo.innerHTML = '';
-      const ancho = Math.min(cuerpo.clientWidth - 32, 980), dpr = window.devicePixelRatio || 1;
-      for (let i = 1; i <= doc.numPages; i++) {
-        const pag = await doc.getPage(i);
-        if (n !== visorN) return;
-        const vp = pag.getViewport({ scale: ancho / pag.getViewport({ scale: 1 }).width * dpr });
-        const c = document.createElement('canvas');
-        c.width = vp.width; c.height = vp.height; c.style.width = Math.round(vp.width / dpr) + 'px';
-        c.setAttribute('role', 'img'); c.setAttribute('aria-label', 'Página ' + i + ' de ' + doc.numPages);
-        cuerpo.appendChild(c);
-        await pag.render({ canvasContext: c.getContext('2d'), viewport: vp }).promise;
-      }
-    } else if (/^image\//.test(mime)) {
-      cuerpo.innerHTML = '<img alt="' + h(r.nombre) + '" src="data:' + h(mime) + ';base64,' + r.base64 + '">';
-    } else if (/^text\//.test(mime)) {
-      cuerpo.innerHTML = '<pre>' + h(new TextDecoder().decode(bytesDe(r.base64))) + '</pre>';
-    } else {
-      cuerpo.innerHTML = '<div class="aviso a-amb" style="text-align:left">Este tipo de archivo no se puede mostrar aquí. Use «Descargar».</div>';
+    if (r.convertido) $('v_nombre').textContent += ' (vista en PDF)';
+    await pintarDocumento(r, n);
+  }).catch(e => { if (n === V.n) avisoVisor(e.message || e); });
+}
+function pintarZip(id, r) {
+  V.zip = { id: id, nombre: r.nombre, entradas: r.entradas };
+  $('v_nombre').textContent = r.nombre + ' · ' + r.entradas.length + ' documento(s)';
+  $('v_volver').style.display = 'none';
+  $('v_desc').disabled = false;
+  $('v_desc').onclick = () => descargar(id);
+  $('v_cuerpo').innerHTML = !r.entradas.length ? '<div class="sub">El ZIP está vacío.</div>' :
+    '<div class="tarjeta" style="max-width:760px;margin:0 auto;text-align:left">' + r.entradas.map(e =>
+      '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--fila)"><div style="min-width:0">' +
+      '<div style="font:600 13px Archivo,sans-serif;word-break:break-all">' + h(e.nombre) + '</div><div class="sub">' + (e.mb < 0.01 ? '< 0,01' : h(e.mb)) + ' MB' + (e.vista === 'word' ? ' · se muestra convertido a PDF' : '') + '</div></div>' +
+      (e.vista ? '<button class="prim" data-zent="' + e.i + '">Ver</button>' : '<span class="sub" style="flex-shrink:0">Descargue el ZIP</span>') + '</div>').join('') + '</div>';
+  $('v_cuerpo').querySelectorAll('[data-zent]').forEach(b => b.onclick = () => {
+    const e = V.zip.entradas[b.dataset.zent];
+    ver(V.zip.id, e.nombre.split('/').pop(), e.i);
+  });
+}
+async function pintarDocumento(r, n) {
+  const cuerpo = $('v_cuerpo');
+  if (r.tipo === 'pdf') {
+    const lib = await cargarPdfjs();
+    // isEvalSupported: false evita que una fuente maliciosa del PDF ejecute código (CVE-2024-4367).
+    const doc = await lib.getDocument({ data: bytesDe(r.base64), isEvalSupported: false }).promise;
+    if (n !== V.n) return;
+    cuerpo.innerHTML = '';
+    const ancho = Math.min(cuerpo.clientWidth - 32, 980), dpr = window.devicePixelRatio || 1;
+    for (let i = 1; i <= doc.numPages; i++) {
+      const pag = await doc.getPage(i);
+      if (n !== V.n) return;
+      const vp = pag.getViewport({ scale: ancho / pag.getViewport({ scale: 1 }).width * dpr });
+      const c = document.createElement('canvas');
+      c.width = vp.width; c.height = vp.height; c.style.width = Math.round(vp.width / dpr) + 'px';
+      c.setAttribute('role', 'img'); c.setAttribute('aria-label', 'Página ' + i + ' de ' + doc.numPages);
+      cuerpo.appendChild(c);
+      await pag.render({ canvasContext: c.getContext('2d'), viewport: vp }).promise;
     }
-  }).catch(e => { if (n !== visorN) return; $('v_cuerpo').innerHTML = '<div class="aviso a-amb" style="text-align:left">' + h(e.message || e) + '</div>'; });
+  } else if (r.tipo === 'imagen') {
+    cuerpo.innerHTML = '<img alt="' + h(r.nombre) + '" src="data:' + h(r.mime) + ';base64,' + r.base64 + '">';
+  } else if (r.tipo === 'texto') {
+    cuerpo.innerHTML = '<pre>' + h(new TextDecoder().decode(bytesDe(r.base64))) + '</pre>';
+  } else {
+    avisoVisor('Este tipo de archivo no se puede mostrar aquí. Use «Descargar».');
+  }
 }
 
 /* ── Diálogo de cambio de estado ── */
@@ -663,6 +690,7 @@ function pintarConfig() {
 }
 document.addEventListener('keydown', e => { if (e.key === 'Escape') { if ($('visor').classList.contains('abierto')) cerrarVisor(); else cerrarDlg(); } });
 $('v_cerrar').onclick = cerrarVisor;
+$('v_volver').onclick = () => { if (V.zip) pintarZip(V.zip.id, V.zip); };
 $('visor').onclick = e => { if (e.target === $('visor')) cerrarVisor(); };
 </script>
 </body>

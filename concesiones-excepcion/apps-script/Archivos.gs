@@ -109,3 +109,62 @@ function api_descargarArchivo(folio, archivoId) {
   anexar_(HOJAS.bitacora, { fecha: new Date(), folio: folio, tipo: 'archivo', quien: u.correo, texto: 'Acceso de lectura concedido a «' + f.getName() + '» (supera ' + max + ' MB).' });
   return { modo: 'enlace', url: f.getUrl() };
 }
+
+/** Apps Script no abre blobs de más de 50 MB: hasta aquí un ZIP se lista y se abre por partes en el servidor. */
+const MAX_MB_ZIP = 45;
+
+/**
+ * Visor del panel: devuelve el archivo (o una entrada de un ZIP) listo para mostrarse, sin salir de la plataforma.
+ * - ZIP sin «entrada»: lista su contenido. Con «entrada» (índice de esa lista): devuelve ese documento.
+ * - Word (.doc, .docx, .odt, .rtf): se convierte a PDF en una copia temporal que se borra en el acto.
+ * - Archivos sobre el máximo: mismo camino que «Descargar» (acceso de lectura en Drive, registrado en la bitácora).
+ */
+function api_verArchivo(folio, archivoId, entrada) {
+  const u = requiere_('edicion');
+  const sol = buscarSolicitud_(folio);
+  if (!puedeVerSolicitud(u, sol)) throw new Error('SIN_ACCESO: la solicitud no pertenece a sus programas.');
+  if (!archivosDe_(folio).some(a => a.archivo_id === archivoId)) throw new Error('El archivo no pertenece a este expediente.');
+  const f = DriveApp.getFileById(archivoId);
+  const max = Number(parametros_().max_mb_archivo || 20);
+  let nombre = f.getName();
+  const esZip = tipoVista(nombre) === 'zip';
+  if (f.getSize() / 1048576 > (esZip ? Math.max(max, MAX_MB_ZIP) : max)) return api_descargarArchivo(folio, archivoId);
+  let blob = f.getBlob();
+  if (esZip) {
+    const entradas = Utilities.unzip(blob).filter(b => entradaZipUtil(b.getName()));
+    if (entrada === undefined || entrada === null || entrada === '') {
+      return { modo: 'zip', nombre: nombre, entradas: entradas.map((b, i) => ({
+        i: i, nombre: b.getName(), mb: Math.round(b.getBytes().length / 10485.76) / 100, vista: tipoVista(b.getName()) })) };
+    }
+    const e = entradas[Number(entrada)];
+    if (!e) throw new Error('Ese documento ya no está en el ZIP.');
+    nombre = e.getName();
+    blob = Utilities.newBlob(e.getBytes(), mimePorNombre(nombre), nombre.split('/').pop());
+  }
+  const tipo = tipoVista(nombre);
+  if (!tipo || tipo === 'zip') throw new Error('Este tipo de archivo no se puede mostrar aquí. Use «Descargar».');
+  if (blob.getBytes().length / 1048576 > max) throw new Error('El documento supera ' + max + ' MB; descárguelo para verlo.');
+  if (tipo === 'word') {
+    const pdf = convertirAPdf_(blob, nombre);
+    return { modo: 'ver', tipo: 'pdf', convertido: true, nombre: nombre.split('/').pop().replace(/\.[^.]+$/, '') + '.pdf',
+      mime: 'application/pdf', base64: Utilities.base64Encode(pdf.getBytes()) };
+  }
+  return { modo: 'ver', tipo: tipo, nombre: nombre.split('/').pop(), mime: mimePorNombre(nombre), base64: Utilities.base64Encode(blob.getBytes()) };
+}
+
+/**
+ * Word → PDF con el servicio avanzado de Drive (appsscript.json): se sube una copia convertida a Documento de Google en la
+ * carpeta Temporal, se exporta a PDF y se borra. Si el borrado fallara, la limpieza diaria de Temporal la elimina.
+ */
+function convertirAPdf_(blob, nombre) {
+  if (typeof Drive === 'undefined' || !Drive.Files) throw new Error('Para ver documentos Word falta el servicio avanzado de Drive (ver ACTIVACION.md).');
+  const tmp = Drive.Files.create({ name: 'vista-temporal-' + Utilities.getUuid(), mimeType: 'application/vnd.google-apps.document',
+    parents: [carpetaTemporal_().getId()] }, blob);
+  try {
+    return DriveApp.getFileById(tmp.id).getAs('application/pdf');
+  } catch (e) {
+    throw new Error('No se pudo convertir «' + nombre + '» a PDF: ' + e.message + '. Use «Descargar».');
+  } finally {
+    try { Drive.Files.remove(tmp.id); } catch (e) { try { DriveApp.getFileById(tmp.id).setTrashed(true); } catch (e2) { /* la limpieza diaria lo borra */ } }
+  }
+}

@@ -106,9 +106,12 @@ solo lo muestra, sin campos editables: para cambiarlo se edita esa cuenta, y el 
 Los correos dicen «por especial encargo {encargo_vicedecano}», que se arma según cómo esté escrito ese nombre: con grado académico,
 «del Dr. …» / «del Mg. …» / «del Lic. …» (o «de la Dra. …» si el grado escrito es femenino); sin grado, «de …».
 
-**Archivos del expediente.** PDF, imágenes (PNG, JPG, GIF, WebP) y texto se abren con «Ver» en una ventana dentro del panel; el
-resto se descarga. Los PDF se dibujan con pdf.js (cdnjs, versión fija 3.11.174, con `isEvalSupported: false`), que se carga solo al
-abrir el primer PDF; el contenido del archivo no sale del navegador. Los archivos sobre `max_mb_archivo` siguen abriéndose en Drive.
+**Archivos del expediente.** Con «Ver» se abren en una ventana dentro del panel: PDF, imágenes (PNG, JPG, GIF, WebP), texto y
+Word (.doc, .docx, .odt, .rtf, que el servidor convierte a PDF en una copia temporal de la carpeta «Temporal» y borra en el acto).
+Un ZIP («Ver contenido») muestra la lista de sus documentos y cada uno se abre igual, sin descargar ni descomprimir (hasta 45 MB, el
+límite de Apps Script). El resto se descarga. Los PDF se dibujan con pdf.js (cdnjs, versión fija 3.11.174, con
+`isEvalSupported: false`), que se carga solo al abrir el primer PDF. La conversión de Word usa el servicio avanzado de Drive
+(declarado en `appsscript.json`; el Diagnóstico avisa si no está activo).
 
 **Usuarios.** El panel es solo para el equipo del Vicedecanato (analistas y Vicedecano/a). Las direcciones de programa y Registro Curricular no entran: solo reciben correos.
 
