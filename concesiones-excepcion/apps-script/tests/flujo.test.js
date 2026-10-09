@@ -271,8 +271,12 @@ test('tarea diaria: recordatorios con plazo y aviso de compartición', () => {
   ctx.api_guardarGestion('06/2026', { analista: 'analista.uno@usach.cl' });
   assert.equal(Number(h.datos[g][enc.indexOf('recordatorios')]), 0);
   estado.usuario = '';
-  assert.equal(r[0].to, 'analista.uno@usach.cl', 'recordatorio interno: el seguimiento se hace en STD');
-  assert.ok(!r[0].cc, 'no se escribe a la dirección de programa');
+  assert.match(r[0].to, /^dir\d+@usach\.cl$/, 'el recordatorio va a la dirección de programa');
+  assert.equal(r[0].cc, 'analista.uno@usach.cl', 'con copia a la analista del caso');
+  assert.match(r[0].body, /Estimado\/a Director\/a/);
+  assert.match(r[0].body, /a través del Sistema de Trazabilidad Documental \(STD\)/);
+  assert.match(r[0].body, /El plazo de 2 días hábiles para responder venció el \S+\./);
+  assert.equal(r[0].replyTo, 'analista.uno@usach.cl', 'las respuestas llegan a la analista');
   assert.equal(h.datos[f][enc.indexOf('recordatorios')], 1);
   // El mismo aviso de compartición no se repite
   assert.ok(!estado.correos.slice(n).some(m => /accesos no autorizados/.test(m.subject)));

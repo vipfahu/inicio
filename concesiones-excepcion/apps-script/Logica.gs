@@ -231,7 +231,8 @@ function sumarDiasHabiles(desde, n, feriados) {
  * del primer aviso; `alCumplir` = el aviso sale al cumplirse esos días (si no, al superarlos, es decir, plazo vencido).
  *  - recibida: primer aviso al día hábil siguiente a la recepción (primer_aviso_admisibilidad_dias), antes de que venza
  *    el plazo de admisibilidad (plazo_admisibilidad_dias);
- *  - programa: pronunciamiento del programa pendiente en STD, una vez vencido plazo_programa_dias.
+ *  - programa: pronunciamiento pendiente (solicitado por STD), una vez vencido plazo_programa_dias: a la dirección de
+ *    programa, con copia a la analista.
  */
 const RECORDATORIOS = {
   recibida: { evento: 'recordatorio_admisibilidad', primero: 'primer_aviso_admisibilidad_dias', porDefecto: 1, alCumplir: true },

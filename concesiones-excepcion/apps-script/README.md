@@ -27,7 +27,7 @@ Este directorio no contiene datos personales y no se publica en el sitio (ver `n
 | `Flujo.gs` | Recepción del Formulario, bandeja, expediente, cambios de estado |
 | `Web.gs` | Puntos de entrada web, configuración y seguimiento |
 | `Formulario.gs`, `Solicitud.html` | Formulario web para estudiantes (validación, antecedentes, límite de 3 solicitudes por cuenta al día) |
-| `Diario.gs` | Recordatorios internos (plazo del programa en STD) y control de compartición (08:00) |
+| `Diario.gs` | Recordatorios (admisibilidad y plazo del programa) y control de compartición (08:00) |
 | `Instalar.gs` | Menú «CAE», instalación en dos pasos y diagnóstico |
 | `Panel.html`, `Seguimiento.html` | Panel del equipo y seguimiento del estudiante |
 | `appsscript.json` | Manifiesto (zona horaria, permisos, publicación web) |
@@ -97,7 +97,7 @@ no se borran. La cuenta institucional es administradora fija y no se puede dejar
 
 **Al llegar una solicitud** salen tres correos automáticos: recepción al estudiante; «Nueva solicitud CAE» a **todas las cuentas activas con acceso al panel** (Vicedecano/a, analistas y consulta; no a las de nivel `sin_acceso`, como Registro Curricular); y, si el programa tiene analista en Configuración (y esa persona tiene cuenta activa con rol Analista), «Nueva solicitud CAE asignada» a esa analista. Si el programa no tiene analista, el caso queda «Sin asignar» (filtro en la bandeja) y se asigna desde el expediente; **cada asignación o reasignación envía el aviso a la analista asignada**. Solo se puede asignar a cuentas activas con rol Analista.
 
-**Correos.** Automáticos solo: recepción (estudiante), nueva solicitud (equipo), asignación (analista) y recordatorios internos: de admisibilidad, si el caso sigue «Recibida» al día hábil siguiente a la recepción (`primer_aviso_admisibilidad_dias` = 1; el plazo es `plazo_admisibilidad_dias` = 2), a la analista asignada o, si no hay, a las cuentas con nivel edición o administración, y del programa, cuando vence su plazo en STD (a la analista)
+**Correos.** Automáticos solo: recepción (estudiante), nueva solicitud (equipo), asignación (analista) y recordatorios: de admisibilidad (interno), si el caso sigue «Recibida» al día hábil siguiente a la recepción (`primer_aviso_admisibilidad_dias` = 1; el plazo es `plazo_admisibilidad_dias` = 2), a la analista asignada o, si no hay, a las cuentas con nivel edición o administración, y del programa, cuando vencen los `plazo_programa_dias` (2) días hábiles desde que se registró la solicitud por STD (a la dirección de programa, con copia a la analista; pide responder por el STD)
 (tras el plazo, cada `recordatorio_cada_dias`, hasta `recordatorios_max`). Si uno de ellos no sale, se avisa de inmediato
 por correo a la analista del caso, a la administración y a la cuenta institucional (además de quedar en la bitácora).
 Todo correo dirigido al estudiante (recepción, admisible para análisis, rechazada, no procede, resuelto, negado) lleva el enlace de seguimiento

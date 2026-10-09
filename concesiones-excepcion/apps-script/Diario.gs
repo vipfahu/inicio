@@ -1,7 +1,7 @@
 /**
  * Diario.gs · Tarea diaria (disparador de tiempo, ~08:00).
  *  1. Recordatorios internos por plazo vencido (automáticos, sin confirmación humana): admisibilidad (caso «Recibida» sin
- *     revisión iniciada) y pronunciamiento del programa en STD.
+ *     revisión iniciada) y pronunciamiento del programa vencido (a la dirección de programa, con copia a la analista).
  *  2. Control de compartición: avisa si la planilla o la carpeta de la plataforma tienen accesos no autorizados.
  */
 

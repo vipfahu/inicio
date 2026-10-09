@@ -30,6 +30,8 @@ function variables_(sol, campos, cuentas) {
     plazo_admisibilidad: p.plazo_admisibilidad_dias || 2,
     accion_admisibilidad: sol.analista ? 'abrir la revisión de admisibilidad' : 'asignar analista y abrir la revisión de admisibilidad',
     fecha_recepcion: fechaCorta_(sol.fecha_recepcion),
+    fecha_solicitud_programa: sol.estado === 'programa' ? fechaCorta_(sol.estado_desde) : '',
+    vence_programa: sol.estado === 'programa' && sol.estado_desde ? fechaCorta_(sumarDiasHabiles(new Date(sol.estado_desde), Number(p.plazo_programa_dias || 2), feriados_())) : '',
     vence_admisibilidad: sol.fecha_recepcion ? fechaCorta_(sumarDiasHabiles(new Date(sol.fecha_recepcion), Number(p.plazo_admisibilidad_dias || 2), feriados_())) : '',
     enlace_rc: p.enlace_rc && p.enlace_rc !== 'COMPLETAR' ? p.enlace_rc : '',
     enlace: urlPanel_() ? urlPanel_() + '?v=seguimiento' : '',
