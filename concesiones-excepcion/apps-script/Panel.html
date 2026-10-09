@@ -339,7 +339,7 @@ function panelGestion(e, edita) {
     const txt = s.id === 'programa' ? (e.estado === 'vb' ? 'Registrar devolución al programa (vía STD) con observación' : 'Registrar solicitud de pronunciamiento al programa (vía STD)')
       : e.estado === 'vb' && s.id === 'resolucion' ? 'V°B° · CAE admisible: sigue a Registro Curricular (STD)'
       : e.estado === 'vb' && s.id === 'rechazo_vb' ? 'V°B° · CAE rechazada: sigue a Registro Curricular (STD)'
-      : s.id === 'resuelto' || s.id === 'negado' ? 'Registrar resolución de Registro Curricular → ' + s.etiqueta
+      : s.id === 'resuelto' || s.id === 'negado' ? 'Registrar resolución a Registro Curricular → ' + s.etiqueta
       : s.etiqueta;
     const sinStd = s.id === 'informe_rc' && !String(e.n_std || '').trim();
     return (sinStd ? '<div class="aviso a-amb" style="margin-bottom:6px;white-space:normal">Para pasar a Informe de Registro Curricular, registre el <b>N° STD</b> (más abajo) y presione «Guardar cambios».</div>' : '') +
