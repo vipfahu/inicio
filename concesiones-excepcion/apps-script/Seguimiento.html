@@ -51,29 +51,24 @@
 <script>
 const h = s => String(s === null || s === undefined ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const fecha = iso => { if (!iso) return ''; const d = new Date(iso); return isNaN(d) ? '' : ('0' + d.getDate()).slice(-2) + '.' + ('0' + (d.getMonth() + 1)).slice(-2) + '.' + d.getFullYear(); };
-const RUTA = ['recibida', 'revision', 'informe_rc', 'vb_informe', 'programa', 'vb', 'aceptada', 'resolucion', 'resuelto'];
-const CIERRES = ['rechazada', 'no_procede', 'negado'];
+const RUTA = ['recibida', 'revision', 'aceptada', 'informe_rc', 'programa', 'vb', 'resolucion', 'resuelto'];
+const CIERRE = { rechazada: 'revision', no_procede: 'revision', negado: 'resolucion' };
+const RUTA_RECHAZO = ['rechazo_vb', 'negado']; // CAE rechazada en el V°B°: sigue a Registro Curricular y cierra como Negado
 const DETALLE = {
-  recibida: 'Confirmación enviada a su correo. Pendiente de la autorización de inicio del Vicedecanato.',
-  revision: 'Análisis de la solicitud y, si corresponde, solicitud de antecedentes.',
-  informe_rc: 'Registro Curricular emite el informe académico.', vb_informe: 'Revisión del informe por el Vicedecanato.',
-  programa: 'El programa se pronuncia sobre la solicitud.', vb: 'Decisión del Vicedecano/a sobre la solicitud.',
-  aceptada: 'Presentación aceptada tras el informe académico y el pronunciamiento del programa.',
-  resolucion: 'La resolución se encuentra en firma y tramitación.', resuelto: 'La resolución fue notificada a su correo.',
-  rechazada: 'Se le notificó el motivo a su correo.', no_procede: 'El trámite corresponde a la plataforma de Registro Curricular.',
-  negado: 'La resolución fue notificada a su correo.'
+  recibida: 'Confirmación enviada a su correo.', revision: 'Se evalúa la admisibilidad de la presentación.',
+  aceptada: 'Su solicitud cumple los requisitos para ser analizada. Aún no hay una resolución sobre lo solicitado.', informe_rc: 'Registro Curricular emite el informe académico.',
+  programa: 'Se solicitó al programa su pronunciamiento a través del STD (Sistema de Trazabilidad Documental); el Comité del programa se pronuncia sobre la solicitud.',
+  vb: 'Revisión del Vicedecanato a la propuesta del Comité.', resolucion: 'Su CAE fue declarada admisible. Registro Curricular elabora la resolución y se la enviará.', rechazo_vb: 'Su CAE no fue acogida. Registro Curricular elabora la resolución y se la enviará.',
+  resuelto: 'Registro Curricular emitió la resolución.', rechazada: 'Se le notificó el motivo a su correo.',
+  no_procede: 'El trámite corresponde a la plataforma de Registro Curricular.', negado: 'Registro Curricular emitió la resolución.'
 };
 function pasos(s, estados) {
   const etq = id => (estados.find(e => e.id === id) || {}).etiqueta || id;
   const fechaDe = id => { const x = s.hitos.filter(b => b.estado === id).pop(); return x ? fecha(x.fecha) : ''; };
   let ruta = RUTA.slice(), actual = s.estado, negativo = false;
-  if (CIERRES.indexOf(s.estado) >= 0) {
-    // Se corta la ruta en la última etapa registrada antes del cierre (o según el tipo de cierre si no hay registro).
-    const previos = s.hitos.map(b => b.estado).filter(id => RUTA.indexOf(id) >= 0);
-    const ultimo = previos.length ? previos[previos.length - 1] : (s.estado === 'negado' ? 'resolucion' : 'recibida');
-    ruta = RUTA.slice(0, RUTA.indexOf(ultimo) + 1).concat([s.estado]);
-    negativo = true;
-  }
+  const porRechazo = s.estado === 'rechazo_vb' || (s.estado === 'negado' && s.hitos.some(b => b.estado === 'rechazo_vb'));
+  if (porRechazo) { ruta = RUTA.slice(0, RUTA.indexOf('vb') + 1).concat(RUTA_RECHAZO); negativo = true; }
+  else if (CIERRE[s.estado]) { ruta = RUTA.slice(0, RUTA.indexOf(CIERRE[s.estado]) + 1).concat([s.estado]); negativo = true; }
   const idx = ruta.indexOf(actual);
   return ruta.map((id, i) => {
     const hecho = i < idx, cur = i === idx;
@@ -87,7 +82,7 @@ google.script.run.withSuccessHandler(r => {
   if (!r.identidad) { app.innerHTML = '<div class="tarjeta">Ingrese con su cuenta <b>@usach.cl</b> para ver sus solicitudes.</div>'; return; }
   if (!r.solicitudes.length) { app.innerHTML = '<div class="tarjeta">No hay solicitudes asociadas a <b>' + h(r.correo) + '</b>. Si envió una solicitud con otra cuenta, ingrese con esa cuenta.</div>'; return; }
   app.innerHTML = r.solicitudes.slice().reverse().map(s => {
-    const neg = ['rechazada', 'no_procede', 'negado'].indexOf(s.estado) >= 0, ok = s.estado === 'resuelto';
+    const neg = ['rechazada', 'no_procede', 'negado', 'rechazo_vb'].indexOf(s.estado) >= 0, ok = s.estado === 'resuelto';
     const pill = neg ? 'color:#8A3D2E;background:#F9EDE9' : ok ? 'color:#2F6B4F;background:#E7F3EB' : 'color:#007E80;background:#E4F2F2';
     return '<div class="tarjeta"><div style="font:600 12px IBM Plex Mono,monospace;color:#8A8272">Folio ' + h(s.folio) + ' · recibida ' + fecha(s.fecha_recepcion) + '</div>' +
       '<div style="font:800 18px Archivo,sans-serif;margin:4px 0">' + h(s.tipo || 'Solicitud CAE') + '</div><div class="sub">' + h(s.programa) + ' · ' + h(s.semestre) + ' ' + h(s.anio) + '</div>' +

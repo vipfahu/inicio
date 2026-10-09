@@ -23,16 +23,25 @@ function variables_(sol, campos, cuentas) {
     std: campos.n_std || sol.n_std || '',
     vicedecano: p.vicedecano_nombre,
     motivo: campos.motivo || sol.motivo || '',
-    observacion: campos.observacion || sol.obs_vicedecano || 'sin observaciones',
-    decision: campos.decision || '',
-    siguiente_paso: campos.siguiente_paso || '',
+    observacion: campos.observacion || sol.obs_vicedecano || '',
     propuesta_comite: campos.propuesta_comite || sol.propuesta_comite || '',
     resolucion: campos.resolucion || sol.resolucion || '',
     plazo: p.plazo_programa_dias,
+    plazo_admisibilidad: p.plazo_admisibilidad_dias || 2,
+    accion_admisibilidad: sol.analista ? 'abrir la revisión de admisibilidad' : 'asignar analista y abrir la revisión de admisibilidad',
+    fecha_recepcion: fechaCorta_(sol.fecha_recepcion),
+    fecha_solicitud_programa: sol.estado === 'programa' ? fechaCorta_(sol.estado_desde) : '',
+    vence_programa: sol.estado === 'programa' && sol.estado_desde ? fechaCorta_(sumarDiasHabiles(new Date(sol.estado_desde), Number(p.plazo_programa_dias || 2), feriados_())) : '',
+    vence_admisibilidad: sol.fecha_recepcion ? fechaCorta_(sumarDiasHabiles(new Date(sol.fecha_recepcion), Number(p.plazo_admisibilidad_dias || 2), feriados_())) : '',
     enlace_rc: p.enlace_rc && p.enlace_rc !== 'COMPLETAR' ? p.enlace_rc : '',
     enlace: urlPanel_() ? urlPanel_() + '?v=seguimiento' : '',
     enlace_panel: urlPanel_() ? urlPanel_() + '?folio=' + encodeURIComponent(sol.folio) : ''
   };
+}
+
+function fechaCorta_(f) {
+  const d = f ? new Date(f) : null;
+  return d && !isNaN(d) ? Utilities.formatDate(d, Session.getScriptTimeZone(), 'dd-MM-yyyy') : '';
 }
 
 function plantilla_(evento) {
@@ -55,7 +64,6 @@ function componer_(evento, sol, campos) {
     para: dest.para,
     cc: dest.cc,
     faltantes: dest.faltantes,
-    omitidos: dest.omitidos,
     asunto: rellenar(t.asunto, v),
     cuerpo: rellenar(t.cuerpo, v),
     replyTo: sol.analista || ''

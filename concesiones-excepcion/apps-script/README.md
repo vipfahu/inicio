@@ -27,7 +27,7 @@ Este directorio no contiene datos personales y no se publica en el sitio (ver `n
 | `Flujo.gs` | Recepción del Formulario, bandeja, expediente, cambios de estado |
 | `Web.gs` | Puntos de entrada web, configuración y seguimiento |
 | `Formulario.gs`, `Solicitud.html` | Formulario web para estudiantes (validación, antecedentes, límite de 3 solicitudes por cuenta al día) |
-| `Diario.gs` | Recordatorios internos (plazo del programa en STD) y control de compartición (08:00) |
+| `Diario.gs` | Recordatorios (admisibilidad y plazo del programa) y control de compartición (08:00) |
 | `Instalar.gs` | Menú «CAE», instalación en dos pasos y diagnóstico |
 | `Panel.html`, `Seguimiento.html` | Panel del equipo y seguimiento del estudiante |
 | `appsscript.json` | Manifiesto (zona horaria, permisos, publicación web) |
@@ -89,20 +89,21 @@ se ingresa con Google. Niveles: `sin_acceso` (solo recibe correos) · `consulta`
 Cada llamada del panel vuelve a leer la matriz, así que un cambio rige en la siguiente acción de esa persona. Las cuentas se desactivan,
 no se borran. La cuenta institucional es administradora fija y no se puede dejar el sistema sin otra administración activa.
 
-**Flujo.** Recibida → (Vicedecano/a autoriza el inicio) → En análisis y solicitud de antecedentes → Informe académico de Registro
-Curricular → V°B° al informe → Pronunciamiento del programa (vía STD, sin correo) → la analista solicita la decisión → Decisión del
-Vicedecano/a (autoriza, rechaza o devuelve al programa; aviso interno a la analista) → la analista comunica al estudiante →
-Presentación aceptada / Rechazada → Resolución en trámite → Resuelto / Negado. La autorización de inicio y la decisión final son
-exclusivas de cuentas con rol Vicedecano/a; la comunicación al estudiante la hace la analista.
+**Flujo.** Recibida → En revisión de admisibilidad → Admisible para análisis / Rechazada / No procede → Informe de Registro Curricular
+→ Pronunciamiento del programa (solicitado vía STD; la plataforma solo registra el estado, sin correo) → V°B° a la respuesta del Comité
+(o devolución al programa vía STD, con observación) → decisión del V°B°: CAE admisible o CAE rechazada (ambas siguen a Registro
+Curricular por STD, que elabora y distribuye la resolución; correo al estudiante con el estado y el aviso de que la resolución está en
+elaboración) → Resuelto / Negado (sin correo). Al cerrar (Resuelto / Negado) se anota N° y fecha de la resolución y se puede cargar
+su archivo, que queda en el expediente con la categoría «Resolución».
 
 **Usuarios.** El panel es solo para el equipo del Vicedecanato (analistas y Vicedecano/a). Las direcciones de programa y Registro Curricular no entran: solo reciben correos.
 
 **Al llegar una solicitud** salen tres correos automáticos: recepción al estudiante; «Nueva solicitud CAE» a **todas las cuentas activas con acceso al panel** (Vicedecano/a, analistas y consulta; no a las de nivel `sin_acceso`, como Registro Curricular); y, si el programa tiene analista en Configuración (y esa persona tiene cuenta activa con rol Analista), «Nueva solicitud CAE asignada» a esa analista. Si el programa no tiene analista, el caso queda «Sin asignar» (filtro en la bandeja) y se asigna desde el expediente; **cada asignación o reasignación envía el aviso a la analista asignada**. Solo se puede asignar a cuentas activas con rol Analista.
 
-**Correos.** Automáticos solo: recepción (estudiante), nueva solicitud (equipo), asignación (analista) y recordatorio interno a la analista cuando vence el plazo del programa en STD
-(`plazo_programa_dias`, luego cada `recordatorio_cada_dias`, hasta `recordatorios_max`). Si uno de ellos no sale, se avisa de inmediato
+**Correos.** Automáticos solo: recepción (estudiante), nueva solicitud (equipo), asignación (analista) y recordatorios: de admisibilidad (interno), si el caso sigue «Recibida» al día hábil siguiente a la recepción (`primer_aviso_admisibilidad_dias` = 1; el plazo es `plazo_admisibilidad_dias` = 2), a la analista asignada o, si no hay, a las cuentas con nivel edición o administración, y del programa, cuando vencen los `plazo_programa_dias` (2) días hábiles desde que se registró la solicitud por STD (a la dirección de programa, con copia a la analista; pide responder por el STD)
+(tras el plazo, cada `recordatorio_cada_dias`, hasta `recordatorios_max`). Si uno de ellos no sale, se avisa de inmediato
 por correo a la analista del caso, a la administración y a la cuenta institucional (además de quedar en la bitácora).
-Todo correo dirigido al estudiante (recepción, aceptada, rechazada, no procede, resuelto, negado) lleva el enlace de seguimiento
+Todo correo dirigido al estudiante (recepción, admisible para análisis, rechazada, no procede, CAE admisible, CAE rechazada) lleva el enlace de seguimiento
 `URL?v=seguimiento`; el estudiante ve sus casos ingresando con la cuenta USACH con que envió el formulario. Todo otro correo sale al cambiar de estado
 en el panel, tras una vista previa editable; si falta un destinatario o una variable (por ejemplo `{std}`), no se envía; si el envío
 falla, el estado no cambia. Los destinatarios son roles que se traducen al enviar:

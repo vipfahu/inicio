@@ -318,6 +318,20 @@ function actualizarSiCorresponde_() {
 /** Pone la planilla al día con el código vigente. No muestra nada: devuelve la lista de cambios. */
 function aplicarActualizacion_() {
   const cambios = [];
+  // Casos en estados que el flujo vigente ya no tiene (p. ej., tras volver a una versión anterior): se llevan al estado
+  // equivalente y se marcan «Por revisar» para que el equipo confirme el paso siguiente. No se envía ningún correo.
+  const equivalente = { autorizada: 'vb', denegada_vb: 'vb', vb_informe: 'informe_rc' };
+  if (libro_().getSheetByName(HOJAS.solicitudes)) {
+    const huerfanos = leer_(HOJAS.solicitudes).filter(x => x.estado && !estadoPorId(x.estado));
+    huerfanos.forEach(x => {
+      const nuevo = equivalente[x.estado] || 'recibida';
+      actualizar_(HOJAS.solicitudes, x._fila, {
+        estado: nuevo, revisar: 'SÍ',
+        nota_migracion: [x.nota_migracion, 'Estado «' + x.estado + '» no existe en el flujo vigente; se llevó a «' + nuevo + '».'].filter(Boolean).join(' ')
+      });
+    });
+    if (huerfanos.length) cambios.push('Casos llevados a un estado vigente y marcados por revisar: ' + huerfanos.map(x => x.folio).join(', '));
+  }
   Object.keys(COLUMNAS).forEach(n => {
     const h = asegurarHoja_(n);
     const enc = encabezados_(n);

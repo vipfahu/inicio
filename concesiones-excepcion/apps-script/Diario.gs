@@ -1,6 +1,7 @@
 /**
  * Diario.gs · Tarea diaria (disparador de tiempo, ~08:00).
- *  1. Recordatorios al programa cuando vence el plazo (única excepción a «todo correo pasa por confirmación humana»).
+ *  1. Recordatorios internos por plazo vencido (automáticos, sin confirmación humana): admisibilidad (caso «Recibida» sin
+ *     revisión iniciada) y pronunciamiento del programa vencido (a la dirección de programa, con copia a la analista).
  *  2. Control de compartición: avisa si la planilla o la carpeta de la plataforma tienen accesos no autorizados.
  */
 
@@ -18,8 +19,9 @@ function enviarRecordatorios_() {
   const hoy = new Date();
   const fer = feriados_();
   leer_(HOJAS.solicitudes).forEach(s => {
-    if (!necesitaRecordatorio(s, hoy, p, fer)) return;
-    if (enviarAutomatico_('recordatorio', s)) {
+    const evento = recordatorioPendiente(s, hoy, p, fer);
+    if (!evento) return;
+    if (enviarAutomatico_(evento, s)) {
       actualizar_(HOJAS.solicitudes, s._fila, { recordatorios: Number(s.recordatorios || 0) + 1, ultimo_recordatorio: hoy });
     }
   });

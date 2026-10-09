@@ -7,25 +7,20 @@ const L = require('../Logica.gs');
 test('transiciones: solo las declaradas', () => {
   assert.ok(L.transicionValida('recibida', 'revision'));
   assert.ok(!L.transicionValida('recibida', 'resuelto'));
-  assert.ok(L.transicionValida('informe_rc', 'vb_informe'));
+  assert.ok(L.transicionValida('informe_rc', 'programa'), 'la analista registra directo el envío al programa');
+  assert.ok(!L.transicionValida('informe_rc', 'vb_informe'), 'ya no existe el V°B° al informe');
   assert.ok(!L.transicionValida('resuelto', 'revision'));
   assert.ok(L.esCierre('negado') && !L.esCierre('vb'));
 });
 
-test('eventos: el programa va por STD (sin correo); las decisiones avisan a la analista', () => {
-  assert.equal(L.eventoTransicion('vb', 'programa'), 'decision');
-  assert.equal(L.eventoTransicion('vb_informe', 'programa'), '');
-  assert.equal(L.eventoTransicion('vb', 'autorizada'), 'decision');
-  assert.equal(L.eventoTransicion('autorizada', 'aceptada'), 'aceptada');
-  assert.deepEqual([...L.camposRequeridos('vb', 'denegada_vb')], ['observacion']);
-  assert.deepEqual([...L.camposRequeridos('vb', 'autorizada')], []);
-  assert.ok(!L.transicionValida('vb', 'aceptada'), 'el estudiante solo se entera cuando la analista comunica');
-  assert.equal(L.eventoTransicion('revision', 'informe_rc'), '');
-  assert.equal(L.eventoTransicion('recibida', 'revision'), 'inicio_autorizado');
-  // La presentación solo se acepta después del informe y del programa (desde el V°B°)
-  assert.ok(!L.transicionValida('revision', 'aceptada'));
-  assert.ok(L.transicionValida('vb', 'autorizada') && L.transicionValida('autorizada', 'aceptada'));
-  assert.deepEqual([...L.DECIDE_VICEDECANO], ['recibida', 'vb']);
+test('el programa se consulta por STD: registrar el envío o la devolución no genera correo', () => {
+  assert.equal(L.eventoTransicion('informe_rc', 'programa'), '');
+  assert.equal(L.eventoTransicion('vb', 'programa'), '');
+  assert.deepEqual([...L.camposRequeridos('vb', 'programa')], ['observacion']);
+  assert.deepEqual([...L.camposRequeridos('informe_rc', 'programa')], []);
+  assert.deepEqual([...L.camposRequeridos('revision', 'rechazada')], ['motivo']);
+  assert.equal(L.eventoTransicion('revision', 'aceptada'), 'aceptada');
+  assert.equal(L.eventoTransicion('aceptada', 'informe_rc'), '');
 });
 
 test('folios: normalización y correlativo', () => {
@@ -103,6 +98,33 @@ test('recordatorios: tras vencer el plazo, cada N días hábiles, hasta el máxi
   assert.ok(L.necesitaRecordatorio(uno, new Date(2026, 9, 12), p, []));
   assert.ok(!L.necesitaRecordatorio({ ...uno, recordatorios: 3 }, new Date(2026, 9, 30), p, []));
   assert.ok(!L.necesitaRecordatorio({ ...base, estado: 'vb' }, new Date(2026, 9, 30), p, []));
+});
+
+test('recordatorio de admisibilidad: primer aviso al día hábil siguiente a la recepción', () => {
+  const p = { plazo_admisibilidad_dias: 2, primer_aviso_admisibilidad_dias: 1, plazo_programa_dias: 2, recordatorio_cada_dias: 2, recordatorios_max: 3 };
+  const base = { estado: 'recibida', estado_desde: new Date(2026, 9, 5, 15, 0), recordatorios: 0 }; // lun 05-10, 15:00
+  assert.equal(L.recordatorioPendiente(base, new Date(2026, 9, 5, 18, 0), p, []), '', 'el mismo día no');
+  assert.equal(L.recordatorioPendiente(base, new Date(2026, 9, 6, 8, 0), p, []), 'recordatorio_admisibilidad', 'mar 08:00: primer aviso');
+  const viernes = { ...base, estado_desde: new Date(2026, 9, 9, 10, 0) };
+  assert.equal(L.recordatorioPendiente(viernes, new Date(2026, 9, 10, 8, 0), p, []), '', 'sábado no cuenta');
+  assert.equal(L.recordatorioPendiente(viernes, new Date(2026, 9, 12, 8, 0), p, []), 'recordatorio_admisibilidad', 'lunes siguiente');
+  const uno = { ...base, recordatorios: 1, ultimo_recordatorio: new Date(2026, 9, 6, 8, 0) };
+  assert.equal(L.recordatorioPendiente(uno, new Date(2026, 9, 7, 8, 0), p, []), '');
+  assert.equal(L.recordatorioPendiente(uno, new Date(2026, 9, 8, 8, 0), p, []), 'recordatorio_admisibilidad', 'luego cada 2 días hábiles');
+  assert.equal(L.recordatorioPendiente(base, new Date(2026, 9, 6, 8, 0), { ...p, primer_aviso_admisibilidad_dias: '' }, []), 'recordatorio_admisibilidad', 'por defecto, 1 día');
+  // vence el plazo de 2 días hábiles: lun 05-10 → mié 07-10; con feriado el 06 → jue 08-10
+  assert.equal(L.sumarDiasHabiles(new Date(2026, 9, 5), 2, []).getDate(), 7);
+  assert.equal(L.sumarDiasHabiles(new Date(2026, 9, 5), 2, ['2026-10-06']).getDate(), 8);
+  assert.equal(L.recordatorioPendiente({ ...base, estado: 'revision' }, new Date(2026, 9, 30), p, []), '', 'abierta la revisión, no hay recordatorio');
+  assert.equal(L.recordatorioPendiente({ ...base, estado: 'programa' }, new Date(2026, 9, 8), p, []), 'recordatorio');
+  assert.equal(L.recordatorioPendiente(base, new Date(2026, 9, 8), { ...p, recordatorios_max: 0 }, []), '');
+});
+
+test('destinatario «Analista o equipo»: la asignada, o quienes pueden asignar', () => {
+  const sinAnalista = L.resolverDestinatarios('Analista o equipo', '', { solicitud: { ...sol, analista: '' }, cuentas, programas });
+  assert.deepEqual(sinAnalista.para, ['analista.a@usach.cl', 'vice@usach.cl']);
+  const conAnalista = L.resolverDestinatarios('Analista o equipo', '', { solicitud: sol, cuentas, programas });
+  assert.deepEqual(conAnalista.para, ['analista.a@usach.cl']);
 });
 
 test('niveles y alcance por programa', () => {
