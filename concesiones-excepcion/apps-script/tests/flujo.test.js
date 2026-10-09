@@ -173,7 +173,7 @@ test('resolución: CAE admisible y CAE rechazada solo cambian el estado que ve e
     assert.equal(pv.conCorreo, false);
     assert.deepEqual([...pv.requeridos], []);
     assert.match(pv.haciaEtiqueta, etiqueta);
-    assert.match(pv.haciaEtiqueta, /Registro Curricular/);
+    assert.match(pv.haciaEtiqueta, /resolución en tramitación/);
     const antes = estado.correos.length;
     ctx.api_cambiarEstado(folio, hacia, {});
     assert.equal(estado.correos.length, antes, 'no se escribe al estudiante ni a Registro Curricular');

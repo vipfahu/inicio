@@ -16,8 +16,8 @@ const ESTADOS = [
   // Decisión del V°B°: CAE admisible o CAE rechazada (ambas siguen a Registro Curricular por STD, que elabora y envía la
   // resolución), o devolución al programa. En la fase de resolución no hay correos: solo cambia el estado que ve el estudiante.
   { id: 'vb',         etiqueta: 'V°B° Vicedecano/a a respuesta del Comité',  fase: 'Tramitación',   correo: 'vb',         siguientes: ['resolucion', 'rechazo_vb', 'programa'] },
-  { id: 'resolucion', etiqueta: 'CAE admisible · resolución en Registro Curricular', fase: 'Resolución', correo: '', siguientes: ['resuelto', 'negado'] },
-  { id: 'rechazo_vb', etiqueta: 'CAE rechazada · resolución en Registro Curricular', fase: 'Resolución', correo: '', siguientes: ['negado'] },
+  { id: 'resolucion', etiqueta: 'CAE admisible · resolución en tramitación', fase: 'Resolución', correo: '', siguientes: ['resuelto', 'negado'] },
+  { id: 'rechazo_vb', etiqueta: 'CAE rechazada · resolución en tramitación', fase: 'Resolución', correo: '', siguientes: ['negado'] },
   { id: 'resuelto',   etiqueta: 'Resuelto',                                  fase: 'Cierre',        correo: '',           siguientes: [] },
   { id: 'rechazada',  etiqueta: 'Presentación rechazada',                    fase: 'Cierre',        correo: 'rechazada',  siguientes: [] },
   { id: 'no_procede', etiqueta: 'No procede · vía Registro Curricular',      fase: 'Cierre',        correo: 'no_procede', siguientes: [] },
