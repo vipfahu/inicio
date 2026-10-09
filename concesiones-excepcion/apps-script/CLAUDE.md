@@ -12,7 +12,8 @@ nuevo (una corrección o un enfoque confirmado), agregar o actualizar la nota co
   la planilla (que incluye datos de salud). Las pruebas usan solo datos sintéticos.
 - No cambiar permisos de compartición de la planilla ni de la carpeta «Plataforma CAE · NO COMPARTIR» sin pedirlo explícitamente.
 - No guardar credenciales en el repositorio. `.clasp.json` y `.despliegue.json` son locales (están en `.gitignore`).
-- Trabajar en la rama `claude/github-claude-app-setup-hztxq1`; no abrir PR salvo que se pida.
+- Trabajar directamente en `main` (pedido de la persona, 2026-10-09): commits y push a `main`; no abrir PR salvo que se pida.
+  La rama `claude/github-claude-app-setup-hztxq1` quedó solo como historial.
 - Funciones terminadas en `_` son privadas; toda `api_*` debe empezar con `requiere_(nivel)`, `soloSistema_()` o `soloDuenia_()`.
 - Un `.gs` y un `.html` no pueden compartir nombre (lo verifica una prueba).
 
