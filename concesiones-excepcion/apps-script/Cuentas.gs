@@ -107,3 +107,47 @@ function api_avisarCuenta(correo) {
   registrarCuenta_(u.correo, 'Aviso de acceso enviado a ' + c.correo);
   return { ok: true };
 }
+
+/** Datos del Vicedecano/a: nombre que aparece en los correos y cuenta activa con ese rol. */
+function api_vicedecano() {
+  requiere_('administracion');
+  const c = leer_(HOJAS.cuentas).find(x => x.rol === 'Vicedecano/a' && esSi(x.activo));
+  return { nombre: parametros_().vicedecano_nombre || (c && c.nombre) || '', correo: c ? String(c.correo).toLowerCase() : '' };
+}
+
+/**
+ * Cambia nombre y/o correo del Vicedecano/a. El nombre se actualiza en el parámetro vicedecano_nombre (correos) y en su cuenta.
+ * Si cambia el correo, se crea (o reactiva) la cuenta nueva con rol Vicedecano/a y el mismo nivel, y la anterior queda desactivada
+ * (no se borra: la bitácora la referencia).
+ */
+function api_guardarVicedecano(nombre, correo) {
+  const u = requiere_('administracion');
+  nombre = String(nombre || '').trim();
+  correo = String(correo || '').trim().toLowerCase();
+  if (!nombre) throw new Error('Falta el nombre del Vicedecano/a.');
+  if (!/@usach\.cl$/.test(correo)) throw new Error('El correo del Vicedecano/a debe ser @usach.cl.');
+  const lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try {
+    const cuentas = leer_(HOJAS.cuentas);
+    const actual = cuentas.find(x => x.rol === 'Vicedecano/a' && esSi(x.activo));
+    const destino = cuentas.find(x => String(x.correo).toLowerCase() === correo);
+    const nivel = actual ? actual.nivel : 'administracion';
+    if (destino) {
+      actualizar_(HOJAS.cuentas, destino._fila, { nombre: nombre, rol: 'Vicedecano/a', nivel: destino.nivel === 'administracion' ? 'administracion' : nivel, activo: 'SÍ' });
+    } else {
+      anexar_(HOJAS.cuentas, { correo: correo, nombre: nombre, rol: 'Vicedecano/a', nivel: nivel, programas: 'todos', activo: 'SÍ',
+        recibe_eventos: '', creada_por: u.correo, creada_en: new Date(), notas: 'Creada al cambiar el correo del Vicedecano/a' });
+    }
+    if (actual && String(actual.correo).toLowerCase() !== correo) {
+      actualizar_(HOJAS.cuentas, actual._fila, { activo: 'NO', notas: [actual.notas, 'Reemplazada como Vicedecano/a por ' + correo].filter(Boolean).join(' · ') });
+    }
+    const par = leer_(HOJAS.parametros).find(p => p.clave === 'vicedecano_nombre');
+    if (par) actualizar_(HOJAS.parametros, par._fila, { valor: nombre });
+    else anexar_(HOJAS.parametros, { clave: 'vicedecano_nombre', valor: nombre, descripcion: 'Nombre que aparece en los correos ({vicedecano}).' });
+    registrarCuenta_(u.correo, 'Vicedecano/a: ' + (actual ? actual.nombre + ' <' + actual.correo + '>' : '(sin cuenta)') + ' → ' + nombre + ' <' + correo + '>');
+  } finally {
+    lock.releaseLock();
+  }
+  return { ok: true };
+}

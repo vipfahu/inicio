@@ -271,8 +271,14 @@ function sumarDiasHabiles(desde, n, feriados) {
  */
 const RECORDATORIOS = {
   recibida: { evento: 'recordatorio_admisibilidad', primero: 'primer_aviso_admisibilidad_dias', porDefecto: 1, alCumplir: true },
-  programa: { evento: 'recordatorio', primero: 'plazo_programa_dias', porDefecto: 2, alCumplir: false }
+  programa: { evento: 'recordatorio', primero: 'plazo_programa_dias', porDefecto: 2, alCumplir: false },
+  vb: { evento: 'recordatorio_vb', primero: 'plazo_vb_dias', porDefecto: 2, alCumplir: false }
 };
+
+/** Las salidas del V°B° (admisible, rechazada, devolución) las registra solo el Vicedecano/a, salvo V°B° dado por otro medio. */
+function requiereVicedecano(desde) {
+  return desde === 'vb';
+}
 
 /** Evento de recordatorio que corresponde enviar hoy, o '' si ninguno. */
 function recordatorioPendiente(sol, hoy, p, feriados) {
@@ -389,7 +395,7 @@ function validarSolicitud(d, ctx) {
 }
 
 if (typeof module !== 'undefined') {
-  module.exports = { normalizarRun, normalizarPasaporte, feriadosDesdeEventos, OCULTOS_AL_ESTUDIANTE, sumarDiasHabiles, recordatorioPendiente, RECORDATORIOS, camposRequeridos,
+  module.exports = { requiereVicedecano, normalizarRun, normalizarPasaporte, feriadosDesdeEventos, OCULTOS_AL_ESTUDIANTE, sumarDiasHabiles, recordatorioPendiente, RECORDATORIOS, camposRequeridos,
     ESTADOS, CAMPOS_REQUERIDOS, TIPOS_CATALOGO, NIVELES, ROLES, estadoPorId, esCierre, transicionValida, eventoTransicion,
     normalizarFolio, siguienteFolio, estadoMigrado, separarTipos, rellenar, variablesSinResolver, resolverDestinatarios,
     diasHabilesEntre, necesitaRecordatorio, nivelSuficiente, puedeVerSolicitud, validarCuenta, esSi, listaRoles, validarSolicitud

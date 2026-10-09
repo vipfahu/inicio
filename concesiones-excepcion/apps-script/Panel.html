@@ -300,6 +300,7 @@ function pintarExp() {
   };
   document.querySelectorAll('[data-hacia]').forEach(b => b.onclick = () => dialogo(b.dataset.hacia));
   if ($('guardar')) $('guardar').onclick = guardarGestion;
+  if ($('otro_medio')) $('otro_medio').onchange = () => document.querySelectorAll('[data-vb]').forEach(b => { b.disabled = !$('otro_medio').checked; });
   if ($('asignarme')) $('asignarme').onclick = () => {
     $('asignarme').disabled = true;
     run('api_guardarGestion', S.exp.folio, { analista: S.ini.usuario.correo }).then(() => { toast('Solicitud asignada a usted'); abrir(S.exp.folio); }).catch(err => { fallo(err); $('asignarme').disabled = false; });
@@ -308,7 +309,9 @@ function pintarExp() {
 function panelGestion(e, edita) {
   if (!edita) return '<div class="tarjeta"><span class="et">Estado actual</span><div style="font:700 14px Archivo,sans-serif">' + h(e.estadoEtiqueta) + '</div><div class="sub">Analista: ' + h(e.analistaNombre || 'Sin asignar') + ' · STD ' + h(e.n_std || '—') + '</div></div>';
   const esVice = S.ini.usuario.rol === 'Vicedecano/a' && e.estado === 'vb';
-  const botones = e.siguientes.length ? e.siguientes.map(s => {
+  const vbAjeno = e.estado === 'vb' && !esVice; // el V°B° es del Vicedecano/a; la analista solo lo registra si se dio por otro medio
+  const botones = e.siguientes.length ? (vbAjeno ? '<div class="aviso a-amb" style="margin-bottom:8px;white-space:normal">El V°B° lo registra el Vicedecano/a desde su cuenta. Si lo dio por otro medio (correo, reunión, STD), márquelo para registrarlo usted.</div>' +
+    '<label class="chk" style="margin-bottom:8px"><input type="checkbox" id="otro_medio"> Vicedecano/a aprueba por otro medio</label>' : '') + e.siguientes.map(s => {
     const prim = esVice && s.id === 'resolucion';
     const amb = esVice && (s.id === 'programa' || s.id === 'rechazo_vb');
     // El programa se consulta por STD: aquí solo se registra que se solicitó (o que se devolvió con observación).
@@ -317,7 +320,7 @@ function panelGestion(e, edita) {
       : e.estado === 'vb' && s.id === 'rechazo_vb' ? 'V°B° · CAE rechazada: sigue a Registro Curricular (STD)'
       : s.id === 'resuelto' || s.id === 'negado' ? 'Registrar resolución de Registro Curricular → ' + s.etiqueta
       : s.etiqueta;
-    return '<button data-hacia="' + s.id + '" class="' + (prim ? 'prim' : amb ? 'ambar' : '') + '" style="width:100%;text-align:left;display:flex;justify-content:space-between;margin-bottom:6px">' + h(txt) + (s.evento ? ' <span title="Envía correo" style="color:' + (prim ? '#fff' : 'var(--naranja)') + '">✉</span>' : '') + '</button>';
+    return '<button data-hacia="' + s.id + '"' + (vbAjeno ? ' data-vb disabled' : '') + ' class="' + (prim ? 'prim' : amb ? 'ambar' : '') + '" style="width:100%;text-align:left;display:flex;justify-content:space-between;margin-bottom:6px">' + h(txt) + (s.evento ? ' <span title="Envía correo" style="color:' + (prim ? '#fff' : 'var(--naranja)') + '">✉</span>' : '') + '</button>';
   }).join('') + '<div class="sub" style="font-style:italic;white-space:normal">✉ = el cambio envía un correo; verá la vista previa antes de confirmar.</div>'
     : '<div class="aviso a-teal">Trámite cerrado.</div>';
   const campo = (k, rot, tipo) => '<div style="margin-top:12px"><label class="et" for="g_' + k + '">' + rot + '</label>' +
@@ -371,6 +374,9 @@ function dialogo(hacia) {
     let html = '<div class="kicker" style="color:var(--apagado)">Cambio de estado</div><div style="font:800 18px Archivo,sans-serif;margin:6px 0 14px">' + h(pv.desdeEtiqueta) + ' <span style="color:var(--naranja)">→</span> ' + h(pv.haciaEtiqueta) + '</div>';
     const rot = k => (ROT_CAMPO[k] || k).replace('(se incluye en el correo)', pv.conCorreo ? '(se incluye en el correo)' : '(queda en el expediente y la bitácora)');
     html += req.map(k => '<label class="et" for="c_' + k + '">' + h(rot(k)) + ' *</label><textarea id="c_' + k + '" rows="2" style="margin-bottom:10px">' + h(k === 'propuesta_comite' ? e.propuesta_comite : k === 'resolucion' ? e.resolucion : '') + '</textarea>').join('');
+    const porOtroMedio = pv.requiereVicedecano && !pv.esVicedecano;
+    if (porOtroMedio) html += '<div class="aviso a-amb" style="margin-bottom:10px">Registra el V°B° en nombre del Vicedecano/a, que lo dio por otro medio. Quedará registrado quién lo ingresó.</div>' +
+      '<label class="et" for="c_otro_medio">¿Por qué medio y cuándo dio el V°B° el Vicedecano/a? *</label><textarea id="c_otro_medio" rows="2" style="margin-bottom:10px" placeholder="Ej.: correo del 10-10-2026; reunión de equipo del 09-10-2026"></textarea>';
     // Al cerrar (Resuelto / Negado) se puede cargar la resolución emitida por Registro Curricular.
     const conResolucion = hacia === 'resuelto' || hacia === 'negado';
     if (conResolucion) html += '<label class="et" for="c_archivo">Archivo de la resolución (opcional, máx. ' + h(S.ini.maxMb) + ' MB)</label><input type="file" id="c_archivo" accept=".pdf,application/pdf,image/*,.doc,.docx" style="margin-bottom:10px">';
@@ -402,6 +408,11 @@ function dialogo(hacia) {
       const campos = {};
       for (const k of req) { campos[k] = $('c_' + k).value.trim(); if (!campos[k]) return toast('Complete «' + (ROT_CAMPO[k] || k) + '»', true); }
       const envio = { campos };
+      if (porOtroMedio) {
+        campos.otro_medio = $('c_otro_medio').value.trim();
+        if (!campos.otro_medio) return toast('Indique por qué medio y cuándo dio el V°B° el Vicedecano/a', true);
+        envio.otroMedio = true;
+      }
       if (pv.conCorreo) { envio.asunto = $('c_asunto').value; envio.cuerpo = $('c_cuerpo').value; envio.adjuntos = [...document.querySelectorAll('.adj:checked')].map(x => x.value); }
       const archivo = conResolucion && $('c_archivo').files[0];
       if (archivo && archivo.size > S.ini.maxMb * 1048576) return toast('El archivo supera ' + S.ini.maxMb + ' MB', true);
@@ -544,12 +555,17 @@ function pintarConfig() {
     '<div class="grid2"><div class="pila"><div class="tabla"><div class="fila enc" style="grid-template-columns:1.5fr 1.2fr 1fr 60px 70px"><div>Programa</div><div>Correo dirección</div><div>Analista</div><div>Activo</div><div></div></div>' + filas + '</div>' +
     (adm ? '<div class="tarjeta"><h3>Agregar programa</h3><div style="display:grid;grid-template-columns:1.5fr 1fr auto;gap:8px"><input id="np_nombre" placeholder="Nombre exacto, como aparece en el Formulario"><input id="np_correo" class="mono" placeholder="dirección@usach.cl"><button class="prim" id="np_ok">Agregar</button></div><div class="sub" style="white-space:normal;margin-top:6px">Si agrega un programa aquí, agréguelo también como opción en el Formulario de Google.</div></div>' : '') +
     '</div><div class="lado pila"><div class="tarjeta"><h3>Parámetros</h3>' + pars + (adm ? '<button class="prim" id="par_ok" style="width:100%">Guardar parámetros</button>' : '') + '</div>' +
+    (adm ? '<div class="tarjeta"><h3>Vicedecano/a</h3><label class="et" for="vd_nombre">Nombre (aparece en los correos)</label><input id="vd_nombre" style="margin-bottom:10px">' +
+      '<label class="et" for="vd_correo">Correo @usach.cl (su cuenta en la plataforma)</label><input id="vd_correo" class="mono" style="margin-bottom:10px">' +
+      '<button class="prim" id="vd_ok" style="width:100%">Guardar Vicedecano/a</button><div class="sub" style="white-space:normal;margin-top:8px">Si cambia el correo, se activa la cuenta nueva con rol Vicedecano/a y la anterior queda desactivada.</div></div>' : '') +
     tarjetaFeriados(r.feriados) + '</div></div>';
   document.querySelectorAll('[data-gc]').forEach(b => b.onclick = () => {
     const i = b.dataset.gc, el = document.querySelector('[data-i="' + i + '"][data-k="correo_direccion"]');
     run('api_guardarCorreoPrograma', r.programas[i].programa, el.value).then(() => { toast('Correo de dirección guardado'); cargarConfig(); }).catch(fallo);
   });
   if (!adm) return;
+  run('api_vicedecano').then(v => { $('vd_nombre').value = v.nombre; $('vd_correo').value = v.correo; }).catch(fallo);
+  $('vd_ok').onclick = () => run('api_guardarVicedecano', $('vd_nombre').value, $('vd_correo').value).then(() => { toast('Vicedecano/a actualizado'); cargarConfig(); }).catch(fallo);
   document.querySelectorAll('[data-gp]').forEach(b => b.onclick = () => {
     const i = b.dataset.gp, p = Object.assign({}, r.programas[i]);
     document.querySelectorAll('[data-i="' + i + '"]').forEach(el => { p[el.dataset.k] = el.type === 'checkbox' ? (el.checked ? 'SÍ' : 'NO') : el.value; });

@@ -30,4 +30,5 @@ Mantenimiento: actualizar la nota existente en vez de duplicar; borrar las que r
 - [repo-publico-sin-datos-personales](repo-publico-sin-datos-personales.md) — `vipfahu/inicio` es público: nada de datos personales, IDs reales de planillas/formularios ni credenciales; pruebas solo con datos sintéticos.
 - [scriptid-vs-deploymentid](scriptid-vs-deploymentid.md) — `scriptId` (engranaje del editor; va en `.clasp.json`) ≠ `deploymentId` (`AKfycb…`, tramo de la URL entre /s/ y /exec; va en `desplegar.js`).
 - [trabajar-en-main](trabajar-en-main.md) — Se trabaja directamente en `main`: la persona lo pidió al ver que `git pull` en `main` no traía lo que estaba solo en la rama de trabajo.
-- [variables-sin-vacios](variables-sin-vacios.md) — Una variable de plantilla nunca puede valer «» (bloquea el envío); las frases que dependen de si hay analista se arman completas en `variables_()`.
+- [variables-sin-vacios](variables-sin-vacios.md) — Una variable de plantilla nunca puede valer «»: `rellenar` deja `{x}` sin reemplazar y `enviar_` bloquea el correo. Las frases que cambian según haya o no analista se resuelven en `variables_()`.
+- [vb-exclusivo-con-otro-medio](vb-exclusivo-con-otro-medio.md) — El V°B° a la respuesta del Comité es exclusivo del Vicedecano/a, con salida «aprueba por otro medio» para la analista (medio y fecha obligatorios) y recordatorio automático.

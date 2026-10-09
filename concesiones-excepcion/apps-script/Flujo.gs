@@ -127,7 +127,8 @@ function api_previsualizar(folio, hacia, campos) {
   if (!puedeVerSolicitud(u, s)) throw new Error('SIN_ACCESO: la solicitud no pertenece a sus programas.');
   if (!transicionValida(s.estado, hacia)) throw new Error('Transición no permitida: ' + s.estado + ' → ' + hacia + '.');
   const evento = eventoTransicion(s.estado, hacia);
-  const base = { desde: s.estado, hacia: hacia, desdeEtiqueta: estadoPorId(s.estado).etiqueta, haciaEtiqueta: estadoPorId(hacia).etiqueta, evento: evento };
+  const base = { desde: s.estado, hacia: hacia, desdeEtiqueta: estadoPorId(s.estado).etiqueta, haciaEtiqueta: estadoPorId(hacia).etiqueta, evento: evento,
+    requiereVicedecano: requiereVicedecano(s.estado), esVicedecano: u.rol === 'Vicedecano/a' };
   const requeridos = camposRequeridos(s.estado, hacia);
   if (!evento) return Object.assign(base, { conCorreo: false, requeridos: requeridos });
   const c = componer_(evento, s, campos || {});
@@ -149,6 +150,17 @@ function api_cambiarEstado(folio, hacia, envio) {
     const s = buscarSolicitud_(folio);
     if (!puedeVerSolicitud(u, s)) throw new Error('SIN_ACCESO: la solicitud no pertenece a sus programas.');
     if (!transicionValida(s.estado, hacia)) throw new Error('La solicitud cambió de estado mientras tanto (' + s.estado + '). Recargue el expediente.');
+    // V°B°: solo el Vicedecano/a, o la analista si el Vicedecano/a lo dio por otro medio (queda registrado cuál).
+    let notaVb = '';
+    if (requiereVicedecano(s.estado)) {
+      if (u.rol === 'Vicedecano/a') notaVb = ' · V°B° registrado por el Vicedecano/a';
+      else {
+        if (!envio.otroMedio) throw new Error('El V°B° lo registra el Vicedecano/a. Si lo dio por otro medio, marque «Vicedecano/a aprueba por otro medio».');
+        const medio = String(campos.otro_medio || '').trim();
+        if (!medio) throw new Error('Indique por qué medio y cuándo dio el V°B° el Vicedecano/a.');
+        notaVb = ' · V°B° del Vicedecano/a por otro medio (' + medio + '), registrado por ' + u.correo;
+      }
+    }
     const evento = eventoTransicion(s.estado, hacia);
     camposRequeridos(s.estado, hacia).forEach(k => {
       if (!String(campos[k] || '').trim()) throw new Error('Falta completar «' + k.replace('_', ' ') + '».');
@@ -175,7 +187,7 @@ function api_cambiarEstado(folio, hacia, envio) {
     anexar_(HOJAS.bitacora, Object.assign({
       fecha: new Date(), folio: folio, tipo: 'estado', quien: u.correo,
       texto: desdeEtiqueta + ' → ' + haciaEtiqueta + (campos.motivo ? ' · Motivo: ' + campos.motivo : '') +
-        (campos.observacion ? ' · Observación: ' + campos.observacion : '') + (campos.resolucion ? ' · Resolución: ' + campos.resolucion : ''),
+        (campos.observacion ? ' · Observación: ' + campos.observacion : '') + (campos.resolucion ? ' · Resolución: ' + campos.resolucion : '') + notaVb,
       estado_nuevo: hacia
     }, registroCorreo));
     return { ok: true, conCorreo: !!evento };

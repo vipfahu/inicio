@@ -96,6 +96,14 @@ Curricular por STD, que elabora y distribuye la resolución; correo al estudiant
 elaboración) → Resuelto / Negado (sin correo). Al cerrar (Resuelto / Negado) se anota N° y fecha de la resolución y se puede cargar
 su archivo, que queda en el expediente con la categoría «Resolución».
 
+**V°B° exclusivo del Vicedecano/a.** Las tres salidas del V°B° (CAE admisible, CAE rechazada, devolución al programa) solo las registra
+la cuenta con rol Vicedecano/a; el servidor rechaza a cualquier otra. Si el Vicedecano/a dio el V°B° por otro medio (correo, STD, en
+persona), una analista marca «Vicedecano/a aprueba por otro medio» e indica obligatoriamente el medio y la fecha; la bitácora deja
+constancia de ese medio y de quién lo registró. Si el caso sigue en V°B° tras `plazo_vb_dias` (2) días hábiles, sale un recordatorio
+automático al Vicedecano/a con copia a la analista (luego cada `recordatorio_cada_dias`, hasta `recordatorios_max`). Administración
+cambia el nombre (parámetro `vicedecano_nombre`, usado en los correos) y el correo del Vicedecano/a en Configuración → «Vicedecano/a»:
+la cuenta nueva queda con rol Vicedecano/a y la anterior se desactiva.
+
 **Usuarios.** El panel es solo para el equipo del Vicedecanato (analistas y Vicedecano/a). Las direcciones de programa y Registro Curricular no entran: solo reciben correos.
 
 **Ingreso y cierre de sesión.** El panel abre con una página «Iniciar sesión» que muestra la cuenta de Google con que la persona está

@@ -133,6 +133,7 @@ test('tramitación: vista previa, campos obligatorios, envío y orden seguro', (
   assert.equal(s.estado, 'programa');
   ctx.api_cambiarEstado('05/2026', 'vb', { campos: { propuesta_comite: 'Acoger con condiciones' } });
   assert.match(estado.correos.pop().to, /vice@usach\.cl/);
+  estado.usuario = 'vice@usach.cl'; // el V°B° (también la devolución) lo registra el Vicedecano/a
   const pvDev = ctx.api_previsualizar('05/2026', 'programa', {});
   assert.equal(pvDev.conCorreo, false);
   assert.deepEqual([...pvDev.requeridos], ['observacion']);
@@ -169,6 +170,7 @@ test('resolución: CAE admisible y CAE rechazada notifican al estudiante; el cie
     const { ctx, estado } = env;
     estado.usuario = 'analista.uno@usach.cl';
     ctx.api_cambiarEstado(folio, 'vb', { campos: { propuesta_comite: 'Propuesta' } });
+    estado.usuario = 'vice@usach.cl';
     const pv = ctx.api_previsualizar(folio, hacia, {});
     assert.equal(pv.conCorreo, true);
     assert.deepEqual([...pv.requeridos], []);
@@ -547,4 +549,63 @@ test('una analista asigna el caso a otra analista (y esta recibe el aviso)', () 
   ctx.api_guardarGestion('05/2026', { analista: 'analista.dos@usach.cl' });
   assert.equal(tabla(env, 'Solicitudes').find(x => x.folio === '05/2026').analista, 'analista.dos@usach.cl');
   assert.ok(estado.correos.slice(n).some(m => m.to === 'analista.dos@usach.cl' && /asignada/.test(m.subject)));
+});
+
+test('V°B°: solo el Vicedecano/a; la analista solo con «aprueba por otro medio» e indicando cuál', () => {
+  const env = instalar(preparar());
+  const { ctx, estado } = env;
+  estado.usuario = 'analista.uno@usach.cl';
+  ctx.api_cambiarEstado('05/2026', 'vb', { campos: { propuesta_comite: 'Acoger' } });
+  assert.throws(() => ctx.api_cambiarEstado('05/2026', 'resolucion', {}), /lo registra el Vicedecano\/a/);
+  assert.throws(() => ctx.api_cambiarEstado('05/2026', 'resolucion', { otroMedio: true, campos: {} }), /por qué medio/);
+  const pv = ctx.api_previsualizar('05/2026', 'resolucion', {});
+  assert.equal(pv.requiereVicedecano, true);
+  assert.equal(pv.esVicedecano, false);
+  ctx.api_cambiarEstado('05/2026', 'resolucion', { otroMedio: true, campos: { otro_medio: 'Correo del 10-10-2026' } });
+  const b = tabla(env, 'Bitácora').filter(x => x.tipo === 'estado').pop();
+  assert.match(b.texto, /por otro medio \(Correo del 10-10-2026\), registrado por analista\.uno@usach\.cl/);
+  // El Vicedecano/a registra directo, sin marcar nada
+  const env2 = instalar(preparar());
+  env2.estado.usuario = 'analista.uno@usach.cl';
+  env2.ctx.api_cambiarEstado('05/2026', 'vb', { campos: { propuesta_comite: 'Acoger' } });
+  env2.estado.usuario = 'vice@usach.cl';
+  env2.ctx.api_cambiarEstado('05/2026', 'rechazo_vb', {});
+  assert.match(tabla(env2, 'Bitácora').filter(x => x.tipo === 'estado').pop().texto, /registrado por el Vicedecano\/a/);
+});
+
+test('recordatorio de V°B° al Vicedecano/a, con copia a la analista', () => {
+  const env = instalar(preparar());
+  const { ctx, estado } = env;
+  estado.usuario = 'analista.uno@usach.cl';
+  ctx.api_cambiarEstado('05/2026', 'vb', { campos: { propuesta_comite: 'Acoger' } });
+  const h = env.libro.getSheetByName('Solicitudes'); const enc = h.datos[0];
+  const f = h.datos.findIndex(r => r[0] === '05/2026');
+  h.datos[f][enc.indexOf('estado_desde')] = new Date(Date.now() - 10 * 86400000);
+  estado.usuario = '';
+  const n = estado.correos.length;
+  ctx.tareaDiaria();
+  const r = estado.correos.slice(n).filter(m => /V°B° pendiente/.test(m.subject));
+  assert.equal(r.length, 1);
+  assert.equal(r[0].to, 'vice@usach.cl');
+  assert.equal(r[0].cc, 'analista.uno@usach.cl');
+  assert.match(r[0].body, /Propuesta del Comité: Acoger/);
+});
+
+test('administración cambia nombre y correo del Vicedecano/a', () => {
+  const env = instalar(preparar());
+  const { ctx, estado } = env;
+  estado.usuario = 'analista.uno@usach.cl';
+  assert.throws(() => ctx.api_guardarVicedecano('X', 'x@usach.cl'), /nivel requerido/);
+  estado.usuario = 'vice@usach.cl';
+  assert.throws(() => ctx.api_guardarVicedecano('Dra. Nueva', 'nueva@gmail.com'), /@usach\.cl/);
+  ctx.api_guardarVicedecano('Dra. Nueva Vicedecana', 'Nueva.Vice@usach.cl');
+  const c = tabla(env, 'Cuentas');
+  assert.ok(c.some(x => x.correo === 'nueva.vice@usach.cl' && x.rol === 'Vicedecano/a' && x.activo === 'SÍ' && x.nivel === 'administracion'));
+  assert.equal(c.find(x => x.correo === 'vice@usach.cl').activo, 'NO');
+  assert.equal(tabla(env, 'Parámetros').find(p => p.clave === 'vicedecano_nombre').valor, 'Dra. Nueva Vicedecana');
+  estado.usuario = 'nueva.vice@usach.cl';
+  assert.deepEqual({ ...ctx.api_vicedecano() }, { nombre: 'Dra. Nueva Vicedecana', correo: 'nueva.vice@usach.cl' });
+  // Solo cambio de nombre
+  ctx.api_guardarVicedecano('Dra. N. Vicedecana', 'nueva.vice@usach.cl');
+  assert.equal(tabla(env, 'Cuentas').find(x => x.correo === 'nueva.vice@usach.cl').nombre, 'Dra. N. Vicedecana');
 });

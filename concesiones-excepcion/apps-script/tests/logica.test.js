@@ -118,7 +118,8 @@ test('recordatorios: tras vencer el plazo, cada N días hábiles, hasta el máxi
   assert.ok(!L.necesitaRecordatorio(uno, new Date(2026, 9, 9), p, []));
   assert.ok(L.necesitaRecordatorio(uno, new Date(2026, 9, 12), p, []));
   assert.ok(!L.necesitaRecordatorio({ ...uno, recordatorios: 3 }, new Date(2026, 9, 30), p, []));
-  assert.ok(!L.necesitaRecordatorio({ ...base, estado: 'vb' }, new Date(2026, 9, 30), p, []));
+  assert.ok(!L.necesitaRecordatorio({ ...base, estado: 'resolucion' }, new Date(2026, 9, 30), p, []));
+  assert.equal(L.recordatorioPendiente({ ...base, estado: 'vb' }, new Date(2026, 9, 30), { ...p, plazo_vb_dias: 2 }, []), 'recordatorio_vb');
 });
 
 test('recordatorio de admisibilidad: primer aviso al día hábil siguiente a la recepción', () => {
