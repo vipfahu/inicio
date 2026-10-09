@@ -448,3 +448,39 @@ test('código nuevo: la planilla se actualiza sola, una sola vez, y repara estad
   ctx.actualizarSiCorresponde_();
   assert.equal(n(), 1);
 });
+
+test('feriados automáticos: oficial primero, respaldo, caché y sin carga manual', () => {
+  const env = instalar(preparar());
+  const { ctx, estado } = env;
+  const anio = new Date().getFullYear();
+  const d = (m, dia) => new Date(Date.UTC(anio, m - 1, dia));
+  // Sin calendario disponible: lista vacía (lunes a viernes) y queda constancia del error
+  estado.fallaCalendario = true;
+  assert.deepEqual([...ctx.feriados_()], []);
+  assert.match(ctx.cacheFeriados_().error, /no disponible/);
+  // Solo el calendario general (con conmemoraciones): se filtran
+  estado.fallaCalendario = false;
+  estado.calendarios = { 'es.cl#holiday@group.v.calendar.google.com': [
+    { inicio: d(9, 18), fin: d(9, 19), titulo: 'Fiestas Patrias', descripcion: 'Feriado público' },
+    { inicio: d(5, 10), fin: d(5, 11), titulo: 'Día de la Madre', descripcion: 'Celebración' }
+  ] };
+  let c = ctx.actualizarFeriados_(true);
+  assert.deepEqual([...c.fechas], [anio + '-09-18']);
+  assert.equal(c.fuente, 'es.cl#holiday@group.v.calendar.google.com');
+  // Si existe el oficial, se prefiere
+  estado.calendarios['es.cl.official#holiday@group.v.calendar.google.com'] = [{ inicio: d(1, 1), fin: d(1, 2), titulo: 'Año Nuevo' }];
+  c = ctx.actualizarFeriados_(true);
+  assert.equal(c.fuente, 'es.cl.official#holiday@group.v.calendar.google.com');
+  // Reciente: no vuelve a consultar
+  estado.fallaCalendario = true;
+  assert.equal(ctx.actualizarFeriados_(false).fuente, 'es.cl.official#holiday@group.v.calendar.google.com');
+  // Falla al forzar: conserva la lista anterior y anota el error
+  c = ctx.actualizarFeriados_(true);
+  assert.deepEqual([...c.fechas], [anio + '-01-01']);
+  assert.ok(c.error);
+  // Configuración lo muestra (solo lectura)
+  estado.usuario = 'vice@usach.cl';
+  const cfg = ctx.api_config();
+  assert.equal(cfg.feriados.total, 1);
+  assert.ok(cfg.feriados.error);
+});

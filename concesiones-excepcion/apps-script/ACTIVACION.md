@@ -71,8 +71,13 @@ Al terminar, **recargar el panel** (la lista de analistas para asignar se lee al
    - `enlace_rc`: enlace a la plataforma de Registro Curricular (lo usa el correo «No procede»).
    - Revisar `plazo_admisibilidad_dias` (2), `primer_aviso_admisibilidad_dias` (1), `plazo_programa_dias` (2), `recordatorio_cada_dias` (2), `recordatorios_max` (3), `max_mb_antecedente` (10),
      `max_solicitudes_dia` (3), `vicedecano_nombre`.
-3. **Días hábiles:** los plazos cuentan de lunes a viernes; no hace falta cargar feriados (si existe una pestaña «Feriados» de una
-   instalación anterior, ya no se usa y se puede borrar).
+3. **Días hábiles y feriados (automáticos):** los plazos cuentan de lunes a viernes descontando los feriados de Chile, que la plataforma
+   obtiene sola del calendario público de feriados de Chile de Google y renueva cada mes (año en curso y siguiente). No se cargan a
+   mano. Configuración → «Feriados (automáticos)» muestra los próximos; *CAE → Diagnóstico* indica la fuente o si falló la consulta.
+   Si existe una pestaña «Feriados» de una instalación anterior, ya no se usa y se puede borrar.
+   **Permiso nuevo:** esta función lee calendarios (`calendar.readonly`). Tras publicar esta versión, la cuenta institucional debe
+   autorizarla **una vez**: en la planilla, *CAE → Diagnóstico* → «Revisar permisos» → aceptar. Hasta entonces, el panel, el formulario
+   y la tarea diaria pueden pedir autorización o fallar.
 4. **Plantillas de correo** [Panel → Plantillas]: revisar los 15 textos. Si se edita alguno, mantener las variables entre llaves
    (`{folio}`, `{enlace}`, etc.); «Restaurar original» deshace los cambios.
 5. [Inst.] **CAE → Diagnóstico**: no debe quedar nada pendiente salvo los accesos directos a la planilla (Fase F) y las solicitudes

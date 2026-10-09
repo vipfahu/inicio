@@ -28,6 +28,7 @@ Este directorio no contiene datos personales y no se publica en el sitio (ver `n
 | `Web.gs` | Puntos de entrada web, configuración y seguimiento |
 | `Formulario.gs`, `Solicitud.html` | Formulario web para estudiantes (validación, antecedentes, límite de 3 solicitudes por cuenta al día) |
 | `Diario.gs` | Recordatorios (admisibilidad y plazo del programa) y control de compartición (08:00) |
+| `Feriados.gs` | Feriados de Chile automáticos (calendario público de Google, caché mensual) para los días hábiles |
 | `Instalar.gs` | Menú «CAE», instalación en dos pasos y diagnóstico |
 | `Panel.html`, `Seguimiento.html` | Panel del equipo y seguimiento del estudiante |
 | `appsscript.json` | Manifiesto (zona horaria, permisos, publicación web) |
@@ -72,7 +73,7 @@ agrega pestañas y oculta (no elimina) las columnas de gestión antiguas.
 7. **Probar la identidad (crítico).** Abra la URL con la cuenta USACH de una analista (no la institucional).
    Debe ver la bandeja con su nombre arriba a la derecha. Si ve «Google no entregó su correo», el dominio no está entregando
    la identidad a aplicaciones ejecutadas como la cuenta dueña: **no use el sistema** y avise (ver «Riesgos»).
-8. **Diagnóstico.** *CAE → Diagnóstico* lista lo que falte (correos, disparadores, accesos no autorizados).
+8. **Diagnóstico.** *CAE → Diagnóstico* lista lo que falte (correos, disparadores, feriados automáticos, accesos no autorizados).
 9. **Retirar accesos directos.** Quite de «Compartir» a quienes hoy editan la planilla: desde ahora trabajan en el panel.
    La tarea diaria avisará por correo si vuelve a aparecer un acceso no autorizado.
 10. **Formulario para estudiantes.** Comparta `URL?v=solicitud` (y `URL?v=seguimiento`). Cuando el formulario web esté probado, cierre el
@@ -133,7 +134,9 @@ un acceso directo; si superan el máximo de descarga por el panel, se concede ac
   Workspace, pero no lo garantiza para todas las configuraciones: por eso el paso 7. Si falla, el panel no muestra datos (falla cerrado).
 - **Cuotas de Gmail para Apps Script** (Workspace, según la documentación vigente al escribir esto): 1.500 destinatarios/día, 25 MB por
   correo. *CAE → Diagnóstico* muestra la cuota restante.
-- **Días hábiles = lunes a viernes.** No se descuentan feriados: un recordatorio puede salir en un feriado o contarlo como día de plazo.
+- **Feriados automáticos.** Vienen del calendario público de feriados de Chile de Google (`Feriados.gs`): si Google no publica un
+  interferiado o lo publica tarde, ese día se cuenta como hábil. Si la consulta falla, se usa la última lista guardada; sin ninguna,
+  se cuenta de lunes a viernes. Requiere el permiso `calendar.readonly` (autorización única de la cuenta institucional).
 - **La planilla sigue siendo editable por la cuenta institucional.** Quien la abra directamente puede alterar datos sin pasar por las
   reglas del panel; el historial de versiones de Google Sheets es el respaldo.
 

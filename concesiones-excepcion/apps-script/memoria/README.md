@@ -13,6 +13,7 @@ Mantenimiento: actualizar la nota existente en vez de duplicar; borrar las que r
 - [declarar-lo-que-no-se-construyo](declarar-lo-que-no-se-construyo.md) — Decir explícitamente qué piezas del prototipo NO se construyeron o se reemplazaron: la persona asume que existe lo que vio en capturas.
 - [desplegar-en-un-comando](desplegar-en-un-comando.md) — Desplegar = `node desplegar.js` (pruebas → `clasp push --force` → `clasp redeploy <deploymentId>`); la planilla se pone al día sola en la primera visita.
 - [entregar-instrucciones-verificables](entregar-instrucciones-verificables.md) — Instrucciones en fases numeradas: cuenta con que se hace cada paso, qué debe verse, qué hacer si falla y cierre; la persona las sigue literalmente y pega los errores tal cual.
+- [feriados-automaticos](feriados-automaticos.md) — Feriados automáticos desde el calendario público de feriados de Chile de Google; nunca carga manual.
 - [flujo-cae-vigente](flujo-cae-vigente.md) — Flujo vigente: recibida → revisión de admisibilidad → admisible para análisis (id `aceptada`) / rechazada / no procede → informe RC → programa (vía STD, solo registro) → V°B° Comité: CAE admisible / CAE rechazada (ambas a Registro Curricular vía STD; correo al estudiante con el estado) / devolución vía STD → resuelto / negado.
 - [formulario-y-seguimiento](formulario-y-seguimiento.md) — Formulario propio en `URL?v=solicitud` y seguimiento en `URL?v=seguimiento` (identifica por la cuenta USACH).
 - [google-workspace-en-vez-de-supabase](google-workspace-en-vez-de-supabase.md) — Se eligió Sheets + Drive + Apps Script en lugar de Supabase/Netlify.
@@ -28,5 +29,4 @@ Mantenimiento: actualizar la nota existente en vez de duplicar; borrar las que r
 - [presentar-opciones-con-recomendacion](presentar-opciones-con-recomendacion.md) — Presentar decisiones numeradas con una recomendación argumentada; la persona suele aprobarlas en bloque y matiza solo lo que importa.
 - [repo-publico-sin-datos-personales](repo-publico-sin-datos-personales.md) — `vipfahu/inicio` es público: nada de datos personales, IDs reales de planillas/formularios ni credenciales; pruebas solo con datos sintéticos.
 - [scriptid-vs-deploymentid](scriptid-vs-deploymentid.md) — `scriptId` (engranaje del editor; va en `.clasp.json`) ≠ `deploymentId` (`AKfycb…`, tramo de la URL entre /s/ y /exec; va en `desplegar.js`).
-- [sin-feriados](sin-feriados.md) — Los plazos cuentan días hábiles de lunes a viernes, sin feriados: la persona pidió quitar el registro de feriados por innecesario.
 - [trabajar-en-main](trabajar-en-main.md) — Se trabaja directamente en `main`: la persona lo pidió al ver que `git pull` en `main` no traía lo que estaba solo en la rama de trabajo.

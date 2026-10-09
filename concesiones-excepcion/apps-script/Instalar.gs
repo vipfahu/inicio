@@ -249,6 +249,10 @@ function diagnostico() {
   const hs = ScriptApp.getProjectTriggers().map(t => t.getHandlerFunction());
   ['alRecibirFormulario', 'tareaDiaria'].forEach(h => { if (hs.indexOf(h) < 0) p.push('Falta el disparador «' + h + '» (ejecute el paso 2).'); });
   if (!urlPanel_()) p.push('El panel aún no está publicado como aplicación web.'); else ok.push('Panel: ' + urlPanel_());
+  const fer = actualizarFeriados_(true);
+  if (fer.error && !(fer.fechas || []).length) p.push('Feriados: no se pudo leer el calendario de feriados de Chile (' + fer.error + '). Los plazos cuentan solo de lunes a viernes.');
+  else if (fer.error) p.push('Feriados: falló la última consulta (' + fer.error + '); se usa la lista guardada.');
+  else ok.push('Feriados: ' + fer.fechas.length + ' días (' + fer.anios.join(' y ') + '), desde ' + fer.fuente);
   accesosNoAutorizados_().forEach(a => p.push('Acceso no autorizado · ' + a));
   const pend = leer_(HOJAS.solicitudes).filter(s => esSi(s.revisar)).map(s => s.folio);
   if (pend.length) p.push('Solicitudes marcadas para revisar: ' + pend.join(', '));

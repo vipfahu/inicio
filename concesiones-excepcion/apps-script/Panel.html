@@ -509,6 +509,16 @@ function pintarCuentas(editando) {
 }
 
 /* ── Configuración ── */
+function tarjetaFeriados(f) {
+  f = f || {};
+  const fuente = /official/.test(f.fuente || '') ? 'calendario oficial de feriados de Chile (Google)' : f.fuente ? 'calendario de feriados de Chile (Google)' : '';
+  const lista = (f.proximos || []).map(x => '<div style="display:flex;gap:10px;margin-bottom:4px"><span class="mono" style="font-size:11.5px;min-width:84px">' + h(fecha(x.fecha + 'T12:00:00')) + '</span><span class="sub" style="white-space:normal">' + h(x.titulo) + '</span></div>').join('');
+  return '<div class="tarjeta"><h3>Feriados (automáticos)</h3>' +
+    (f.total ? lista : '<div class="resumen">Aún no hay feriados cargados: los plazos cuentan de lunes a viernes.</div>') +
+    '<div class="sub" style="white-space:normal;margin-top:10px">Se obtienen solos' + (fuente ? ' del ' + fuente : '') + ' y se renuevan cada mes; no requieren mantenimiento.' +
+    (f.actualizado ? ' Última actualización: ' + h(fecha(f.actualizado)) + '.' : '') + '</div>' +
+    (f.error ? '<div class="aviso a-amb" style="margin-top:8px">No se pudo consultar el calendario en el último intento' + (f.total ? '; se usa la lista guardada' : '') + '.</div>' : '') + '</div>';
+}
 function cargarConfig() {
   $('app').innerHTML = '<div class="cargando">Cargando configuración…</div>';
   run('api_config').then(r => { S.config = r; pintarConfig(); }).catch(fallo);
@@ -525,7 +535,7 @@ function pintarConfig() {
     '<div class="grid2"><div class="pila"><div class="tabla"><div class="fila enc" style="grid-template-columns:1.5fr 1.2fr 1fr 60px 70px"><div>Programa</div><div>Correo dirección</div><div>Analista</div><div>Activo</div><div></div></div>' + filas + '</div>' +
     (adm ? '<div class="tarjeta"><h3>Agregar programa</h3><div style="display:grid;grid-template-columns:1.5fr 1fr auto;gap:8px"><input id="np_nombre" placeholder="Nombre exacto, como aparece en el Formulario"><input id="np_correo" class="mono" placeholder="dirección@usach.cl"><button class="prim" id="np_ok">Agregar</button></div><div class="sub" style="white-space:normal;margin-top:6px">Si agrega un programa aquí, agréguelo también como opción en el Formulario de Google.</div></div>' : '') +
     '</div><div class="lado pila"><div class="tarjeta"><h3>Parámetros</h3>' + pars + (adm ? '<button class="prim" id="par_ok" style="width:100%">Guardar parámetros</button>' : '') + '</div>' +
-    '</div></div>';
+    tarjetaFeriados(r.feriados) + '</div></div>';
   if (!adm) return;
   document.querySelectorAll('[data-gp]').forEach(b => b.onclick = () => {
     const i = b.dataset.gp, p = Object.assign({}, r.programas[i]);

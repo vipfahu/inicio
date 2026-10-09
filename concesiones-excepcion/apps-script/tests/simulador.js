@@ -127,6 +127,16 @@ function crearEntorno() {
         return cadena;
       }
     },
+    CalendarApp: {
+      // estado.calendarios = { id: [{ inicio: Date, fin: Date, titulo, descripcion }] }; estado.fallaCalendario = true simula error
+      getCalendarById: id => {
+        if (estado.fallaCalendario) throw new Error('Calendario no disponible (simulado)');
+        const evs = (estado.calendarios || {})[id];
+        if (!evs) return null;
+        return { getEvents: () => evs.map(e => ({ isAllDayEvent: () => true, getAllDayStartDate: () => e.inicio, getAllDayEndDate: () => e.fin,
+          getTitle: () => e.titulo, getDescription: () => e.descripcion || '' })) };
+      }
+    },
     HtmlService: {}
   };
   vm.createContext(ctx);

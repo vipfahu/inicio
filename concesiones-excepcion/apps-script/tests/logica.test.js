@@ -138,6 +138,20 @@ test('destinatario «Analista o equipo»: la asignada, o quienes pueden asignar'
   assert.deepEqual(conAnalista.para, ['analista.a@usach.cl']);
 });
 
+test('feriados desde el calendario: excluye conmemoraciones y expande eventos de varios días', () => {
+  const ev = [
+    { inicio: '2026-09-18', fin: '2026-09-19', titulo: 'Independencia', descripcion: 'Feriado público' },
+    { inicio: '2026-09-19', fin: '2026-09-21', titulo: 'Glorias + interferiado', descripcion: 'Feriado público' },
+    { inicio: '2026-05-10', fin: '2026-05-11', titulo: 'Día de la Madre', descripcion: 'Celebración' },
+    { inicio: '2026-08-10', fin: '2026-08-11', titulo: 'Algo', descripcion: 'Observance\nTo hide observances…' },
+    { inicio: '2026-09-18', fin: '2026-09-19', titulo: 'Independencia (repetido)', descripcion: '' }
+  ];
+  assert.deepEqual([...L.feriadosDesdeEventos(ev)], ['2026-09-18', '2026-09-19', '2026-09-20']);
+  assert.deepEqual([...L.feriadosDesdeEventos([])], []);
+  // Con feriados, el vencimiento se corre: vie 18-09 (feriado) no cuenta
+  assert.equal(L.sumarDiasHabiles(new Date(2026, 8, 17), 1, ['2026-09-18']).getDate(), 21);
+});
+
 test('niveles y alcance por programa', () => {
   assert.ok(L.nivelSuficiente('administracion', 'edicion'));
   assert.ok(!L.nivelSuficiente('consulta', 'edicion'));

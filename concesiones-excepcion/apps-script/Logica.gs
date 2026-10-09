@@ -211,7 +211,7 @@ function unicos(a) {
   return a.filter((x, i) => x && a.indexOf(x) === i);
 }
 
-/** Días hábiles (lunes a viernes) transcurridos después de `desde` hasta `hasta`. `feriados` es opcional ('AAAA-MM-DD'); la plataforma no los usa. */
+/** Días hábiles (lunes a viernes) transcurridos después de `desde` hasta `hasta`. `feriados`: lista 'AAAA-MM-DD' (automática, ver Feriados.gs). */
 function diasHabilesEntre(desde, hasta, feriados) {
   const f = new Set(feriados || []);
   const d = new Date(desde.getFullYear(), desde.getMonth(), desde.getDate());
@@ -224,6 +224,25 @@ function diasHabilesEntre(desde, hasta, feriados) {
     if (dia !== 0 && dia !== 6 && !f.has(iso)) n++;
   }
   return n;
+}
+
+/**
+ * Feriados ('AAAA-MM-DD', ordenados, sin repetir) a partir de los eventos de día completo de un calendario de feriados.
+ * Cada evento: { inicio: 'AAAA-MM-DD', fin: 'AAAA-MM-DD' (exclusivo), titulo, descripcion }. Se excluyen las conmemoraciones u
+ * observancias que el calendario marca en la descripción (no son días inhábiles).
+ */
+function feriadosDesdeEventos(eventos) {
+  const noFeriado = /observance|observancia|celebraci[oó]n|conmemoraci[oó]n/i;
+  const out = [];
+  (eventos || []).forEach(e => {
+    if (!e || !e.inicio || noFeriado.test(String(e.descripcion || ''))) return;
+    const [a, m, d] = e.inicio.split('-').map(Number);
+    const dia = new Date(a, m - 1, d);
+    const iso = () => dia.getFullYear() + '-' + pad2(dia.getMonth() + 1) + '-' + pad2(dia.getDate());
+    const fin = e.fin && e.fin > e.inicio ? e.fin : ''; // exclusivo; eventos de varios días
+    do { out.push(iso()); dia.setDate(dia.getDate() + 1); } while (fin && iso() < fin);
+  });
+  return unicos(out).sort();
 }
 
 /** Fecha que resulta de sumar n días hábiles (lunes a viernes) a una fecha. */
@@ -336,7 +355,7 @@ function validarSolicitud(d, ctx) {
 }
 
 if (typeof module !== 'undefined') {
-  module.exports = { OCULTOS_AL_ESTUDIANTE, sumarDiasHabiles, recordatorioPendiente, RECORDATORIOS, camposRequeridos,
+  module.exports = { feriadosDesdeEventos, OCULTOS_AL_ESTUDIANTE, sumarDiasHabiles, recordatorioPendiente, RECORDATORIOS, camposRequeridos,
     ESTADOS, CAMPOS_REQUERIDOS, TIPOS_CATALOGO, NIVELES, ROLES, estadoPorId, esCierre, transicionValida, eventoTransicion,
     normalizarFolio, siguienteFolio, estadoMigrado, separarTipos, rellenar, variablesSinResolver, resolverDestinatarios,
     diasHabilesEntre, necesitaRecordatorio, nivelSuficiente, puedeVerSolicitud, validarCuenta, esSi, listaRoles, validarSolicitud
