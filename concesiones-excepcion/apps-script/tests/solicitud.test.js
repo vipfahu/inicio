@@ -29,6 +29,19 @@ test('validación de la solicitud', () => {
   assert.match(L.validarSolicitud({ ...base(), anio: 2026, correo: 'no-es-correo' }, ctx).error, /correo/);
 });
 
+test('el correo de la solicitud es siempre la cuenta con que inició sesión, aunque se envíe otro', () => {
+  const env = instalar(preparar());
+  const { ctx, estado } = env;
+  estado.usuario = 'Ana.Perez@usach.cl';
+  const n = estado.correos.length;
+  const r = ctx.api_enviarSolicitud({ ...base(), correo: 'otra.direccion@gmail.com' }, []);
+  const s = tabla(env, 'Solicitudes').pop();
+  assert.equal(s.correo, 'ana.perez@usach.cl');
+  assert.equal(s.correo_verificado, 'ana.perez@usach.cl');
+  assert.equal(r.correo, 'ana.perez@usach.cl');
+  assert.ok(!estado.correos.slice(n).some(m => /otra\.direccion/.test(m.to + (m.cc || ''))), 'nada sale a la dirección escrita a mano');
+});
+
 test('envío completo: folio, antecedentes en el expediente, correos, fundamentación visible para el equipo', () => {
   const env = instalar(preparar());
   const { ctx, estado } = env;

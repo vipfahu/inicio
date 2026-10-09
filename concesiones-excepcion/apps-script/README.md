@@ -117,7 +117,7 @@ falla, el estado no cambia. Los destinatarios son roles que se traducen al envia
 
 | Rol | Se convierte en |
 |---|---|
-| Estudiante | cuenta USACH con que inició sesión en el formulario **y** correo escrito en el campo «correo»; si son la misma dirección, se envía una sola vez |
+| Estudiante | cuenta USACH con que inició sesión en el formulario (el campo «correo» se llena con ella y no se puede modificar; el servidor la impone). En casos migrados del Formulario de Google, también el correo escrito allí, sin repetir |
 | Analista | analista asignada/o al caso |
 | Vicedecano/a, Registro Curricular | cuentas activas con ese rol |
 | Dirección de programa | `correo_direccion` del programa |

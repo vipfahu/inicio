@@ -54,6 +54,8 @@ function api_subirAntecedente(nombre, mime, base64) {
 /** Registra la solicitud. `ids` = archivos devueltos por api_subirAntecedente en esta misma sesión. */
 function api_enviarSolicitud(d, ids) {
   const correo = correoEstudiante_();
+  // El correo de la solicitud es siempre la cuenta con que se inició sesión (el campo del formulario es de solo lectura).
+  d = Object.assign({}, d, { correo: correo });
   const p = parametros_();
   const v = validarSolicitud(d, {
     programas: leer_(HOJAS.programas).filter(x => esSi(x.activo)).map(x => x.programa),

@@ -62,6 +62,7 @@
   .ok .folio{font:600 64px/1 'IBM Plex Mono',monospace;margin:22px 0 6px}
   footer{border-top:1px solid var(--borde);padding:18px clamp(16px,5vw,60px);font:400 12px Archivo,sans-serif;color:var(--apagado);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
   @media (max-width:760px){ .g2,.tipos{grid-template-columns:1fr} input,select,button{min-height:44px} .marca img{height:48px} }
+  input.fijo,input[readonly]{background:#EFECE4;color:var(--tinta2,#5A6470);cursor:not-allowed;border-style:dashed}
 </style>
 </head>
 <body>
@@ -104,7 +105,7 @@ run('api_inicioSolicitud').then(c => {
 function campo(id, rot, opts) {
   opts = opts || {};
   return '<div><label class="et" for="' + id + '">' + rot + ' <b>*</b></label><input id="' + id + '"' + (opts.mono ? ' class="mono"' : '') +
-    (opts.ph ? ' placeholder="' + h(opts.ph) + '"' : '') + (opts.val ? ' value="' + h(opts.val) + '"' : '') + (opts.tipo ? ' type="' + opts.tipo + '"' : '') + ' autocomplete="' + (opts.ac || 'off') + '">' +
+    (opts.ph ? ' placeholder="' + h(opts.ph) + '"' : '') + (opts.val ? ' value="' + h(opts.val) + '"' : '') + (opts.tipo ? ' type="' + opts.tipo + '"' : '') + (opts.fijo ? ' readonly aria-readonly="true" class="fijo"' : '') + ' autocomplete="' + (opts.ac || 'off') + '">' +
     (opts.ayuda ? '<div class="ayuda">' + opts.ayuda + '</div>' : '') + '</div>';
 }
 
@@ -119,7 +120,7 @@ function pintar() {
       '<div class="g2">' + campo('apellido1', 'Primer apellido', { ac: 'family-name' }) + campo('apellido2', 'Segundo apellido') + '</div>' +
       campo('nombres', 'Nombres', { ac: 'given-name' }) +
       '<div class="g2">' + campo('run', 'RUN o pasaporte', { mono: true, ph: '12.345.678-9' }) + campo('telefono', 'Teléfono de contacto', { mono: true, ph: '+56 9 …', tipo: 'tel', ac: 'tel' }) + '</div>' +
-      campo('correo', 'Correo electrónico', { val: CFG.correo, tipo: 'email', ac: 'email', ayuda: 'A este correo llegarán las notificaciones del trámite. Para ver el seguimiento en línea deberá ingresar con <b>' + h(CFG.correo) + '</b>.' }) +
+      campo('correo', 'Correo electrónico', { val: CFG.correo, tipo: 'email', ac: 'email', fijo: true, ayuda: 'Es la cuenta USACH con que ingresó; no se puede modificar. A este correo llegarán las notificaciones del trámite y con esta cuenta podrá ver el seguimiento en línea. Si necesita usar otra cuenta, cierre sesión e ingrese con ella.' }) +
     '</section>' +
 
     '<section class="seccion" style="--c:#EF7A00"><h2>Datos de requerimiento <span>02</span></h2><div class="desc">Por favor, detalle el requerimiento que realiza.</div>' +
