@@ -96,12 +96,14 @@ function api_misSolicitudes() {
   const lista = leer_(HOJAS.solicitudes)
     .filter(s => String(s.correo_verificado || s.correo).trim().toLowerCase() === correo)
     .map(s => {
-      const e = estadoPorId(s.estado) || {};
+      // Lo que no se notifica al estudiante tampoco se muestra en su seguimiento.
+      const visible = OCULTOS_AL_ESTUDIANTE[s.estado] || s.estado;
+      const e = estadoPorId(visible) || {};
       return {
         folio: s.folio, programa: s.programa, anio: s.anio, semestre: s.semestre,
         tipo: [s.tipo_catalogo, s.tipo_texto_libre].filter(Boolean).join(', '),
-        estado: s.estado, estadoEtiqueta: e.etiqueta, fecha_recepcion: s.fecha_recepcion,
-        hitos: bit.filter(b => String(b.folio) === String(s.folio) && b.estado_nuevo).map(b => ({ fecha: b.fecha, estado: b.estado_nuevo })),
+        estado: visible, estadoEtiqueta: e.etiqueta, fecha_recepcion: s.fecha_recepcion,
+        hitos: bit.filter(b => String(b.folio) === String(s.folio) && b.estado_nuevo && !OCULTOS_AL_ESTUDIANTE[b.estado_nuevo]).map(b => ({ fecha: b.fecha, estado: b.estado_nuevo })),
         analistaNombre: s.analista ? nombreDe_(s.analista, cuentas) : '', analistaCorreo: s.analista || ''
       };
     });

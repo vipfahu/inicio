@@ -163,18 +163,45 @@ test('informe → programa: la analista registra la solicitud vía STD, sin corr
   assert.equal(b.evento, '');
 });
 
-test('correo a Registro Curricular exige N° STD (variable sin completar bloquea)', () => {
+test('V°B° admisible: sigue a Registro Curricular por STD (sin correo a RC) y se notifica al estudiante', () => {
   const env = instalar(preparar());
   const { ctx, estado } = env;
   estado.usuario = 'analista.uno@usach.cl';
   ctx.api_cambiarEstado('05/2026', 'vb', { campos: { propuesta_comite: 'Acoger' } });
-  assert.throws(() => ctx.api_cambiarEstado('05/2026', 'resolucion', {}), /\{std\}/);
-  ctx.api_guardarGestion('05/2026', { n_std: '12345' });
+  const antes = estado.correos.length;
   ctx.api_cambiarEstado('05/2026', 'resolucion', {});
-  const m = estado.correos.pop();
-  assert.equal(m.to, 'rc@usach.cl');
-  assert.match(m.subject, /STD 12345/);
-  assert.equal(m.cc, 'est4@usach.cl');
+  const enviados = estado.correos.slice(antes);
+  assert.equal(enviados.length, 1, 'un solo correo: al estudiante');
+  assert.equal(enviados[0].to, 'est4@usach.cl');
+  assert.ok(!enviados[0].cc, 'Registro Curricular no recibe correo: va por STD');
+  assert.match(enviados[0].subject, /admisibilidad de la CAE/);
+  assert.match(enviados[0].body, /ha sido declarada admisible/);
+  assert.match(enviados[0].body, /remitida a la Unidad de Registro Curricular/);
+});
+
+test('V°B° rechazado: resolución de rechazo vía STD, sin correo y oculto en el seguimiento del estudiante', () => {
+  const env = instalar(preparar());
+  const { ctx, estado } = env;
+  estado.usuario = 'analista.uno@usach.cl';
+  ctx.api_cambiarEstado('05/2026', 'vb', { campos: { propuesta_comite: 'No acoger' } });
+  const pv = ctx.api_previsualizar('05/2026', 'rechazo_vb', {});
+  assert.equal(pv.conCorreo, false);
+  assert.deepEqual([...pv.requeridos], ['motivo']);
+  assert.throws(() => ctx.api_cambiarEstado('05/2026', 'rechazo_vb', { campos: {} }), /motivo/);
+  const antes = estado.correos.length;
+  ctx.api_cambiarEstado('05/2026', 'rechazo_vb', { campos: { motivo: 'No cumple requisito de permanencia' } });
+  assert.equal(estado.correos.length, antes, 'no se notifica al estudiante ni se escribe a RC');
+  const s = tabla(env, 'Solicitudes').find(x => x.folio === '05/2026');
+  assert.equal(s.estado, 'rechazo_vb');
+  assert.equal(s.motivo, 'No cumple requisito de permanencia');
+  // El estudiante sigue viendo «V°B°» y no ve el hito del rechazo
+  estado.usuario = 'est4@usach.cl';
+  const mis = ctx.api_misSolicitudes().solicitudes.find(x => x.folio === '05/2026');
+  assert.equal(mis.estado, 'vb');
+  assert.ok(!mis.hitos.some(h => h.estado === 'rechazo_vb'));
+  // Cierre: Negado, con la resolución
+  estado.usuario = 'analista.uno@usach.cl';
+  assert.deepEqual([...ctx.api_previsualizar('05/2026', 'negado', {}).requeridos], ['resolucion']);
 });
 
 test('archivos: subida con límite, adjunto en correo, descarga o acceso puntual', () => {

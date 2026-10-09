@@ -84,7 +84,9 @@ Al terminar, **recargar el panel** (la lista de analistas para asignar se lee al
 
 Flujo: **Recibida** → **En revisión de admisibilidad** → **Admisible para análisis** (o Rechazada / No procede) → **Informe de
 Registro Curricular** → **Pronunciamiento del programa (solicitado vía STD)** → **V°B° a respuesta del Comité** (o devolución al
-programa vía STD) → **Resolución en trámite** → **Resuelto / Negado**. La solicitud al programa y la devolución se tramitan en el STD:
+programa vía STD) → decisión: **CAE admisible · resolución en trámite** (vía STD a Registro Curricular; se notifica al estudiante) o
+**Resolución de rechazo en trámite** (vía STD a Registro Curricular; **no** se notifica al estudiante, que sigue viendo «V°B°») →
+**Resuelto / Negado**. La solicitud al programa y la devolución se tramitan en el STD:
 la plataforma solo registra el estado (sin correo) y el estudiante lo ve en su seguimiento. El diagrama completo está en el flujograma publicado.
 
 Todos salen desde la cuenta institucional; las respuestas llegan a la analista del caso.
@@ -100,7 +102,8 @@ Todos salen desde la cuenta institucional; las respuestas llegan a la analista d
 | Registro de solicitud de pronunciamiento al programa (STD) | *(sin correo)* | — | — |
 | Registro de devolución al programa vía STD (pide observación) | *(sin correo)* | — | — |
 | V°B° a respuesta del Comité (pide propuesta) | V°B° Comité | Vicedecano/a | — |
-| Resolución en trámite (requiere N° STD) | Registro | Registro Curricular | Estudiante |
+| V°B° · Admisible (la resolución sigue a Registro Curricular vía STD) | Admisibilidad de la CAE | Estudiante | — |
+| V°B° · Rechazado: resolución de rechazo a Registro Curricular vía STD (pide motivo) | *(sin correo; oculto en el seguimiento)* | — | — |
 | Resuelto / Negado (pide resolución) | Resolución | Estudiante | Dirección de programa |
 | Caso que sigue «Recibida»: primer aviso al día hábil siguiente a la recepción (`primer_aviso_admisibilidad_dias` = 1), luego cada 2 días hábiles, hasta 3 (automático; indica el vencimiento del plazo de `plazo_admisibilidad_dias` = 2) | Recordatorio de admisibilidad | Analista asignada; si no hay, cuentas con nivel Edición o Administración | — |
 | Pronunciamiento del programa sin respuesta tras `plazo_programa_dias` (2) días hábiles desde que se registró la solicitud por STD (automático; luego cada 2 días hábiles, hasta 3) | Recordatorio de pronunciamiento (pide responder por el STD) | Dirección de programa | Analista del caso |
@@ -163,7 +166,6 @@ Si algún correo no llega: revisar la Bitácora (las filas «ERROR · no se envi
 | «Google no entregó su correo» | Sesión con otra cuenta o cuenta fuera de `usach.cl` | Abrir en ventana privada e ingresar con la cuenta USACH |
 | «Su cuenta no tiene el nivel requerido» | Cuenta inexistente, inactiva o con nivel insuficiente | Panel → Cuentas |
 | «No se puede enviar: falta correo de dirección de …» | Programa sin correo | Configuración → Programas |
-| «variables sin completar: {std}» | Falta el N° STD | Guardarlo en el expediente antes de pasar a «Resolución en trámite» |
 | Una analista no aparece para asignar | No tiene rol Analista o está inactiva; o el panel no se recargó | Cuentas; recargar |
 | El estudiante no ve su caso en Seguimiento | Ingresó con otra cuenta | Debe usar la cuenta con que envió el formulario |
 | «Ya registró 3 solicitudes en las últimas 24 horas» | Límite anti-abuso | Esperar o subir `max_solicitudes_dia` |

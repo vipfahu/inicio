@@ -113,6 +113,7 @@ function clase(id) {
   if (id === 'resuelto') return 't-ok';
   if (['rechazada', 'no_procede', 'negado'].indexOf(id) >= 0) return 't-no';
   if (id === 'vb') return 't-vb';
+  if (id === 'rechazo_vb') return 't-no';
   if (id === 'recibida' || id === 'revision') return 't-adm';
   return 't-tra';
 }
@@ -249,10 +250,12 @@ function panelGestion(e, edita) {
   const esVice = S.ini.usuario.rol === 'Vicedecano/a' && e.estado === 'vb';
   const botones = e.siguientes.length ? e.siguientes.map(s => {
     const prim = esVice && s.id === 'resolucion';
-    const amb = esVice && s.id === 'programa';
+    const amb = esVice && (s.id === 'programa' || s.id === 'rechazo_vb');
     // El programa se consulta por STD: aquí solo se registra que se solicitó (o que se devolvió con observación).
     const txt = s.id === 'programa' ? (e.estado === 'vb' ? 'Registrar devolución al programa (vía STD) con observación' : 'Registrar solicitud de pronunciamiento al programa (vía STD)')
-      : esVice && s.id === 'resolucion' ? 'Dar V°B° → ' + s.etiqueta : s.etiqueta;
+      : e.estado === 'vb' && s.id === 'resolucion' ? 'V°B° · Admisible: sigue a Registro Curricular (STD) y se notifica al estudiante'
+      : e.estado === 'vb' && s.id === 'rechazo_vb' ? 'V°B° · Rechazado: resolución de rechazo a Registro Curricular (STD), sin notificar al estudiante'
+      : s.etiqueta;
     return '<button data-hacia="' + s.id + '" class="' + (prim ? 'prim' : amb ? 'ambar' : '') + '" style="width:100%;text-align:left;display:flex;justify-content:space-between;margin-bottom:6px">' + h(txt) + (s.evento ? ' <span title="Envía correo" style="color:' + (prim ? '#fff' : 'var(--naranja)') + '">✉</span>' : '') + '</button>';
   }).join('') + '<div class="sub" style="font-style:italic;white-space:normal">✉ = el cambio envía un correo; verá la vista previa antes de confirmar.</div>'
     : '<div class="aviso a-teal">Trámite cerrado.</div>';
@@ -303,7 +306,8 @@ function dialogo(hacia) {
   run('api_previsualizar', e.folio, hacia, { motivo: '{motivo}', observacion: '{observacion}', propuesta_comite: '{propuesta_comite}', resolucion: '{resolucion}' }).then(pv => {
     const req = pv.requeridos || [];
     let html = '<div class="kicker" style="color:var(--apagado)">Cambio de estado</div><div style="font:800 18px Archivo,sans-serif;margin:6px 0 14px">' + h(pv.desdeEtiqueta) + ' <span style="color:var(--naranja)">→</span> ' + h(pv.haciaEtiqueta) + '</div>';
-    html += req.map(k => '<label class="et" for="c_' + k + '">' + h(ROT_CAMPO[k] || k) + ' *</label><textarea id="c_' + k + '" rows="2" style="margin-bottom:10px">' + h(k === 'propuesta_comite' ? e.propuesta_comite : k === 'resolucion' ? e.resolucion : '') + '</textarea>').join('');
+    const rot = k => (ROT_CAMPO[k] || k).replace('(se incluye en el correo)', pv.conCorreo ? '(se incluye en el correo)' : '(queda en el expediente y la bitácora)');
+    html += req.map(k => '<label class="et" for="c_' + k + '">' + h(rot(k)) + ' *</label><textarea id="c_' + k + '" rows="2" style="margin-bottom:10px">' + h(k === 'propuesta_comite' ? e.propuesta_comite : k === 'resolucion' ? e.resolucion : '') + '</textarea>').join('');
     if (!pv.conCorreo) {
       html += '<p class="resumen">Este cambio no envía correo. Quedará registrado en la bitácora del expediente.</p>';
     } else {

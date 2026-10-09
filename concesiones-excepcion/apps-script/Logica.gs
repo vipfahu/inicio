@@ -13,8 +13,11 @@ const ESTADOS = [
   { id: 'informe_rc', etiqueta: 'Informe de Registro Curricular',            fase: 'Tramitación',   correo: '',           siguientes: ['programa'] },
   // El pronunciamiento se solicita al programa por STD (Sistema de Trazabilidad Documental): aquí solo se registra, sin correo.
   { id: 'programa',   etiqueta: 'Pronunciamiento del programa (solicitado vía STD)', fase: 'Tramitación', correo: '',     siguientes: ['vb'] },
-  { id: 'vb',         etiqueta: 'V°B° Vicedecano/a a respuesta del Comité',  fase: 'Tramitación',   correo: 'vb',         siguientes: ['resolucion', 'programa'] },
-  { id: 'resolucion', etiqueta: 'Resolución en trámite',                     fase: 'Resolución',    correo: 'registro',   siguientes: ['resuelto', 'negado'] },
+  // Decisión del V°B°: admisible → resolución vía STD y se notifica al estudiante; rechazado → resolución de rechazo vía STD,
+  // sin notificar al estudiante (en su seguimiento sigue viendo el V°B°); o devolución al programa.
+  { id: 'vb',         etiqueta: 'V°B° Vicedecano/a a respuesta del Comité',  fase: 'Tramitación',   correo: 'vb',         siguientes: ['resolucion', 'rechazo_vb', 'programa'] },
+  { id: 'resolucion', etiqueta: 'CAE admisible · resolución en trámite (Registro Curricular vía STD)', fase: 'Resolución', correo: 'admisible_cae', siguientes: ['resuelto', 'negado'] },
+  { id: 'rechazo_vb', etiqueta: 'Resolución de rechazo en trámite (Registro Curricular vía STD)', fase: 'Resolución', correo: '', siguientes: ['negado'] },
   { id: 'resuelto',   etiqueta: 'Resuelto',                                  fase: 'Cierre',        correo: 'resuelto',   siguientes: [] },
   { id: 'rechazada',  etiqueta: 'Presentación rechazada',                    fase: 'Cierre',        correo: 'rechazada',  siguientes: [] },
   { id: 'no_procede', etiqueta: 'No procede · vía Registro Curricular',      fase: 'Cierre',        correo: 'no_procede', siguientes: [] },
@@ -25,6 +28,7 @@ const ESTADOS = [
 const CAMPOS_REQUERIDOS = {
   rechazada: ['motivo'],
   'vb>programa': ['observacion'],
+  'vb>rechazo_vb': ['motivo'],
   vb: ['propuesta_comite'],
   resuelto: ['resolucion'],
   negado: ['resolucion']
@@ -59,6 +63,9 @@ function eventoTransicion(desde, hacia) {
   const e = estadoPorId(hacia);
   return e ? e.correo : '';
 }
+
+/** Estados que el estudiante no ve en su seguimiento (se le muestra el anterior) porque no se le notifican. */
+const OCULTOS_AL_ESTUDIANTE = { rechazo_vb: 'vb' };
 
 function camposRequeridos(desde, hacia) {
   return CAMPOS_REQUERIDOS[eventoTransicion(desde, hacia)] || CAMPOS_REQUERIDOS[desde + '>' + hacia] || [];
@@ -323,7 +330,7 @@ function validarSolicitud(d, ctx) {
 }
 
 if (typeof module !== 'undefined') {
-  module.exports = { sumarDiasHabiles, recordatorioPendiente, RECORDATORIOS, camposRequeridos,
+  module.exports = { OCULTOS_AL_ESTUDIANTE, sumarDiasHabiles, recordatorioPendiente, RECORDATORIOS, camposRequeridos,
     ESTADOS, CAMPOS_REQUERIDOS, TIPOS_CATALOGO, NIVELES, ROLES, estadoPorId, esCierre, transicionValida, eventoTransicion,
     normalizarFolio, siguienteFolio, estadoMigrado, separarTipos, rellenar, variablesSinResolver, resolverDestinatarios,
     diasHabilesEntre, necesitaRecordatorio, nivelSuficiente, puedeVerSolicitud, validarCuenta, esSi, listaRoles, validarSolicitud

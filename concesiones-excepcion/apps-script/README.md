@@ -91,7 +91,9 @@ no se borran. La cuenta institucional es administradora fija y no se puede dejar
 
 **Flujo.** Recibida → En revisión de admisibilidad → Admisible para análisis / Rechazada / No procede → Informe de Registro Curricular
 → Pronunciamiento del programa (solicitado vía STD; la plataforma solo registra el estado, sin correo) → V°B° a la respuesta del Comité
-(o devolución al programa vía STD, con observación) → Resolución en trámite → Resuelto / Negado.
+(o devolución al programa vía STD, con observación) → decisión del V°B°: admisible (resolución a Registro Curricular vía STD; correo
+«Admisibilidad de la CAE» al estudiante) o rechazado (resolución de rechazo a Registro Curricular vía STD; sin correo y oculto en el
+seguimiento del estudiante, que sigue viendo el V°B°) → Resuelto / Negado.
 
 **Usuarios.** El panel es solo para el equipo del Vicedecanato (analistas y Vicedecano/a). Las direcciones de programa y Registro Curricular no entran: solo reciben correos.
 
