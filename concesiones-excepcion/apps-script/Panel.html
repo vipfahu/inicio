@@ -253,8 +253,9 @@ function panelGestion(e, edita) {
     const amb = esVice && (s.id === 'programa' || s.id === 'rechazo_vb');
     // El programa se consulta por STD: aquí solo se registra que se solicitó (o que se devolvió con observación).
     const txt = s.id === 'programa' ? (e.estado === 'vb' ? 'Registrar devolución al programa (vía STD) con observación' : 'Registrar solicitud de pronunciamiento al programa (vía STD)')
-      : e.estado === 'vb' && s.id === 'resolucion' ? 'V°B° · Admisible: sigue a Registro Curricular (STD) y se notifica al estudiante'
-      : e.estado === 'vb' && s.id === 'rechazo_vb' ? 'V°B° · Rechazado: resolución de rechazo a Registro Curricular (STD), sin notificar al estudiante'
+      : e.estado === 'vb' && s.id === 'resolucion' ? 'V°B° · CAE admisible: sigue a Registro Curricular (STD)'
+      : e.estado === 'vb' && s.id === 'rechazo_vb' ? 'V°B° · CAE rechazada: sigue a Registro Curricular (STD)'
+      : s.id === 'resuelto' || s.id === 'negado' ? 'Registrar resolución de Registro Curricular → ' + s.etiqueta
       : s.etiqueta;
     return '<button data-hacia="' + s.id + '" class="' + (prim ? 'prim' : amb ? 'ambar' : '') + '" style="width:100%;text-align:left;display:flex;justify-content:space-between;margin-bottom:6px">' + h(txt) + (s.evento ? ' <span title="Envía correo" style="color:' + (prim ? '#fff' : 'var(--naranja)') + '">✉</span>' : '') + '</button>';
   }).join('') + '<div class="sub" style="font-style:italic;white-space:normal">✉ = el cambio envía un correo; verá la vista previa antes de confirmar.</div>'

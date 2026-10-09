@@ -91,9 +91,9 @@ no se borran. La cuenta institucional es administradora fija y no se puede dejar
 
 **Flujo.** Recibida → En revisión de admisibilidad → Admisible para análisis / Rechazada / No procede → Informe de Registro Curricular
 → Pronunciamiento del programa (solicitado vía STD; la plataforma solo registra el estado, sin correo) → V°B° a la respuesta del Comité
-(o devolución al programa vía STD, con observación) → decisión del V°B°: admisible (resolución a Registro Curricular vía STD; correo
-«Admisibilidad de la CAE» al estudiante) o rechazado (resolución de rechazo a Registro Curricular vía STD; sin correo y oculto en el
-seguimiento del estudiante, que sigue viendo el V°B°) → Resuelto / Negado.
+(o devolución al programa vía STD, con observación) → decisión del V°B°: CAE admisible o CAE rechazada (ambas siguen a Registro
+Curricular por STD, que elabora y envía la resolución) → Resuelto / Negado. En la fase de resolución no hay correos: solo cambia el
+estado que el estudiante ve en su seguimiento.
 
 **Usuarios.** El panel es solo para el equipo del Vicedecanato (analistas y Vicedecano/a). Las direcciones de programa y Registro Curricular no entran: solo reciben correos.
 
@@ -102,7 +102,7 @@ seguimiento del estudiante, que sigue viendo el V°B°) → Resuelto / Negado.
 **Correos.** Automáticos solo: recepción (estudiante), nueva solicitud (equipo), asignación (analista) y recordatorios: de admisibilidad (interno), si el caso sigue «Recibida» al día hábil siguiente a la recepción (`primer_aviso_admisibilidad_dias` = 1; el plazo es `plazo_admisibilidad_dias` = 2), a la analista asignada o, si no hay, a las cuentas con nivel edición o administración, y del programa, cuando vencen los `plazo_programa_dias` (2) días hábiles desde que se registró la solicitud por STD (a la dirección de programa, con copia a la analista; pide responder por el STD)
 (tras el plazo, cada `recordatorio_cada_dias`, hasta `recordatorios_max`). Si uno de ellos no sale, se avisa de inmediato
 por correo a la analista del caso, a la administración y a la cuenta institucional (además de quedar en la bitácora).
-Todo correo dirigido al estudiante (recepción, admisible para análisis, rechazada, no procede, resuelto, negado) lleva el enlace de seguimiento
+Todo correo dirigido al estudiante (recepción, admisible para análisis, rechazada, no procede) lleva el enlace de seguimiento
 `URL?v=seguimiento`; el estudiante ve sus casos ingresando con la cuenta USACH con que envió el formulario. Todo otro correo sale al cambiar de estado
 en el panel, tras una vista previa editable; si falta un destinatario o una variable (por ejemplo `{std}`), no se envía; si el envío
 falla, el estado no cambia. Los destinatarios son roles que se traducen al enviar:

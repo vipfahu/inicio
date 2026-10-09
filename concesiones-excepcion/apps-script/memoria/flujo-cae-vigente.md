@@ -1,4 +1,4 @@
-Flujo vigente: recibida → revisión de admisibilidad → admisible para análisis (id `aceptada`) / rechazada / no procede → informe RC → programa (vía STD, solo registro) → V°B° Comité: admisible (resolución vía STD, se notifica al estudiante) / rechazado (resolución de rechazo vía STD, sin notificar; oculto en el seguimiento) / devolución vía STD → resuelto / negado.
+Flujo vigente: recibida → revisión de admisibilidad → admisible para análisis (id `aceptada`) / rechazada / no procede → informe RC → programa (vía STD, solo registro) → V°B° Comité: CAE admisible / CAE rechazada (ambas a Registro Curricular vía STD; sin correos, solo estado visible) / devolución vía STD → resuelto / negado.
 
 Tipo: corrección
 
@@ -10,9 +10,9 @@ el pronunciamiento al programa por STD, sin notificación; el estudiante ve ese 
 también se registra sin correo (exige observación). El recordatorio de plazo vencido (2 días hábiles) va a la dirección de programa con copia a la analista y pide responder por el STD (pedido posterior de la persona); el registro del envío sigue sin correo. El V°B° a la
 respuesta del Comité lo registra cualquier cuenta con edición, y la admisibilidad se declara tras la revisión. El estado «aceptada» se muestra como «Admisible para análisis» (pedido de la persona): deja claro que aún no hay resolución sobre lo solicitado.
 
-En el V°B° (pedido de la persona): «Admisible» sigue a Registro Curricular por STD y notifica «Admisibilidad de la CAE» al estudiante;
-«Rechazado» genera la resolución de rechazo para Registro Curricular por STD, sin notificar al estudiante. Ya no hay correo a Registro
-Curricular (se retiró la plantilla `registro`). Pendiente de confirmar: si el cierre «Negado» tras un rechazo debe enviar el correo de
-resolución al estudiante (hoy sí, con vista previa).
+Fase de resolución (pedido de la persona): en el V°B°, «CAE admisible» y «CAE rechazada» se tratan igual: ambas siguen a Registro
+Curricular por STD, que **elabora y envía** la resolución (esta unidad no la elabora). No hay correos en toda la fase (se retiraron
+`registro`, `admisible_cae`, `resuelto` y `negado`): solo cambia el estado que el estudiante ve en el seguimiento, incluida la
+CAE rechazada. Al cerrar se anota N° y fecha de la resolución.
 
 **Por qué importa:** no reintroducir la autorización de inicio ni la exclusividad del Vicedecano/a, ni correos al programa, sin que la persona lo pida.

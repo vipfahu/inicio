@@ -84,9 +84,9 @@ Al terminar, **recargar el panel** (la lista de analistas para asignar se lee al
 
 Flujo: **Recibida** → **En revisión de admisibilidad** → **Admisible para análisis** (o Rechazada / No procede) → **Informe de
 Registro Curricular** → **Pronunciamiento del programa (solicitado vía STD)** → **V°B° a respuesta del Comité** (o devolución al
-programa vía STD) → decisión: **CAE admisible · resolución en trámite** (vía STD a Registro Curricular; se notifica al estudiante) o
-**Resolución de rechazo en trámite** (vía STD a Registro Curricular; **no** se notifica al estudiante, que sigue viendo «V°B°») →
-**Resuelto / Negado**. La solicitud al programa y la devolución se tramitan en el STD:
+programa vía STD) → decisión: **CAE admisible** o **CAE rechazada** (en ambos casos el trámite sigue a Registro Curricular por el STD;
+Registro Curricular elabora y envía la resolución) → **Resuelto / Negado** (se anota la resolución emitida). En toda la fase de
+resolución no hay correos: solo cambia el estado que el estudiante ve en su seguimiento. La solicitud al programa y la devolución se tramitan en el STD:
 la plataforma solo registra el estado (sin correo) y el estudiante lo ve en su seguimiento. El diagrama completo está en el flujograma publicado.
 
 Todos salen desde la cuenta institucional; las respuestas llegan a la analista del caso.
@@ -102,9 +102,8 @@ Todos salen desde la cuenta institucional; las respuestas llegan a la analista d
 | Registro de solicitud de pronunciamiento al programa (STD) | *(sin correo)* | — | — |
 | Registro de devolución al programa vía STD (pide observación) | *(sin correo)* | — | — |
 | V°B° a respuesta del Comité (pide propuesta) | V°B° Comité | Vicedecano/a | — |
-| V°B° · Admisible (la resolución sigue a Registro Curricular vía STD) | Admisibilidad de la CAE | Estudiante | — |
-| V°B° · Rechazado: resolución de rechazo a Registro Curricular vía STD (pide motivo) | *(sin correo; oculto en el seguimiento)* | — | — |
-| Resuelto / Negado (pide resolución) | Resolución | Estudiante | Dirección de programa |
+| V°B° · CAE admisible o CAE rechazada (sigue a Registro Curricular vía STD) | *(sin correo; el estudiante ve el estado)* | — | — |
+| Resuelto / Negado (pide N° y fecha de la resolución de Registro Curricular) | *(sin correo; el estudiante ve el estado)* | — | — |
 | Caso que sigue «Recibida»: primer aviso al día hábil siguiente a la recepción (`primer_aviso_admisibilidad_dias` = 1), luego cada 2 días hábiles, hasta 3 (automático; indica el vencimiento del plazo de `plazo_admisibilidad_dias` = 2) | Recordatorio de admisibilidad | Analista asignada; si no hay, cuentas con nivel Edición o Administración | — |
 | Pronunciamiento del programa sin respuesta tras `plazo_programa_dias` (2) días hábiles desde que se registró la solicitud por STD (automático; luego cada 2 días hábiles, hasta 3) | Recordatorio de pronunciamiento (pide responder por el STD) | Dirección de programa | Analista del caso |
 | Falla un correo automático | Aviso de falla | Analista del caso, Administración, cuenta institucional | — |

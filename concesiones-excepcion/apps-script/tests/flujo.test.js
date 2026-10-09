@@ -163,45 +163,34 @@ test('informe → programa: la analista registra la solicitud vía STD, sin corr
   assert.equal(b.evento, '');
 });
 
-test('V°B° admisible: sigue a Registro Curricular por STD (sin correo a RC) y se notifica al estudiante', () => {
-  const env = instalar(preparar());
-  const { ctx, estado } = env;
-  estado.usuario = 'analista.uno@usach.cl';
-  ctx.api_cambiarEstado('05/2026', 'vb', { campos: { propuesta_comite: 'Acoger' } });
-  const antes = estado.correos.length;
-  ctx.api_cambiarEstado('05/2026', 'resolucion', {});
-  const enviados = estado.correos.slice(antes);
-  assert.equal(enviados.length, 1, 'un solo correo: al estudiante');
-  assert.equal(enviados[0].to, 'est4@usach.cl');
-  assert.ok(!enviados[0].cc, 'Registro Curricular no recibe correo: va por STD');
-  assert.match(enviados[0].subject, /admisibilidad de la CAE/);
-  assert.match(enviados[0].body, /ha sido declarada admisible/);
-  assert.match(enviados[0].body, /remitida a la Unidad de Registro Curricular/);
-});
-
-test('V°B° rechazado: resolución de rechazo vía STD, sin correo y oculto en el seguimiento del estudiante', () => {
-  const env = instalar(preparar());
-  const { ctx, estado } = env;
-  estado.usuario = 'analista.uno@usach.cl';
-  ctx.api_cambiarEstado('05/2026', 'vb', { campos: { propuesta_comite: 'No acoger' } });
-  const pv = ctx.api_previsualizar('05/2026', 'rechazo_vb', {});
-  assert.equal(pv.conCorreo, false);
-  assert.deepEqual([...pv.requeridos], ['motivo']);
-  assert.throws(() => ctx.api_cambiarEstado('05/2026', 'rechazo_vb', { campos: {} }), /motivo/);
-  const antes = estado.correos.length;
-  ctx.api_cambiarEstado('05/2026', 'rechazo_vb', { campos: { motivo: 'No cumple requisito de permanencia' } });
-  assert.equal(estado.correos.length, antes, 'no se notifica al estudiante ni se escribe a RC');
-  const s = tabla(env, 'Solicitudes').find(x => x.folio === '05/2026');
-  assert.equal(s.estado, 'rechazo_vb');
-  assert.equal(s.motivo, 'No cumple requisito de permanencia');
-  // El estudiante sigue viendo «V°B°» y no ve el hito del rechazo
-  estado.usuario = 'est4@usach.cl';
-  const mis = ctx.api_misSolicitudes().solicitudes.find(x => x.folio === '05/2026');
-  assert.equal(mis.estado, 'vb');
-  assert.ok(!mis.hitos.some(h => h.estado === 'rechazo_vb'));
-  // Cierre: Negado, con la resolución
-  estado.usuario = 'analista.uno@usach.cl';
-  assert.deepEqual([...ctx.api_previsualizar('05/2026', 'negado', {}).requeridos], ['resolucion']);
+test('resolución: CAE admisible y CAE rechazada solo cambian el estado que ve el estudiante (sin correos)', () => {
+  for (const [folio, hacia, etiqueta] of [['05/2026', 'resolucion', /CAE admisible/], ['05/2026', 'rechazo_vb', /CAE rechazada/]]) {
+    const env = instalar(preparar());
+    const { ctx, estado } = env;
+    estado.usuario = 'analista.uno@usach.cl';
+    ctx.api_cambiarEstado(folio, 'vb', { campos: { propuesta_comite: 'Propuesta' } });
+    const pv = ctx.api_previsualizar(folio, hacia, {});
+    assert.equal(pv.conCorreo, false);
+    assert.deepEqual([...pv.requeridos], []);
+    assert.match(pv.haciaEtiqueta, etiqueta);
+    assert.match(pv.haciaEtiqueta, /Registro Curricular/);
+    const antes = estado.correos.length;
+    ctx.api_cambiarEstado(folio, hacia, {});
+    assert.equal(estado.correos.length, antes, 'no se escribe al estudiante ni a Registro Curricular');
+    // El estudiante ve el nuevo estado en su seguimiento
+    estado.usuario = 'est4@usach.cl';
+    const mis = ctx.api_misSolicitudes().solicitudes.find(x => x.folio === folio);
+    assert.equal(mis.estado, hacia);
+    assert.ok(mis.hitos.some(h => h.estado === hacia));
+    // Cierre: se anota la resolución de Registro Curricular, sin correo
+    estado.usuario = 'analista.uno@usach.cl';
+    const pvc = ctx.api_previsualizar(folio, 'negado', {});
+    assert.equal(pvc.conCorreo, false);
+    assert.deepEqual([...pvc.requeridos], ['resolucion']);
+    ctx.api_cambiarEstado(folio, 'negado', { campos: { resolucion: 'Res. 123 del 01-11-2026' } });
+    assert.equal(estado.correos.length, antes);
+    assert.equal(tabla(env, 'Solicitudes').find(x => x.folio === folio).resolucion, 'Res. 123 del 01-11-2026');
+  }
 });
 
 test('archivos: subida con límite, adjunto en correo, descarga o acceso puntual', () => {

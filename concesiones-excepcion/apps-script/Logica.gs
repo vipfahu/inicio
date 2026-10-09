@@ -13,25 +13,26 @@ const ESTADOS = [
   { id: 'informe_rc', etiqueta: 'Informe de Registro Curricular',            fase: 'Tramitación',   correo: '',           siguientes: ['programa'] },
   // El pronunciamiento se solicita al programa por STD (Sistema de Trazabilidad Documental): aquí solo se registra, sin correo.
   { id: 'programa',   etiqueta: 'Pronunciamiento del programa (solicitado vía STD)', fase: 'Tramitación', correo: '',     siguientes: ['vb'] },
-  // Decisión del V°B°: admisible → resolución vía STD y se notifica al estudiante; rechazado → resolución de rechazo vía STD,
-  // sin notificar al estudiante (en su seguimiento sigue viendo el V°B°); o devolución al programa.
+  // Decisión del V°B°: CAE admisible o CAE rechazada (ambas siguen a Registro Curricular por STD, que elabora y envía la
+  // resolución), o devolución al programa. En la fase de resolución no hay correos: solo cambia el estado que ve el estudiante.
   { id: 'vb',         etiqueta: 'V°B° Vicedecano/a a respuesta del Comité',  fase: 'Tramitación',   correo: 'vb',         siguientes: ['resolucion', 'rechazo_vb', 'programa'] },
-  { id: 'resolucion', etiqueta: 'CAE admisible · resolución en trámite (Registro Curricular vía STD)', fase: 'Resolución', correo: 'admisible_cae', siguientes: ['resuelto', 'negado'] },
-  { id: 'rechazo_vb', etiqueta: 'Resolución de rechazo en trámite (Registro Curricular vía STD)', fase: 'Resolución', correo: '', siguientes: ['negado'] },
-  { id: 'resuelto',   etiqueta: 'Resuelto',                                  fase: 'Cierre',        correo: 'resuelto',   siguientes: [] },
+  { id: 'resolucion', etiqueta: 'CAE admisible · resolución en Registro Curricular', fase: 'Resolución', correo: '', siguientes: ['resuelto', 'negado'] },
+  { id: 'rechazo_vb', etiqueta: 'CAE rechazada · resolución en Registro Curricular', fase: 'Resolución', correo: '', siguientes: ['negado'] },
+  { id: 'resuelto',   etiqueta: 'Resuelto',                                  fase: 'Cierre',        correo: '',           siguientes: [] },
   { id: 'rechazada',  etiqueta: 'Presentación rechazada',                    fase: 'Cierre',        correo: 'rechazada',  siguientes: [] },
   { id: 'no_procede', etiqueta: 'No procede · vía Registro Curricular',      fase: 'Cierre',        correo: 'no_procede', siguientes: [] },
-  { id: 'negado',     etiqueta: 'Negado',                                    fase: 'Cierre',        correo: 'negado',     siguientes: [] }
+  { id: 'negado',     etiqueta: 'Negado',                                    fase: 'Cierre',        correo: '',           siguientes: [] }
 ];
 
 /** Datos que la persona debe escribir en el diálogo: por correo (evento) o por transición sin correo ('desde>hacia'). */
 const CAMPOS_REQUERIDOS = {
   rechazada: ['motivo'],
   'vb>programa': ['observacion'],
-  'vb>rechazo_vb': ['motivo'],
   vb: ['propuesta_comite'],
-  resuelto: ['resolucion'],
-  negado: ['resolucion']
+  // Cierre: se anota la resolución que emitió Registro Curricular (N° y fecha), sin correo.
+  'resolucion>resuelto': ['resolucion'],
+  'resolucion>negado': ['resolucion'],
+  'rechazo_vb>negado': ['resolucion']
 };
 
 const TIPOS_CATALOGO = [
@@ -64,8 +65,8 @@ function eventoTransicion(desde, hacia) {
   return e ? e.correo : '';
 }
 
-/** Estados que el estudiante no ve en su seguimiento (se le muestra el anterior) porque no se le notifican. */
-const OCULTOS_AL_ESTUDIANTE = { rechazo_vb: 'vb' };
+/** Estados que el estudiante no ve en su seguimiento (se le mostraría el indicado). Hoy ninguno: ve también la CAE rechazada. */
+const OCULTOS_AL_ESTUDIANTE = {};
 
 function camposRequeridos(desde, hacia) {
   return CAMPOS_REQUERIDOS[eventoTransicion(desde, hacia)] || CAMPOS_REQUERIDOS[desde + '>' + hacia] || [];
