@@ -72,6 +72,20 @@ function api_guardarPrograma(p, esNuevo) {
   return { ok: true };
 }
 
+/** Correo de la dirección de un programa: lo puede editar cualquier cuenta con nivel edición (analistas). */
+function api_guardarCorreoPrograma(programa, correo) {
+  const u = requiere_('edicion');
+  const actual = leer_(HOJAS.programas).find(x => x.programa === String(programa || '').trim());
+  if (!actual) throw new Error('El programa no existe.');
+  const c = String(correo || '').trim().toLowerCase();
+  if (c && !/^[^@\s]+@[^@\s]+\.[a-z]{2,}$/.test(c)) throw new Error('Correo de dirección no válido.');
+  if (c === String(actual.correo_direccion || '').toLowerCase()) return { ok: true, sinCambios: true };
+  actualizar_(HOJAS.programas, actual._fila, { correo_direccion: c });
+  anexar_(HOJAS.bitacora, { fecha: new Date(), folio: '—', tipo: 'sistema', quien: u.correo,
+    texto: 'Correo de dirección de «' + actual.programa + '»: ' + (actual.correo_direccion || '(vacío)') + ' → ' + (c || '(vacío)') });
+  return { ok: true };
+}
+
 function api_guardarParametros(valores) {
   const u = requiere_('administracion');
   const filas = leer_(HOJAS.parametros);

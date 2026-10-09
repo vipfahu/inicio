@@ -300,6 +300,10 @@ function pintarExp() {
   };
   document.querySelectorAll('[data-hacia]').forEach(b => b.onclick = () => dialogo(b.dataset.hacia));
   if ($('guardar')) $('guardar').onclick = guardarGestion;
+  if ($('asignarme')) $('asignarme').onclick = () => {
+    $('asignarme').disabled = true;
+    run('api_guardarGestion', S.exp.folio, { analista: S.ini.usuario.correo }).then(() => { toast('Solicitud asignada a usted'); abrir(S.exp.folio); }).catch(err => { fallo(err); $('asignarme').disabled = false; });
+  };
 }
 function panelGestion(e, edita) {
   if (!edita) return '<div class="tarjeta"><span class="et">Estado actual</span><div style="font:700 14px Archivo,sans-serif">' + h(e.estadoEtiqueta) + '</div><div class="sub">Analista: ' + h(e.analistaNombre || 'Sin asignar') + ' · STD ' + h(e.n_std || '—') + '</div></div>';
@@ -322,6 +326,8 @@ function panelGestion(e, edita) {
     (e.propuesta_comite ? '<div style="background:var(--fcampo);border-radius:10px;padding:10px 12px;margin-bottom:12px;font:400 13px/1.5 Spectral,serif"><span class="et">Propuesta del Comité</span>' + h(e.propuesta_comite) + '</div>' : '') +
     '<span class="et">Pasar a</span>' + botones + '<hr style="border:0;border-top:1px solid var(--fila);margin:16px 0">' +
     '<label class="et" for="g_analista">Analista a cargo</label><select id="g_analista"><option value="">Sin asignar</option>' + S.ini.analistas.map(a => '<option value="' + h(a.correo) + '"' + (a.correo === e.analista ? ' selected' : '') + '>' + h(a.nombre) + '</option>').join('') + '</select>' +
+    (S.ini.usuario.rol === 'Analista' && e.analista !== S.ini.usuario.correo ? '<button id="asignarme" style="width:100%;margin-top:6px">Asignármela</button>' : '') +
+    '<div class="sub" style="white-space:normal;margin-top:4px">Al cambiar la analista a cargo y guardar, se le envía un aviso por correo.</div>' +
     campo('n_std', 'N° STD') + campo('comentarios_analista', 'Comentarios analista', 'area') + campo('obs_vicedecano', 'Observación Vicedecano/a', 'area') +
     campo('propuesta_comite', 'Propuesta del Comité', 'area') + campo('resolucion', 'Resolución (N° y fecha)') +
     (e.revisar === 'SÍ' ? '<label class="chk" style="margin-top:12px"><input type="checkbox" id="g_revisado"> Marcar como revisado (migración)</label>' : '') +
@@ -525,11 +531,13 @@ function cargarConfig() {
   run('api_config').then(r => { S.config = r; pintarConfig(); }).catch(fallo);
 }
 function pintarConfig() {
-  const r = S.config, adm = nivel('administracion');
+  const r = S.config, adm = nivel('administracion'), ed = nivel('edicion');
   const filas = r.programas.map((p, i) => '<div class="fila" style="grid-template-columns:1.5fr 1.2fr 1fr 60px 70px;cursor:default"><div class="nom" style="font-size:13px">' + h(p.programa) + '</div>' +
     (adm ? '<input data-i="' + i + '" data-k="correo_direccion" class="mono" style="font-size:12px" value="' + h(p.correo_direccion) + '" placeholder="dirección@usach.cl">' +
       '<select data-i="' + i + '" data-k="analista"><option value="">Sin asignar</option>' + S.ini.analistas.map(a => '<option value="' + h(a.correo) + '"' + (a.correo === p.analista ? ' selected' : '') + '>' + h(a.nombre) + '</option>').join('') + '</select>' +
       '<label class="chk"><input type="checkbox" data-i="' + i + '" data-k="activo"' + (p.activo === 'SÍ' ? ' checked' : '') + '></label><button data-gp="' + i + '" style="padding:6px 9px">Guardar</button>'
+      : ed ? '<input data-i="' + i + '" data-k="correo_direccion" class="mono" style="font-size:12px" value="' + h(p.correo_direccion) + '" placeholder="dirección@usach.cl" aria-label="Correo de dirección de ' + h(p.programa) + '">' +
+        '<div class="sub">' + h(p.analista || '—') + '</div><div class="sub">' + h(p.activo) + '</div><button data-gc="' + i + '" style="padding:6px 9px">Guardar</button>'
       : '<div class="sub mono">' + h(p.correo_direccion || '—') + '</div><div class="sub">' + h(p.analista || '—') + '</div><div class="sub">' + h(p.activo) + '</div><div></div>') + '</div>').join('');
   const pars = r.parametros.map(p => '<div style="margin-bottom:12px"><label class="et" for="p_' + h(p.clave) + '">' + h(p.clave) + '</label><input id="p_' + h(p.clave) + '" data-clave="' + h(p.clave) + '" value="' + h(p.valor) + '"' + (adm ? '' : ' disabled') + '><div class="sub" style="white-space:normal">' + h(p.descripcion) + '</div></div>').join('');
   $('app').innerHTML = '<h2>Configuración</h2><div class="resumen" style="margin-bottom:16px">Cada programa define a quién llegan los correos para «Dirección de programa» y qué analista recibe las solicitudes nuevas.</div>' +
@@ -537,6 +545,10 @@ function pintarConfig() {
     (adm ? '<div class="tarjeta"><h3>Agregar programa</h3><div style="display:grid;grid-template-columns:1.5fr 1fr auto;gap:8px"><input id="np_nombre" placeholder="Nombre exacto, como aparece en el Formulario"><input id="np_correo" class="mono" placeholder="dirección@usach.cl"><button class="prim" id="np_ok">Agregar</button></div><div class="sub" style="white-space:normal;margin-top:6px">Si agrega un programa aquí, agréguelo también como opción en el Formulario de Google.</div></div>' : '') +
     '</div><div class="lado pila"><div class="tarjeta"><h3>Parámetros</h3>' + pars + (adm ? '<button class="prim" id="par_ok" style="width:100%">Guardar parámetros</button>' : '') + '</div>' +
     tarjetaFeriados(r.feriados) + '</div></div>';
+  document.querySelectorAll('[data-gc]').forEach(b => b.onclick = () => {
+    const i = b.dataset.gc, el = document.querySelector('[data-i="' + i + '"][data-k="correo_direccion"]');
+    run('api_guardarCorreoPrograma', r.programas[i].programa, el.value).then(() => { toast('Correo de dirección guardado'); cargarConfig(); }).catch(fallo);
+  });
   if (!adm) return;
   document.querySelectorAll('[data-gp]').forEach(b => b.onclick = () => {
     const i = b.dataset.gp, p = Object.assign({}, r.programas[i]);

@@ -85,7 +85,7 @@ agrega pestañas y oculta (no elimina) las columnas de gestión antiguas.
 
 **Cuentas.** Una cuenta es una fila en «Cuentas» (correo, nombre, rol, nivel, programas, activo, correos que recibe). No hay contraseñas:
 se ingresa con Google. Niveles: `sin_acceso` (solo recibe correos) · `consulta` (bandeja y expedientes, sin fundamentación ni archivos)
-· `edicion` (tramita, anota, sube archivos, edita plantillas) · `administracion` (además cuentas, programas y parámetros).
+· `edicion` (tramita, anota, sube archivos, edita plantillas, se asigna o asigna casos a otra analista, edita el correo de dirección de los programas) · `administracion` (además cuentas, programas y parámetros).
 Cada llamada del panel vuelve a leer la matriz, así que un cambio rige en la siguiente acción de esa persona. Las cuentas se desactivan,
 no se borran. La cuenta institucional es administradora fija y no se puede dejar el sistema sin otra administración activa.
 

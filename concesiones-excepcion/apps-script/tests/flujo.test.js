@@ -512,3 +512,39 @@ test('correos se leen bien con y sin analista asignada', () => {
   assert.match(ctx.componer_('recordatorio', sin).cuerpo, /llegará al equipo del Vicedecanato\./);
   [a1, a2].forEach(c => assert.doesNotMatch(c, /\{\w+\}/));
 });
+
+test('analistas: se asignan o asignan a otra analista, y editan solo el correo de dirección de los programas', () => {
+  const env = instalar(preparar());
+  const { ctx, estado } = env;
+  // Asignarse a sí misma un caso sin analista (aviso de asignación incluido)
+  estado.usuario = 'analista.uno@usach.cl';
+  const n = estado.correos.length;
+  ctx.api_guardarGestion('06/2026', { analista: 'analista.uno@usach.cl' });
+  assert.equal(tabla(env, 'Solicitudes').find(x => x.folio === '06/2026').analista, 'analista.uno@usach.cl');
+  assert.ok(estado.correos.slice(n).some(m => /asignada/.test(m.subject) && m.to === 'analista.uno@usach.cl'));
+  // No se puede asignar a quien no es analista activa
+  assert.throws(() => ctx.api_guardarGestion('06/2026', { analista: 'consulta@usach.cl' }), /rol Analista/);
+  // Correo de dirección: la analista lo edita y queda en la bitácora
+  ctx.api_guardarCorreoPrograma('Magíster en Prueba A', 'Nueva.Direccion@usach.cl');
+  assert.equal(tabla(env, 'Programas').find(p => p.programa === 'Magíster en Prueba A').correo_direccion, 'nueva.direccion@usach.cl');
+  assert.ok(tabla(env, 'Bitácora').some(b => /Correo de dirección de «Magíster en Prueba A»/.test(b.texto) && b.quien === 'analista.uno@usach.cl'));
+  assert.throws(() => ctx.api_guardarCorreoPrograma('Magíster en Prueba A', 'no-es-correo'), /no válido/);
+  assert.throws(() => ctx.api_guardarCorreoPrograma('Inexistente', 'a@usach.cl'), /no existe/);
+  // Lo demás del programa sigue siendo de administración
+  assert.throws(() => ctx.api_guardarPrograma({ programa: 'Magíster en Prueba A', correo_direccion: 'x@usach.cl', analista: '', activo: 'NO' }, false), /nivel requerido/);
+  // Nivel consulta no puede
+  estado.usuario = 'consulta@usach.cl';
+  assert.throws(() => ctx.api_guardarCorreoPrograma('Magíster en Prueba A', 'otra@usach.cl'), /nivel requerido/);
+});
+
+test('una analista asigna el caso a otra analista (y esta recibe el aviso)', () => {
+  const env = instalar(preparar());
+  const { ctx, estado } = env;
+  estado.usuario = 'vice@usach.cl';
+  ctx.api_guardarCuenta({ correo: 'analista.dos@usach.cl', nombre: 'Analista Dos', rol: 'Analista', nivel: 'edicion', programas: 'todos', activo: 'SÍ' }, true);
+  estado.usuario = 'analista.uno@usach.cl';
+  const n = estado.correos.length;
+  ctx.api_guardarGestion('05/2026', { analista: 'analista.dos@usach.cl' });
+  assert.equal(tabla(env, 'Solicitudes').find(x => x.folio === '05/2026').analista, 'analista.dos@usach.cl');
+  assert.ok(estado.correos.slice(n).some(m => m.to === 'analista.dos@usach.cl' && /asignada/.test(m.subject)));
+});
