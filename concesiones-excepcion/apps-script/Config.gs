@@ -58,8 +58,11 @@ const LEGADO = {
   resolucion: 'archivo resolución'
 };
 
+// Parámetros que ya no se usan: la actualización automática los quita de la planilla.
+// vicedecano_nombre: el nombre del Vicedecano/a sale de su cuenta en «Cuentas» (no se edita en Configuración).
+const PARAMETROS_RETIRADOS = ['vicedecano_nombre'];
+
 const PARAMETROS_INICIALES = [
-  ['vicedecano_nombre', 'Dr. Jorge Castillo S.', 'Nombre que aparece en los correos ({vicedecano}).'],
   ['remitente_nombre', 'Vicedecanato de Investigación y Postgrado · FAHU', 'Nombre visible del remitente.'],
   ['plazo_admisibilidad_dias', '2', 'Días hábiles desde la recepción para asignar analista e iniciar la revisión de admisibilidad.'],
   ['primer_aviso_admisibilidad_dias', '1', 'Días hábiles desde la recepción hasta el primer recordatorio de admisibilidad (luego, cada recordatorio_cada_dias).'],

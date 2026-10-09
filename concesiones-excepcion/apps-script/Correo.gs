@@ -26,7 +26,7 @@ function variables_(sol, campos, cuentas) {
     firmante: (analista ? analista + '\n' : '') + 'Vicedecanato de Investigación y Postgrado · FAHU',
     analista_asignada: analista || 'sin asignar (asígnela desde el expediente)',
     std: campos.n_std || sol.n_std || '',
-    vicedecano: p.vicedecano_nombre,
+    vicedecano: vicedecano_().nombre,
     motivo: campos.motivo || sol.motivo || '',
     observacion: campos.observacion || sol.obs_vicedecano || '',
     propuesta_comite: campos.propuesta_comite || sol.propuesta_comite || '',

@@ -72,7 +72,8 @@ Al terminar, **recargar el panel** (la lista de analistas para asignar se lee al
 2. **Parámetros** → «Guardar parámetros»:
    - `enlace_rc`: enlace a la plataforma de Registro Curricular (lo usa el correo «No procede»).
    - Revisar `plazo_admisibilidad_dias` (2), `primer_aviso_admisibilidad_dias` (1), `plazo_programa_dias` (2), `plazo_vb_dias` (2), `recordatorio_cada_dias` (2), `recordatorios_max` (3), `max_mb_antecedente` (10),
-     `max_solicitudes_dia` (3), `vicedecano_nombre`.
+     `max_solicitudes_dia` (3).
+   - En «Cuentas», la del Vicedecano/a debe tener su **nombre** completo: es el que aparece en los correos.
 3. **Días hábiles y feriados (automáticos):** los plazos cuentan de lunes a viernes descontando los feriados de Chile, que la plataforma
    obtiene sola del calendario público de feriados de Chile de Google y renueva cada mes (año en curso y siguiente). No se cargan a
    mano. Configuración → «Feriados (automáticos)» muestra los próximos; *CAE → Diagnóstico* indica la fuente o si falló la consulta.
@@ -118,9 +119,10 @@ Todos salen desde la cuenta institucional; las respuestas llegan a la analista d
 | Falla un correo automático | Aviso de falla | Analista del caso, Administración, cuenta institucional | — |
 
 Las tres salidas del V°B° (CAE admisible, CAE rechazada, devolución) solo las registra la cuenta con rol Vicedecano/a. Si dio el V°B° por
-otro medio, la analista marca «Vicedecano/a aprueba por otro medio» e indica medio y fecha (queda en la bitácora con su nombre). El nombre
-y correo del Vicedecano/a se cambian en Configuración → «Vicedecano/a» (solo administración; la cuenta anterior se desactiva, así que
-quien haga el cambio no debe ser esa misma cuenta si necesita seguir entrando con ella).
+otro medio, la analista marca «Vicedecano/a aprueba por otro medio» e indica medio y fecha (queda en la bitácora con su nombre). Configuración
+→ «Vicedecano/a» muestra el nombre y la cuenta del Vicedecano/a sin permitir editarlos: se cambian solo en «Cuentas» (nombre de la cuenta
+con rol Vicedecano/a; para un relevo, se activa la cuenta nueva con ese rol y se desactiva la anterior). El Diagnóstico avisa si hay
+más de una cuenta activa con ese rol o si no tiene nombre.
 
 Además, cada cuenta recibe copia de los eventos marcados en «Recibe copia de estos correos». Todo correo que no es automático se
 muestra antes de enviarse, se puede editar y no sale si falta el destinatario principal o un dato. Si falta uno en copia (por ejemplo, el correo de dirección del programa), sale igual y la vista previa lo advierte.

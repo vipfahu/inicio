@@ -241,6 +241,9 @@ function diagnostico() {
   if (!cuentas.some(c => c.rol === 'Analista' && esSi(c.activo))) p.push('No hay cuentas activas con rol «Analista» (nadie recibirá avisos de solicitudes nuevas).');
   leer_(HOJAS.programas).filter(x => esSi(x.activo) && x.analista && !analistaActiva_(x.analista)).forEach(x => p.push('Analista de «' + x.programa + '» sin cuenta activa con rol Analista: ' + x.analista));
   ['Vicedecano/a', 'Registro Curricular'].forEach(r => { if (!cuentas.some(c => c.rol === r && esSi(c.activo))) p.push('No hay cuenta activa con rol «' + r + '» (no recibirá correos).'); });
+  const vd = vicedecano_(cuentas);
+  if (vd.activas > 1) p.push('Hay ' + vd.activas + ' cuentas activas con rol «Vicedecano/a»: deje solo una (todas podrían registrar el V°B°).');
+  if (vd.activas && !vd.nombre) p.push('La cuenta del Vicedecano/a no tiene nombre en «Cuentas» (los correos que lo citan no saldrán).');
   leer_(HOJAS.programas).filter(x => esSi(x.activo)).forEach(x => {
     if (!x.correo_direccion) p.push('Programa sin correo de dirección: ' + x.programa);
   });
@@ -342,6 +345,17 @@ function aplicarActualizacion_() {
   const parNuevos = PARAMETROS_INICIALES.filter(p => yaPar.indexOf(p[0]) < 0);
   anexarVarias_(HOJAS.parametros, parNuevos.map(p => ({ clave: p[0], valor: p[1], descripcion: p[2] })));
   if (parNuevos.length) cambios.push('Parámetros: ' + parNuevos.map(p => p[0]).join(', '));
+  const retirados = leer_(HOJAS.parametros).filter(p => PARAMETROS_RETIRADOS.indexOf(p.clave) >= 0);
+  retirados.forEach(p => {
+    if (p.clave !== 'vicedecano_nombre' || !String(p.valor || '').trim()) return;
+    const vice = leer_(HOJAS.cuentas).find(c => c.rol === 'Vicedecano/a' && esSi(c.activo));
+    if (vice && !String(vice.nombre || '').trim()) {
+      actualizar_(HOJAS.cuentas, vice._fila, { nombre: String(p.valor).trim() });
+      cambios.push('Nombre del Vicedecano/a copiado del parámetro a su cuenta');
+    }
+  });
+  retirados.map(p => p._fila).sort((a, b) => b - a).forEach(f => hoja_(HOJAS.parametros).deleteRow(f));
+  if (retirados.length) cambios.push('Parámetros retirados: ' + retirados.map(p => p.clave).join(', '));
   // Plantillas de eventos que ya no existen en el flujo (p. ej., correos al programa, que ahora va por STD).
   const vigentes = PLANTILLAS_INICIALES.map(t => t[0]);
   const obsoletas = leer_(HOJAS.plantillas).filter(t => vigentes.indexOf(t.evento) < 0);

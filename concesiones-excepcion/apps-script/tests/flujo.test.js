@@ -591,21 +591,32 @@ test('recordatorio de V°B° al Vicedecano/a, con copia a la analista', () => {
   assert.match(r[0].body, /Propuesta del Comité: Acoger/);
 });
 
-test('administración cambia nombre y correo del Vicedecano/a', () => {
+test('el nombre del Vicedecano/a sale de su cuenta y Configuración solo lo muestra', () => {
   const env = instalar(preparar());
   const { ctx, estado } = env;
+  assert.equal(typeof ctx.api_guardarVicedecano, 'undefined');
+  assert.ok(!tabla(env, 'Parámetros').some(p => p.clave === 'vicedecano_nombre'));
   estado.usuario = 'analista.uno@usach.cl';
-  assert.throws(() => ctx.api_guardarVicedecano('X', 'x@usach.cl'), /nivel requerido/);
+  const vd = ctx.api_config().vicedecano;
+  const cuenta = tabla(env, 'Cuentas').find(c => c.rol === 'Vicedecano/a' && c.activo === 'SÍ');
+  assert.deepEqual({ ...vd }, { nombre: cuenta.nombre, correo: cuenta.correo, activas: 1 });
+  // Cambiar el nombre en «Cuentas» cambia el de los correos.
   estado.usuario = 'vice@usach.cl';
-  assert.throws(() => ctx.api_guardarVicedecano('Dra. Nueva', 'nueva@gmail.com'), /@usach\.cl/);
-  ctx.api_guardarVicedecano('Dra. Nueva Vicedecana', 'Nueva.Vice@usach.cl');
-  const c = tabla(env, 'Cuentas');
-  assert.ok(c.some(x => x.correo === 'nueva.vice@usach.cl' && x.rol === 'Vicedecano/a' && x.activo === 'SÍ' && x.nivel === 'administracion'));
-  assert.equal(c.find(x => x.correo === 'vice@usach.cl').activo, 'NO');
-  assert.equal(tabla(env, 'Parámetros').find(p => p.clave === 'vicedecano_nombre').valor, 'Dra. Nueva Vicedecana');
-  estado.usuario = 'nueva.vice@usach.cl';
-  assert.deepEqual({ ...ctx.api_vicedecano() }, { nombre: 'Dra. Nueva Vicedecana', correo: 'nueva.vice@usach.cl' });
-  // Solo cambio de nombre
-  ctx.api_guardarVicedecano('Dra. N. Vicedecana', 'nueva.vice@usach.cl');
-  assert.equal(tabla(env, 'Cuentas').find(x => x.correo === 'nueva.vice@usach.cl').nombre, 'Dra. N. Vicedecana');
+  ctx.api_guardarCuenta({ ...cuenta, nombre: 'Dra. Nueva Vicedecana' }, false);
+  assert.equal(ctx.api_config().vicedecano.nombre, 'Dra. Nueva Vicedecana');
+});
+
+test('actualización: retira vicedecano_nombre y copia el nombre a la cuenta si estaba vacío', () => {
+  const env = instalar(preparar());
+  const { ctx } = env;
+  const par = env.libro.getSheetByName('Parámetros');
+  par.appendRow(['vicedecano_nombre', 'Dr. Antiguo Nombre', 'obsoleto']);
+  const hc = env.libro.getSheetByName('Cuentas');
+  const enc = hc.datos[0];
+  const fila = hc.datos.findIndex(r => r[enc.indexOf('rol')] === 'Vicedecano/a');
+  hc.datos[fila][enc.indexOf('nombre')] = '';
+  const cambios = ctx.aplicarActualizacion_();
+  assert.ok(cambios.some(c => /Parámetros retirados: vicedecano_nombre/.test(c)));
+  assert.ok(!tabla(env, 'Parámetros').some(p => p.clave === 'vicedecano_nombre'));
+  assert.equal(tabla(env, 'Cuentas').find(c => c.rol === 'Vicedecano/a').nombre, 'Dr. Antiguo Nombre');
 });

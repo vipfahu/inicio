@@ -541,6 +541,16 @@ function cargarConfig() {
   $('app').innerHTML = '<div class="cargando">Cargando configuración…</div>';
   run('api_config').then(r => { S.config = r; pintarConfig(); }).catch(fallo);
 }
+// Solo lectura: replica la cuenta activa con rol Vicedecano/a. Se cambia en «Cuentas» (nombre, rol o activo), no aquí.
+function tarjetaVicedecano(v) {
+  v = v || {};
+  const aviso = !v.activas ? '<div class="sub" style="white-space:normal;color:var(--alerta,#9a5b00)">No hay cuenta activa con rol Vicedecano/a: nadie puede registrar el V°B° directamente.</div>'
+    : v.activas > 1 ? '<div class="sub" style="white-space:normal;color:var(--alerta,#9a5b00)">Hay ' + v.activas + ' cuentas activas con rol Vicedecano/a; se muestra la primera. Deje solo una en «Cuentas».</div>' : '';
+  return '<div class="tarjeta" id="vd_tarjeta"><h3>Vicedecano/a</h3>' +
+    '<div class="et">Nombre (aparece en los correos)</div><div id="vd_nombre" style="margin-bottom:8px">' + h(v.nombre || '—') + '</div>' +
+    '<div class="et">Cuenta</div><div id="vd_correo" class="mono" style="margin-bottom:8px">' + h(v.correo || '—') + '</div>' + aviso +
+    '<div class="sub" style="white-space:normal;margin-top:6px">Se toma de la cuenta con rol Vicedecano/a. Para cambiarlo, edite esa cuenta en «Cuentas».</div></div>';
+}
 function pintarConfig() {
   const r = S.config, adm = nivel('administracion'), ed = nivel('edicion');
   const filas = r.programas.map((p, i) => '<div class="fila" style="grid-template-columns:1.5fr 1.2fr 1fr 60px 70px;cursor:default"><div class="nom" style="font-size:13px">' + h(p.programa) + '</div>' +
@@ -555,17 +565,13 @@ function pintarConfig() {
     '<div class="grid2"><div class="pila"><div class="tabla"><div class="fila enc" style="grid-template-columns:1.5fr 1.2fr 1fr 60px 70px"><div>Programa</div><div>Correo dirección</div><div>Analista</div><div>Activo</div><div></div></div>' + filas + '</div>' +
     (adm ? '<div class="tarjeta"><h3>Agregar programa</h3><div style="display:grid;grid-template-columns:1.5fr 1fr auto;gap:8px"><input id="np_nombre" placeholder="Nombre exacto, como aparece en el Formulario"><input id="np_correo" class="mono" placeholder="dirección@usach.cl"><button class="prim" id="np_ok">Agregar</button></div><div class="sub" style="white-space:normal;margin-top:6px">Si agrega un programa aquí, agréguelo también como opción en el Formulario de Google.</div></div>' : '') +
     '</div><div class="lado pila"><div class="tarjeta"><h3>Parámetros</h3>' + pars + (adm ? '<button class="prim" id="par_ok" style="width:100%">Guardar parámetros</button>' : '') + '</div>' +
-    (adm ? '<div class="tarjeta"><h3>Vicedecano/a</h3><label class="et" for="vd_nombre">Nombre (aparece en los correos)</label><input id="vd_nombre" style="margin-bottom:10px">' +
-      '<label class="et" for="vd_correo">Correo @usach.cl (su cuenta en la plataforma)</label><input id="vd_correo" class="mono" style="margin-bottom:10px">' +
-      '<button class="prim" id="vd_ok" style="width:100%">Guardar Vicedecano/a</button><div class="sub" style="white-space:normal;margin-top:8px">Si cambia el correo, se activa la cuenta nueva con rol Vicedecano/a y la anterior queda desactivada.</div></div>' : '') +
+    tarjetaVicedecano(r.vicedecano) +
     tarjetaFeriados(r.feriados) + '</div></div>';
   document.querySelectorAll('[data-gc]').forEach(b => b.onclick = () => {
     const i = b.dataset.gc, el = document.querySelector('[data-i="' + i + '"][data-k="correo_direccion"]');
     run('api_guardarCorreoPrograma', r.programas[i].programa, el.value).then(() => { toast('Correo de dirección guardado'); cargarConfig(); }).catch(fallo);
   });
   if (!adm) return;
-  run('api_vicedecano').then(v => { $('vd_nombre').value = v.nombre; $('vd_correo').value = v.correo; }).catch(fallo);
-  $('vd_ok').onclick = () => run('api_guardarVicedecano', $('vd_nombre').value, $('vd_correo').value).then(() => { toast('Vicedecano/a actualizado'); cargarConfig(); }).catch(fallo);
   document.querySelectorAll('[data-gp]').forEach(b => b.onclick = () => {
     const i = b.dataset.gp, p = Object.assign({}, r.programas[i]);
     document.querySelectorAll('[data-i="' + i + '"]').forEach(el => { p[el.dataset.k] = el.type === 'checkbox' ? (el.checked ? 'SÍ' : 'NO') : el.value; });

@@ -100,9 +100,9 @@ su archivo, que queda en el expediente con la categoría «Resolución».
 la cuenta con rol Vicedecano/a; el servidor rechaza a cualquier otra. Si el Vicedecano/a dio el V°B° por otro medio (correo, STD, en
 persona), una analista marca «Vicedecano/a aprueba por otro medio» e indica obligatoriamente el medio y la fecha; la bitácora deja
 constancia de ese medio y de quién lo registró. Si el caso sigue en V°B° tras `plazo_vb_dias` (2) días hábiles, sale un recordatorio
-automático al Vicedecano/a con copia a la analista (luego cada `recordatorio_cada_dias`, hasta `recordatorios_max`). Administración
-cambia el nombre (parámetro `vicedecano_nombre`, usado en los correos) y el correo del Vicedecano/a en Configuración → «Vicedecano/a»:
-la cuenta nueva queda con rol Vicedecano/a y la anterior se desactiva.
+automático al Vicedecano/a con copia a la analista (luego cada `recordatorio_cada_dias`, hasta `recordatorios_max`). El nombre
+del Vicedecano/a ({vicedecano} en los correos) es el de su cuenta activa con rol Vicedecano/a en «Cuentas». Configuración → «Vicedecano/a»
+solo lo muestra, sin campos editables: para cambiarlo se edita esa cuenta, y el cambio queda registrado con el nombre de quien lo hizo.
 
 **Usuarios.** El panel es solo para el equipo del Vicedecanato (analistas y Vicedecano/a). Las direcciones de programa y Registro Curricular no entran: solo reciben correos.
 
