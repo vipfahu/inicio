@@ -87,7 +87,17 @@ test('destinatarios: el estudiante recibe en la cuenta de inicio de sesión y en
   assert.equal(ninguno.faltantes.length, 1);
 });
 
-test('destinatarios: un programa sin correo de dirección bloquea el envío', () => {
+test('destinatarios: sin correo de dirección del programa, el correo al estudiante igual sale (se omite la copia)', () => {
+  const d = L.resolverDestinatarios('Estudiante', 'Dirección de programa', { solicitud: { ...sol, programa: 'Magíster Y' }, cuentas, programas, evento: 'aceptada' });
+  assert.deepEqual(d.para, ['est@usach.cl']);
+  assert.deepEqual(d.cc, []);
+  assert.deepEqual(d.faltantes, []);
+  assert.equal(d.omitidos.length, 1);
+  const sinPrograma = L.resolverDestinatarios('Estudiante', 'Dirección de programa', { solicitud: { ...sol, programa: 'Inexistente' }, cuentas, programas });
+  assert.deepEqual(sinPrograma.faltantes, []);
+});
+
+test('destinatarios: un programa sin correo de dirección bloquea el envío cuando la dirección es destinataria principal', () => {
   const d = L.resolverDestinatarios('Dirección de programa', '', { solicitud: { ...sol, programa: 'Magíster Y' }, cuentas, programas });
   assert.equal(d.para.length, 0);
   assert.equal(d.faltantes.length, 1);

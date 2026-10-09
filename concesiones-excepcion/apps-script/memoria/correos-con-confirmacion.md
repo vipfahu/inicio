@@ -1,4 +1,4 @@
-Ningún correo sale por editar una celda: cambio de estado = vista previa editable; el estado solo cambia si el envío funciona; si falta un destinatario (también en copia) o una variable, no se envía.
+Ningún correo sale por editar una celda: cambio de estado = vista previa editable; el estado solo cambia si el envío funciona; si falta el destinatario principal o una variable, no se envía; si falta uno en copia (p. ej. correo de dirección del programa), sale igual con aviso (pedido de la persona: que el estudiante no quede sin notificar).
 
 Tipo: diseño
 

@@ -112,7 +112,7 @@ contraseñas ni seguridad adicional: es un paso explícito de entrada y salida. 
 por correo a la analista del caso, a la administración y a la cuenta institucional (además de quedar en la bitácora).
 Todo correo dirigido al estudiante (recepción, admisible para análisis, rechazada, no procede, CAE admisible, CAE rechazada) lleva el enlace de seguimiento
 `URL?v=seguimiento`; el estudiante ve sus casos ingresando con la cuenta USACH con que envió el formulario. Todo otro correo sale al cambiar de estado
-en el panel, tras una vista previa editable; si falta un destinatario o una variable (por ejemplo `{std}`), no se envía; si el envío
+en el panel, tras una vista previa editable; si falta el destinatario principal o una variable (por ejemplo `{std}`), no se envía; si falta uno en copia (por ejemplo, un programa sin correo de dirección), el correo sale igual y la vista previa lo advierte; si el envío
 falla, el estado no cambia. Los destinatarios son roles que se traducen al enviar:
 
 | Rol | Se convierte en |

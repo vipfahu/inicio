@@ -373,6 +373,7 @@ function dialogo(hacia) {
     } else {
       const c = pv.correo;
       html += '<div class="aviso a-amb" style="margin-bottom:12px">✉ Al confirmar se enviará este correo' + (c.replyTo ? ' (las respuestas llegarán a ' + h(c.replyTo) + ')' : '') + '.</div>';
+      if ((c.omitidos || []).length) html += '<div class="aviso a-amb" style="margin-bottom:12px">Se enviará sin copia a: ' + h(c.omitidos.join('; ')) + ' (no está registrado). Puede completarlo en Configuración.</div>';
       if (c.faltantes.length) html += '<div class="aviso a-rojo" style="margin-bottom:12px">No se puede enviar: falta ' + h(c.faltantes.join('; ')) + '. Complételo en Configuración o Cuentas.</div>';
       html += '<div style="border:1px solid var(--borde);border-radius:12px;padding:14px 16px"><div class="sub" style="white-space:normal">Para: <b>' + h(c.para.join(', ') || '—') + '</b>' + (c.cc.length ? '<br>CC: ' + h(c.cc.join(', ')) : '') + '</div>' +
         '<label class="et" style="margin-top:10px" for="c_asunto">Asunto</label><input id="c_asunto" value="' + h(c.asunto) + '">' +

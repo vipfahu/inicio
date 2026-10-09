@@ -115,7 +115,7 @@ Todos salen desde la cuenta institucional; las respuestas llegan a la analista d
 | Falla un correo automático | Aviso de falla | Analista del caso, Administración, cuenta institucional | — |
 
 Además, cada cuenta recibe copia de los eventos marcados en «Recibe copia de estos correos». Todo correo que no es automático se
-muestra antes de enviarse, se puede editar y no sale si falta un destinatario o un dato.
+muestra antes de enviarse, se puede editar y no sale si falta el destinatario principal o un dato. Si falta uno en copia (por ejemplo, el correo de dirección del programa), sale igual y la vista previa lo advierte.
 
 ---
 

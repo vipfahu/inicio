@@ -155,48 +155,51 @@ function esSi(v) {
 
 /**
  * Traduce roles a direcciones. ctx = { solicitud, cuentas, programas, evento }.
- * Devuelve { para, cc, faltantes } con direcciones únicas y sin cuentas inactivas.
+ * Devuelve { para, cc, faltantes, omitidos } con direcciones únicas y sin cuentas inactivas. Lo que falta en «Para» bloquea el
+ * envío (faltantes); lo que falta en la copia, por ejemplo un programa sin correo de dirección, no lo bloquea (omitidos).
  */
 function resolverDestinatarios(rolesPara, rolesCc, ctx) {
-  const faltantes = [];
+  const faltantes = [], omitidos = [];
+  let registro = faltantes; // en la copia (CC) lo que falta no bloquea: se omite y se avisa
   const activas = (ctx.cuentas || []).filter(c => esSi(c.activo) && c.correo);
   const porRol = rol => {
     const s = ctx.solicitud || {};
     if (rol === 'Estudiante') {
       // La cuenta con que inició sesión (verificada por Google) y el correo que escribió en el formulario; si coinciden, una sola vez.
       const r = unicos([s.correo_verificado, s.correo].map(x => String(x || '').trim().toLowerCase()).filter(Boolean));
-      if (!r.length) faltantes.push('correo del estudiante');
+      if (!r.length) registro.push('correo del estudiante');
       return r;
     }
-    if (rol === 'Analista') return s.analista ? [s.analista] : (faltantes.push('analista asignada/o'), []);
+    if (rol === 'Analista') return s.analista ? [s.analista] : (registro.push('analista asignada/o'), []);
     if (rol === 'Equipo') {
       // Toda cuenta activa con acceso al panel (consulta, edición o administración).
       const r = activas.filter(c => c.nivel && c.nivel !== 'sin_acceso').map(c => c.correo);
-      if (!r.length) faltantes.push('cuentas activas con acceso al panel');
+      if (!r.length) registro.push('cuentas activas con acceso al panel');
       return r;
     }
     if (rol === 'Analista o equipo') {
       // La analista asignada; si aún no hay, quienes pueden asignarla (cuentas activas con nivel edición o administración).
       if (s.analista) return [s.analista];
       const r = activas.filter(c => c.nivel === 'edicion' || c.nivel === 'administracion').map(c => c.correo);
-      if (!r.length) faltantes.push('cuentas activas con nivel edición o administración');
+      if (!r.length) registro.push('cuentas activas con nivel edición o administración');
       return r;
     }
     if (rol === 'Analistas') {
       const r = activas.filter(c => c.rol === 'Analista').map(c => c.correo);
-      if (!r.length) faltantes.push('cuentas activas con rol «Analista»');
+      if (!r.length) registro.push('cuentas activas con rol «Analista»');
       return r;
     }
     if (rol === 'Dirección de programa') {
       const p = (ctx.programas || []).find(x => x.programa === s.programa);
-      return p && p.correo_direccion && p.correo_direccion.indexOf('@') > 0 ? [p.correo_direccion] : (faltantes.push('correo de dirección de «' + s.programa + '»'), []);
+      return p && p.correo_direccion && p.correo_direccion.indexOf('@') > 0 ? [p.correo_direccion] : (registro.push('correo de dirección de «' + s.programa + '»'), []);
     }
     const r = activas.filter(c => c.rol === rol).map(c => c.correo);
-    if (!r.length) faltantes.push('cuenta activa con rol «' + rol + '»');
+    if (!r.length) registro.push('cuenta activa con rol «' + rol + '»');
     return r;
   };
   const para = [], cc = [];
   listaRoles(rolesPara).forEach(r => porRol(r).forEach(x => para.push(x)));
+  registro = omitidos;
   listaRoles(rolesCc).forEach(r => porRol(r).forEach(x => cc.push(x)));
   if (ctx.evento) {
     activas.filter(c => listaRoles(c.recibe_eventos).indexOf(ctx.evento) >= 0).forEach(c => cc.push(c.correo));
@@ -204,7 +207,7 @@ function resolverDestinatarios(rolesPara, rolesCc, ctx) {
   const norm = x => String(x).trim().toLowerCase();
   const paraU = unicos(para.map(norm));
   const ccU = unicos(cc.map(norm)).filter(x => paraU.indexOf(x) < 0);
-  return { para: paraU, cc: ccU, faltantes: unicos(faltantes) };
+  return { para: paraU, cc: ccU, faltantes: unicos(faltantes), omitidos: unicos(omitidos) };
 }
 
 function unicos(a) {

@@ -247,7 +247,7 @@ test('cuentas: crear, editar, desactivar con efecto inmediato y salvaguardas', (
   assert.match(reg[1].texto, /programas: «Magíster en Prueba A» → «Otro programa»/);
 });
 
-test('cuentas con recibe_eventos reciben copia; programas sin correo bloquean', () => {
+test('cuentas con recibe_eventos reciben copia; sin correo de dirección, el correo al estudiante sale igual', () => {
   const env = instalar(preparar());
   const { ctx, estado } = env;
   estado.usuario = 'analista.uno@usach.cl';
@@ -257,7 +257,14 @@ test('cuentas con recibe_eventos reciben copia; programas sin correo bloquean', 
   ctx.api_guardarPrograma({ programa: 'Magíster en Prueba A', correo_direccion: '', analista: 'analista.uno@usach.cl', activo: 'SÍ' }, false);
   estado.usuario = 'analista.uno@usach.cl';
   ctx.api_cambiarEstado('06/2026', 'revision', {});
-  assert.throws(() => ctx.api_cambiarEstado('06/2026', 'aceptada', {}), /dirección de «Magíster en Prueba A»/);
+  const pv = ctx.api_previsualizar('06/2026', 'aceptada', {});
+  assert.deepEqual([...pv.correo.faltantes], []);
+  assert.match(pv.correo.omitidos[0], /dirección de «Magíster en Prueba A»/);
+  ctx.api_cambiarEstado('06/2026', 'aceptada', {});
+  const m = estado.correos.pop();
+  assert.match(m.to, /est6@usach\.cl/);
+  assert.ok(!m.cc, 'sale sin la copia a la dirección de programa');
+  assert.equal(tabla(env, 'Solicitudes').find(x => x.folio === '06/2026').estado, 'aceptada');
 });
 
 test('tarea diaria: recordatorios con plazo y aviso de compartición', () => {
