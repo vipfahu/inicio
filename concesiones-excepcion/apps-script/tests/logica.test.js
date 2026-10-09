@@ -206,3 +206,17 @@ test('Apps Script: ningún .gs y .html comparten nombre (el editor no lo permite
   const repetidos = nombres.filter((n, i) => nombres.indexOf(n) !== i);
   assert.deepEqual(repetidos, []);
 });
+
+test('HTML: ningún enlace dentro de otro enlace (el navegador los separa y la imagen pierde su estilo)', () => {
+  const fs = require('fs');
+  const path = require('path');
+  const dir = path.join(__dirname, '..');
+  fs.readdirSync(dir).filter(f => f.endsWith('.html')).forEach(f => {
+    let abiertos = 0;
+    const html = fs.readFileSync(path.join(dir, f), 'utf8').replace(/<script[\s\S]*?<\/script>/g, '');
+    for (const m of html.matchAll(/<(\/?)a[\s>]/gi)) {
+      abiertos += m[1] ? -1 : 1;
+      assert.ok(abiertos <= 1, f + ': enlace anidado cerca de «' + html.slice(m.index, m.index + 80) + '»');
+    }
+  });
+});
