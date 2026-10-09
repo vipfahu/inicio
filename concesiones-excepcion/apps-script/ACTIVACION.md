@@ -69,7 +69,7 @@ Al terminar, **recargar el panel** (la lista de analistas para asignar se lee al
    - **Activo** — los programas inactivos no aparecen en el formulario.
 2. **Parámetros** → «Guardar parámetros»:
    - `enlace_rc`: enlace a la plataforma de Registro Curricular (lo usa el correo «No procede»).
-   - Revisar `plazo_admisibilidad_dias` (2), `plazo_programa_dias` (2), `recordatorio_cada_dias` (2), `recordatorios_max` (3), `max_mb_antecedente` (10),
+   - Revisar `plazo_admisibilidad_dias` (2), `primer_aviso_admisibilidad_dias` (1), `plazo_programa_dias` (2), `recordatorio_cada_dias` (2), `recordatorios_max` (3), `max_mb_antecedente` (10),
      `max_solicitudes_dia` (3), `vicedecano_nombre`.
 3. **Feriados** [Inst., en la planilla, pestaña «Feriados»]: agregar los feriados móviles de 2026 y 2027 (formato `AAAA-MM-DD`).
    Solo vienen cargados los de fecha fija. Se usan para contar los días hábiles del plazo del programa.
@@ -102,7 +102,7 @@ Todos salen desde la cuenta institucional; las respuestas llegan a la analista d
 | V°B° a respuesta del Comité (pide propuesta) | V°B° Comité | Vicedecano/a | — |
 | Resolución en trámite (requiere N° STD) | Registro | Registro Curricular | Estudiante |
 | Resuelto / Negado (pide resolución) | Resolución | Estudiante | Dirección de programa |
-| Caso «Recibida» sin revisión tras `plazo_admisibilidad_dias` (2) días hábiles desde la recepción (automático; cada 2 días hábiles, hasta 3) | Recordatorio de admisibilidad | Analista asignada; si no hay, cuentas con nivel Edición o Administración | — |
+| Caso que sigue «Recibida»: primer aviso al día hábil siguiente a la recepción (`primer_aviso_admisibilidad_dias` = 1), luego cada 2 días hábiles, hasta 3 (automático; indica el vencimiento del plazo de `plazo_admisibilidad_dias` = 2) | Recordatorio de admisibilidad | Analista asignada; si no hay, cuentas con nivel Edición o Administración | — |
 | Plazo del programa vencido en STD (automático) | Recordatorio interno (seguimiento en STD) | Analista del caso | — |
 | Falla un correo automático | Aviso de falla | Analista del caso, Administración, cuenta institucional | — |
 

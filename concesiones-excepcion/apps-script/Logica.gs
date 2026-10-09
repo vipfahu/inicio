@@ -212,14 +212,29 @@ function diasHabilesEntre(desde, hasta, feriados) {
   return n;
 }
 
+/** Fecha que resulta de sumar n días hábiles (sin fines de semana ni feriados) a una fecha. */
+function sumarDiasHabiles(desde, n, feriados) {
+  const f = new Set(feriados || []);
+  const d = new Date(desde.getFullYear(), desde.getMonth(), desde.getDate());
+  let k = 0;
+  while (k < n) {
+    d.setDate(d.getDate() + 1);
+    const iso = d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+    if (d.getDay() !== 0 && d.getDay() !== 6 && !f.has(iso)) k++;
+  }
+  return d;
+}
+
 /**
- * Recordatorios internos por plazo vencido (días hábiles desde que el caso entró al estado):
- *  - recibida: asignar analista y abrir la revisión de admisibilidad (plazo_admisibilidad_dias);
- *  - programa: pronunciamiento del programa pendiente en STD (plazo_programa_dias).
+ * Recordatorios internos (días hábiles desde que el caso entró al estado). `primero` es el parámetro con los días
+ * del primer aviso; `alCumplir` = el aviso sale al cumplirse esos días (si no, al superarlos, es decir, plazo vencido).
+ *  - recibida: primer aviso al día hábil siguiente a la recepción (primer_aviso_admisibilidad_dias), antes de que venza
+ *    el plazo de admisibilidad (plazo_admisibilidad_dias);
+ *  - programa: pronunciamiento del programa pendiente en STD, una vez vencido plazo_programa_dias.
  */
 const RECORDATORIOS = {
-  recibida: { evento: 'recordatorio_admisibilidad', plazo: 'plazo_admisibilidad_dias' },
-  programa: { evento: 'recordatorio', plazo: 'plazo_programa_dias' }
+  recibida: { evento: 'recordatorio_admisibilidad', primero: 'primer_aviso_admisibilidad_dias', porDefecto: 1, alCumplir: true },
+  programa: { evento: 'recordatorio', primero: 'plazo_programa_dias', porDefecto: 2, alCumplir: false }
 };
 
 /** Evento de recordatorio que corresponde enviar hoy, o '' si ninguno. */
@@ -234,7 +249,11 @@ function necesitaRecordatorio(sol, hoy, p, feriados) {
   const enviados = Number(sol.recordatorios || 0);
   if (enviados >= Number(p.recordatorios_max || 0)) return false;
   const desdeUltimo = sol.ultimo_recordatorio ? new Date(sol.ultimo_recordatorio) : null;
-  if (!desdeUltimo) return diasHabilesEntre(new Date(sol.estado_desde), hoy, feriados) > Number(p[r.plazo] || 2);
+  if (!desdeUltimo) {
+    const dias = diasHabilesEntre(new Date(sol.estado_desde), hoy, feriados);
+    const n = p[r.primero] === undefined || p[r.primero] === '' ? r.porDefecto : Number(p[r.primero]);
+    return r.alCumplir ? dias >= n : dias > n;
+  }
   return diasHabilesEntre(desdeUltimo, hoy, feriados) >= Number(p.recordatorio_cada_dias || 2);
 }
 
@@ -302,7 +321,7 @@ function validarSolicitud(d, ctx) {
 }
 
 if (typeof module !== 'undefined') {
-  module.exports = { recordatorioPendiente, RECORDATORIOS, camposRequeridos,
+  module.exports = { sumarDiasHabiles, recordatorioPendiente, RECORDATORIOS, camposRequeridos,
     ESTADOS, CAMPOS_REQUERIDOS, TIPOS_CATALOGO, NIVELES, ROLES, estadoPorId, esCierre, transicionValida, eventoTransicion,
     normalizarFolio, siguienteFolio, estadoMigrado, separarTipos, rellenar, variablesSinResolver, resolverDestinatarios,
     diasHabilesEntre, necesitaRecordatorio, nivelSuficiente, puedeVerSolicitud, validarCuenta, esSi, listaRoles, validarSolicitud
