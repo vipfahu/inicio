@@ -79,7 +79,7 @@ agrega pestañas y oculta (no elimina) las columnas de gestión antiguas.
 10. **Formulario para estudiantes.** Comparta `URL?v=solicitud` (y `URL?v=seguimiento`). Cuando el formulario web esté probado, cierre el
     Formulario de Google (*Respuestas → No aceptar respuestas*) con un mensaje que indique la nueva dirección.
 
-**Actualizar el código más adelante:** `node desplegar.js` (la primera vez, `node desplegar.js <ID de la implementación>`): corre las pruebas, sube el código y publica una versión nueva en la misma URL. La planilla se pone al día sola en la primera visita al panel o al formulario (agrega lo nuevo sin tocar las plantillas que el equipo haya editado y lo anota en la Bitácora); *CAE → Actualizar* queda como respaldo.
+**Actualizar el código más adelante:** en macOS, doble clic en `actualizar.command` (`git pull` + `node desplegar.js`); o bien `node desplegar.js` (la primera vez, `node desplegar.js <ID de la implementación>`): corre las pruebas, sube el código y publica una versión nueva en la misma URL. La planilla se pone al día sola en la primera visita al panel o al formulario (agrega lo nuevo sin tocar las plantillas que el equipo haya editado y lo anota en la Bitácora); *CAE → Actualizar* queda como respaldo.
 
 ## Cómo opera
 

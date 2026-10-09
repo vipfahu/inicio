@@ -24,6 +24,8 @@ Administración · `URL` = dirección del panel (termina en `/exec`).
    node desplegar.js <ID de la implementación>    ← la primera vez (tramo de la URL entre /s/ y /exec)
    node desplegar.js                              ← las siguientes
    ```
+   En macOS, las siguientes veces basta **doble clic en `actualizar.command`** (en Finder, dentro de esta carpeta): hace `git pull`
+   y `node desplegar.js` sin abrir la terminal a mano.
    Corre las pruebas (si alguna falla, no sube nada), hace `clasp push --force` y publica una versión nueva **en la misma URL**
    (`clasp redeploy`). Si la publicación falla, el respaldo manual es: editor de Apps Script → **Implementar → Gestionar
    implementaciones → lápiz → Versión: «Nueva versión» → Implementar**.
