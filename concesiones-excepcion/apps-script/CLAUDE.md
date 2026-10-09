@@ -23,6 +23,6 @@ nuevo (una corrección o un enfoque confirmado), agregar o actualizar la nota co
 
 ## Flujo vigente (resumen)
 Recibida → revisión de admisibilidad → admisible para análisis (id `aceptada`) / rechazada / no procede → informe RC → programa (solicitado vía STD; solo se registra,
-sin correo) → V°B° a la respuesta del Comité: CAE admisible / CAE rechazada (ambas a Registro Curricular vía STD, que elabora y envía la
-resolución; sin correos, solo cambia el estado en el seguimiento) / devolución vía STD → resuelto / negado (sin correo). Una versión con autorización de inicio
+sin correo) → V°B° a la respuesta del Comité: CAE admisible / CAE rechazada (ambas a Registro Curricular vía STD, que elabora y distribuye la
+resolución; correo al estudiante con el estado) / devolución vía STD → resuelto / negado (sin correo). Una versión con autorización de inicio
 y decisión exclusiva del Vicedecano/a se probó y se revirtió a pedido (ver `memoria/flujo-cae-vigente.md`).

@@ -163,20 +163,26 @@ test('informe → programa: la analista registra la solicitud vía STD, sin corr
   assert.equal(b.evento, '');
 });
 
-test('resolución: CAE admisible y CAE rechazada solo cambian el estado que ve el estudiante (sin correos)', () => {
-  for (const [folio, hacia, etiqueta] of [['05/2026', 'resolucion', /CAE admisible/], ['05/2026', 'rechazo_vb', /CAE rechazada/]]) {
+test('resolución: CAE admisible y CAE rechazada notifican al estudiante; el cierre no envía correo', () => {
+  for (const [folio, hacia, etiqueta, frase] of [['05/2026', 'resolucion', /CAE admisible/, /ha sido declarada admisible/], ['05/2026', 'rechazo_vb', /CAE rechazada/, /no ha sido acogida/]]) {
     const env = instalar(preparar());
     const { ctx, estado } = env;
     estado.usuario = 'analista.uno@usach.cl';
     ctx.api_cambiarEstado(folio, 'vb', { campos: { propuesta_comite: 'Propuesta' } });
     const pv = ctx.api_previsualizar(folio, hacia, {});
-    assert.equal(pv.conCorreo, false);
+    assert.equal(pv.conCorreo, true);
     assert.deepEqual([...pv.requeridos], []);
     assert.match(pv.haciaEtiqueta, etiqueta);
     assert.match(pv.haciaEtiqueta, /resolución en tramitación/);
-    const antes = estado.correos.length;
+    const previo = estado.correos.length;
     ctx.api_cambiarEstado(folio, hacia, {});
-    assert.equal(estado.correos.length, antes, 'no se escribe al estudiante ni a Registro Curricular');
+    const enviados = estado.correos.slice(previo);
+    assert.equal(enviados.length, 1, 'un correo, solo al estudiante (no a Registro Curricular)');
+    assert.equal(enviados[0].to, 'est4@usach.cl');
+    assert.match(enviados[0].subject, etiqueta);
+    assert.match(enviados[0].body, frase);
+    assert.match(enviados[0].body, /resolución correspondiente se encuentra en elaboración, para su distribución desde la Unidad de Registro Curricular/);
+    const antes = estado.correos.length;
     // El estudiante ve el nuevo estado en su seguimiento
     estado.usuario = 'est4@usach.cl';
     const mis = ctx.api_misSolicitudes().solicitudes.find(x => x.folio === folio);
