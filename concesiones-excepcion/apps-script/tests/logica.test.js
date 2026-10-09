@@ -76,6 +76,17 @@ test('destinatarios: roles → correos, sin inactivos ni duplicados', () => {
   assert.deepEqual(e.cc, ['dir.x@usach.cl', 'analista.a@usach.cl']);
 });
 
+test('destinatarios: el estudiante recibe en la cuenta de inicio de sesión y en el correo del formulario (sin repetir)', () => {
+  const dos = L.resolverDestinatarios('Estudiante', '', { solicitud: { ...sol, correo_verificado: 'Ingreso@usach.cl', correo: 'otro@gmail.com' }, cuentas, programas });
+  assert.deepEqual(dos.para, ['ingreso@usach.cl', 'otro@gmail.com']);
+  const igual = L.resolverDestinatarios('Estudiante', '', { solicitud: { ...sol, correo_verificado: 'est@usach.cl', correo: ' EST@usach.cl ' }, cuentas, programas });
+  assert.deepEqual(igual.para, ['est@usach.cl']);
+  const soloForm = L.resolverDestinatarios('Estudiante', '', { solicitud: { ...sol, correo_verificado: '' }, cuentas, programas });
+  assert.deepEqual(soloForm.para, ['est@usach.cl']);
+  const ninguno = L.resolverDestinatarios('Estudiante', '', { solicitud: { ...sol, correo_verificado: '', correo: '' }, cuentas, programas });
+  assert.equal(ninguno.faltantes.length, 1);
+});
+
 test('destinatarios: un programa sin correo de dirección bloquea el envío', () => {
   const d = L.resolverDestinatarios('Dirección de programa', '', { solicitud: { ...sol, programa: 'Magíster Y' }, cuentas, programas });
   assert.equal(d.para.length, 0);

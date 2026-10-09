@@ -162,7 +162,12 @@ function resolverDestinatarios(rolesPara, rolesCc, ctx) {
   const activas = (ctx.cuentas || []).filter(c => esSi(c.activo) && c.correo);
   const porRol = rol => {
     const s = ctx.solicitud || {};
-    if (rol === 'Estudiante') return s.correo ? [s.correo] : (faltantes.push('correo del estudiante'), []);
+    if (rol === 'Estudiante') {
+      // La cuenta con que inició sesión (verificada por Google) y el correo que escribió en el formulario; si coinciden, una sola vez.
+      const r = unicos([s.correo_verificado, s.correo].map(x => String(x || '').trim().toLowerCase()).filter(Boolean));
+      if (!r.length) faltantes.push('correo del estudiante');
+      return r;
+    }
     if (rol === 'Analista') return s.analista ? [s.analista] : (faltantes.push('analista asignada/o'), []);
     if (rol === 'Equipo') {
       // Toda cuenta activa con acceso al panel (consulta, edición o administración).
