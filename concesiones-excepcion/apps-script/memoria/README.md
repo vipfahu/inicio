@@ -17,6 +17,7 @@ Mantenimiento: actualizar la nota existente en vez de duplicar; borrar las que r
 - [formulario-y-seguimiento](formulario-y-seguimiento.md) — Formulario propio en `URL?v=solicitud` y seguimiento en `URL?v=seguimiento` (identifica por la cuenta USACH).
 - [google-workspace-en-vez-de-supabase](google-workspace-en-vez-de-supabase.md) — Se eligió Sheets + Drive + Apps Script en lugar de Supabase/Netlify.
 - [identidad-getactiveuser-verificada](identidad-getactiveuser-verificada.md) — Web App «ejecutar como yo» + acceso «dominio»: `Session.getActiveUser()` devuelve el correo de una analista del dominio; verificado en producción.
+- [ingreso-es-paso-de-interfaz](ingreso-es-paso-de-interfaz.md) — La página «Iniciar sesión» y el botón «Cerrar sesión» del panel son pasos de interfaz: la identidad la entrega siempre Google.
 - [menu-cae-ausente-push-no-llego](menu-cae-ausente-push-no-llego.md) — Si falta una opción del menú CAE, casi siempre el push no llegó: recargar la planilla, ver archivos en el editor, `clasp status`, revisar scriptId.
 - [migracion-ultimo-estado](migracion-ultimo-estado.md) — Regla de migración: «el último estado es el definitivo» = columna no vacía más a la derecha (ESTADO ACTUAL → ESTADO → Estado de Presentación).
 - [no-se-pudo-abrir-el-archivo](no-se-pudo-abrir-el-archivo.md) — «No se pudo abrir el archivo en este momento» suele ser multicuenta de Google en el navegador o implementación inactiva, no un error del código.

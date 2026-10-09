@@ -116,6 +116,9 @@ muestra antes de enviarse, se puede editar y no sale si falta un destinatario o 
 
 ## Fase E · Prueba de punta a punta (15 min)
 
+0. Ingreso: abrir `URL` → debe aparecer «Iniciar sesión» con la cuenta conectada → «Ingresar como …». Probar «Cerrar sesión →
+   Salir del panel» (vuelve a la página de ingreso) y, con una cuenta sin acceso, que la página lo indique y ofrezca otra cuenta.
+
 1. Abrir `URL?v=solicitud` con una cuenta USACH personal (no la institucional). Completar el formulario con «PRUEBA» en los nombres,
    un programa **con correo de dirección y analista**, y un PDF pequeño. Enviar.
 2. Verificar:
