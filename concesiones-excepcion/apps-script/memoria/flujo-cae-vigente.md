@@ -16,4 +16,8 @@ correos de la fase; luego la persona pidió **reintegrar** un correo al estudian
 indica el estado y que la resolución está en elaboración para su distribución desde Registro Curricular. El cierre (Resuelto/Negado)
 sigue sin correo: se anota N° y fecha y se puede cargar el archivo de la resolución.
 
+Requisitos agregados (2026-10-09): pasar a Informe RC exige N° STD registrado y genera antes el PDF del formulario de solicitud (si falla,
+no cambia el estado); al registrar Resuelto/Negado se recuerda en negrita enviar la resolución de inmediato a la Unidad de Registro
+Curricular para su distribución.
+
 **Por qué importa:** no reintroducir la autorización de inicio (la exclusividad en el V°B° del Comité sí está vigente), ni correos al programa, sin que la persona lo pida.

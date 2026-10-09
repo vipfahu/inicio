@@ -41,7 +41,7 @@ function crearZip(entradas) {
 }
 
 function crearEntorno() {
-  const estado = { usuario: '', duenia: 'institucional@usach.cl', correos: [], triggers: [], props: {}, archivos: {}, carpetas: {}, exportados: [], convertidos: [], borrados: [], n: 0, url: 'https://script.google.com/a/macros/usach.cl/s/PRUEBA/exec' };
+  const estado = { usuario: '', duenia: 'institucional@usach.cl', correos: [], triggers: [], props: {}, archivos: {}, carpetas: {}, exportados: [], convertidos: [], pdfs: [], borrados: [], n: 0, url: 'https://script.google.com/a/macros/usach.cl/s/PRUEBA/exec' };
   const nid = p => p + (++estado.n);
 
   // ── Sheets ──
@@ -166,7 +166,9 @@ function crearEntorno() {
       base64Decode: s => Buffer.from(s, 'base64'), base64Encode: b => (Buffer.isBuffer(b) ? b : Buffer.from(b.length ? 'x' : '')).toString('base64'),
       getUuid: () => nid('uuid'),
       unzip: blob => leerZip(blob.getBytes()).map(e => ({ getBytes: () => e.datos, getName: () => e.nombre, getContentType: () => 'application/octet-stream' })),
-      newBlob: (bytes, mime, nombre) => ({ getBytes: () => bytes, getContentType: () => mime, getName: () => nombre })
+      newBlob: (bytes, mime, nombre) => ({ getBytes: () => bytes, getContentType: () => mime, getName: () => nombre,
+        // HTML → PDF: se guarda el HTML de origen para revisarlo en las pruebas.
+        getAs(m) { estado.pdfs.push(String(bytes)); let n = nombre; const b = { getBytes: () => Buffer.from('%PDF-desde-html'), getContentType: () => m, getName: () => n, setName(x) { n = x; return b; } }; return b; } })
     },
     ScriptApp: {
       getService: () => ({ getUrl: () => estado.url }),

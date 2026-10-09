@@ -13,6 +13,7 @@ const CATEGORIAS_ARCHIVO = {
   acta_comite: 'Acta / respuesta del Comité',
   resolucion: 'Resolución',
   archivo_cae: 'Archivo CAE',
+  formulario_solicitud: 'Formulario de solicitud (PDF)',
   otro: 'Otro'
 };
 
@@ -73,7 +74,7 @@ function api_subirArchivo(folio, nombre, mime, base64, categoria) {
   const u = requiere_('edicion');
   const sol = buscarSolicitud_(folio);
   if (!puedeVerSolicitud(u, sol)) throw new Error('SIN_ACCESO: la solicitud no pertenece a sus programas.');
-  if (!CATEGORIAS_ARCHIVO[categoria] || categoria === 'antecedentes_formulario') throw new Error('Categoría no válida.');
+  if (!CATEGORIAS_ARCHIVO[categoria] || categoria === 'antecedentes_formulario' || categoria === 'formulario_solicitud') throw new Error('Categoría no válida.');
   const bytes = Utilities.base64Decode(base64);
   const mb = bytes.length / 1048576;
   const max = Number(parametros_().max_mb_archivo || 20);
@@ -167,4 +168,58 @@ function convertirAPdf_(blob, nombre) {
   } finally {
     try { Drive.Files.remove(tmp.id); } catch (e) { try { DriveApp.getFileById(tmp.id).setTrashed(true); } catch (e2) { /* la limpieza diaria lo borra */ } }
   }
+}
+
+/* ── PDF del formulario de solicitud: lo que el estudiante envió, para imprimir o tramitar por STD. ── */
+function esc_(x) {
+  return String(x === null || x === undefined ? '' : x).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+function htmlSolicitud_(s, antecedentes, quien) {
+  const fila = (et, v) => '<tr><th>' + esc_(et) + '</th><td>' + (v === '' || v === null || v === undefined ? '—' : esc_(v)) + '</td></tr>';
+  const tipos = [s.tipo_catalogo, s.tipo_texto_libre ? 'Otro: ' + s.tipo_texto_libre : ''].filter(Boolean).join(' · ');
+  const ahora = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'dd-MM-yyyy HH:mm');
+  return '<html><head><meta charset="utf-8"><style>' +
+    'body{font-family:Arial,Helvetica,sans-serif;font-size:11pt;color:#222;margin:28px}' +
+    'h1{font-size:15pt;margin:0 0 2px;color:#00756F} .sub{color:#666;font-size:9.5pt;margin:0 0 14px}' +
+    'h2{font-size:11.5pt;margin:18px 0 6px;padding-bottom:3px;border-bottom:1.5px solid #E07B1F}' +
+    'table{width:100%;border-collapse:collapse} th{width:34%;text-align:left;vertical-align:top;font-weight:bold;padding:4px 8px 4px 0;color:#444}' +
+    'td{padding:4px 0;vertical-align:top} .fund{white-space:pre-wrap;line-height:1.45;text-align:justify}' +
+    '.pie{margin-top:26px;border-top:1px solid #ccc;padding-top:6px;color:#777;font-size:8.5pt}' +
+    '</style></head><body>' +
+    '<h1>Solicitud de Concesión Académica de Excepción (CAE)</h1>' +
+    '<p class="sub">Vicedecanato de Investigación y Postgrado · Facultad de Humanidades · Universidad de Santiago de Chile</p>' +
+    '<table>' + fila('Folio', s.folio) + fila('Fecha de recepción', fechaCorta_(s.fecha_recepcion)) + '</table>' +
+    '<h2>I. Persona solicitante</h2><table>' +
+    fila('Apellido paterno', s.apellido1) + fila('Apellido materno', s.apellido2) + fila('Nombres', s.nombres) +
+    fila(s.tipo_documento === 'pasaporte' ? 'Pasaporte' : 'RUN', s.run) +
+    fila('Cuenta USACH con que envió', s.correo_verificado) + fila('Correo de contacto', s.correo) + fila('Teléfono', s.telefono) + '</table>' +
+    '<h2>II. Programa</h2><table>' + fila('Programa', s.programa) + fila('Año', s.anio) + fila('Semestre', s.semestre) + '</table>' +
+    '<h2>III. Requerimiento</h2><table>' + fila('Tipo de concesión', tipos) + '</table>' +
+    '<h2>IV. Fundamentación</h2><div class="fund">' + (esc_(s.fundamentacion) || '—') + '</div>' +
+    '<h2>V. Antecedentes adjuntos</h2>' + (antecedentes.length ? '<ul>' + antecedentes.map(a => '<li>' + esc_(a) + '</li>').join('') + '</ul>' : '<p>Sin antecedentes adjuntos.</p>') +
+    '<div class="pie">Documento generado el ' + esc_(ahora) + ' por ' + esc_(quien) + ' desde la plataforma CAE, a partir de los datos registrados en el formulario de solicitud.</div>' +
+    '</body></html>';
+}
+/** Genera el PDF, lo guarda en la carpeta del caso (categoría «Formulario de solicitud (PDF)») y lo deja en la bitácora. */
+function generarPdfSolicitud_(s, u, motivo) {
+  const antecedentes = archivosDe_(s.folio).filter(a => a.categoria === 'antecedentes_formulario').map(a => a.nombre);
+  const nombre = 'Solicitud CAE ' + String(s.folio).replace(/\//g, '-') + ' (formulario).pdf';
+  let pdf;
+  try {
+    pdf = Utilities.newBlob(htmlSolicitud_(s, antecedentes, u.correo), 'text/html', 'solicitud.html').getAs('application/pdf').setName(nombre);
+  } catch (e) {
+    throw new Error('No se pudo generar el PDF del formulario de solicitud: ' + e.message);
+  }
+  const f = carpetaCaso_(s).createFile(pdf);
+  const mb = Math.round(pdf.getBytes().length / 10485.76) / 100;
+  anexar_(HOJAS.archivos, { fecha: new Date(), folio: s.folio, archivo_id: f.getId(), nombre: nombre, categoria: 'formulario_solicitud', tamano_mb: mb, subido_por: u.correo });
+  anexar_(HOJAS.bitacora, { fecha: new Date(), folio: s.folio, tipo: 'archivo', quien: u.correo, texto: 'PDF del formulario de solicitud generado (' + motivo + ').' });
+  return { id: f.getId(), nombre: nombre };
+}
+/** A pedido, desde el expediente (analistas y administración). */
+function api_pdfSolicitud(folio) {
+  const u = requiere_('edicion');
+  const s = buscarSolicitud_(folio);
+  if (!puedeVerSolicitud(u, s)) throw new Error('SIN_ACCESO: la solicitud no pertenece a sus programas.');
+  return generarPdfSolicitud_(s, u, 'a pedido desde el expediente');
 }

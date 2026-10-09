@@ -165,6 +165,12 @@ function api_cambiarEstado(folio, hacia, envio) {
     camposRequeridos(s.estado, hacia).forEach(k => {
       if (!String(campos[k] || '').trim()) throw new Error('Falta completar «' + k.replace('_', ' ') + '».');
     });
+    // Informe de Registro Curricular: exige el N° STD ya registrado y deja generado el PDF del formulario de solicitud.
+    let pdfSolicitud = null;
+    if (hacia === 'informe_rc') {
+      if (!String(s.n_std || '').trim()) throw new Error('Antes de pasar a «Informe de Registro Curricular» registre el N° STD en «Gestión del trámite» y guarde.');
+      pdfSolicitud = generarPdfSolicitud_(s, u, 'automático antes de Informe de Registro Curricular');
+    }
     const cambios = { estado: hacia, estado_desde: new Date(), recordatorios: 0, ultimo_recordatorio: '', actualizado: new Date() };
     if (campos.motivo) cambios.motivo = campos.motivo;
     if (campos.observacion) cambios.obs_vicedecano = campos.observacion;
@@ -190,7 +196,7 @@ function api_cambiarEstado(folio, hacia, envio) {
         (campos.observacion ? ' · Observación: ' + campos.observacion : '') + (campos.resolucion ? ' · Resolución: ' + campos.resolucion : '') + notaVb,
       estado_nuevo: hacia
     }, registroCorreo));
-    return { ok: true, conCorreo: !!evento };
+    return { ok: true, conCorreo: !!evento, pdfSolicitud: pdfSolicitud };
   } finally {
     lock.releaseLock();
   }

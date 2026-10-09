@@ -110,6 +110,7 @@ Todos salen desde la cuenta institucional; las respuestas llegan a la analista d
 | Admisible para análisis | Admisible para análisis | Estudiante | Dirección de programa |
 | Presentación rechazada (pide motivo) | Rechazada | Estudiante | Dirección de programa |
 | No procede | No procede (con `enlace_rc`) | Estudiante | — |
+| Paso a Informe de Registro Curricular (exige N° STD registrado; genera el PDF del formulario de solicitud y lo ofrece para descarga) | *(sin correo)* | — | — |
 | Registro de solicitud de pronunciamiento al programa (STD) | *(sin correo)* | — | — |
 | Registro de devolución al programa vía STD (pide observación) | *(sin correo)* | — | — |
 | V°B° a respuesta del Comité (pide propuesta) | V°B° Comité | Vicedecano/a | — |

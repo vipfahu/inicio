@@ -283,7 +283,7 @@ function pintarExp() {
       (b.evento && b.para ? '<span class="chip">✉ ' + h(b.asunto || b.evento) + ' → ' + h(b.para) + (b.cc ? ' · cc ' + h(b.cc) : '') + (b.editado === 'SÍ' ? ' · texto editado' : '') + '</span>' : '') + '</div>';
   }).join('');
   const archivos = (e.archivos || []).map(a => '<div style="display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid var(--fila)"><div><div style="font:600 13px Archivo,sans-serif">' + h(a.nombre) + '</div><div class="sub">' + h(a.categoria) + ' · ' + h(a.tamano_mb) + ' MB · ' + fecha(a.fecha) + '</div></div><div style="display:flex;gap:6px;flex-shrink:0">' + (a.vista ? '<button class="prim" data-ver="' + h(a.id) + '" data-nombre="' + h(a.nombre) + '">' + (a.vista === 'zip' ? 'Ver contenido' : 'Ver') + '</button>' : '') + '<button data-arch="' + h(a.id) + '">Descargar</button></div></div>').join('') || '<div class="sub">Sin archivos.</div>';
-  const cats = Object.keys(S.ini.categorias).filter(k => k !== 'antecedentes_formulario');
+  const cats = Object.keys(S.ini.categorias).filter(k => k !== 'antecedentes_formulario' && k !== 'formulario_solicitud');
   $('app').innerHTML =
     '<a href="#" id="volver" style="font:600 12px Archivo,sans-serif">← Volver a la bandeja</a>' +
     '<div style="display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:12px 0 20px"><div><div class="kicker">Folio ' + h(e.folio) + '</div>' +
@@ -295,7 +295,8 @@ function pintarExp() {
       '<div><span class="et">Correo</span><a href="mailto:' + h(e.correo) + '">' + h(e.correo) + '</a></div><div><span class="et">Teléfono</span><div class="mono">' + h(e.telefono || '—') + '</div></div></div></div>' +
       '<div class="tarjeta"><h3>II. Requerimiento</h3>' + (e.tipo_catalogo ? '<span class="tag t-tra">' + h(e.tipo_catalogo) + '</span> ' : '') + (e.tipo_texto_libre ? '<span class="tag t-adm">Otro: ' + h(e.tipo_texto_libre) + '</span>' : '') +
       (e.verDetalle ? '<p style="font:400 14px/1.65 Spectral,serif;white-space:pre-line">' + h(e.fundamentacion) + '</p>' : '<p class="sub" style="margin-top:12px">La fundamentación y los archivos son visibles solo con nivel Edición.</p>') + '</div>' +
-      (e.verDetalle ? '<div class="tarjeta"><h3>Archivos del expediente</h3>' + archivos +
+      (e.verDetalle ? '<div class="tarjeta"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px"><h3 style="margin:0">Archivos del expediente</h3>' +
+        (edita ? '<button id="pdf_solicitud" title="Genera un PDF con lo que el estudiante envió en el formulario">PDF del formulario de solicitud</button>' : '') + '</div>' + archivos +
         (edita ? '<div style="margin-top:14px;border:1px dashed #D8D3C5;background:#FBFAF6;border-radius:12px;padding:14px"><span class="et">Agregar archivo (máx. ' + S.ini.maxMb + ' MB)</span>' +
           '<div style="display:grid;grid-template-columns:1fr 1fr auto;gap:8px"><select id="cat">' + cats.map(k => '<option value="' + k + '">' + h(S.ini.categorias[k]) + '</option>').join('') + '</select><input type="file" id="archivo"><button class="prim" id="subir">Subir</button></div></div>' : '') + '</div>' : '') +
       '<div class="tarjeta"><div style="display:flex;justify-content:space-between;gap:10px"><h3>Bitácora</h3><span class="sub" style="font-style:italic">Cada cambio de estado y correo queda registrado</span></div><div class="bit">' + bit + '</div>' +
@@ -307,6 +308,11 @@ function pintarExp() {
   document.querySelectorAll('[data-arch]').forEach(b => b.onclick = () => descargar(b.dataset.arch));
   document.querySelectorAll('[data-ver]').forEach(b => b.onclick = () => ver(b.dataset.ver, b.dataset.nombre));
   if ($('subir')) $('subir').onclick = subir;
+  if ($('pdf_solicitud')) $('pdf_solicitud').onclick = () => {
+    $('pdf_solicitud').disabled = true; $('pdf_solicitud').textContent = 'Generando PDF…';
+    run('api_pdfSolicitud', e.folio).then(r => abrir(e.folio).then(() => ofrecerPdfSolicitud(r, 'PDF del formulario de solicitud generado. Quedó en «Archivos del expediente».')))
+      .catch(err => { fallo(err); if ($('pdf_solicitud')) { $('pdf_solicitud').disabled = false; $('pdf_solicitud').textContent = 'PDF del formulario de solicitud'; } });
+  };
   if ($('anotar')) $('anotar').onclick = () => {
     const t = $('nota').value.trim(); if (!t) return;
     run('api_anotar', e.folio, t).then(() => { toast('Nota registrada'); abrir(e.folio); }).catch(fallo);
@@ -333,7 +339,9 @@ function panelGestion(e, edita) {
       : e.estado === 'vb' && s.id === 'rechazo_vb' ? 'V°B° · CAE rechazada: sigue a Registro Curricular (STD)'
       : s.id === 'resuelto' || s.id === 'negado' ? 'Registrar resolución de Registro Curricular → ' + s.etiqueta
       : s.etiqueta;
-    return '<button data-hacia="' + s.id + '"' + (vbAjeno ? ' data-vb disabled' : '') + ' class="' + (prim ? 'prim' : amb ? 'ambar' : '') + '" style="width:100%;text-align:left;display:flex;justify-content:space-between;margin-bottom:6px">' + h(txt) + (s.evento ? ' <span title="Envía correo" style="color:' + (prim ? '#fff' : 'var(--naranja)') + '">✉</span>' : '') + '</button>';
+    const sinStd = s.id === 'informe_rc' && !String(e.n_std || '').trim();
+    return (sinStd ? '<div class="aviso a-amb" style="margin-bottom:6px;white-space:normal">Para pasar a Informe de Registro Curricular, registre el <b>N° STD</b> (más abajo) y presione «Guardar cambios».</div>' : '') +
+      '<button data-hacia="' + s.id + '"' + (vbAjeno ? ' data-vb disabled' : '') + (sinStd ? ' disabled title="Falta registrar el N° STD"' : '') + ' class="' + (prim ? 'prim' : amb ? 'ambar' : '') + '" style="width:100%;text-align:left;display:flex;justify-content:space-between;margin-bottom:6px">' + h(txt) + (s.evento ? ' <span title="Envía correo" style="color:' + (prim ? '#fff' : 'var(--naranja)') + '">✉</span>' : '') + '</button>';
   }).join('') + '<div class="sub" style="font-style:italic;white-space:normal">✉ = el cambio envía un correo; verá la vista previa antes de confirmar.</div>'
     : '';
   // Estado final: no hay a qué pasar; se muestra el cierre con la resolución anotada (si la hay).
@@ -470,6 +478,23 @@ async function pintarDocumento(r, n) {
 /* ── Diálogo de cambio de estado ── */
 const ROT_CAMPO = { motivo: 'Motivo (se incluye en el correo)', observacion: 'Observación del Vicedecanato (se incluye en el correo)', propuesta_comite: 'Propuesta del Comité', resolucion: 'Resolución (N° y fecha)' };
 function cerrarDlg() { $('fondo').style.display = 'none'; }
+function ofrecerPdfSolicitud(pdf, texto) {
+  $('dlg').innerHTML = '<div class="kicker" style="color:var(--apagado)">Formulario de solicitud</div><h3 style="margin-top:6px">' + h(pdf.nombre) + '</h3>' +
+    '<p class="resumen">' + h(texto) + '</p><div class="acciones" style="justify-content:flex-end;margin-top:16px">' +
+    '<button id="pdf_cerrar">Cerrar</button><button id="pdf_ver">Ver</button><button class="prim" id="pdf_desc">Descargar PDF</button></div>';
+  $('fondo').style.display = 'flex';
+  $('pdf_cerrar').onclick = cerrarDlg;
+  $('pdf_ver').onclick = () => { cerrarDlg(); ver(pdf.id, pdf.nombre); };
+  $('pdf_desc').onclick = () => { descargar(pdf.id); cerrarDlg(); };
+  $('pdf_desc').focus();
+}
+function avisoDistribucion() {
+  $('dlg').innerHTML = '<div class="kicker" style="color:var(--apagado)">Resolución registrada</div>' +
+    '<div class="aviso a-amb" style="margin:10px 0;white-space:normal"><b>Envíe inmediatamente la resolución a la Unidad de Registro Curricular para su distribución.</b></div>' +
+    '<div class="acciones" style="justify-content:flex-end"><button class="prim" id="dist_ok">Entendido</button></div>';
+  $('fondo').style.display = 'flex';
+  $('dist_ok').onclick = cerrarDlg; $('dist_ok').focus();
+}
 function dialogo(hacia) {
   const e = S.exp;
   $('dlg').innerHTML = '<div class="cargando">Preparando vista previa…</div>'; $('fondo').style.display = 'flex';
@@ -484,6 +509,7 @@ function dialogo(hacia) {
       '<label class="et" for="c_otro_medio">¿Por qué medio y cuándo dio el V°B° el Vicedecano/a? *</label><textarea id="c_otro_medio" rows="2" style="margin-bottom:10px" placeholder="Ej.: correo del 10-10-2026; reunión de equipo del 09-10-2026"></textarea>';
     // Al cerrar (Resuelto / Negado) se puede cargar la resolución emitida por Registro Curricular.
     const conResolucion = hacia === 'resuelto' || hacia === 'negado';
+    if (conResolucion) html += '<div class="aviso a-amb" style="margin-bottom:12px;white-space:normal"><b>Recuerde: esta resolución debe enviarse inmediatamente a la Unidad de Registro Curricular para su distribución.</b></div>';
     if (conResolucion) html += '<label class="et" for="c_archivo">Archivo de la resolución (opcional, máx. ' + h(S.ini.maxMb) + ' MB)</label><input type="file" id="c_archivo" accept=".pdf,application/pdf,image/*,.doc,.docx" style="margin-bottom:10px">';
     if (!pv.conCorreo) {
       html += '<p class="resumen">Este cambio no envía correo. Quedará registrado en la bitácora del expediente.</p>';
@@ -530,7 +556,11 @@ function dialogo(hacia) {
         lector.readAsDataURL(archivo);
       }) : Promise.resolve();
       subida.then(() => run('api_cambiarEstado', e.folio, hacia, envio)).then(r => {
-        cerrarDlg(); toast(r.conCorreo ? 'Estado actualizado y correo enviado' : 'Estado actualizado'); abrir(e.folio);
+        cerrarDlg(); toast(r.conCorreo ? 'Estado actualizado y correo enviado' : 'Estado actualizado');
+        abrir(e.folio).then(() => {
+          if (r.pdfSolicitud) ofrecerPdfSolicitud(r.pdfSolicitud, 'Se generó el PDF del formulario de solicitud antes de pasar a Informe de Registro Curricular. Quedó en «Archivos del expediente».');
+          else if (conResolucion) avisoDistribucion();
+        });
       }).catch(err => { fallo(err); $('confirmar').disabled = false; $('confirmar').textContent = pv.conCorreo ? 'Confirmar y enviar correo' : 'Confirmar cambio'; });
     };
   }).catch(err => { cerrarDlg(); fallo(err); });

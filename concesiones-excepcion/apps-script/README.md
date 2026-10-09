@@ -94,7 +94,14 @@ no se borran. La cuenta institucional es administradora fija y no se puede dejar
 (o devolución al programa vía STD, con observación) → decisión del V°B°: CAE admisible o CAE rechazada (ambas siguen a Registro
 Curricular por STD, que elabora y distribuye la resolución; correo al estudiante con el estado y el aviso de que la resolución está en
 elaboración) → Resuelto / Negado (sin correo). Al cerrar (Resuelto / Negado) se anota N° y fecha de la resolución y se puede cargar
-su archivo, que queda en el expediente con la categoría «Resolución».
+su archivo, que queda en el expediente con la categoría «Resolución». Al registrar Resuelto / Negado, el panel recuerda **en negrita**
+que la resolución debe enviarse inmediatamente a la Unidad de Registro Curricular para su distribución.
+
+**Paso a Informe de Registro Curricular.** Exige el N° STD ya registrado (el botón queda bloqueado hasta guardarlo; el servidor también
+lo valida). Antes del cambio se genera automáticamente el **PDF del formulario de solicitud** (lo que el estudiante envió: datos, programa,
+requerimiento, fundamentación y lista de antecedentes), que queda en el expediente con la categoría «Formulario de solicitud (PDF)» y se
+ofrece para ver o descargar; si no se puede generar, el estado no cambia. Analistas y administración pueden generarlo de nuevo cuando quieran
+con «PDF del formulario de solicitud» en «Archivos del expediente».
 
 **V°B° exclusivo del Vicedecano/a.** Las tres salidas del V°B° (CAE admisible, CAE rechazada, devolución al programa) solo las registra
 la cuenta con rol Vicedecano/a; el servidor rechaza a cualquier otra. Si el Vicedecano/a dio el V°B° por otro medio (correo, STD, en

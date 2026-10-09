@@ -151,7 +151,21 @@ test('informe → programa: la analista registra la solicitud vía STD, sin corr
   const env = instalar(preparar());
   const { ctx, estado } = env;
   estado.usuario = 'analista.uno@usach.cl';
-  ctx.api_cambiarEstado('03/2026', 'informe_rc', {});
+  // Sin N° STD registrado no se pasa a Informe de Registro Curricular.
+  assert.throws(() => ctx.api_cambiarEstado('03/2026', 'informe_rc', {}), /registre el N° STD/);
+  assert.equal(tabla(env, 'Solicitudes').find(x => x.folio === '03/2026').estado, 'aceptada');
+  ctx.api_guardarGestion('03/2026', { n_std: 'STD-2026-0099' });
+  const r = ctx.api_cambiarEstado('03/2026', 'informe_rc', {});
+  // Antes de Informe RC se genera el PDF del formulario y queda en el expediente, ofrecido para descarga.
+  assert.match(r.pdfSolicitud.nombre, /^Solicitud CAE 03-2026 \(formulario\)\.pdf$/);
+  const fpdf = ctx.api_expediente('03/2026').archivos.find(a => a.id === r.pdfSolicitud.id);
+  assert.equal(fpdf.categoria, 'Formulario de solicitud (PDF)');
+  const html = estado.pdfs[estado.pdfs.length - 1];
+  assert.match(html, /Solicitud de Concesión Académica de Excepción/);
+  assert.match(html, /Folio<\/th><td>03\/2026/);
+  assert.match(html, /IV\. Fundamentación/);
+  assert.match(html, /generado el .* por analista\.uno@usach\.cl/);
+  assert.ok(tabla(env, 'Bitácora').some(b => b.folio === '03/2026' && /PDF del formulario de solicitud generado \(automático/.test(b.texto)));
   const pv = ctx.api_previsualizar('03/2026', 'programa', {});
   assert.equal(pv.conCorreo, false);
   assert.match(pv.haciaEtiqueta, /vía STD/);
@@ -214,6 +228,8 @@ test('archivos: subida con límite, adjunto en correo, descarga o acceso puntual
   assert.throws(() => ctx.api_subirArchivo('03/2026', 'x.pdf', 'application/pdf', b64, 'antecedentes_formulario'), /Categoría/);
   const exp = ctx.api_expediente('03/2026');
   assert.equal(exp.archivos.length, 1);
+  assert.throws(() => ctx.api_subirArchivo('03/2026', 'x.pdf', 'application/pdf', b64, 'formulario_solicitud'), /Categoría/, 'ese PDF lo genera la plataforma');
+  ctx.api_guardarGestion('03/2026', { n_std: 'STD-1' });
   ctx.api_cambiarEstado('03/2026', 'informe_rc', {});
   ctx.api_cambiarEstado('03/2026', 'programa', {});
   ctx.api_cambiarEstado('03/2026', 'vb', { campos: { propuesta_comite: 'Acoger' }, adjuntos: [exp.archivos[0].id, 'idAjeno'] });
@@ -670,4 +686,22 @@ test('visor: PDF tal cual, Word convertido a PDF (copia temporal borrada) y ZIP 
   assert.throws(() => ctx.api_verArchivo('06/2026', id('certificado.pdf')), /no pertenece a este expediente/);
   estado.usuario = 'consulta@usach.cl';
   assert.throws(() => ctx.api_verArchivo('05/2026', id('certificado.pdf')), /nivel requerido/);
+});
+
+test('PDF del formulario a pedido: analistas y administración sí; consulta no; escapa el texto del estudiante', () => {
+  const env = instalar(preparar());
+  const { ctx, estado } = env;
+  const hs = env.libro.getSheetByName('Solicitudes');
+  const enc = hs.datos[0], f = hs.datos.findIndex(x => x[0] === '05/2026');
+  hs.datos[f][enc.indexOf('fundamentacion')] = 'Texto con <script>alert(1)</script> & símbolos';
+  estado.usuario = 'analista.uno@usach.cl';
+  const r = ctx.api_pdfSolicitud('05/2026');
+  assert.ok(r.id);
+  const html = estado.pdfs[estado.pdfs.length - 1];
+  assert.ok(html.indexOf('<script>') < 0);
+  assert.match(html, /&lt;script&gt;alert\(1\)&lt;\/script&gt; &amp; símbolos/);
+  estado.usuario = 'vice@usach.cl';
+  assert.ok(ctx.api_pdfSolicitud('05/2026').id);
+  estado.usuario = 'consulta@usach.cl';
+  assert.throws(() => ctx.api_pdfSolicitud('05/2026'), /nivel requerido/);
 });
