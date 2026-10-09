@@ -8,7 +8,8 @@
 const ESTADOS = [
   { id: 'recibida',   etiqueta: 'Recibida',                                  fase: 'Admisibilidad', correo: 'recepcion',  siguientes: ['revision'] },
   { id: 'revision',   etiqueta: 'En revisión de admisibilidad',              fase: 'Admisibilidad', correo: '',           siguientes: ['aceptada', 'rechazada', 'no_procede'] },
-  { id: 'aceptada',   etiqueta: 'Presentación aceptada',                     fase: 'Tramitación',   correo: 'aceptada',   siguientes: ['informe_rc'] },
+  // El id se conserva («aceptada») para no alterar los datos guardados; lo visible es «Admisible para análisis».
+  { id: 'aceptada',   etiqueta: 'Admisible para análisis',                   fase: 'Tramitación',   correo: 'aceptada',   siguientes: ['informe_rc'] },
   { id: 'informe_rc', etiqueta: 'Informe de Registro Curricular',            fase: 'Tramitación',   correo: '',           siguientes: ['programa'] },
   // El pronunciamiento se solicita al programa por STD (Sistema de Trazabilidad Documental): aquí solo se registra, sin correo.
   { id: 'programa',   etiqueta: 'Pronunciamiento del programa (solicitado vía STD)', fase: 'Tramitación', correo: '',     siguientes: ['vb'] },

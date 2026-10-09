@@ -22,6 +22,6 @@ nuevo (una corrección o un enfoque confirmado), agregar o actualizar la nota co
 - La planilla se actualiza sola en la primera visita tras publicar (`actualizarSiCorresponde_` en `Instalar.gs`).
 
 ## Flujo vigente (resumen)
-Recibida → revisión de admisibilidad → aceptada / rechazada / no procede → informe RC → programa (solicitado vía STD; solo se registra,
+Recibida → revisión de admisibilidad → admisible para análisis (id `aceptada`) / rechazada / no procede → informe RC → programa (solicitado vía STD; solo se registra,
 sin correo) → V°B° a la respuesta del Comité (o devolución vía STD con observación) → resolución → resuelto / negado. Una versión con autorización de inicio
 y decisión exclusiva del Vicedecano/a se probó y se revirtió a pedido (ver `memoria/flujo-cae-vigente.md`).

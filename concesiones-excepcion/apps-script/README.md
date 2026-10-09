@@ -89,7 +89,7 @@ se ingresa con Google. Niveles: `sin_acceso` (solo recibe correos) · `consulta`
 Cada llamada del panel vuelve a leer la matriz, así que un cambio rige en la siguiente acción de esa persona. Las cuentas se desactivan,
 no se borran. La cuenta institucional es administradora fija y no se puede dejar el sistema sin otra administración activa.
 
-**Flujo.** Recibida → En revisión de admisibilidad → Presentación aceptada / Rechazada / No procede → Informe de Registro Curricular
+**Flujo.** Recibida → En revisión de admisibilidad → Admisible para análisis / Rechazada / No procede → Informe de Registro Curricular
 → Pronunciamiento del programa (solicitado vía STD; la plataforma solo registra el estado, sin correo) → V°B° a la respuesta del Comité
 (o devolución al programa vía STD, con observación) → Resolución en trámite → Resuelto / Negado.
 
@@ -100,7 +100,7 @@ no se borran. La cuenta institucional es administradora fija y no se puede dejar
 **Correos.** Automáticos solo: recepción (estudiante), nueva solicitud (equipo), asignación (analista) y recordatorios internos: de admisibilidad, si el caso sigue «Recibida» al día hábil siguiente a la recepción (`primer_aviso_admisibilidad_dias` = 1; el plazo es `plazo_admisibilidad_dias` = 2), a la analista asignada o, si no hay, a las cuentas con nivel edición o administración, y del programa, cuando vence su plazo en STD (a la analista)
 (tras el plazo, cada `recordatorio_cada_dias`, hasta `recordatorios_max`). Si uno de ellos no sale, se avisa de inmediato
 por correo a la analista del caso, a la administración y a la cuenta institucional (además de quedar en la bitácora).
-Todo correo dirigido al estudiante (recepción, aceptada, rechazada, no procede, resuelto, negado) lleva el enlace de seguimiento
+Todo correo dirigido al estudiante (recepción, admisible para análisis, rechazada, no procede, resuelto, negado) lleva el enlace de seguimiento
 `URL?v=seguimiento`; el estudiante ve sus casos ingresando con la cuenta USACH con que envió el formulario. Todo otro correo sale al cambiar de estado
 en el panel, tras una vista previa editable; si falta un destinatario o una variable (por ejemplo `{std}`), no se envía; si el envío
 falla, el estado no cambia. Los destinatarios son roles que se traducen al enviar:

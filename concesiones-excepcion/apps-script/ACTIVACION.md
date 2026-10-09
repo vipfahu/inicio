@@ -82,7 +82,7 @@ Al terminar, **recargar el panel** (la lista de analistas para asignar se lee al
 
 ## Fase D · Quién recibe qué correo (referencia)
 
-Flujo: **Recibida** → **En revisión de admisibilidad** → **Presentación aceptada** (o Rechazada / No procede) → **Informe de
+Flujo: **Recibida** → **En revisión de admisibilidad** → **Admisible para análisis** (o Rechazada / No procede) → **Informe de
 Registro Curricular** → **Pronunciamiento del programa (solicitado vía STD)** → **V°B° a respuesta del Comité** (o devolución al
 programa vía STD) → **Resolución en trámite** → **Resuelto / Negado**. La solicitud al programa y la devolución se tramitan en el STD:
 la plataforma solo registra el estado (sin correo) y el estudiante lo ve en su seguimiento. El diagrama completo está en el flujograma publicado.
@@ -94,7 +94,7 @@ Todos salen desde la cuenta institucional; las respuestas llegan a la analista d
 | Llega una solicitud | Recepción (folio + enlace de seguimiento) | Estudiante | — |
 | Llega una solicitud | Nueva solicitud CAE | Todas las cuentas activas con acceso al panel | — |
 | Llega una solicitud con analista por programa, o se asigna/reasigna en el expediente | Solicitud asignada | Analista asignada | — |
-| Presentación aceptada | Aceptada | Estudiante | Dirección de programa |
+| Admisible para análisis | Admisible para análisis | Estudiante | Dirección de programa |
 | Presentación rechazada (pide motivo) | Rechazada | Estudiante | Dirección de programa |
 | No procede | No procede (con `enlace_rc`) | Estudiante | — |
 | Registro de solicitud de pronunciamiento al programa (STD) | *(sin correo)* | — | — |
