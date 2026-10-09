@@ -17,7 +17,7 @@ const COLUMNAS = {
   Solicitudes: ['folio', 'fila_respuesta', 'fecha_recepcion', 'correo_verificado', 'apellido1', 'apellido2', 'nombres', 'run',
     'correo', 'telefono', 'programa', 'anio', 'semestre', 'tipo_catalogo', 'tipo_texto_libre', 'estado', 'estado_desde',
     'analista', 'n_std', 'comentarios_analista', 'obs_vicedecano', 'propuesta_comite', 'motivo', 'resolucion',
-    'carpeta_id', 'recordatorios', 'ultimo_recordatorio', 'revisar', 'nota_migracion', 'actualizado', 'origen', 'fundamentacion'],
+    'carpeta_id', 'recordatorios', 'ultimo_recordatorio', 'revisar', 'nota_migracion', 'actualizado', 'origen', 'fundamentacion', 'tipo_documento'],
   'Bitácora': ['fecha', 'folio', 'tipo', 'quien', 'texto', 'estado_nuevo', 'evento', 'para', 'cc', 'asunto', 'editado'],
   Plantillas: ['evento', 'descripcion', 'para', 'cc', 'asunto', 'cuerpo', 'asunto_original', 'cuerpo_original', 'actualizado_por', 'actualizado_en'],
   Cuentas: ['correo', 'nombre', 'rol', 'nivel', 'programas', 'activo', 'recibe_eventos', 'creada_por', 'creada_en', 'notas'],

@@ -63,6 +63,7 @@
   footer{border-top:1px solid var(--borde);padding:18px clamp(16px,5vw,60px);font:400 12px Archivo,sans-serif;color:var(--apagado);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
   @media (max-width:760px){ .g2,.tipos{grid-template-columns:1fr} input,select,button{min-height:44px} .marca img{height:48px} }
   input.fijo,input[readonly]{background:#EFECE4;color:var(--tinta2,#5A6470);cursor:not-allowed;border-style:dashed}
+  input[aria-invalid="true"]{border-color:#B0483A;background:#FBF1EE}
 </style>
 </head>
 <body>
@@ -119,7 +120,8 @@ function pintar() {
     '<section class="seccion" style="--c:#00A0A0"><h2>Datos de la persona solicitante <span>01</span></h2><div class="desc">Por favor, complete datos relativos a la persona que realiza la solicitud.</div>' +
       '<div class="g2">' + campo('apellido1', 'Primer apellido', { ac: 'family-name' }) + campo('apellido2', 'Segundo apellido') + '</div>' +
       campo('nombres', 'Nombres', { ac: 'given-name' }) +
-      '<div class="g2">' + campo('run', 'RUN o pasaporte', { mono: true, ph: '12.345.678-9' }) + campo('telefono', 'Teléfono de contacto', { mono: true, ph: '+56 9 …', tipo: 'tel', ac: 'tel' }) + '</div>' +
+      '<div class="g2"><div><label class="et" for="tipo_documento">Documento de identidad <b>*</b></label><select id="tipo_documento"><option value="RUN">RUN (cédula chilena)</option><option value="Pasaporte">Pasaporte</option></select></div><div></div></div>' +
+      '<div class="g2">' + campo('run', 'Número de documento', { mono: true, ph: '12.345.678-5', ayuda: '<span id="run_msg">Con dígito verificador; puntos y guion son opcionales.</span>' }) + campo('telefono', 'Teléfono de contacto', { mono: true, ph: '+56 9 …', tipo: 'tel', ac: 'tel' }) + '</div>' +
       campo('correo', 'Correo electrónico', { val: CFG.correo, tipo: 'email', ac: 'email', fijo: true, ayuda: 'Es la cuenta USACH con que ingresó; no se puede modificar. A este correo llegarán las notificaciones del trámite y con esta cuenta podrá ver el seguimiento en línea. Si necesita usar otra cuenta, cierre sesión e ingrese con ella.' }) +
     '</section>' +
 
@@ -144,6 +146,8 @@ function pintar() {
   $('agregar').onclick = () => $('archivo').click();
   $('archivo').onchange = agregarArchivo;
   $('enviar').onclick = enviar;
+  $('run').addEventListener('blur', revisarDocumento);
+  $('tipo_documento').addEventListener('change', () => { $('run').placeholder = $('tipo_documento').value === 'RUN' ? '12.345.678-5' : 'AB1234567'; revisarDocumento(); });
 }
 function pintarSemestre() { $('semestre').querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.s === semestre)); }
 function pintarLista() {
@@ -162,12 +166,33 @@ function agregarArchivo() {
   archivos.push({ file: f, nombre: f.name, mb: mb });
   pintarLista();
 }
+/* Validación del documento: RUN con dígito verificador (módulo 11) o pasaporte. El servidor repite la misma validación. */
+function normalizarRun(v) {
+  const s = String(v || '').toUpperCase().replace(/[^0-9K]/g, '');
+  const cuerpo = s.slice(0, -1), dv = s.slice(-1);
+  if (!/^\d{7,8}$/.test(cuerpo) || !/^[0-9K]$/.test(dv) || /^0/.test(cuerpo)) return '';
+  let suma = 0, m = 2;
+  for (let i = cuerpo.length - 1; i >= 0; i--) { suma += Number(cuerpo[i]) * m; m = m === 7 ? 2 : m + 1; }
+  const r = 11 - (suma % 11);
+  const esperado = r === 11 ? '0' : r === 10 ? 'K' : String(r);
+  return dv === esperado ? cuerpo.replace(/\B(?=(\d{3})+(?!\d))/g, '.') + '-' + dv : '';
+}
+function revisarDocumento() {
+  const el = $('run'), msg = $('run_msg'), tipo = $('tipo_documento').value, v = el.value.trim();
+  if (!v) { el.removeAttribute('aria-invalid'); msg.textContent = tipo === 'RUN' ? 'Con dígito verificador; puntos y guion son opcionales.' : 'Letras y números, sin espacios.'; msg.style.color = ''; return false; }
+  const ok = tipo === 'RUN' ? normalizarRun(v) : (/^[A-Z0-9]{5,20}$/.test(v.toUpperCase().replace(/[\s.\-]/g, '')) ? v.toUpperCase().replace(/[\s.\-]/g, '') : '');
+  if (ok) { el.value = ok; el.removeAttribute('aria-invalid'); msg.textContent = tipo === 'RUN' ? '✓ RUN válido.' : '✓ Pasaporte registrado.'; msg.style.color = 'var(--teal,#007E80)'; return true; }
+  el.setAttribute('aria-invalid', 'true');
+  msg.textContent = tipo === 'RUN' ? 'RUN no válido: revise los números y el dígito verificador. Si no tiene RUN, elija «Pasaporte».' : 'Pasaporte no válido: use solo letras y números (5 a 20).';
+  msg.style.color = '#B0483A';
+  return false;
+}
 function leerBase64(f) {
   return new Promise((ok, mal) => { const r = new FileReader(); r.onload = () => ok(String(r.result).split(',')[1] || ''); r.onerror = () => mal(new Error('No se pudo leer «' + f.name + '».')); r.readAsDataURL(f); });
 }
 async function enviar() {
   const d = {
-    apellido1: $('apellido1').value, apellido2: $('apellido2').value, nombres: $('nombres').value, run: $('run').value,
+    apellido1: $('apellido1').value, apellido2: $('apellido2').value, nombres: $('nombres').value, run: $('run').value, tipo_documento: $('tipo_documento').value,
     telefono: $('telefono').value, correo: $('correo').value, programa: $('programa').value, anio: $('anio').value,
     semestre: semestre, tipos: [...document.querySelectorAll('.tp:checked')].map(x => x.value), otro: $('otro').value,
     fundamentacion: $('fundamentacion').value
@@ -176,6 +201,8 @@ async function enviar() {
   const faltan = [['apellido1', 'primer apellido'], ['apellido2', 'segundo apellido'], ['nombres', 'nombres'], ['run', 'RUN o pasaporte'], ['telefono', 'teléfono'], ['correo', 'correo'], ['programa', 'programa'], ['fundamentacion', 'fundamentación']]
     .filter(x => !String(d[x[0]]).trim()).map(x => x[1]);
   if (faltan.length) return mostrarError('Complete: ' + faltan.join(', ') + '.');
+  if (!revisarDocumento()) return mostrarError(d.tipo_documento === 'RUN' ? 'El RUN no es válido. Revise los números y el dígito verificador.' : 'El número de pasaporte no es válido.');
+  d.run = $('run').value;
   if (!d.tipos.length && !d.otro.trim()) return mostrarError('Indique al menos una autorización solicitada o complete «Otros».');
   mostrarError('');
   const b = $('enviar'); b.disabled = true;

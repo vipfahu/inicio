@@ -332,6 +332,27 @@ function validarCuenta(c, cuentas, duenia, esNueva) {
  * Valida y normaliza una solicitud enviada desde el formulario web.
  * ctx = { programas: [nombres activos], anio: año actual }. Devuelve { error } o { datos }.
  */
+/**
+ * RUN chileno: valida el dígito verificador (módulo 11) y devuelve el formato «12.345.678-9», o '' si no es válido.
+ * Acepta puntos, guion, espacios y «k» minúscula.
+ */
+function normalizarRun(v) {
+  const s = String(v || '').toUpperCase().replace(/[^0-9K]/g, '');
+  const cuerpo = s.slice(0, -1), dv = s.slice(-1);
+  if (!/^\d{7,8}$/.test(cuerpo) || !/^[0-9K]$/.test(dv) || /^0/.test(cuerpo)) return '';
+  let suma = 0, m = 2;
+  for (let i = cuerpo.length - 1; i >= 0; i--) { suma += Number(cuerpo[i]) * m; m = m === 7 ? 2 : m + 1; }
+  const r = 11 - (suma % 11);
+  const esperado = r === 11 ? '0' : r === 10 ? 'K' : String(r);
+  return dv === esperado ? cuerpo.replace(/\B(?=(\d{3})+(?!\d))/g, '.') + '-' + dv : '';
+}
+
+/** Pasaporte: letras y números (5 a 20), sin espacios ni guiones; '' si no es válido. */
+function normalizarPasaporte(v) {
+  const s = String(v || '').toUpperCase().replace(/[\s.\-]/g, '');
+  return /^[A-Z0-9]{5,20}$/.test(s) ? s : '';
+}
+
 function validarSolicitud(d, ctx) {
   d = d || {};
   const t = (k, max) => String(d[k] === undefined || d[k] === null ? '' : d[k]).trim().slice(0, max || 200);
@@ -347,6 +368,16 @@ function validarSolicitud(d, ctx) {
     ['telefono', 'teléfono'], ['correo', 'correo electrónico'], ['programa', 'programa'], ['fundamentacion', 'fundamentación']]
     .filter(x => !datos[x[0]]).map(x => x[1]);
   if (faltan.length) return { error: 'Complete: ' + faltan.join(', ') + '.' };
+  datos.tipo_documento = String(d.tipo_documento || 'RUN') === 'Pasaporte' ? 'Pasaporte' : 'RUN';
+  if (datos.tipo_documento === 'RUN') {
+    const run = normalizarRun(datos.run);
+    if (!run) return { error: 'El RUN no es válido. Revise los números y el dígito verificador (ej.: 12.345.678-5). Si no tiene RUN, elija «Pasaporte».' };
+    datos.run = run;
+  } else {
+    const pas = normalizarPasaporte(datos.run);
+    if (!pas) return { error: 'El número de pasaporte no es válido (solo letras y números, entre 5 y 20 caracteres).' };
+    datos.run = pas;
+  }
   if (!/^[^@\s]+@[^@\s]+\.[a-z]{2,}$/.test(datos.correo)) return { error: 'El correo electrónico no es válido.' };
   if ((ctx.programas || []).indexOf(datos.programa) < 0) return { error: 'Seleccione un programa de la lista.' };
   if (!(datos.anio >= ctx.anio - 1 && datos.anio <= ctx.anio + 1)) return { error: 'El año debe estar entre ' + (ctx.anio - 1) + ' y ' + (ctx.anio + 1) + '.' };
@@ -358,7 +389,7 @@ function validarSolicitud(d, ctx) {
 }
 
 if (typeof module !== 'undefined') {
-  module.exports = { feriadosDesdeEventos, OCULTOS_AL_ESTUDIANTE, sumarDiasHabiles, recordatorioPendiente, RECORDATORIOS, camposRequeridos,
+  module.exports = { normalizarRun, normalizarPasaporte, feriadosDesdeEventos, OCULTOS_AL_ESTUDIANTE, sumarDiasHabiles, recordatorioPendiente, RECORDATORIOS, camposRequeridos,
     ESTADOS, CAMPOS_REQUERIDOS, TIPOS_CATALOGO, NIVELES, ROLES, estadoPorId, esCierre, transicionValida, eventoTransicion,
     normalizarFolio, siguienteFolio, estadoMigrado, separarTipos, rellenar, variablesSinResolver, resolverDestinatarios,
     diasHabilesEntre, necesitaRecordatorio, nivelSuficiente, puedeVerSolicitud, validarCuenta, esSi, listaRoles, validarSolicitud

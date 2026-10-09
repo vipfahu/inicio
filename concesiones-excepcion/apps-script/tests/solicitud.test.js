@@ -9,7 +9,7 @@ const tabla = (env, n) => {
   return filas.filter(f => f.some(x => x !== '')).map(f => Object.fromEntries(enc.map((k, j) => [k, f[j]])));
 };
 const base = () => ({
-  apellido1: 'Pérez', apellido2: 'Soto', nombres: 'Ana', run: '12.345.678-9', telefono: '+56 9 1234 5678', correo: 'ana.perez@usach.cl',
+  apellido1: 'Pérez', apellido2: 'Soto', nombres: 'Ana', run: '12.345.678-5', telefono: '+56 9 1234 5678', correo: 'ana.perez@usach.cl',
   programa: 'Magíster en Prueba A', anio: new Date().getFullYear(), semestre: 'Semestre II',
   tipos: ['Prórroga de Periodo Lectivo', 'tipo inventado'], otro: '', fundamentacion: 'Fundamentación suficientemente extensa para el trámite.'
 });
@@ -27,6 +27,14 @@ test('validación de la solicitud', () => {
   assert.match(L.validarSolicitud({ ...base(), anio: 2026, tipos: [], otro: '' }, ctx).error, /Otros/);
   assert.equal(L.validarSolicitud({ ...base(), anio: 2026, tipos: [], otro: 'Matrícula fuera de plazo' }, ctx).datos.tipo_texto_libre, 'Matrícula fuera de plazo');
   assert.match(L.validarSolicitud({ ...base(), anio: 2026, correo: 'no-es-correo' }, ctx).error, /correo/);
+  // RUN con dígito verificador incorrecto: rechazado; correcto sin puntos: normalizado
+  assert.match(L.validarSolicitud({ ...base(), anio: 2026, run: '12.345.678-9' }, ctx).error, /RUN no es válido/);
+  assert.equal(L.validarSolicitud({ ...base(), anio: 2026, run: '123456785' }, ctx).datos.run, '12.345.678-5');
+  // Pasaporte
+  const pas = L.validarSolicitud({ ...base(), anio: 2026, tipo_documento: 'Pasaporte', run: 'ab-123 456' }, ctx).datos;
+  assert.equal(pas.run, 'AB123456');
+  assert.equal(pas.tipo_documento, 'Pasaporte');
+  assert.match(L.validarSolicitud({ ...base(), anio: 2026, tipo_documento: 'Pasaporte', run: '1' }, ctx).error, /pasaporte no es válido/);
 });
 
 test('el correo de la solicitud es siempre la cuenta con que inició sesión, aunque se envíe otro', () => {

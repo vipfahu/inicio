@@ -162,6 +162,22 @@ test('feriados desde el calendario: excluye conmemoraciones y expande eventos de
   assert.equal(L.sumarDiasHabiles(new Date(2026, 8, 17), 1, ['2026-09-18']).getDate(), 21);
 });
 
+test('RUN: dígito verificador módulo 11, formato normalizado y pasaporte', () => {
+  assert.equal(L.normalizarRun('12.345.678-5'), '12.345.678-5');
+  assert.equal(L.normalizarRun('123456785'), '12.345.678-5');
+  assert.equal(L.normalizarRun(' 12345678 - 5 '), '12.345.678-5');
+  assert.equal(L.normalizarRun('12.345.678-9'), '', 'dígito verificador incorrecto');
+  assert.equal(L.normalizarRun('11.111.111-1'), '11.111.111-1');
+  assert.equal(L.normalizarRun('7.654.321-6'), '7.654.321-6');
+  // DV «K» y «0»
+  const conK = ['10000013', '10000021', '10000030'].map(c => c + (() => { let s = 0, m = 2; for (let i = c.length - 1; i >= 0; i--) { s += Number(c[i]) * m; m = m === 7 ? 2 : m + 1; } const r = 11 - (s % 11); return r === 11 ? '0' : r === 10 ? 'K' : String(r); })());
+  conK.forEach(r => assert.ok(L.normalizarRun(r.toLowerCase()), 'acepta ' + r));
+  assert.equal(L.normalizarRun('123'), '');
+  assert.equal(L.normalizarRun('abc'), '');
+  assert.equal(L.normalizarPasaporte('ab 123-4567'), 'AB1234567');
+  assert.equal(L.normalizarPasaporte('12'), '');
+});
+
 test('niveles y alcance por programa', () => {
   assert.ok(L.nivelSuficiente('administracion', 'edicion'));
   assert.ok(!L.nivelSuficiente('consulta', 'edicion'));
