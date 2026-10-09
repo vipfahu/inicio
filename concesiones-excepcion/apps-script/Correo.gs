@@ -11,6 +11,7 @@ function urlPanel_() {
 
 function variables_(sol, campos, cuentas) {
   const p = parametros_();
+  const vice = vicedecano_(cuentas).nombre;
   campos = campos || {};
   const tipo = [sol.tipo_catalogo, sol.tipo_texto_libre].filter(Boolean).join(', ');
   const analista = sol.analista ? nombreDe_(sol.analista, cuentas) : '';
@@ -26,7 +27,8 @@ function variables_(sol, campos, cuentas) {
     firmante: (analista ? analista + '\n' : '') + 'Vicedecanato de Investigación y Postgrado · FAHU',
     analista_asignada: analista || 'sin asignar (asígnela desde el expediente)',
     std: campos.n_std || sol.n_std || '',
-    vicedecano: vicedecano_().nombre,
+    vicedecano: vice,
+    encargo_vicedecano: encargoDe(vice),
     motivo: campos.motivo || sol.motivo || '',
     observacion: campos.observacion || sol.obs_vicedecano || '',
     propuesta_comite: campos.propuesta_comite || sol.propuesta_comite || '',

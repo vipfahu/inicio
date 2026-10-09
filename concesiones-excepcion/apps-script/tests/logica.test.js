@@ -220,3 +220,14 @@ test('HTML: ningún enlace dentro de otro enlace (el navegador los separa y la i
     }
   });
 });
+
+test('«por especial encargo»: del + grado, de la + grado femenino, de sin grado', () => {
+  assert.equal(L.encargoDe('Dr. Juan Pérez S.'), 'del Dr. Juan Pérez S.');
+  assert.equal(L.encargoDe('Mg. Ana Soto'), 'del Mg. Ana Soto');
+  assert.equal(L.encargoDe('Lic. Pedro Rojas'), 'del Lic. Pedro Rojas');
+  assert.equal(L.encargoDe('Dra. Ana Soto'), 'de la Dra. Ana Soto');
+  assert.equal(L.encargoDe('dr Juan Pérez'), 'del dr Juan Pérez');
+  assert.equal(L.encargoDe('Juan Pérez Soto'), 'de Juan Pérez Soto');
+  assert.equal(L.encargoDe('Drago Kusanovic'), 'de Drago Kusanovic'); // nombre que empieza como un grado
+  assert.equal(L.encargoDe(''), '');
+});

@@ -266,6 +266,15 @@ test('cuentas con recibe_eventos reciben copia; sin correo de dirección, el cor
   const m = estado.correos.pop();
   assert.match(m.to, /est6@usach\.cl/);
   assert.ok(!m.cc, 'sale sin la copia a la dirección de programa');
+  assert.match(m.body, /por especial encargo de Vice Decano, Vicedecano/, 'nombre sin grado → «de»');
+  // Con grado en el nombre de la cuenta → «del».
+  const cu = env.libro.getSheetByName('Cuentas');
+  const fv = cu.datos.findIndex(r => r[0] === 'vice@usach.cl');
+  cu.datos[fv][1] = 'Dr. Vice Decano';
+  const sol = tabla(env, 'Solicitudes').find(x => x.folio === '06/2026');
+  assert.match(ctx.componer_('aceptada', sol, {}).cuerpo, /por especial encargo del Dr\. Vice Decano, Vicedecano/);
+  cu.datos[fv][1] = 'Dra. Vice Decana';
+  assert.match(ctx.componer_('cae_admisible', sol, {}).cuerpo, /por especial encargo de la Dra\. Vice Decana, /);
   assert.equal(tabla(env, 'Solicitudes').find(x => x.folio === '06/2026').estado, 'aceptada');
 });
 

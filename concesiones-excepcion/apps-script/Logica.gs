@@ -135,6 +135,22 @@ function separarTipos(texto, catalogo) {
 }
 
 /** Reemplaza {variables}. Las variables sin valor quedan visibles para que nadie envíe un correo incompleto sin notarlo. */
+/**
+ * «por especial encargo …» según cómo esté escrito el nombre del Vicedecano/a en su cuenta:
+ * con grado académico → «del Dr. X» (o «de la Dra. X» si el grado es femenino); sin grado → «de X».
+ * El género solo se toma del grado escrito (Dra., Profa.), nunca del nombre.
+ */
+const GRADOS_FEMENINOS = /^(dra|profa|mgtra|mtra)\.?$/i;
+const GRADOS = /^(dr|dra|prof|profa|mg|mgtr|mgtra|mtro|mtra|mag|lic|ph\.?\s?d|phd|ing)\.?$/i;
+function encargoDe(nombre) {
+  nombre = String(nombre || '').trim();
+  if (!nombre) return '';
+  const primera = nombre.split(/\s+/)[0].replace(/,$/, '');
+  if (GRADOS_FEMENINOS.test(primera)) return 'de la ' + nombre;
+  if (GRADOS.test(primera)) return 'del ' + nombre;
+  return 'de ' + nombre;
+}
+
 function rellenar(texto, vars) {
   return String(texto || '').replace(/\{(\w+)\}/g, (m, k) => (vars[k] !== undefined && vars[k] !== null && vars[k] !== '') ? String(vars[k]) : m);
 }
@@ -395,7 +411,7 @@ function validarSolicitud(d, ctx) {
 }
 
 if (typeof module !== 'undefined') {
-  module.exports = { requiereVicedecano, normalizarRun, normalizarPasaporte, feriadosDesdeEventos, OCULTOS_AL_ESTUDIANTE, sumarDiasHabiles, recordatorioPendiente, RECORDATORIOS, camposRequeridos,
+  module.exports = { encargoDe, requiereVicedecano, normalizarRun, normalizarPasaporte, feriadosDesdeEventos, OCULTOS_AL_ESTUDIANTE, sumarDiasHabiles, recordatorioPendiente, RECORDATORIOS, camposRequeridos,
     ESTADOS, CAMPOS_REQUERIDOS, TIPOS_CATALOGO, NIVELES, ROLES, estadoPorId, esCierre, transicionValida, eventoTransicion,
     normalizarFolio, siguienteFolio, estadoMigrado, separarTipos, rellenar, variablesSinResolver, resolverDestinatarios,
     diasHabilesEntre, necesitaRecordatorio, nivelSuficiente, puedeVerSolicitud, validarCuenta, esSi, listaRoles, validarSolicitud

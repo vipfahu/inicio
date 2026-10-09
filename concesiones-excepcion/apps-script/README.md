@@ -103,6 +103,8 @@ constancia de ese medio y de quién lo registró. Si el caso sigue en V°B° tra
 automático al Vicedecano/a con copia a la analista (luego cada `recordatorio_cada_dias`, hasta `recordatorios_max`). El nombre
 del Vicedecano/a ({vicedecano} en los correos) es el de su cuenta activa con rol Vicedecano/a en «Cuentas». Configuración → «Vicedecano/a»
 solo lo muestra, sin campos editables: para cambiarlo se edita esa cuenta, y el cambio queda registrado con el nombre de quien lo hizo.
+Los correos dicen «por especial encargo {encargo_vicedecano}», que se arma según cómo esté escrito ese nombre: con grado académico,
+«del Dr. …» / «del Mg. …» / «del Lic. …» (o «de la Dra. …» si el grado escrito es femenino); sin grado, «de …».
 
 **Usuarios.** El panel es solo para el equipo del Vicedecanato (analistas y Vicedecano/a). Las direcciones de programa y Registro Curricular no entran: solo reciben correos.
 
