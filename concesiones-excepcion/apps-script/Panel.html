@@ -60,6 +60,14 @@
   #dlg{background:#fff;border-radius:14px;box-shadow:0 30px 80px rgba(0,0,0,.3);padding:24px 26px 22px;max-width:680px;width:100%}
   #toast{position:fixed;right:20px;bottom:20px;background:var(--tinta);color:#fff;font:600 12.5px Archivo,sans-serif;border-radius:10px;padding:11px 16px;box-shadow:0 12px 32px rgba(58,68,80,.25);display:none;max-width:420px;z-index:20}
   #toast.err{background:#8A3D2E}
+  #visor{position:fixed;inset:0;background:rgba(36,42,50,.72);display:none;flex-direction:column;align-items:center;padding:20px 16px;z-index:15}
+  #visor.abierto{display:flex}
+  #visor .vmarco{background:#fff;border-radius:14px;box-shadow:0 30px 80px rgba(0,0,0,.35);width:100%;max-width:1040px;flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+  #visor .vcab{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--fila)}
+  #visor .vcab b{flex:1;min-width:0;font:700 14px Archivo,sans-serif;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  #v_cuerpo{flex:1;overflow:auto;background:#E9E6DE;padding:16px;text-align:center}
+  #v_cuerpo canvas,#v_cuerpo img{display:block;margin:0 auto 14px;max-width:100%;background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.15)}
+  #v_cuerpo pre{text-align:left;white-space:pre-wrap;background:#fff;padding:20px;border-radius:8px;font:400 13px/1.5 'IBM Plex Mono',monospace;margin:0 auto;max-width:900px}
   .cargando{font:400 14px Spectral,serif;color:var(--apagado);padding:40px 0;text-align:center}
   .lista-item{padding:13px 18px;border-left:3px solid transparent;border-bottom:1px solid var(--fila);cursor:pointer}
   .lista-item.sel{border-left-color:var(--teal);background:var(--fcampo)}
@@ -98,6 +106,10 @@
 <main id="app"><div class="cargando">Cargando…</div></main>
 <div id="fondo"><div id="dlg" role="dialog" aria-modal="true"></div></div>
 <div id="toast" role="status"></div>
+<div id="visor" role="dialog" aria-modal="true" aria-labelledby="v_nombre"><div class="vmarco">
+  <div class="vcab"><b id="v_nombre"></b><button id="v_desc">Descargar</button><button id="v_cerrar" class="prim">Cerrar</button></div>
+  <div id="v_cuerpo"></div>
+</div></div>
 
 <script>
 const FOLIO_INICIAL = '<?= folioInicial ?>';
@@ -270,7 +282,7 @@ function pintarExp() {
     return '<div class="it" style="--c:' + color + '"><div class="meta">' + h(fechaHora(b.fecha)) + ' · ' + h(b.quien) + '</div><div class="tx">' + h(b.texto) + '</div>' +
       (b.evento && b.para ? '<span class="chip">✉ ' + h(b.asunto || b.evento) + ' → ' + h(b.para) + (b.cc ? ' · cc ' + h(b.cc) : '') + (b.editado === 'SÍ' ? ' · texto editado' : '') + '</span>' : '') + '</div>';
   }).join('');
-  const archivos = (e.archivos || []).map(a => '<div style="display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid var(--fila)"><div><div style="font:600 13px Archivo,sans-serif">' + h(a.nombre) + '</div><div class="sub">' + h(a.categoria) + ' · ' + h(a.tamano_mb) + ' MB · ' + fecha(a.fecha) + '</div></div><button data-arch="' + h(a.id) + '">Abrir</button></div>').join('') || '<div class="sub">Sin archivos.</div>';
+  const archivos = (e.archivos || []).map(a => '<div style="display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid var(--fila)"><div><div style="font:600 13px Archivo,sans-serif">' + h(a.nombre) + '</div><div class="sub">' + h(a.categoria) + ' · ' + h(a.tamano_mb) + ' MB · ' + fecha(a.fecha) + '</div></div><div style="display:flex;gap:6px;flex-shrink:0">' + (visible(a.nombre) ? '<button class="prim" data-ver="' + h(a.id) + '" data-nombre="' + h(a.nombre) + '">Ver</button>' : '') + '<button data-arch="' + h(a.id) + '">Descargar</button></div></div>').join('') || '<div class="sub">Sin archivos.</div>';
   const cats = Object.keys(S.ini.categorias).filter(k => k !== 'antecedentes_formulario');
   $('app').innerHTML =
     '<a href="#" id="volver" style="font:600 12px Archivo,sans-serif">← Volver a la bandeja</a>' +
@@ -293,6 +305,7 @@ function pintarExp() {
     '</div></div>';
   $('volver').onclick = ev => { ev.preventDefault(); ir('bandeja'); };
   document.querySelectorAll('[data-arch]').forEach(b => b.onclick = () => descargar(b.dataset.arch));
+  document.querySelectorAll('[data-ver]').forEach(b => b.onclick = () => ver(b.dataset.ver, b.dataset.nombre));
   if ($('subir')) $('subir').onclick = subir;
   if ($('anotar')) $('anotar').onclick = () => {
     const t = $('nota').value.trim(); if (!t) return;
@@ -362,8 +375,69 @@ function subir() {
 function descargar(id) {
   run('api_descargarArchivo', S.exp.folio, id).then(r => {
     if (r.modo === 'enlace') { window.open(r.url, '_blank'); toast('Se abrió el archivo en Drive (acceso de lectura registrado en la bitácora)'); return; }
-    const a = document.createElement('a'); a.href = 'data:' + r.mime + ';base64,' + r.base64; a.download = r.nombre; document.body.appendChild(a); a.click(); a.remove();
+    guardarArchivo(r);
   }).catch(fallo);
+}
+function guardarArchivo(r) {
+  const a = document.createElement('a'); a.href = 'data:' + r.mime + ';base64,' + r.base64; a.download = r.nombre; document.body.appendChild(a); a.click(); a.remove();
+}
+
+/* ── Visor de archivos dentro del panel (PDF, imágenes, texto). El archivo no sale del navegador. ── */
+const VISIBLES = /\.(pdf|png|jpe?g|gif|webp|txt)$/i;
+function visible(nombre) { return VISIBLES.test(String(nombre || '')); }
+const PDFJS = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/';
+let pdfjsListo = null;
+function cargarPdfjs() {
+  // Se carga solo la primera vez que se abre un PDF. El «worker» se carga en la misma página: pdf.js lo usa sin crear
+  // un Worker aparte (el marco de Apps Script puede impedirlo).
+  const cargar = src => new Promise((ok, mal) => { const t = document.createElement('script'); t.src = src; t.onload = ok; t.onerror = () => mal(new Error('No se pudo cargar el visor de PDF. Use «Descargar».')); document.head.appendChild(t); });
+  if (!pdfjsListo) pdfjsListo = cargar(PDFJS + 'pdf.min.js').then(() => cargar(PDFJS + 'pdf.worker.min.js')).then(() => {
+    window.pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS + 'pdf.worker.min.js';
+    return window.pdfjsLib;
+  }).catch(e => { pdfjsListo = null; throw e; });
+  return pdfjsListo;
+}
+const bytesDe = b64 => Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+let visorN = 0;
+function cerrarVisor() { visorN++; $('visor').classList.remove('abierto'); $('v_cuerpo').innerHTML = ''; }
+function ver(id, nombre) {
+  const n = ++visorN;
+  $('v_nombre').textContent = nombre || 'Archivo';
+  $('v_cuerpo').innerHTML = '<div class="cargando">Cargando archivo…</div>';
+  $('v_desc').disabled = true;
+  $('visor').classList.add('abierto');
+  $('v_cerrar').focus();
+  run('api_descargarArchivo', S.exp.folio, id).then(async r => {
+    if (n !== visorN) return;
+    if (r.modo === 'enlace') { cerrarVisor(); window.open(r.url, '_blank'); toast('El archivo supera el máximo para verlo aquí: se abrió en Drive (acceso de lectura registrado en la bitácora)'); return; }
+    $('v_desc').disabled = false;
+    $('v_desc').onclick = () => guardarArchivo(r);
+    const mime = String(r.mime || ''), cuerpo = $('v_cuerpo');
+    if (/pdf/.test(mime) || /\.pdf$/i.test(r.nombre)) {
+      const lib = await cargarPdfjs();
+      // isEvalSupported: false evita que una fuente maliciosa del PDF ejecute código (CVE-2024-4367).
+      const doc = await lib.getDocument({ data: bytesDe(r.base64), isEvalSupported: false }).promise;
+      if (n !== visorN) return;
+      cuerpo.innerHTML = '';
+      const ancho = Math.min(cuerpo.clientWidth - 32, 980), dpr = window.devicePixelRatio || 1;
+      for (let i = 1; i <= doc.numPages; i++) {
+        const pag = await doc.getPage(i);
+        if (n !== visorN) return;
+        const vp = pag.getViewport({ scale: ancho / pag.getViewport({ scale: 1 }).width * dpr });
+        const c = document.createElement('canvas');
+        c.width = vp.width; c.height = vp.height; c.style.width = Math.round(vp.width / dpr) + 'px';
+        c.setAttribute('role', 'img'); c.setAttribute('aria-label', 'Página ' + i + ' de ' + doc.numPages);
+        cuerpo.appendChild(c);
+        await pag.render({ canvasContext: c.getContext('2d'), viewport: vp }).promise;
+      }
+    } else if (/^image\//.test(mime)) {
+      cuerpo.innerHTML = '<img alt="' + h(r.nombre) + '" src="data:' + h(mime) + ';base64,' + r.base64 + '">';
+    } else if (/^text\//.test(mime)) {
+      cuerpo.innerHTML = '<pre>' + h(new TextDecoder().decode(bytesDe(r.base64))) + '</pre>';
+    } else {
+      cuerpo.innerHTML = '<div class="aviso a-amb" style="text-align:left">Este tipo de archivo no se puede mostrar aquí. Use «Descargar».</div>';
+    }
+  }).catch(e => { if (n !== visorN) return; $('v_cuerpo').innerHTML = '<div class="aviso a-amb" style="text-align:left">' + h(e.message || e) + '</div>'; });
 }
 
 /* ── Diálogo de cambio de estado ── */
@@ -587,7 +661,9 @@ function pintarConfig() {
     run('api_guardarParametros', v).then(() => { toast('Parámetros guardados'); cargarConfig(); }).catch(fallo);
   };
 }
-document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarDlg(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { if ($('visor').classList.contains('abierto')) cerrarVisor(); else cerrarDlg(); } });
+$('v_cerrar').onclick = cerrarVisor;
+$('visor').onclick = e => { if (e.target === $('visor')) cerrarVisor(); };
 </script>
 </body>
 </html>
