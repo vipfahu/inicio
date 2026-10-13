@@ -779,3 +779,26 @@ test('Configuración asigna analista y cuenta de Registro Curricular al programa
   const m = estado.correos.pop();
   ['rc.ana@usach.cl', 'rc.maga@usach.cl', 'registradora@usach.cl'].forEach(c => assert.match(m.cc, new RegExp(c.replace('.', '\\.'))));
 });
+
+test('Configuración: «+ Añadir nueva…» crea la cuenta de RC del programa y la asigna', () => {
+  const env = instalar(preparar());
+  const { ctx, estado } = env;
+  estado.usuario = 'vice@usach.cl';
+  const prog = { programa: 'Magíster en Prueba A', correo_direccion: 'dir@usach.cl', analista: 'analista.uno@usach.cl', activo: 'SÍ' };
+  assert.throws(() => ctx.api_guardarPrograma({ ...prog, nuevo_cuenta_rc: { nombre: 'RC MA', correo: 'rc@gmail.com' } }, false), /@usach\.cl/);
+  assert.throws(() => ctx.api_guardarPrograma({ ...prog, nuevo_analista_rc: { nombre: 'X', correo: 'analista.uno@usach.cl' } }, false), /ya tiene una cuenta con rol «Analista»/);
+  ctx.api_guardarPrograma({ ...prog, nuevo_analista_rc: { nombre: 'Analista RC', correo: 'RC.Ana@usach.cl' }, nuevo_cuenta_rc: { nombre: 'RC Magíster A', correo: 'rc.ma@usach.cl' } }, false);
+  const c = tabla(env, 'Cuentas');
+  const ana = c.find(x => x.correo === 'rc.ana@usach.cl'), cta = c.find(x => x.correo === 'rc.ma@usach.cl');
+  assert.equal(ana.rol, 'Analista de Registro Curricular'); assert.equal(ana.nivel, 'sin_acceso'); assert.equal(ana.programas, 'Magíster en Prueba A');
+  assert.equal(cta.rol, 'Cuenta de Registro Curricular del programa'); assert.equal(cta.activo, 'SÍ');
+  const p = tabla(env, 'Programas').find(x => x.programa === 'Magíster en Prueba A');
+  assert.equal(p.analista_rc, 'rc.ana@usach.cl'); assert.equal(p.cuenta_rc, 'rc.ma@usach.cl');
+  // La misma analista de RC en otro programa: se reutiliza su cuenta y se le suma el programa
+  ctx.api_guardarPrograma({ programa: 'Doctorado Nuevo', correo_direccion: '', analista: '', activo: 'SÍ' }, true);
+  ctx.api_guardarPrograma({ programa: 'Doctorado Nuevo', correo_direccion: '', analista: '', activo: 'SÍ', nuevo_analista_rc: { nombre: '', correo: 'rc.ana@usach.cl' } }, false);
+  assert.equal(tabla(env, 'Cuentas').filter(x => x.correo === 'rc.ana@usach.cl').length, 1);
+  assert.equal(tabla(env, 'Cuentas').find(x => x.correo === 'rc.ana@usach.cl').programas, 'Magíster en Prueba A; Doctorado Nuevo');
+  estado.usuario = 'analista.uno@usach.cl';
+  assert.throws(() => ctx.api_guardarPrograma({ ...prog, nuevo_cuenta_rc: { nombre: 'X', correo: 'x@usach.cl' } }, false), /nivel requerido/);
+});

@@ -64,6 +64,12 @@ function api_guardarPrograma(p, esNuevo) {
   const fila = { programa: nombre, correo_direccion: correo, analista: String(p.analista || '').toLowerCase(), activo: esSi(p.activo) ? 'SÍ' : 'NO',
     analista_rc: String(p.analista_rc || '').trim().toLowerCase(), cuenta_rc: String(p.cuenta_rc || '').trim().toLowerCase() };
   const cuentas = leer_(HOJAS.cuentas);
+  // «+ Añadir nueva…» en Configuración: crea (o reactiva) la cuenta de Registro Curricular y la asigna al programa.
+  [['analista_rc', 'Analista de Registro Curricular'], ['cuenta_rc', 'Cuenta de Registro Curricular del programa']].forEach(([k, rol]) => {
+    const n = p['nuevo_' + k];
+    if (!n) return;
+    fila[k] = asegurarCuentaRC_(cuentas, n.nombre, n.correo, rol, nombre, u);
+  });
   [['analista_rc', 'Analista de Registro Curricular'], ['cuenta_rc', 'Cuenta de Registro Curricular del programa']].forEach(([k, rol]) => {
     if (fila[k] && !cuentas.some(c => String(c.correo).toLowerCase() === fila[k] && c.rol === rol && esSi(c.activo)))
       throw new Error('«' + fila[k] + '» no es una cuenta activa con rol «' + rol + '». Créela primero en Cuentas.');
@@ -79,6 +85,34 @@ function api_guardarPrograma(p, esNuevo) {
   }
   anexar_(HOJAS.bitacora, { fecha: new Date(), folio: '—', tipo: 'sistema', quien: u.correo, texto: 'Programa ' + (esNuevo ? 'agregado' : 'editado') + ': ' + nombre });
   return { ok: true };
+}
+
+/**
+ * Cuenta de Registro Curricular creada desde Configuración: nivel «Sin acceso» (solo copias) y el programa en «Programas que ve».
+ * Si el correo ya tiene cuenta con ese rol, se reactiva y se le suma el programa; si tiene otro rol, se rechaza.
+ */
+function asegurarCuentaRC_(cuentas, nombreCuenta, correo, rol, programa, u) {
+  correo = String(correo || '').trim().toLowerCase();
+  nombreCuenta = String(nombreCuenta || '').trim();
+  if (!/^[^@\s]+@usach\.cl$/.test(correo)) throw new Error('El correo de la ' + rol.toLowerCase() + ' debe ser una cuenta @usach.cl.');
+  const existe = cuentas.find(c => String(c.correo).trim().toLowerCase() === correo);
+  if (existe) {
+    if (existe.rol !== rol) throw new Error('«' + correo + '» ya tiene una cuenta con rol «' + existe.rol + '». Cámbiela en Cuentas o elija otro correo.');
+    const progs = String(existe.programas || '').trim();
+    const nuevos = !progs || progs.toLowerCase() === 'todos' ? progs || 'todos'
+      : progs.split(';').map(x => x.trim()).indexOf(programa) >= 0 ? progs : progs + '; ' + programa;
+    actualizar_(HOJAS.cuentas, existe._fila, { activo: 'SÍ', programas: nuevos });
+    registrarCuenta_(u.correo, 'Cuenta ' + correo + ' (' + rol + ') asignada a «' + programa + '» desde Configuración');
+    existe.activo = 'SÍ';
+    return correo;
+  }
+  if (!nombreCuenta) throw new Error('Falta el nombre de la ' + rol.toLowerCase() + '.');
+  const nueva = { correo: correo, nombre: nombreCuenta, rol: rol, nivel: 'sin_acceso', programas: programa, activo: 'SÍ',
+    recibe_eventos: '', creada_por: u.correo, creada_en: new Date(), notas: 'Creada desde Configuración para «' + programa + '»' };
+  anexar_(HOJAS.cuentas, nueva);
+  cuentas.push(nueva);
+  registrarCuenta_(u.correo, 'Cuenta creada desde Configuración: ' + correo + ' · ' + rol + ' · «' + programa + '»');
+  return correo;
 }
 
 /** Correo de la dirección de un programa: lo puede editar cualquier cuenta con nivel edición (analistas). */

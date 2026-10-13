@@ -761,8 +761,11 @@ function tarjetaVicedecano(v) {
 function selRC(i, k, valor, lista, vacio) {
   lista = (lista || []).slice();
   if (valor && !lista.some(c => c.correo === valor)) lista.push({ correo: valor, nombre: valor + ' (sin cuenta activa)' });
-  return '<select data-i="' + i + '" data-k="' + k + '" style="width:auto;min-width:220px;font-size:12.5px" aria-label="' + h(vacio.split(':')[0]) + '"><option value="">' + h(vacio) + '</option>' +
-    lista.map(c => '<option value="' + h(c.correo) + '"' + (c.correo === valor ? ' selected' : '') + '>' + h(c.nombre) + '</option>').join('') + '</select>';
+  return '<span style="display:inline-flex;flex-wrap:wrap;gap:6px;align-items:center"><select data-i="' + i + '" data-k="' + k + '" data-rc="1" style="width:auto;min-width:220px;font-size:12.5px" aria-label="' + h(vacio.split(':')[0]) + '"><option value="">' + h(vacio) + '</option>' +
+    lista.map(c => '<option value="' + h(c.correo) + '"' + (c.correo === valor ? ' selected' : '') + '>' + h(c.nombre) + '</option>').join('') +
+    '<option value="__nueva">+ Añadir nueva (' + h(vacio.split(':')[0]) + ')…</option></select>' +
+    '<span data-nueva="' + i + '-' + k + '" style="display:none;gap:6px;flex-wrap:wrap"><input data-nn="' + i + '-' + k + '" placeholder="Nombre · ' + h(vacio.split(':')[0]) + '" aria-label="Nombre · ' + h(vacio.split(':')[0]) + '" style="width:230px;font-size:12.5px">' +
+    '<input data-nc="' + i + '-' + k + '" class="mono" placeholder="correo@usach.cl" aria-label="Correo de la nueva cuenta" style="width:200px;font-size:12.5px"></span></span>';
 }
 function pintarConfig() {
   const r = S.config, adm = nivel('administracion'), ed = nivel('edicion');
@@ -791,9 +794,21 @@ function pintarConfig() {
     run('api_guardarCorreoPrograma', r.programas[i].programa, el.value).then(() => { toast('Correo de dirección guardado'); cargarConfig(); }).catch(fallo);
   });
   if (!adm) return;
+  document.querySelectorAll('select[data-rc]').forEach(sel => sel.onchange = () => {
+    const caja = document.querySelector('[data-nueva="' + sel.dataset.i + '-' + sel.dataset.k + '"]');
+    const nueva = sel.value === '__nueva';
+    caja.style.display = nueva ? 'inline-flex' : 'none';
+    if (nueva) caja.querySelector('input').focus();
+  });
   document.querySelectorAll('[data-gp]').forEach(b => b.onclick = () => {
     const i = b.dataset.gp, p = Object.assign({}, r.programas[i]);
     document.querySelectorAll('[data-i="' + i + '"]').forEach(el => { p[el.dataset.k] = el.type === 'checkbox' ? (el.checked ? 'SÍ' : 'NO') : el.value; });
+    for (const k of ['analista_rc', 'cuenta_rc']) {
+      if (p[k] !== '__nueva') continue;
+      const nn = document.querySelector('[data-nn="' + i + '-' + k + '"]').value.trim(), nc = document.querySelector('[data-nc="' + i + '-' + k + '"]').value.trim();
+      if (!nn || !nc) return toast('Escriba nombre y correo de la nueva cuenta de Registro Curricular', true);
+      p['nuevo_' + k] = { nombre: nn, correo: nc }; p[k] = '';
+    }
     run('api_guardarPrograma', p, false).then(() => { toast('Programa guardado'); cargarConfig(); }).catch(fallo);
   });
   $('np_ok').onclick = () => run('api_guardarPrograma', { programa: $('np_nombre').value, correo_direccion: $('np_correo').value, analista: '', activo: 'SÍ' }, true).then(() => { toast('Programa agregado'); cargarConfig(); }).catch(fallo);
