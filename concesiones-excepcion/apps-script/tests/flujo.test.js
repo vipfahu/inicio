@@ -1223,3 +1223,20 @@ test('recordatorio manual: vista previa y envío según el paso; cuenta para el 
   estado.usuario = 'consulta@usach.cl';
   assert.throws(() => ctx.api_enviarRecordatorio('05/2026', {}), /nivel requerido/);
 });
+
+test('listas desplegables de «Cuentas»: la actualización las renueva con los roles vigentes (crear analista de RC desde Configuración)', () => {
+  const env = instalar(preparar());
+  const { ctx, estado, libro } = env;
+  // Planilla instalada con la lista de roles antigua (sin los de Registro Curricular), como la real.
+  const hc = libro.getSheetByName('Cuentas');
+  const antigua = env.ctx.SpreadsheetApp.newDataValidation().requireValueInList(['Analista', 'Vicedecano/a', 'Registro Curricular', 'Consulta'], true).setAllowInvalid(false).build();
+  hc.getRange(2, 3, 1000, 1).setDataValidation(antigua);
+  estado.usuario = 'vice@usach.cl';
+  const prog = { programa: 'Magíster en Prueba A', correo_direccion: 'dir@usach.cl', analista: 'analista.uno@usach.cl', activo: 'SÍ', nuevo_analista_rc: { nombre: 'Ana RC', correo: 'rc.ana@usach.cl' } };
+  assert.throws(() => ctx.api_guardarPrograma(prog, false), /infringen las reglas de validación/);
+  ctx.aplicarActualizacion_();
+  ctx.api_guardarPrograma(prog, false);
+  assert.ok(tabla(env, 'Cuentas').some(c => c.correo === 'rc.ana@usach.cl' && c.rol === 'Analista de Registro Curricular'));
+  // Y la lista nueva sigue rechazando un rol inexistente
+  assert.throws(() => hc.getRange(30, 3).setValue('Rol inventado'), /infringen/);
+});

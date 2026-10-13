@@ -59,6 +59,8 @@ function crearEntorno() {
     }
     setValues(v) {
       if (v.length !== this.nf || v[0].length !== this.nc) throw new Error('Dimensiones no coinciden: ' + v.length + 'x' + v[0].length + ' vs ' + this.nf + 'x' + this.nc);
+      // Como en Sheets, la escritura es atómica: si una celda infringe su validación, no se escribe ninguna.
+      v.forEach((fila, i) => fila.forEach((x, j) => this.h.validar(this.f + i, this.c + j, x)));
       v.forEach((fila, i) => fila.forEach((x, j) => this.h.set(this.f + i, this.c + j, x)));
       return this;
     }
@@ -68,13 +70,20 @@ function crearEntorno() {
     getSheet() { return this.h; }
     setNumberFormat() { return this; } setFontWeight() { return this; } setBackground() { return this; } setFontColor() { return this; }
     setNote(n) { this.h.notas[this.f + ',' + this.c] = n; return this; }
-    setDataValidation() { return this; }
+    setDataValidation(regla) { for (let f = this.f; f < this.f + this.nf; f++) for (let c = this.c; c < this.c + this.nc; c++) this.h.validaciones[f + ',' + c] = regla; return this; }
   }
   class Hoja {
-    constructor(nombre, libro) { this.nombre = nombre; this.libro = libro; this.datos = []; this.ocultas = []; this.notas = {}; this.formUrl = null; this.protecciones = []; }
+    constructor(nombre, libro) { this.nombre = nombre; this.libro = libro; this.datos = []; this.ocultas = []; this.notas = {}; this.formUrl = null; this.protecciones = []; this.validaciones = {}; }
     getName() { return this.nombre; }
     getFormUrl() { return this.formUrl; }
-    set(f, c, v) { while (this.datos.length < f) this.datos.push([]); const fila = this.datos[f - 1]; while (fila.length < c) fila.push(''); fila[c - 1] = v; }
+    validar(f, c, v) {
+      const regla = this.validaciones[f + ',' + c];
+      if (regla && regla.lista && v !== '' && regla.lista.indexOf(v) < 0) throw new Error('Exception: Los datos que ingresaste en la celda ' + String.fromCharCode(64 + c) + f + ' infringen las reglas de validación de datos establecidas. Ingresa uno de los siguientes valores: ' + regla.lista.join(', ') + '.');
+    }
+    set(f, c, v) {
+      this.validar(f, c, v);
+      while (this.datos.length < f) this.datos.push([]); const fila = this.datos[f - 1]; while (fila.length < c) fila.push(''); fila[c - 1] = v;
+    }
     getLastRow() { for (let i = this.datos.length; i > 0; i--) if (this.datos[i - 1].some(x => x !== '' && x !== undefined)) return i; return 0; }
     getLastColumn() { return this.datos.reduce((m, f) => Math.max(m, f.length), 0); }
     getDataRange() { return new Rango(this, 1, 1, Math.max(this.getLastRow(), 1), Math.max(this.getLastColumn(), 1)); }
@@ -112,7 +121,7 @@ function crearEntorno() {
     getActiveSpreadsheet: () => estado.activo,
     openById: id => { if (!libros[id]) throw new Error('No existe ' + id); return libros[id]; },
     create: n => { const l = new Libro(n); libros[l.id] = l; return l; },
-    newDataValidation: () => ({ requireValueInList() { return this; }, setAllowInvalid() { return this; }, build() { return {}; } }),
+    newDataValidation: () => { const r = { lista: null, requireValueInList(v) { r.lista = v.slice(); return r; }, setAllowInvalid() { return r; }, build() { return { lista: r.lista }; } }; return r; },
     getUi: () => { throw new Error('Sin interfaz en pruebas'); },
     ProtectionType: { SHEET: 'SHEET', RANGE: 'RANGE' }
   };

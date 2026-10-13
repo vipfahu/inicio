@@ -101,19 +101,29 @@ function instalarPaso1() {
     creada_por: 'instalación', creada_en: new Date(), notas: 'Completar correo @usach.cl antes del paso 2'
   })));
 
-  // Listas desplegables para editar la matriz a mano durante la instalación.
-  const hc = hoja_(HOJAS.cuentas);
-  const regla = vals => SpreadsheetApp.newDataValidation().requireValueInList(vals, true).setAllowInvalid(false).build();
-  hc.getRange('C2:C500').setDataValidation(regla(ROLES));
-  hc.getRange('D2:D500').setDataValidation(regla(NIVELES));
-  hc.getRange('F2:F500').setDataValidation(regla(['SÍ', 'NO']));
-  hoja_(HOJAS.programas).getRange('D2:D500').setDataValidation(regla(['SÍ', 'NO']));
+  validacionesListas_();
 
   informe.push('Pestañas creadas: ' + Object.keys(COLUMNAS).join(', ') + '.');
   informe.push('AHORA: complete los correos en «Cuentas» (incluya al menos una persona con nivel administracion), ' +
     '«correo_direccion» y «analista» en «Programas», y «enlace_rc» en «Parámetros». Luego publique el panel ' +
     '(Implementar → Nueva implementación → Aplicación web) y recién entonces ejecute el paso 2.');
   avisar_('Instalación · paso 1 listo', informe.join('\n\n'));
+}
+
+/**
+ * Listas desplegables de «Cuentas» (rol, nivel, activo) y «Programas» (activo), con las listas vigentes del código. Se aplica en la
+ * instalación y en cada actualización automática: si la lista de roles crece (p. ej., los de Registro Curricular) y la validación
+ * de la celda no se renueva, el panel falla con «infringen las reglas de validación de datos» al crear la cuenta.
+ */
+function validacionesListas_() {
+  const regla = vals => SpreadsheetApp.newDataValidation().requireValueInList(vals, true).setAllowInvalid(false).build();
+  const hc = hoja_(HOJAS.cuentas);
+  const col = (nombre, k) => encabezados_(nombre).indexOf(k) + 1;
+  const filas = 1000;
+  hc.getRange(2, col(HOJAS.cuentas, 'rol'), filas, 1).setDataValidation(regla(ROLES));
+  hc.getRange(2, col(HOJAS.cuentas, 'nivel'), filas, 1).setDataValidation(regla(NIVELES));
+  hc.getRange(2, col(HOJAS.cuentas, 'activo'), filas, 1).setDataValidation(regla(['SÍ', 'NO']));
+  hoja_(HOJAS.programas).getRange(2, col(HOJAS.programas, 'activo'), filas, 1).setDataValidation(regla(['SÍ', 'NO']));
 }
 
 function instalarPaso2() {
@@ -253,7 +263,7 @@ function actualizarInstalacion() {
  */
 function huellaEstructura_() {
   // El último elemento es una marca de versión de lo que la actualización hace además de columnas, parámetros y plantillas.
-  const txt = JSON.stringify([COLUMNAS, PARAMETROS_INICIALES.map(p => p[0]), PLANTILLAS_INICIALES, 'proteccion-respuestas-1', 'folio-texto-1']);
+  const txt = JSON.stringify([COLUMNAS, PARAMETROS_INICIALES.map(p => p[0]), PLANTILLAS_INICIALES, ROLES, NIVELES, 'proteccion-respuestas-1', 'folio-texto-1', 'validaciones-1']);
   let h = 2166136261;
   for (let i = 0; i < txt.length; i++) { h ^= txt.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; }
   return h.toString(16) + '-' + txt.length;
@@ -346,6 +356,8 @@ function aplicarActualizacion_() {
   })));
   if (nuevas.length) anexar_(HOJAS.bitacora, { fecha: new Date(), folio: '—', tipo: 'sistema', quien: duenia_(), texto: 'Actualización: plantillas agregadas ' + nuevas.map(t => t[0]).join(', ') });
   if (nuevas.length) cambios.push('Plantillas: ' + nuevas.map(t => t[0]).join(', '));
+  // Listas desplegables al día con los roles y niveles vigentes (la validación de la celda no se actualiza sola).
+  if (libro_().getSheetByName(HOJAS.cuentas)) { try { validacionesListas_(); } catch (e) { cambios.push('No se pudieron renovar las listas desplegables: ' + e.message); } }
   // Folios que Sheets guardó como fecha (p. ej. «03/2025» → marzo de 2025): vuelven a texto normalizado.
   if (libro_().getSheetByName(HOJAS.solicitudes)) {
     const comoFecha = leer_(HOJAS.solicitudes).filter(s => Object.prototype.toString.call(s.folio) === '[object Date]');
