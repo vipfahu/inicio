@@ -300,3 +300,27 @@ test('Registro Curricular: copias por programa, sin aviso de «Equipo», y nivel
   assert.match(L.validarCuenta({ ...base, nivel: 'edicion' }, admin, 'duenia@usach.cl', true), /Sin acceso.*Consulta/);
   assert.equal(L.validarCuenta({ ...base, nivel: 'consulta' }, admin, 'duenia@usach.cl', true), '');
 });
+
+test('Registro Curricular asignado al programa: copias de las comunicaciones y arrastre a la registradora', () => {
+  const cuentas = [
+    { correo: 'registradora@usach.cl', rol: 'Registro Curricular', nivel: 'consulta', programas: 'todos', activo: 'SÍ' },
+    { correo: 'rc.ana@usach.cl', rol: 'Analista de Registro Curricular', nivel: 'sin_acceso', programas: 'todos', activo: 'SÍ' },
+    { correo: 'rc.magister@usach.cl', rol: 'Cuenta de Registro Curricular del programa', nivel: 'sin_acceso', programas: 'Magíster A', activo: 'SÍ' }
+  ];
+  const programas = [{ programa: 'Magíster A', analista_rc: 'rc.ana@usach.cl', cuenta_rc: 'rc.magister@usach.cl' }, { programa: 'Doctorado B', cuenta_rc: 'rc.magister@usach.cl' }];
+  const sol = { programa: 'Magíster A', correo_verificado: 'est@usach.cl' };
+  const ctx = ev => ({ cuentas, programas, solicitud: sol, evento: ev, eventosRC: ['aceptada', 'cae_admisible'] });
+  const r = L.resolverDestinatarios('Estudiante', '', ctx('cae_admisible'));
+  assert.deepEqual([...r.cc].sort(), ['rc.ana@usach.cl', 'rc.magister@usach.cl', 'registradora@usach.cl'], 'analista y cuenta del programa; la registradora por arrastre');
+  assert.deepEqual([...L.resolverDestinatarios('Estudiante', '', ctx('vb')).cc], [], 'solo los correos del parámetro eventos_copia_rc');
+  // Sin analista de RC asignada no hay arrastre a la registradora
+  const r2 = L.resolverDestinatarios('Estudiante', '', { ...ctx('aceptada'), solicitud: { ...sol, programa: 'Doctorado B' } });
+  assert.deepEqual([...r2.cc], ['rc.magister@usach.cl']);
+  // Cuenta asignada pero inactiva: se omite y se avisa, sin bloquear el envío
+  const r3 = L.resolverDestinatarios('Estudiante', '', { ...ctx('aceptada'), cuentas: cuentas.map(c => c.correo === 'rc.magister@usach.cl' ? { ...c, activo: 'NO' } : c) });
+  assert.ok(r3.omitidos.some(x => /cuenta de Registro Curricular del programa/.test(x)));
+  assert.deepEqual([...r3.faltantes], []);
+  // Una analista de RC que recibe copia por «Recibe copia» también arrastra a la registradora
+  const r4 = L.resolverDestinatarios('Estudiante', '', { cuentas: cuentas.map(c => c.correo === 'rc.ana@usach.cl' ? { ...c, recibe_eventos: 'rechazada' } : c), programas: [], solicitud: sol, evento: 'rechazada', eventosRC: [] });
+  assert.deepEqual([...r4.cc].sort(), ['rc.ana@usach.cl', 'registradora@usach.cl']);
+});

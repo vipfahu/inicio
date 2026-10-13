@@ -45,9 +45,9 @@ const TIPOS_CATALOGO = [
 ];
 
 const NIVELES = ['sin_acceso', 'consulta', 'edicion', 'administracion'];
-const ROLES = ['Analista', 'Vicedecano/a', 'Registro Curricular', 'Analista de Registro Curricular', 'Consulta'];
+const ROLES = ['Analista', 'Vicedecano/a', 'Registro Curricular', 'Analista de Registro Curricular', 'Cuenta de Registro Curricular del programa', 'Consulta'];
 /** Roles de Registro Curricular: ven el panorama (nivel Consulta) o solo reciben copias (Sin acceso); nunca tramitan. */
-const ROLES_RC = ['Registro Curricular', 'Analista de Registro Curricular'];
+const ROLES_RC = ['Registro Curricular', 'Analista de Registro Curricular', 'Cuenta de Registro Curricular del programa'];
 function esRolRC(rol) { return ROLES_RC.indexOf(rol) >= 0; }
 
 /** Ruta del trámite tal como la ve quien consulta: camino principal o la variante de cierre que corresponda. */
@@ -265,6 +265,23 @@ function resolverDestinatarios(rolesPara, rolesCc, ctx) {
   if (ctx.evento) {
     const s = ctx.solicitud || {};
     activas.filter(c => listaRoles(c.recibe_eventos).indexOf(ctx.evento) >= 0 && (!s.programa || puedeVerSolicitud(c, s))).forEach(c => cc.push(c.correo));
+    // Copias a Registro Curricular asignadas al programa en Configuración (analista de RC y cuenta de RC del programa),
+    // para los correos listados en el parámetro eventos_copia_rc.
+    if ((ctx.eventosRC || []).indexOf(ctx.evento) >= 0) {
+      const prog = (ctx.programas || []).find(x => x.programa === s.programa) || {};
+      [['analista_rc', 'analista de Registro Curricular'], ['cuenta_rc', 'cuenta de Registro Curricular del programa']].forEach(([k, nombre]) => {
+        const correo = String(prog[k] || '').trim().toLowerCase();
+        if (!correo) return;
+        if (activas.some(c => String(c.correo).trim().toLowerCase() === correo)) cc.push(correo);
+        else omitidos.push(nombre + ' de «' + s.programa + '» (' + correo + ': sin cuenta activa)');
+      });
+    }
+    // Lo que recibe en copia una analista de Registro Curricular también lo recibe Registro Curricular (registradora).
+    const rolDe = x => (activas.find(c => String(c.correo).trim().toLowerCase() === String(x).trim().toLowerCase()) || {}).rol;
+    if (cc.some(x => rolDe(x) === 'Analista de Registro Curricular')) {
+      const rc = activas.filter(c => c.rol === 'Registro Curricular' && (!s.programa || puedeVerSolicitud(c, s))).map(c => c.correo);
+      if (rc.length) rc.forEach(x => cc.push(x)); else omitidos.push('cuenta activa con rol «Registro Curricular» (copia de lo que recibe su analista)');
+    }
   }
   const norm = x => String(x).trim().toLowerCase();
   const paraU = unicos(para.map(norm));

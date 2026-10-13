@@ -80,6 +80,9 @@ Al terminar, **recargar el panel** (la lista de analistas para asignar se lee al
    - **Cuentas de Registro Curricular** (Cuentas → filtro «Registro Curricular»): rol «Registro Curricular» para la registradora y
      «Analista de Registro Curricular» para sus analistas; nivel «Consulta» para que vean el Panorama, o «Sin acceso» para solo recibir
      copias; «Programas que ve» = Todos o los programas de esa cuenta; en «Recibe copia» marcar, p. ej., CAE admisible y CAE rechazada.
+     El correo de RC propio de un programa se crea con rol «Cuenta de Registro Curricular del programa». Luego, en **Configuración**,
+     asigne a cada programa su analista de RC y su cuenta de RC: reciben copia de los correos listados en `eventos_copia_rc`, y lo que
+     recibe la analista llega también a la registradora.
 3. **Días hábiles y feriados (automáticos):** los plazos cuentan de lunes a viernes descontando los feriados de Chile, que la plataforma
    obtiene sola del calendario público de feriados de Chile de Google y renueva cada mes (año en curso y siguiente). No se cargan a
    mano. Configuración → «Feriados (automáticos)» muestra los próximos; *CAE → Diagnóstico* indica la fuente o si falló la consulta.

@@ -757,3 +757,25 @@ test('panorama: Vicedecanato y Registro Curricular (Consulta) ven el avance; cad
   estado.usuario = 'rc@usach.cl'; // Registro Curricular sin acceso: solo recibe copias
   assert.throws(() => ctx.api_panorama(), /nivel|acceso/i);
 });
+
+test('Configuración asigna analista y cuenta de Registro Curricular al programa; el correo al estudiante les llega en copia', () => {
+  const env = instalar(preparar());
+  const { ctx, estado } = env;
+  const cu = env.libro.getSheetByName('Cuentas');
+  cu.appendRow(['registradora@usach.cl', 'Registradora', 'Registro Curricular', 'consulta', 'todos', 'SÍ', '', '', '', '']);
+  cu.appendRow(['rc.ana@usach.cl', 'Analista RC', 'Analista de Registro Curricular', 'sin_acceso', 'todos', 'SÍ', '', '', '', '']);
+  cu.appendRow(['rc.maga@usach.cl', 'RC Magíster A', 'Cuenta de Registro Curricular del programa', 'sin_acceso', 'Magíster en Prueba A', 'SÍ', '', '', '', '']);
+  estado.usuario = 'vice@usach.cl';
+  const prog = { programa: 'Magíster en Prueba A', correo_direccion: 'dir@usach.cl', analista: 'analista.uno@usach.cl', activo: 'SÍ' };
+  assert.throws(() => ctx.api_guardarPrograma({ ...prog, analista_rc: 'analista.uno@usach.cl' }, false), /rol «Analista de Registro Curricular»/);
+  ctx.api_guardarPrograma({ ...prog, analista_rc: 'RC.Ana@usach.cl', cuenta_rc: 'rc.maga@usach.cl' }, false);
+  const cfg = ctx.api_config();
+  assert.deepEqual([...cfg.analistasRC].map(c => c.correo), ['rc.ana@usach.cl']);
+  assert.deepEqual([...cfg.cuentasRC].map(c => c.correo), ['rc.maga@usach.cl']);
+  assert.ok(cfg.parametros.some(p => p.clave === 'eventos_copia_rc'));
+  estado.usuario = 'analista.uno@usach.cl';
+  ctx.api_cambiarEstado('06/2026', 'revision', {});
+  ctx.api_cambiarEstado('06/2026', 'aceptada', {});
+  const m = estado.correos.pop();
+  ['rc.ana@usach.cl', 'rc.maga@usach.cl', 'registradora@usach.cl'].forEach(c => assert.match(m.cc, new RegExp(c.replace('.', '\\.'))));
+});

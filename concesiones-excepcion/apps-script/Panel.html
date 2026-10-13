@@ -710,7 +710,7 @@ function pintarCuentas(editando) {
     '<div class="acciones" style="justify-content:flex-end;margin-top:14px">' + (nueva ? '' : '<button id="k_nueva">Nueva cuenta</button><button id="k_aviso">Enviar enlace de acceso</button>') + '<button class="prim" id="k_guardar">' + (nueva ? 'Crear cuenta' : 'Guardar') + '</button></div></div>';
   $('app').innerHTML = '<h2>Cuentas</h2><div class="resumen" style="margin-bottom:16px">El ingreso es con la cuenta Google USACH; aquí se decide qué puede hacer cada persona y qué correos recibe. Los cambios rigen desde la siguiente acción de esa persona. La cuenta institucional (' + h(r.duenia) + ') es administradora fija.</div>' +
     '<div class="pan-f">' + [['', 'Todas'], ['vi', 'Vicedecanato'], ['rc', 'Registro Curricular']].map(g => '<button class="chipf' + (grupo === g[0] ? ' act' : '') + '" data-grupo="' + g[0] + '">' + g[1] + '<span>' + r.cuentas.filter(c => !g[0] || (g[0] === 'rc') === (r.rolesRC || []).indexOf(c.rol) >= 0).length + '</span></button>').join('') + '</div>' +
-    (grupo === 'rc' ? '<div class="aviso a-teal" style="white-space:normal;margin-bottom:12px"><b>Cuentas de Registro Curricular.</b> Rol «Registro Curricular» para la registradora curricular y «Analista de Registro Curricular» para sus analistas. ' +
+    (grupo === 'rc' ? '<div class="aviso a-teal" style="white-space:normal;margin-bottom:12px"><b>Cuentas de Registro Curricular.</b> Tres tipos de cuenta (rol): «Registro Curricular» para la registradora curricular; «Analista de Registro Curricular» para sus analistas; y «Cuenta de Registro Curricular del programa» para el correo de RC propio de un programa. Las analistas y las cuentas de programa se asignan a cada programa en Configuración, y reciben copia de las comunicaciones de sus casos; lo que recibe una analista llega también a Registro Curricular. ' +
       '«Programas que ve» = Todos, o solo los programas de esa cuenta (cuenta por programa: recibe copias y ve casos solo de esos programas). ' +
       'Nivel «Consulta» para ver el Panorama y los expedientes (sin fundamentación ni archivos); «Sin acceso» para recibir solo copias. ' +
       'En «Recibe copia de estos correos» marque los mensajes que debe recibir (p. ej., CAE admisible y CAE rechazada).</div>' : '') +
@@ -758,6 +758,12 @@ function tarjetaVicedecano(v) {
     '<div class="et">Cuenta</div><div id="vd_correo" class="mono" style="margin-bottom:8px">' + h(v.correo || '—') + '</div>' + aviso +
     '<div class="sub" style="white-space:normal;margin-top:6px">Se toma de la cuenta con rol Vicedecano/a. Para cambiarlo, edite esa cuenta en «Cuentas».</div></div>';
 }
+function selRC(i, k, valor, lista, vacio) {
+  lista = (lista || []).slice();
+  if (valor && !lista.some(c => c.correo === valor)) lista.push({ correo: valor, nombre: valor + ' (sin cuenta activa)' });
+  return '<select data-i="' + i + '" data-k="' + k + '" style="width:auto;min-width:220px;font-size:12.5px" aria-label="' + h(vacio.split(':')[0]) + '"><option value="">' + h(vacio) + '</option>' +
+    lista.map(c => '<option value="' + h(c.correo) + '"' + (c.correo === valor ? ' selected' : '') + '>' + h(c.nombre) + '</option>').join('') + '</select>';
+}
 function pintarConfig() {
   const r = S.config, adm = nivel('administracion'), ed = nivel('edicion');
   const filas = r.programas.map((p, i) => '<div class="fila" style="grid-template-columns:1.5fr 1.2fr 1fr 60px 70px;cursor:default"><div class="nom" style="font-size:13px">' + h(p.programa) + '</div>' +
@@ -766,9 +772,15 @@ function pintarConfig() {
       '<label class="chk"><input type="checkbox" data-i="' + i + '" data-k="activo"' + (p.activo === 'SÍ' ? ' checked' : '') + '></label><button data-gp="' + i + '" style="padding:6px 9px">Guardar</button>'
       : ed ? '<input data-i="' + i + '" data-k="correo_direccion" class="mono" style="font-size:12px" value="' + h(p.correo_direccion) + '" placeholder="dirección@usach.cl" aria-label="Correo de dirección de ' + h(p.programa) + '">' +
         '<div class="sub">' + h(p.analista || '—') + '</div><div class="sub">' + h(p.activo) + '</div><button data-gc="' + i + '" style="padding:6px 9px">Guardar</button>'
-      : '<div class="sub mono">' + h(p.correo_direccion || '—') + '</div><div class="sub">' + h(p.analista || '—') + '</div><div class="sub">' + h(p.activo) + '</div><div></div>') + '</div>').join('');
+      : '<div class="sub mono">' + h(p.correo_direccion || '—') + '</div><div class="sub">' + h(p.analista || '—') + '</div><div class="sub">' + h(p.activo) + '</div><div></div>') +
+    // Registro Curricular del programa: reciben copia de las comunicaciones del caso (parámetro eventos_copia_rc).
+    '<div style="grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:-2px">' +
+      '<span class="et" style="margin:0">Registro Curricular</span>' +
+      (adm ? selRC(i, 'analista_rc', p.analista_rc, r.analistasRC, 'Analista de RC: sin asignar') + selRC(i, 'cuenta_rc', p.cuenta_rc, r.cuentasRC, 'Cuenta RC del programa: sin asignar')
+        : '<span class="sub">Analista: ' + h(p.analista_rc || '—') + ' · Cuenta del programa: ' + h(p.cuenta_rc || '—') + '</span>') +
+    '</div></div>').join('');
   const pars = r.parametros.map(p => '<div style="margin-bottom:12px"><label class="et" for="p_' + h(p.clave) + '">' + h(p.clave) + '</label><input id="p_' + h(p.clave) + '" data-clave="' + h(p.clave) + '" value="' + h(p.valor) + '"' + (adm ? '' : ' disabled') + '><div class="sub" style="white-space:normal">' + h(p.descripcion) + '</div></div>').join('');
-  $('app').innerHTML = '<h2>Configuración</h2><div class="resumen" style="margin-bottom:16px">Cada programa define a quién llegan los correos para «Dirección de programa» y qué analista recibe las solicitudes nuevas.</div>' +
+  $('app').innerHTML = '<h2>Configuración</h2><div class="resumen" style="margin-bottom:16px">Cada programa define a quién llegan los correos para «Dirección de programa», qué analista recibe las solicitudes nuevas y qué analista y cuenta de Registro Curricular reciben copia de las comunicaciones del caso (las listadas en el parámetro <span class="mono">eventos_copia_rc</span>; lo que recibe la analista de Registro Curricular llega también a Registro Curricular). Las cuentas de Registro Curricular se crean en «Cuentas».</div>' +
     '<div class="grid2"><div class="pila"><div class="tabla"><div class="fila enc" style="grid-template-columns:1.5fr 1.2fr 1fr 60px 70px"><div>Programa</div><div>Correo dirección</div><div>Analista</div><div>Activo</div><div></div></div>' + filas + '</div>' +
     (adm ? '<div class="tarjeta"><h3>Agregar programa</h3><div style="display:grid;grid-template-columns:1.5fr 1fr auto;gap:8px"><input id="np_nombre" placeholder="Nombre exacto, como aparece en el Formulario"><input id="np_correo" class="mono" placeholder="dirección@usach.cl"><button class="prim" id="np_ok">Agregar</button></div><div class="sub" style="white-space:normal;margin-top:6px">Si agrega un programa aquí, agréguelo también como opción en el Formulario de Google.</div></div>' : '') +
     '</div><div class="lado pila"><div class="tarjeta"><h3>Parámetros</h3>' + pars + (adm ? '<button class="prim" id="par_ok" style="width:100%">Guardar parámetros</button>' : '') + '</div>' +

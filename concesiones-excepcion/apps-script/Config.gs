@@ -21,7 +21,7 @@ const COLUMNAS = {
   'Bitácora': ['fecha', 'folio', 'tipo', 'quien', 'texto', 'estado_nuevo', 'evento', 'para', 'cc', 'asunto', 'editado'],
   Plantillas: ['evento', 'descripcion', 'para', 'cc', 'asunto', 'cuerpo', 'asunto_original', 'cuerpo_original', 'actualizado_por', 'actualizado_en'],
   Cuentas: ['correo', 'nombre', 'rol', 'nivel', 'programas', 'activo', 'recibe_eventos', 'creada_por', 'creada_en', 'notas'],
-  Programas: ['programa', 'correo_direccion', 'analista', 'activo'],
+  Programas: ['programa', 'correo_direccion', 'analista', 'activo', 'analista_rc', 'cuenta_rc'],
   'Parámetros': ['clave', 'valor', 'descripcion'],
   Archivos: ['fecha', 'folio', 'archivo_id', 'nombre', 'categoria', 'tamano_mb', 'subido_por']
 };
@@ -73,6 +73,7 @@ const PARAMETROS_INICIALES = [
   ['max_mb_archivo', '20', 'Tamaño máximo por archivo subido desde el panel (MB). Gmail admite 25 MB por correo en total.'],
   ['max_mb_antecedente', '10', 'Formulario web: tamaño máximo por archivo de antecedentes (MB); hasta 3 archivos y 20 MB en total.'],
   ['max_solicitudes_dia', '3', 'Formulario web: máximo de solicitudes por cuenta en 24 horas.'],
+  ['eventos_copia_rc', 'aceptada, rechazada, no_procede, cae_admisible, cae_rechazada', 'Correos (eventos, separados por coma) que llegan con copia a la analista y a la cuenta de Registro Curricular asignadas al programa en Configuración.'],
   ['enlace_rc', 'COMPLETAR', 'Enlace a la plataforma de Registro Curricular FAHU ({enlace_rc}).'],
   ['compartido_permitido', '', 'Correos (separados por coma) que pueden tener acceso directo a la planilla. Vacío = solo la cuenta dueña.'],
   ['carpeta_raiz_id', '', 'Lo completa la instalación. Carpeta «Plataforma CAE · NO COMPARTIR».']

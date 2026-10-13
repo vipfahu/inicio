@@ -241,6 +241,12 @@ function diagnostico() {
   if (!cuentas.some(c => c.rol === 'Analista' && esSi(c.activo))) p.push('No hay cuentas activas con rol «Analista» (nadie recibirá avisos de solicitudes nuevas).');
   leer_(HOJAS.programas).filter(x => esSi(x.activo) && x.analista && !analistaActiva_(x.analista)).forEach(x => p.push('Analista de «' + x.programa + '» sin cuenta activa con rol Analista: ' + x.analista));
   ['Vicedecano/a', 'Registro Curricular'].forEach(r => { if (!cuentas.some(c => c.rol === r && esSi(c.activo))) p.push('No hay cuenta activa con rol «' + r + '» (no recibirá correos).'); });
+  leer_(HOJAS.programas).filter(x => esSi(x.activo)).forEach(x => {
+    [['analista_rc', 'Analista de Registro Curricular'], ['cuenta_rc', 'Cuenta de Registro Curricular del programa']].forEach(([k, rol]) => {
+      const c = String(x[k] || '').toLowerCase();
+      if (c && !cuentas.some(y => String(y.correo).toLowerCase() === c && y.rol === rol && esSi(y.activo))) p.push('«' + x.programa + '»: ' + c + ' no es una cuenta activa con rol «' + rol + '» (no recibirá copias).');
+    });
+  });
   const vd = vicedecano_(cuentas);
   if (vd.activas > 1) p.push('Hay ' + vd.activas + ' cuentas activas con rol «Vicedecano/a»: deje solo una (todas podrían registrar el V°B°).');
   if (vd.activas && !vd.nombre) p.push('La cuenta del Vicedecano/a no tiene nombre en «Cuentas» (los correos que lo citan no saldrán).');

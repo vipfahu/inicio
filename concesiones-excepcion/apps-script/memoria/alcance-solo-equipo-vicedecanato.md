@@ -7,4 +7,7 @@ vean el avance de cada caso. Se resolvió con roles de RC limitados a «Sin acce
 tramitan, y Consulta no ve fundamentación ni archivos (datos de salud). Rol (qué correos recibe) y nivel (qué puede hacer) siguen
 siendo ejes distintos; «Programas que ve» filtra también las copias.
 
+Copias por programa (2026-10-13): Configuración asigna a cada programa una analista de RC y una «Cuenta de Registro Curricular del
+programa»; reciben copia de los eventos de `eventos_copia_rc`, y toda copia a una analista de RC arrastra a la registradora (pedido literal).
+
 **Por qué importa:** ampliar el acceso expone datos; el límite de nivel para RC es la salvaguarda, no quitarlo sin pedirlo.

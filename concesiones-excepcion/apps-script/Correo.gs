@@ -64,6 +64,7 @@ function componer_(evento, sol, campos) {
   const t = plantilla_(evento);
   const v = variables_(sol, campos, cuentas);
   const dest = resolverDestinatarios(t.para, t.cc, {
+    eventosRC: listaRoles(parametros_().eventos_copia_rc),
     solicitud: sol, cuentas: cuentas, programas: leer_(HOJAS.programas), evento: evento
   });
   return {

@@ -124,7 +124,11 @@ límite de Apps Script). El resto se descarga. Los PDF se dibujan con pdf.js (cd
 **Usuarios.** El panel es para el equipo del Vicedecanato (analistas y Vicedecano/a) y, en modo de solo lectura, para Registro
 Curricular: rol «Registro Curricular» (registradora curricular) o «Analista de Registro Curricular», con nivel «Consulta» (ven el
 Panorama y los expedientes sin fundamentación ni archivos) o «Sin acceso» (solo reciben copias); nunca Edición. «Programas que ve»
-define también de qué programas recibe copias una cuenta (cuentas por programa). Las direcciones de programa no entran: solo reciben correos.
+define también de qué programas recibe copias una cuenta. Un tercer tipo, «Cuenta de Registro Curricular del programa», es el correo de
+RC propio de un programa. En Configuración cada programa tiene asignadas una **analista de Registro Curricular** y una **cuenta de
+Registro Curricular del programa**, que reciben copia de las comunicaciones de sus casos (parámetro `eventos_copia_rc`; por defecto
+admisible para análisis, rechazada, no procede, CAE admisible y CAE rechazada). Toda copia que recibe una analista de Registro Curricular
+llega también a Registro Curricular (registradora). Las direcciones de programa no entran: solo reciben correos.
 
 **CAE admisible → Registro Curricular → estudiante.** Tras el V°B° «CAE admisible», el caso pasa a «CAE admisible · notificar a
 Registro Curricular»; la analista registra la notificación a Registro Curricular (fecha y medio, p. ej. N° STD) para que esa unidad

@@ -49,6 +49,8 @@ function api_config() {
     programas: leer_(HOJAS.programas).map(p => { const o = Object.assign({}, p); delete o._fila; return o; }),
     parametros: leer_(HOJAS.parametros).filter(p => p.clave !== 'carpeta_raiz_id').map(p => ({ clave: p.clave, valor: p.valor, descripcion: p.descripcion })),
     feriados: estadoFeriados_(),
+    analistasRC: leer_(HOJAS.cuentas).filter(c => c.rol === 'Analista de Registro Curricular' && esSi(c.activo)).map(c => ({ correo: String(c.correo).toLowerCase(), nombre: c.nombre })),
+    cuentasRC: leer_(HOJAS.cuentas).filter(c => c.rol === 'Cuenta de Registro Curricular del programa' && esSi(c.activo)).map(c => ({ correo: String(c.correo).toLowerCase(), nombre: c.nombre })),
     vicedecano: vicedecano_()
   });
 }
@@ -59,7 +61,13 @@ function api_guardarPrograma(p, esNuevo) {
   if (!nombre) throw new Error('Falta el nombre del programa.');
   const correo = String(p.correo_direccion || '').trim().toLowerCase();
   if (correo && !/^[^@\s]+@[^@\s]+\.[a-z]{2,}$/.test(correo)) throw new Error('Correo de dirección no válido.');
-  const fila = { programa: nombre, correo_direccion: correo, analista: String(p.analista || '').toLowerCase(), activo: esSi(p.activo) ? 'SÍ' : 'NO' };
+  const fila = { programa: nombre, correo_direccion: correo, analista: String(p.analista || '').toLowerCase(), activo: esSi(p.activo) ? 'SÍ' : 'NO',
+    analista_rc: String(p.analista_rc || '').trim().toLowerCase(), cuenta_rc: String(p.cuenta_rc || '').trim().toLowerCase() };
+  const cuentas = leer_(HOJAS.cuentas);
+  [['analista_rc', 'Analista de Registro Curricular'], ['cuenta_rc', 'Cuenta de Registro Curricular del programa']].forEach(([k, rol]) => {
+    if (fila[k] && !cuentas.some(c => String(c.correo).toLowerCase() === fila[k] && c.rol === rol && esSi(c.activo)))
+      throw new Error('«' + fila[k] + '» no es una cuenta activa con rol «' + rol + '». Créela primero en Cuentas.');
+  });
   const existentes = leer_(HOJAS.programas);
   const actual = existentes.find(x => x.programa === nombre);
   if (esNuevo) {
