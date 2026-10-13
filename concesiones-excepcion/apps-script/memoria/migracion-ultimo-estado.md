@@ -27,6 +27,9 @@ bien» se daba por cierto si la solicitud apuntaba a cualquier fila del estudian
 realineación puntúa cada par (fecha, programa, año, semestre, tipo, RUN, teléfono) y asigna en conjunto, una fila por solicitud.
 Lección: la identidad de una fila migrada es estudiante **+ envío**, no solo estudiante; y una regla de «no tocar si hay duda»
 debe decir qué duda queda, no dejar el caso a medias.
+Decisión de la persona (2026-10-13): conservar **todas** las solicitudes, también las repetidas, y velar por la coherencia fila ↔
+solicitud. De ahí «Importar filas» (reutiliza `solicitudDesdeFila_`, el mismo código de la migración, para no tener dos lecturas de
+la planilla) y la regla de cierre: cada fila con datos tiene exactamente una solicitud.
 
 Cierre (2026-10-13): el Formulario de Google se cerró (ya no llegan filas); a pedido de la persona, la hoja de respuestas queda
 protegida por el script (solo la cuenta dueña edita), porque el único riesgo restante para la fundamentación migrada era una

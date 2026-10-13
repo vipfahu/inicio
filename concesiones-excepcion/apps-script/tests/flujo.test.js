@@ -1006,3 +1006,72 @@ test('realinear filas migradas: un estudiante con dos envíos se desempata por f
   const r2 = ctx.api_realinearMigracion();
   assert.equal(r2.realineadas.length, 0, 'segunda pasada: estable');
 });
+
+test('importar filas sin solicitud: cada fila huérfana pasa a ser una solicitud «Por revisar», con folio nuevo si el suyo ya existe', () => {
+  const env = instalar(preparar());
+  const { ctx, estado, hoja } = env;
+  // Segundo envío de est2 con el mismo folio en la columna A (como en la planilla real), al final de la hoja.
+  const otra = hoja.datos[2].slice(); otra[1] = new Date(2026, 5, 1); otra[12] = 'Matrícula fuera de plazo'; otra[15] = 'Rechazado'; otra[16] = ''; otra[22] = '';
+  hoja.datos.push(otra);
+  estado.usuario = 'vice@usach.cl';
+  let v = ctx.api_verificarMigracion();
+  assert.equal(v.diferencias.filter(d => d.campo === 'solicitud').length, 1);
+  const r = ctx.api_importarFilasSinSolicitud();
+  assert.equal(r.importadas.length, 1);
+  const imp = r.importadas[0];
+  assert.equal(imp.fila, hoja.datos.length, 'la última fila');
+  assert.equal(imp.folioPlanilla, '02/2026');
+  assert.equal(imp.estado, 'rechazada');
+  assert.match(imp.folio, /^07\/2026$/, 'siguiente folio libre del año');
+  assert.match(imp.nota, /ya usado por otra solicitud; asignado 07\/2026/);
+  assert.match(imp.nota, /Mismo estudiante que 02\/2026/);
+  const s = tabla(env, 'Solicitudes').find(x => x.folio === '07/2026');
+  assert.equal(s.revisar, 'SÍ'); assert.equal(s.tipo_texto_libre, 'Matrícula fuera de plazo'); assert.match(s.origen, /importada/);
+  assert.equal(hoja.datos[hoja.datos.length - 1][0], '07/2026', 'folio canónico escrito en la columna A');
+  const bit = tabla(env, 'Bitácora').filter(b => b.folio === '07/2026');
+  assert.ok(bit.some(b => b.tipo === 'estado' && b.estado_nuevo === 'rechazada' && /migrado/.test(b.texto)));
+  v = ctx.api_verificarMigracion();
+  assert.equal(v.diferencias.filter(d => d.campo === 'solicitud').length, 0, 'ya no hay filas sin solicitud');
+  assert.equal(v.diferencias.filter(d => d.tipo === 'formulario').length, 0, 'la importada coincide con su fila');
+  // Segunda ejecución: nada que importar; estudiante ve ambas en seguimiento
+  assert.equal(ctx.api_importarFilasSinSolicitud().importadas.length, 0);
+  estado.usuario = 'analista.uno@usach.cl';
+  assert.throws(() => ctx.api_importarFilasSinSolicitud(), /SIN_ACCESO/);
+});
+
+test('volver a un paso anterior: solo a pasos ya recorridos, con motivo, sin correo; deshacer un V°B° requiere Vicedecano/a o administración', () => {
+  const env = instalar(preparar());
+  const { ctx, estado } = env;
+  estado.usuario = 'analista.uno@usach.cl';
+  ctx.api_cambiarEstado('06/2026', 'revision', {});
+  ctx.api_cambiarEstado('06/2026', 'aceptada', { campos: {} , sinCorreo: true });
+  let e = ctx.api_expediente('06/2026');
+  assert.deepEqual([...e.anteriores].map(a => a.id), ['recibida', 'revision']);
+  assert.throws(() => ctx.api_retroceder('06/2026', 'revision', ''), /motivo/);
+  assert.throws(() => ctx.api_retroceder('06/2026', 'vb', 'x'), /ya pasó/);
+  assert.throws(() => ctx.api_retroceder('06/2026', 'aceptada', 'x'), /ya está/);
+  const correosAntes = estado.correos.length;
+  const r = ctx.api_retroceder('06/2026', 'revision', 'Faltaba un antecedente');
+  assert.equal(r.deshaceVb, false);
+  assert.equal(estado.correos.length, correosAntes, 'sin correo');
+  e = ctx.api_expediente('06/2026');
+  assert.equal(e.estado, 'revision');
+  assert.ok(e.bitacora.some(b => /Retroceso: Admisible para análisis → .*Motivo: Faltaba un antecedente/.test(b.texto) && b.estado_nuevo === 'revision'));
+  assert.deepEqual([...e.siguientes].map(x => x.id).sort(), ['aceptada', 'no_procede', 'rechazada']);
+  // Tras un V°B° (aviso_rc), volver a «vb» lo deshace: la analista no puede; el Vicedecano/a sí.
+  ctx.api_guardarGestion('06/2026', { n_std: '123' });
+  ctx.api_cambiarEstado('06/2026', 'aceptada', { sinCorreo: true });
+  ctx.api_cambiarEstado('06/2026', 'informe_rc', {});
+  ctx.api_cambiarEstado('06/2026', 'programa', {});
+  estado.usuario = 'vice@usach.cl';
+  ctx.api_cambiarEstado('06/2026', 'vb', { campos: { propuesta_comite: 'Aprobar' } });
+  ctx.api_cambiarEstado('06/2026', 'aviso_rc', {});
+  estado.usuario = 'analista.uno@usach.cl';
+  assert.throws(() => ctx.api_retroceder('06/2026', 'vb', 'error'), /deshace el V°B°/);
+  assert.throws(() => ctx.api_retroceder('06/2026', 'programa', 'error'), /deshace el V°B°/);
+  estado.usuario = 'vice@usach.cl';
+  const r2 = ctx.api_retroceder('06/2026', 'vb', 'Se revisará otra vez');
+  assert.equal(r2.deshaceVb, true);
+  assert.equal(ctx.api_expediente('06/2026').estado, 'vb');
+  assert.ok(tabla(env, 'Bitácora').some(b => b.folio === '06/2026' && /Deshace el V°B° registrado/.test(b.texto)));
+});

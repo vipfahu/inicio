@@ -132,6 +132,12 @@ function api_realinearMigracion() {
   return serializar_(r);
 }
 
+/** Importación desde el panel (Administración) de las filas de la hoja de respuestas que no tienen solicitud. */
+function api_importarFilasSinSolicitud() {
+  const u = requiere_('administracion');
+  return serializar_(importarFilasSinSolicitud_(u.correo));
+}
+
 /** Correo de la dirección de un programa: lo puede editar cualquier cuenta con nivel edición (analistas). */
 function api_guardarCorreoPrograma(programa, correo) {
   const u = requiere_('edicion');

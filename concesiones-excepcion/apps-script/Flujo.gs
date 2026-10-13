@@ -150,6 +150,10 @@ function api_expediente(folio) {
     id: id, etiqueta: estadoPorId(id).etiqueta, evento: eventoTransicion(s.estado, id)
   }));
   out.bitacora = leer_(HOJAS.bitacora).filter(b => String(b.folio) === String(folio)).map(b => { const o = Object.assign({}, b); delete o._fila; return o; });
+  // Pasos por los que ya pasó (para «Volver a un paso anterior»), en el orden del flujo.
+  const visitados = estadosVisitados_(out.bitacora);
+  out.anteriores = ESTADOS.filter(e => e.id !== s.estado && visitados.indexOf(e.id) >= 0).map(e => ({ id: e.id, etiqueta: e.etiqueta }));
+  out.vbDado = visitados.indexOf('aviso_rc') >= 0 || visitados.indexOf('rechazo_vb') >= 0;
   // La fundamentación y los archivos (pueden contener datos de salud) solo para Edición o superior.
   out.verDetalle = nivelSuficiente(u.nivel, 'edicion');
   if (out.verDetalle) {
@@ -163,6 +167,49 @@ function api_expediente(folio) {
     out.run = ''; out.telefono = '';
   }
   return serializar_(out);
+}
+
+/** Estados por los que pasó una solicitud según su bitácora (siempre incluye «recibida»). */
+function estadosVisitados_(bitacora) {
+  const v = ['recibida'];
+  bitacora.forEach(b => { if (b.tipo === 'estado' && b.estado_nuevo && v.indexOf(b.estado_nuevo) < 0) v.push(b.estado_nuevo); });
+  return v;
+}
+
+/**
+ * Vuelve a un paso anterior del trámite (uno por el que la solicitud ya pasó). No envía correo; exige motivo y queda en la bitácora.
+ * Deshacer un V°B° ya dado (volver a «V°B°» o antes) solo lo puede hacer el Vicedecano/a o una cuenta de administración.
+ * Los datos de gestión (STD, comentarios, observación, resolución) se conservan.
+ */
+function api_retroceder(folio, hacia, motivo) {
+  const u = requiere_('edicion');
+  motivo = String(motivo || '').trim();
+  const lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+  try {
+    const s = buscarSolicitud_(folio);
+    if (!puedeVerSolicitud(u, s)) throw new Error('SIN_ACCESO: la solicitud no pertenece a sus programas.');
+    if (!estadoPorId(hacia)) throw new Error('Estado no válido.');
+    if (hacia === s.estado) throw new Error('La solicitud ya está en ese paso.');
+    if (!motivo) throw new Error('Indique el motivo del retroceso.');
+    const bit = leer_(HOJAS.bitacora).filter(b => String(b.folio) === String(folio));
+    const visitados = estadosVisitados_(bit);
+    if (visitados.indexOf(hacia) < 0) throw new Error('Solo se puede volver a un paso por el que esta solicitud ya pasó.');
+    const vbDado = visitados.indexOf('aviso_rc') >= 0 || visitados.indexOf('rechazo_vb') >= 0;
+    const despuesDelVb = RUTA_PRINCIPAL.indexOf(hacia) > RUTA_PRINCIPAL.indexOf('vb') || hacia === 'rechazo_vb';
+    const deshaceVb = vbDado && !despuesDelVb;
+    if (deshaceVb && u.rol !== 'Vicedecano/a' && u.nivel !== 'administracion') throw new Error('Volver a un paso anterior al V°B° deshace el V°B° ya dado: solo puede hacerlo el Vicedecano/a o una cuenta de administración.');
+    const ahora = new Date();
+    actualizar_(HOJAS.solicitudes, s._fila, { estado: hacia, estado_desde: ahora, recordatorios: 0, ultimo_recordatorio: '', actualizado: ahora });
+    anexar_(HOJAS.bitacora, {
+      fecha: ahora, folio: folio, tipo: 'estado', quien: u.correo,
+      texto: 'Retroceso: ' + estadoPorId(s.estado).etiqueta + ' → ' + estadoPorId(hacia).etiqueta + ' · Motivo: ' + motivo + (deshaceVb ? ' · Deshace el V°B° registrado' : '') + ' · Sin correo.',
+      estado_nuevo: hacia
+    });
+    return { ok: true, deshaceVb: deshaceVb };
+  } finally {
+    lock.releaseLock();
+  }
 }
 
 /** Vista previa del correo de una transición (no envía nada). */

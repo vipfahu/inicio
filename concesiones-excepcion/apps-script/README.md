@@ -129,7 +129,11 @@ queda en la hoja «Verificación migración». Si las diferencias se repiten fil
 anterior), en la hoja de respuestas se insertaron, borraron u ordenaron filas: «Realinear filas» (en el mismo diálogo, o CAE →
 Realinear filas migradas) vuelve a enlazar cada solicitud con una fila del mismo estudiante (correo verificado o apellido y nombres);
 si el estudiante envió más de una solicitud, desempata por fecha de envío, programa, año, semestre, tipo, RUN y teléfono, asignando
-en conjunto (una fila por solicitud, de mayor a menor coincidencia), y deja constancia en la bitácora. La hoja de respuestas se protege en cada actualización automática
+en conjunto (una fila por solicitud, de mayor a menor coincidencia), y deja constancia en la bitácora. Las filas que aun así quedan
+sin solicitud (p. ej., segundos envíos de un mismo estudiante) se incorporan con «Importar filas» (`importarFilasSinSolicitud_`,
+también en el menú CAE): una solicitud por fila con los mismos criterios de la migración (`solicitudDesdeFila_`), marcada
+«Por revisar», sin correo; si el folio de la planilla ya está en uso se asigna el siguiente y se anota el original, y la nota indica
+con qué folios comparte estudiante. El sistema conserva todas las solicitudes, también las repetidas: la decisión queda en la ficha. La hoja de respuestas se protege en cada actualización automática
 (`protegerHojaRespuestas_`: solo la cuenta dueña edita; sin edición por dominio) y el Diagnóstico avisa si dejó de estarlo. Las filas sin solicitud se informan y no se importan solas. Para cada una, la
 verificación indica su fecha de envío y si pertenece al mismo estudiante que algún folio existente (posible envío repetido) o a nadie
 conocido (respuesta llegada después de la migración o fila nunca importada). La fundamentación de los casos migrados se lee de su fila original y, antes de mostrarla o
@@ -171,6 +175,12 @@ navegador y otra vez en el servidor, y se guarda como «12.345.678-5»; el pasap
 columna haciendo clic en su encabezado (segundo clic invierte); por omisión, por fecha de recepción descendente. Las analistas
 parten en «En curso»; el Vicedecano/a parte con la planilla completa («Todos los estados»), con el conteo de pendientes de V°B° en
 el resumen y el filtro «Pendiente V°B°» a mano.
+
+**Volver a un paso anterior.** En la ficha (Gestión del trámite → «Volver a un paso anterior») se puede devolver la solicitud a
+cualquier paso por el que ya pasó (`api_retroceder(folio, hacia, motivo)`): exige motivo, no envía correo, conserva STD, comentarios,
+observación y resolución, y queda en la bitácora como «Retroceso: A → B · Motivo». Si la solicitud ya tenía V°B° (pasó por «CAE
+admisible» o «CAE rechazada»), volver a «V°B°» o a un paso anterior lo deshace, y eso solo lo puede hacer el Vicedecano/a o una
+cuenta de administración. Los pasos siguientes vuelven a ser los del estado al que se volvió.
 
 **Al llegar una solicitud** salen tres correos automáticos: recepción al estudiante; «Nueva solicitud CAE» a **todas las cuentas activas con acceso al panel** (Vicedecano/a, analistas y consulta; no a las de nivel `sin_acceso`, como Registro Curricular); y, si el programa tiene analista en Configuración (y esa persona tiene cuenta activa con rol Analista), «Nueva solicitud CAE asignada» a esa analista. Si el programa no tiene analista, el caso queda «Sin asignar» (filtro en la bandeja) y se asigna desde el expediente; **cada asignación o reasignación envía el aviso a la analista asignada**. Solo se puede asignar a cuentas activas con rol Analista.
 

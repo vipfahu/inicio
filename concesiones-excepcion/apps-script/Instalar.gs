@@ -15,6 +15,7 @@ function onOpen() {
     .addItem('Diagnóstico', 'diagnostico')
     .addItem('Verificar migración (planilla original ↔ Solicitudes)', 'verificarMigracion')
     .addItem('Realinear filas migradas (tras insertar u ordenar filas)', 'realinearMigracion')
+    .addItem('Importar filas sin solicitud (quedan «Por revisar»)', 'importarFilasSinSolicitud')
     .addItem('Proteger hoja de respuestas (solo la cuenta dueña edita)', 'protegerHojaRespuestas')
     .addItem('Actualizar (tras subir código nuevo)', 'actualizarInstalacion')
     .addSeparator()
@@ -124,65 +125,19 @@ function instalarPaso2() {
   const sinCorreo = cuentas.filter(c => !/@usach\.cl$/i.test(String(c.correo).trim()));
   if (sinCorreo.length) throw new Error('Faltan correos @usach.cl en «Cuentas» para: ' + sinCorreo.map(c => c.nombre).join(', '));
   if (!cuentas.some(c => c.nivel === 'administracion' && esSi(c.activo))) throw new Error('Debe haber al menos una cuenta activa con nivel administracion.');
-  const porNombre = {};
-  cuentas.forEach(c => { porNombre[String(c.nombre).trim().toLowerCase()] = String(c.correo).trim().toLowerCase(); });
-
-  const resp = hojaRespuestas_();
-  const enc = resp.getRange(1, 1, 1, resp.getLastColumn()).getValues()[0].map(String);
-  const n = resp.getLastRow() - 1;
-  const datos = n > 0 ? resp.getRange(2, 1, n, enc.length).getValues() : [];
-  const col = (pref, exacto) => columnaPorPrefijo_(enc, pref, exacto);
-  const J = {
-    pres: col(LEGADO.presentacion), est: col(LEGADO.estado, true), act: col(LEGADO.actual), an: col(LEGADO.analista),
-    obs: col(LEGADO.obsVicedecano), com: col(LEGADO.comentarios), std: col(LEGADO.std), ext: col(LEGADO.extras),
-    cae: col(LEGADO.archivoCae), res: col(LEGADO.resolucion)
-  };
-  const val = (r, j) => j >= 0 ? r[j] : '';
-  // Columnas sin encabezado a la derecha de «archivo resolución» también traen notas.
-  const extrasSinNombre = [];
-  for (let j = J.res + 1; J.res >= 0 && j < enc.length; j++) if (!enc[j].trim()) extrasSinNombre.push(j);
-
+  const c = contextoRespuestas_();
+  const resp = c.resp, J = c.J, enc = c.enc;
   const solicitudes = [], bitacora = [], vistos = {};
   const ahora = new Date();
-  datos.forEach((r, i) => {
+  c.datos.forEach((r, i) => {
     if (r.every(x => x === '' || x === null)) return;
     const fila = i + 2;
-    const o = {};
-    Object.keys(RESPUESTA).forEach(k => { const j = columnaPorPrefijo_(enc, RESPUESTA[k]); o[k] = j >= 0 ? r[j] : ''; });
-    const notas = [];
-    let revisar = false;
-    let folio = normalizarFolio(r[0]);
-    if (r[0] instanceof Date) notas.push('Folio guardado como fecha por Sheets; corregido a ' + folio + '.');
-    if (folio && !/^\d{2}\/\d{4}$/.test(folio)) { notas.push('Folio no reconocido «' + folio + '».'); folio = ''; }
-    if (folio && vistos[folio]) { notas.push('FOLIO DUPLICADO: ' + folio + ' ya estaba en la fila ' + vistos[folio] + '.'); folio = ''; }
-    if (!folio) revisar = true;
-    if (folio) vistos[folio] = fila;
-    const comentarios = [val(r, J.com), val(r, J.ext)].concat(extrasSinNombre.map(j => r[j])).join(' ');
-    const m = estadoMigrado(val(r, J.pres), val(r, J.est), val(r, J.act), comentarios);
-    if (m.nota) notas.push(m.nota);
-    revisar = revisar || m.revisar;
-    const nombreAn = String(val(r, J.an) || '').trim();
-    const correoAn = nombreAn ? (porNombre[nombreAn.toLowerCase()] || '') : '';
-    if (nombreAn && !correoAn) { notas.push('Analista «' + nombreAn + '» sin cuenta.'); revisar = true; }
-    const sem = String(o.semestre || '').trim();
-    const semN = semestreNormalizado_(sem);
-    if (sem && sem !== semN) notas.push('Semestre «' + sem + '» normalizado.');
-    const std = String(val(r, J.std) || '').trim();
-    const tipos = separarTipos(o.tipos);
-    const marca = o.marca instanceof Date ? o.marca : ahora;
-    solicitudes.push({
-      folio: folio, fila_respuesta: fila, fecha_recepcion: marca, correo_verificado: String(o.correoVerificado || '').toLowerCase(),
-      apellido1: o.apellido1, apellido2: o.apellido2, nombres: o.nombres, run: String(o.run || ''), correo: o.correo || o.correoVerificado,
-      telefono: String(o.telefono || ''), programa: o.programa, anio: o.anio, semestre: semN,
-      tipo_catalogo: tipos.catalogo, tipo_texto_libre: tipos.libre, estado: m.estado, estado_desde: ahora,
-      analista: correoAn, n_std: std === '0' || std === '-' ? '' : std.split('/')[0].trim(),
-      comentarios_analista: val(r, J.com), obs_vicedecano: val(r, J.obs),
-      resolucion: [val(r, J.res), val(r, J.cae)].filter(x => String(x || '').trim()).join(' · '),
-      recordatorios: 0, revisar: revisar ? 'SÍ' : '', nota_migracion: notas.join(' '), actualizado: ahora,
-      _marca: marca, _adjunto: o.adjunto,
-      _legado: [['Comentarios analista', val(r, J.com)], ['Observaciones extras', val(r, J.ext)]]
-        .concat(extrasSinNombre.map(j => ['Columna sin nombre', r[j]]))
-    });
+    const s = solicitudDesdeFila_(c, r, fila, ahora);
+    if (s.folio && vistos[s.folio]) { s._notas.push('FOLIO DUPLICADO: ' + s.folio + ' ya estaba en la fila ' + vistos[s.folio] + '.'); s.folio = ''; }
+    if (s.folio) vistos[s.folio] = fila;
+    s.nota_migracion = s._notas.join(' ');
+    s.revisar = s._revisar || !s.folio ? 'SÍ' : '';
+    solicitudes.push(s);
   });
 
   // Folios faltantes o duplicados: correlativo siguiente, en orden de llegada.
@@ -193,14 +148,7 @@ function instalarPaso2() {
     s.revisar = 'SÍ';
   });
 
-  solicitudes.forEach(s => {
-    bitacora.push({ fecha: s._marca, folio: s.folio, tipo: 'estado', quien: 'Formulario', texto: 'Solicitud recibida desde el formulario.', estado_nuevo: 'recibida' });
-    s._legado.forEach(([etq, txt]) => String(txt || '').split('//').map(x => x.trim()).filter(Boolean)
-      .forEach(t => bitacora.push({ fecha: '', folio: s.folio, tipo: 'nota', quien: 'migración', texto: '[' + etq + '] ' + t })));
-    if (s.estado !== 'recibida') {
-      bitacora.push({ fecha: '', folio: s.folio, tipo: 'estado', quien: 'migración', texto: 'Estado migrado desde la planilla anterior: ' + estadoPorId(s.estado).etiqueta + '.', estado_nuevo: s.estado });
-    }
-  });
+  solicitudes.forEach(s => bitacoraDesdePlanilla_(s, 'migración').forEach(b => bitacora.push(b)));
 
   anexarVarias_(HOJAS.solicitudes, solicitudes);
   anexarVarias_(HOJAS.bitacora, bitacora);
@@ -433,6 +381,130 @@ function hojaRespuestasProtegida_() {
   if (!p || p.isWarningOnly() || p.canDomainEdit()) return false;
   const yo = String(Session.getEffectiveUser().getEmail()).toLowerCase();
   return p.getEditors().every(e => String(e.getEmail()).toLowerCase() === yo);
+}
+
+/* ── Lectura de la hoja de respuestas: la misma para la migración (paso 2) y para importar filas que quedaron sin solicitud ── */
+
+function contextoRespuestas_() {
+  const cuentas = leer_(HOJAS.cuentas);
+  const porNombre = {};
+  cuentas.forEach(c => { porNombre[String(c.nombre).trim().toLowerCase()] = String(c.correo).trim().toLowerCase(); });
+  const resp = hojaRespuestas_();
+  const enc = resp.getRange(1, 1, 1, resp.getLastColumn()).getValues()[0].map(String);
+  const n = resp.getLastRow() - 1;
+  const datos = n > 0 ? resp.getRange(2, 1, n, enc.length).getValues() : [];
+  const col = (pref, exacto) => columnaPorPrefijo_(enc, pref, exacto);
+  const J = {
+    pres: col(LEGADO.presentacion), est: col(LEGADO.estado, true), act: col(LEGADO.actual), an: col(LEGADO.analista),
+    obs: col(LEGADO.obsVicedecano), com: col(LEGADO.comentarios), std: col(LEGADO.std), ext: col(LEGADO.extras),
+    cae: col(LEGADO.archivoCae), res: col(LEGADO.resolucion)
+  };
+  // Columnas sin encabezado a la derecha de «archivo resolución» también traen notas.
+  const extrasSinNombre = [];
+  for (let j = J.res + 1; J.res >= 0 && j < enc.length; j++) if (!enc[j].trim()) extrasSinNombre.push(j);
+  return { resp: resp, enc: enc, datos: datos, J: J, porNombre: porNombre, extrasSinNombre: extrasSinNombre };
+}
+
+/**
+ * Convierte una fila de la hoja de respuestas en una solicitud (sin escribirla). Devuelve además `_notas`, `_revisar`, `_marca`,
+ * `_adjunto` y `_legado` para que quien la escriba decida folio, nota de migración y bitácora.
+ */
+function solicitudDesdeFila_(c, r, fila, ahora) {
+  const J = c.J, val = (row, j) => j >= 0 ? row[j] : '';
+  const o = {};
+  Object.keys(RESPUESTA).forEach(k => { const j = columnaPorPrefijo_(c.enc, RESPUESTA[k]); o[k] = j >= 0 ? r[j] : ''; });
+  const notas = [];
+  let revisar = false;
+  let folio = normalizarFolio(r[0]);
+  if (r[0] instanceof Date) notas.push('Folio guardado como fecha por Sheets; corregido a ' + folio + '.');
+  if (folio && !/^\d{2}\/\d{4}$/.test(folio)) { notas.push('Folio no reconocido «' + folio + '».'); folio = ''; }
+  const comentarios = [val(r, J.com), val(r, J.ext)].concat(c.extrasSinNombre.map(j => r[j])).join(' ');
+  const m = estadoMigrado(val(r, J.pres), val(r, J.est), val(r, J.act), comentarios);
+  if (m.nota) notas.push(m.nota);
+  revisar = revisar || m.revisar;
+  const nombreAn = String(val(r, J.an) || '').trim();
+  const correoAn = nombreAn ? (c.porNombre[nombreAn.toLowerCase()] || '') : '';
+  if (nombreAn && !correoAn) { notas.push('Analista «' + nombreAn + '» sin cuenta.'); revisar = true; }
+  const sem = String(o.semestre || '').trim();
+  const semN = semestreNormalizado_(sem);
+  if (sem && sem !== semN) notas.push('Semestre «' + sem + '» normalizado.');
+  const std = String(val(r, J.std) || '').trim();
+  const tipos = separarTipos(o.tipos);
+  const marca = o.marca instanceof Date ? o.marca : ahora;
+  return {
+    folio: folio, fila_respuesta: fila, fecha_recepcion: marca, correo_verificado: String(o.correoVerificado || '').toLowerCase(),
+    apellido1: o.apellido1, apellido2: o.apellido2, nombres: o.nombres, run: String(o.run || ''), correo: o.correo || o.correoVerificado,
+    telefono: String(o.telefono || ''), programa: o.programa, anio: o.anio, semestre: semN,
+    tipo_catalogo: tipos.catalogo, tipo_texto_libre: tipos.libre, estado: m.estado, estado_desde: ahora,
+    analista: correoAn, n_std: std === '0' || std === '-' ? '' : std.split('/')[0].trim(),
+    comentarios_analista: val(r, J.com), obs_vicedecano: val(r, J.obs),
+    resolucion: [val(r, J.res), val(r, J.cae)].filter(x => String(x || '').trim()).join(' · '),
+    recordatorios: 0, revisar: '', nota_migracion: '', actualizado: ahora,
+    _notas: notas, _revisar: revisar, _marca: marca, _adjunto: o.adjunto,
+    _legado: [['Comentarios analista', val(r, J.com)], ['Observaciones extras', val(r, J.ext)]]
+      .concat(c.extrasSinNombre.map(j => ['Columna sin nombre', r[j]]))
+  };
+}
+
+/** Bitácora inicial de una solicitud tomada de la planilla: recepción, notas antiguas y estado migrado. */
+function bitacoraDesdePlanilla_(s, quien) {
+  const b = [{ fecha: s._marca, folio: s.folio, tipo: 'estado', quien: 'Formulario', texto: 'Solicitud recibida desde el formulario.', estado_nuevo: 'recibida' }];
+  s._legado.forEach(([etq, txt]) => String(txt || '').split('//').map(x => x.trim()).filter(Boolean)
+    .forEach(t => b.push({ fecha: '', folio: s.folio, tipo: 'nota', quien: quien, texto: '[' + etq + '] ' + t })));
+  if (s.estado !== 'recibida') b.push({ fecha: '', folio: s.folio, tipo: 'estado', quien: quien, texto: 'Estado migrado desde la planilla anterior: ' + estadoPorId(s.estado).etiqueta + '.', estado_nuevo: s.estado });
+  return b;
+}
+
+/**
+ * Importa como solicitudes las filas de la hoja de respuestas que no tienen ninguna (p. ej., segundos envíos de un mismo estudiante
+ * que la migración no alcanzó a cubrir). Todas quedan «Por revisar», sin correo al estudiante. Si el folio de la planilla ya está en
+ * uso, se asigna el siguiente y se anota el original. Conviene ejecutar «Realinear filas» antes.
+ */
+function importarFilasSinSolicitud_(u) {
+  const c = contextoRespuestas_();
+  const sols = leer_(HOJAS.solicitudes);
+  const asignadas = {};
+  sols.forEach(s => { if (Number(s.fila_respuesta)) asignadas[Number(s.fila_respuesta)] = true; });
+  const folios = sols.map(s => s.folio);
+  const norm = x => String(x === null || x === undefined ? '' : x).trim().toLowerCase().replace(/\s+/g, ' ');
+  const ahora = new Date();
+  const hoy = Utilities.formatDate(ahora, Session.getScriptTimeZone(), 'dd-MM-yyyy');
+  const nuevas = [], bit = [];
+  c.datos.forEach((r, i) => {
+    if (r.every(x => x === '' || x === null) || asignadas[i + 2]) return;
+    const s = solicitudDesdeFila_(c, r, i + 2, ahora);
+    const original = s.folio;
+    if (!s.folio || folios.indexOf(s.folio) >= 0) {
+      s.folio = siguienteFolio(folios, s._marca.getFullYear());
+      s._notas.push(original ? 'Folio de la planilla «' + original + '» ya usado por otra solicitud; asignado ' + s.folio + '.' : 'Folio asignado en la importación: ' + s.folio + '.');
+    }
+    folios.push(s.folio);
+    const correo = norm(s.correo_verificado), nombre = norm(s.apellido1) + '|' + norm(s.nombres);
+    const parecidas = sols.filter(x => (correo && norm(x.correo_verificado) === correo) || (nombre !== '|' && norm(x.apellido1) + '|' + norm(x.nombres) === nombre)).map(x => x.folio);
+    if (parecidas.length) s._notas.push('Mismo estudiante que ' + parecidas.join(', ') + ': confirmar si es un envío repetido o una solicitud distinta.');
+    s._notas.push('Importada desde la fila ' + (i + 2) + ' de la hoja de respuestas el ' + hoy + ' por ' + u + '.');
+    s.nota_migracion = s._notas.join(' ');
+    s.revisar = 'SÍ';
+    s.origen = 'Formulario de Google (importada)';
+    s._folioPlanilla = original;
+    nuevas.push(s);
+  });
+  if (!nuevas.length) return { importadas: [] };
+  anexarVarias_(HOJAS.solicitudes, nuevas);
+  nuevas.forEach(s => bitacoraDesdePlanilla_(s, 'importación').forEach(b => bit.push(b)));
+  anexarVarias_(HOJAS.bitacora, bit);
+  nuevas.forEach(s => c.resp.getRange(s.fila_respuesta, 1).setNumberFormat('@').setValue(s.folio));
+  const leidas = leer_(HOJAS.solicitudes);
+  nuevas.forEach(s => { const l = leidas.find(x => x.folio === s.folio); if (l) vincularAntecedentes_(l, s._adjunto); });
+  anexar_(HOJAS.bitacora, { fecha: ahora, folio: '—', tipo: 'sistema', quien: u, texto: 'Importación de filas sin solicitud: ' + nuevas.map(s => s.folio + ' (fila ' + s.fila_respuesta + ')').join(', ') + '.' });
+  return { importadas: nuevas.map(s => ({ folio: s.folio, fila: s.fila_respuesta, estado: s.estado, folioPlanilla: s._folioPlanilla, nota: s.nota_migracion })) };
+}
+
+/** Menú CAE (cuenta dueña). */
+function importarFilasSinSolicitud() {
+  soloDuenia_();
+  const r = importarFilasSinSolicitud_(duenia_());
+  avisar_('Importación de filas sin solicitud', r.importadas.length ? r.importadas.map(x => x.folio + ' ← fila ' + x.fila + ' (' + x.estado + ')').join('\n') + '\nTodas quedaron «Por revisar».' : 'No hay filas sin solicitud.');
 }
 
 /* ── Verificación de la migración: cada fila de la hoja de respuestas contra su solicitud en «Solicitudes» ── */

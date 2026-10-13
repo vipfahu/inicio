@@ -96,7 +96,12 @@ Al terminar, **recargar el panel** (la lista de analistas para asignar se lee al
      migradas apuntan a su fila por número. Desde 2026-10-13 la hoja de respuestas queda **protegida** en la primera visita tras
      publicar (y con *CAE → Proteger hoja de respuestas*): solo la cuenta dueña puede editarla; el resto de la planilla no cambia.
      El Formulario de Google está cerrado, así que ya no recibe filas nuevas. Si alguien con acceso directo necesita corregir un dato
-     de esa hoja, debe hacerlo con la cuenta dueña y sin ordenar ni borrar filas.
+     de esa hoja, debe hacerlo con la cuenta dueña y sin ordenar ni borrar filas. Si tras realinear quedan filas «sin solicitud»
+     (segundos envíos de un mismo estudiante), use **«Importar filas»** en el mismo diálogo: crea una solicitud por fila, «Por
+     revisar», sin correo; luego, en cada ficha, decida si es un envío repetido (ciérrela con «No procede» y una nota) o una
+     solicitud distinta. Coherencia esperada al terminar: cada fila con datos tiene exactamente una solicitud y viceversa.
+   - **Volver a un paso anterior** (en la ficha, bajo «Pasar a»): para corregir un avance equivocado. Pide motivo, no envía correo
+     y queda en la bitácora. Deshacer un V°B° ya dado lo hace solo el Vicedecano/a o administración.
 3. **Días hábiles y feriados (automáticos):** los plazos cuentan de lunes a viernes descontando los feriados de Chile, que la plataforma
    obtiene sola del calendario público de feriados de Chile de Google y renueva cada mes (año en curso y siguiente). No se cargan a
    mano. Configuración → «Feriados (automáticos)» muestra los próximos; *CAE → Diagnóstico* indica la fuente o si falló la consulta.
