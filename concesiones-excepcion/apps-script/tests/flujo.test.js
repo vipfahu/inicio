@@ -736,6 +736,8 @@ test('PDF del formulario a pedido: analistas y administración sí; consulta no;
   const r4 = ctx.api_pdfSolicitud('05/2026');
   assert.equal(r4.existente, true); assert.equal(r4.id, r3.id, 'siempre la original'); assert.equal(r4.duplicados, 2);
   assert.equal(estado.pdfs.length, generados + 1, 'no se generó otro');
+  assert.throws(() => ctx.api_quitarPdfDuplicados('05/2026'), /nivel requerido/, 'quitar copias: solo administración');
+  estado.usuario = 'vice@usach.cl';
   const q = ctx.api_quitarPdfDuplicados('05/2026');
   assert.equal(q.quitados, 2);
   assert.ok(env.DriveApp.getFileById('pdfcopia1').isTrashed() && env.DriveApp.getFileById('pdfcopia2').isTrashed());
@@ -1144,4 +1146,43 @@ test('folios guardados como fecha por Sheets se corrigen a texto en la actualiza
   assert.ok(cambios.some(c => /Folios guardados como fecha corregidos: 03\/2026/.test(c)));
   assert.equal(ctx.api_expediente('03/2026').folio, '03/2026');
   assert.ok(ctx.api_expediente('03/2026').bitacora.length > 0, 'la bitácora vuelve a enlazar');
+});
+
+test('eliminar registros: solo administración, con motivo y constancia (solicitud y archivo del expediente)', () => {
+  const env = instalar(preparar());
+  const { ctx, estado } = env;
+  estado.usuario = 'analista.uno@usach.cl';
+  const b64 = Buffer.from('%PDF-1.4 prueba').toString('base64');
+  ctx.api_subirArchivo('03/2026', 'informe.pdf', 'application/pdf', b64, 'informe_academico');
+  const subido = ctx.api_expediente('03/2026').archivos.find(a => a.nombre === 'informe.pdf');
+  const ante = ctx.api_expediente('01/2026').archivos.find(a => /antecedentes/i.test(a.categoria));
+  assert.ok(ante, 'el caso migrado tiene antecedentes del formulario');
+  // Edición no elimina nada
+  assert.throws(() => ctx.api_eliminarArchivo('03/2026', subido.id, 'x'), /nivel requerido/);
+  assert.throws(() => ctx.api_eliminarSolicitud('03/2026', 'x'), /nivel requerido/);
+  estado.usuario = 'vice@usach.cl';
+  assert.throws(() => ctx.api_eliminarArchivo('03/2026', subido.id, ''), /motivo/);
+  assert.throws(() => ctx.api_eliminarArchivo('03/2026', 'noexiste', 'x'), /no está en este expediente/);
+  ctx.api_eliminarArchivo('03/2026', subido.id, 'Subido por error');
+  assert.ok(env.DriveApp.getFileById(subido.id).isTrashed(), 'archivo del equipo: a la papelera');
+  assert.ok(!ctx.api_expediente('03/2026').archivos.some(a => a.id === subido.id));
+  assert.ok(ctx.api_expediente('03/2026').bitacora.some(b => /Archivo eliminado por administración: «informe\.pdf».*Motivo: Subido por error/.test(b.texto)));
+  // Antecedentes del Formulario: el archivo del estudiante no se toca
+  ctx.api_eliminarArchivo('01/2026', ante.id, 'Duplicado');
+  assert.ok(!env.DriveApp.getFileById(ante.id).isTrashed(), 'el original del estudiante sigue');
+  assert.ok(ctx.api_expediente('01/2026').bitacora.some(b => /no se tocó/.test(b.texto)));
+  // Solicitud
+  assert.throws(() => ctx.api_eliminarSolicitud('03/2026', ''), /motivo/);
+  const antes = ctx.api_bandeja().length;
+  const r = ctx.api_eliminarSolicitud('03/2026', 'Ingresada dos veces');
+  assert.equal(r.filaRespuesta, 4);
+  assert.equal(ctx.api_bandeja().length, antes - 1);
+  assert.throws(() => ctx.api_expediente('03/2026'), /No existe/);
+  const bit = tabla(env, 'Bitácora').filter(b => b.folio === '03/2026');
+  assert.ok(bit.length > 1, 'la bitácora del folio se conserva');
+  assert.match(bit[bit.length - 1].texto, /SOLICITUD ELIMINADA por administración · Motivo: Ingresada dos veces .* fila de respuestas 4 \(conservada\)/);
+  assert.equal(tabla(env, 'Archivos').filter(a => a.folio === '03/2026').length, 0);
+  // La fila queda huérfana y se puede volver a importar
+  const v = ctx.api_verificarMigracion();
+  assert.ok(v.diferencias.some(d => d.campo === 'solicitud' && d.fila === 4));
 });

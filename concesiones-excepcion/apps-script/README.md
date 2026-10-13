@@ -186,6 +186,14 @@ columna haciendo clic en su encabezado (segundo clic invierte); por omisión, po
 parten en «En curso»; el Vicedecano/a parte con la planilla completa («Todos los estados»), con el conteo de pendientes de V°B° en
 el resumen y el filtro «Pendiente V°B°» a mano.
 
+**Eliminar registros: solo Administración.** Una sola regla para todo lo que borra: cuentas (`api_eliminarCuenta`), solicitudes
+(`api_eliminarSolicitud`: borra la ficha y sus registros de archivos, manda la carpeta del expediente a la papelera de Drive y
+conserva la bitácora del folio con una entrada final que resume lo eliminado; la fila de la hoja de respuestas no se toca y se
+puede volver a importar), archivos de un expediente (`api_eliminarArchivo`: los del equipo y los PDF generados van a la papelera;
+de los antecedentes del Formulario solo se quita el acceso directo y el registro, el archivo del estudiante no se toca), copias del
+PDF del formulario (`api_quitarPdfDuplicados`) y la reparación de importaciones. Todas exigen motivo y quedan en la bitácora; la
+eliminación de una solicitud pide además escribir el folio para confirmar. Edición no ve esos controles y el servidor los rechaza.
+
 **Volver a un paso anterior.** En la ficha (Gestión del trámite → «Volver a un paso anterior») se puede devolver la solicitud a
 cualquier paso por el que ya pasó (`api_retroceder(folio, hacia, motivo)`): exige motivo, no envía correo, conserva STD, comentarios,
 observación y resolución, y queda en la bitácora como «Retroceso: A → B · Motivo». Si la solicitud ya tenía V°B° (pasó por «CAE

@@ -13,5 +13,10 @@ segundo queda invisible. Respuesta: el botón se bloquea hasta que responde el s
 `api_eliminarCuenta(correo, fila)` elimina por fila (no por correo), con las mismas salvaguardas que la edición. Lección: toda acción
 que crea registros debe bloquear su botón mientras espera, y cuando puede haber duplicados la identidad es la fila, no el correo.
 
+Regla (pedido de la persona, 2026-10-13): **eliminar registros es solo de Administración**, cualquiera sea el registro (cuenta,
+solicitud, archivo, copia de PDF, reparación de importación), siempre con motivo y constancia en la bitácora; lo que se borra de
+Drive va a la papelera, no se destruye; lo que pertenece al estudiante (antecedentes del Formulario) no se toca. Edición tramita,
+no borra.
+
 **Por qué importa:** Permite rotación de personal sin tocar código, y evita que se marquen copias a mano para «asegurarse» de algo
 que el rol ya garantiza.

@@ -221,7 +221,7 @@ function pdfsSolicitudVigentes_(folio) {
  * original (el más antiguo) y manda las copias a la papelera de Drive; sus filas salen de «Archivos» y queda en la bitácora.
  */
 function api_quitarPdfDuplicados(folio) {
-  const u = requiere_('edicion');
+  const u = requiere_('administracion'); // eliminar registros: solo administración
   const s = buscarSolicitud_(folio);
   if (!puedeVerSolicitud(u, s)) throw new Error('SIN_ACCESO: la solicitud no pertenece a sus programas.');
   const lock = LockService.getScriptLock();
@@ -265,6 +265,39 @@ function generarPdfSolicitud_(s, u, motivo, conCerrojo) {
   anexar_(HOJAS.bitacora, { fecha: new Date(), folio: s.folio, tipo: 'archivo', quien: u.correo, texto: 'PDF del formulario de solicitud generado (' + motivo + ').' });
   return { id: f.getId(), nombre: nombre };
 }
+/**
+ * Elimina un archivo del expediente (solo administración, con motivo). Los archivos subidos por el equipo y los PDF generados van
+ * a la papelera de Drive (recuperables 30 días); los antecedentes del Formulario pertenecen al estudiante: se quita el acceso
+ * directo de la carpeta del caso y el registro, sin tocar el archivo original. Queda en la bitácora.
+ */
+function api_eliminarArchivo(folio, archivoId, motivo) {
+  const u = requiere_('administracion');
+  motivo = String(motivo || '').trim();
+  if (!motivo) throw new Error('Indique el motivo de la eliminación.');
+  const sol = buscarSolicitud_(folio);
+  if (!puedeVerSolicitud(u, sol)) throw new Error('SIN_ACCESO: la solicitud no pertenece a sus programas.');
+  const lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+  try {
+    const a = archivosDe_(folio).find(x => String(x.archivo_id) === String(archivoId));
+    if (!a) throw new Error('El archivo no está en este expediente.');
+    if (a.categoria === 'antecedentes_formulario') {
+      try {
+        const carpeta = carpetaCaso_(sol);
+        const it = carpeta.getFiles();
+        while (it.hasNext()) { const f = it.next(); if (f.getTargetId && f.getTargetId() === a.archivo_id) f.setTrashed(true); }
+      } catch (e) { /* sin acceso directo que quitar */ }
+    } else {
+      try { DriveApp.getFileById(a.archivo_id).setTrashed(true); } catch (e) { /* ya no estaba en Drive */ }
+    }
+    hoja_(HOJAS.archivos).deleteRow(a._fila);
+    anexar_(HOJAS.bitacora, { fecha: new Date(), folio: folio, tipo: 'archivo', quien: u.correo, texto: 'Archivo eliminado por administración: «' + a.nombre + '» (' + (CATEGORIAS_ARCHIVO[a.categoria] || a.categoria) + ', subido por ' + a.subido_por + ' el ' + fechaCorta_(a.fecha) + ') · Motivo: ' + motivo + (a.categoria === 'antecedentes_formulario' ? ' · El archivo original del estudiante no se tocó.' : ' · En la papelera de Drive.') });
+    return { ok: true };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
 /** A pedido, desde el expediente (analistas y administración). */
 function api_pdfSolicitud(folio) {
   const u = requiere_('edicion');

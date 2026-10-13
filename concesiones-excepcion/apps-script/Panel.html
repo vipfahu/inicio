@@ -321,7 +321,7 @@ function pintarExp() {
     return '<div class="it" style="--c:' + color + '"><div class="meta">' + h(fechaHora(b.fecha)) + ' · ' + h(b.quien) + '</div><div class="tx">' + h(b.texto) + '</div>' +
       (b.evento && b.para ? '<span class="chip">✉ ' + h(b.asunto || b.evento) + ' → ' + h(b.para) + (b.cc ? ' · cc ' + h(b.cc) : '') + (b.editado === 'SÍ' ? ' · texto editado' : '') + '</span>' : '') + '</div>';
   }).join('');
-  const archivos = (e.archivos || []).map(a => '<div style="display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid var(--fila)"><div><div style="font:600 13px Archivo,sans-serif">' + h(a.nombre) + '</div><div class="sub">' + h(a.categoria) + ' · ' + h(a.tamano_mb) + ' MB · ' + fecha(a.fecha) + '</div></div><div style="display:flex;gap:6px;flex-shrink:0">' + (a.vista ? '<button class="prim" data-ver="' + h(a.id) + '" data-nombre="' + h(a.nombre) + '">' + (a.vista === 'zip' ? 'Ver contenido' : 'Ver') + '</button>' : '') + '<button data-arch="' + h(a.id) + '">Descargar</button></div></div>').join('') || '<div class="sub">Sin archivos.</div>';
+  const archivos = (e.archivos || []).map(a => '<div style="display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid var(--fila)"><div><div style="font:600 13px Archivo,sans-serif">' + h(a.nombre) + '</div><div class="sub">' + h(a.categoria) + ' · ' + h(a.tamano_mb) + ' MB · ' + fecha(a.fecha) + '</div></div><div style="display:flex;gap:6px;flex-shrink:0">' + (a.vista ? '<button class="prim" data-ver="' + h(a.id) + '" data-nombre="' + h(a.nombre) + '">' + (a.vista === 'zip' ? 'Ver contenido' : 'Ver') + '</button>' : '') + '<button data-arch="' + h(a.id) + '">Descargar</button>' + (nivel('administracion') ? '<button data-elim="' + h(a.id) + '" data-nombre="' + h(a.nombre) + '" title="Eliminar (solo administración)" style="color:#8A3D2E">Eliminar</button>' : '') + '</div></div>').join('') || '<div class="sub">Sin archivos.</div>';
   const cats = Object.keys(S.ini.categorias).filter(k => k !== 'antecedentes_formulario' && k !== 'formulario_solicitud');
   $('app').innerHTML =
     '<a href="#" id="volver" style="font:600 12px Archivo,sans-serif">← Volver a la bandeja</a>' +
@@ -341,11 +341,30 @@ function pintarExp() {
       '<div class="tarjeta"><div style="display:flex;justify-content:space-between;gap:10px"><h3>Bitácora</h3><span class="sub" style="font-style:italic">Cada cambio de estado y correo queda registrado</span></div><div class="bit">' + bit + '</div>' +
       (edita ? '<div style="display:flex;gap:10px;margin-top:6px"><textarea id="nota" rows="2" placeholder="Agregar nota interna…"></textarea><button id="anotar">Anotar</button></div>' : '') + '</div>' +
     '</div><div class="lado pila">' + panelGestion(e, edita) +
+      (nivel('administracion') ? '<div class="tarjeta" style="border-color:#E8C9BF"><span class="et" style="color:#8A3D2E">Administración</span><div class="sub" style="white-space:normal">Eliminar la solicitud borra su ficha y sus archivos (carpeta a la papelera de Drive); la bitácora del folio se conserva como registro. Para corregir un paso use «Volver a un paso anterior»; para suspender un trámite, un cierre.</div>' +
+        '<textarea id="el_motivo" rows="2" placeholder="Motivo de la eliminación *" style="margin-top:8px"></textarea><button id="el_ok" style="width:100%;margin-top:6px;color:#8A3D2E;border-color:#E8C9BF">Eliminar solicitud ' + h(e.folio) + '</button></div>' : '') +
       '<div class="tarjeta"><span class="et">Seguimiento del estudiante</span><div class="sub" style="white-space:normal">El estudiante ve el estado de sus solicitudes ingresando con su cuenta USACH en:</div><div class="mono" style="font-size:11px;word-break:break-all;margin-top:6px">' + h(S.ini.urlSeguimiento) + '</div></div>' +
     '</div></div>';
   $('volver').onclick = ev => { ev.preventDefault(); ir('bandeja'); };
   document.querySelectorAll('[data-arch]').forEach(b => b.onclick = () => descargar(b.dataset.arch));
   document.querySelectorAll('[data-ver]').forEach(b => b.onclick = () => ver(b.dataset.ver, b.dataset.nombre));
+  document.querySelectorAll('[data-elim]').forEach(b => b.onclick = () => {
+    const motivo = prompt('Eliminar «' + b.dataset.nombre + '» del expediente ' + e.folio + '. Indique el motivo (quedará en la bitácora):');
+    if (motivo === null) return;
+    if (!motivo.trim()) return toast('Indique el motivo', true);
+    b.disabled = true;
+    run('api_eliminarArchivo', e.folio, b.dataset.elim, motivo.trim()).then(() => { toast('Archivo eliminado'); abrir(e.folio); }).catch(err => { fallo(err); b.disabled = false; });
+  });
+  if ($('el_ok')) $('el_ok').onclick = () => {
+    const motivo = $('el_motivo').value.trim();
+    if (!motivo) return toast('Indique el motivo de la eliminación', true);
+    const conf = prompt('Esta acción borra la solicitud ' + e.folio + ' y sus archivos. Para confirmar, escriba el folio exactamente:');
+    if (conf === null) return;
+    if (conf.trim() !== e.folio) return toast('El folio no coincide; no se eliminó nada', true);
+    $('el_ok').disabled = true;
+    run('api_eliminarSolicitud', e.folio, motivo).then(r => { toast('Solicitud ' + e.folio + ' eliminada' + (r.filaRespuesta ? ' · la fila ' + r.filaRespuesta + ' de la hoja de respuestas queda sin solicitud' : '')); ir('bandeja'); })
+      .catch(err => { fallo(err); if ($('el_ok')) $('el_ok').disabled = false; });
+  };
   if ($('subir')) $('subir').onclick = subir;
   if ($('pdf_solicitud')) $('pdf_solicitud').onclick = () => {
     $('pdf_solicitud').disabled = true; $('pdf_solicitud').textContent = 'Generando PDF…';
@@ -544,8 +563,8 @@ function cerrarDlg() { $('fondo').style.display = 'none'; }
 function ofrecerPdfSolicitud(pdf, texto, titulo) {
   $('dlg').innerHTML = '<div class="kicker" style="color:var(--apagado)">' + h(titulo || 'Formulario de solicitud') + '</div><h3 style="margin-top:6px">' + h(pdf.nombre) + '</h3>' +
     (titulo ? '<div class="aviso a-teal" style="white-space:normal;margin-top:8px">ℹ ' + h(texto) + '</div>' : '<p class="resumen">' + h(texto) + '</p>') +
-    (pdf.duplicados ? '<div class="aviso a-amb" style="white-space:normal;margin-top:8px">Este expediente tiene ' + pdf.duplicados + ' copia(s) adicional(es) del PDF del formulario, generadas después del original. La plataforma usa siempre el original; «Quitar copias» envía las demás a la papelera de Drive.</div>' : '') +
-    '<div class="acciones" style="justify-content:flex-end;margin-top:16px">' + (pdf.duplicados ? '<button id="pdf_dup" style="margin-right:auto">Quitar ' + pdf.duplicados + ' copia(s)</button>' : '') +
+    (pdf.duplicados ? '<div class="aviso a-amb" style="white-space:normal;margin-top:8px">Este expediente tiene ' + pdf.duplicados + ' copia(s) adicional(es) del PDF del formulario, generadas después del original. La plataforma usa siempre el original' + (nivel('administracion') ? '; «Quitar copias» envía las demás a la papelera de Drive.' : '. Solo una cuenta de administración puede quitar las copias.') + '</div>' : '') +
+    '<div class="acciones" style="justify-content:flex-end;margin-top:16px">' + (pdf.duplicados && nivel('administracion') ? '<button id="pdf_dup" style="margin-right:auto">Quitar ' + pdf.duplicados + ' copia(s)</button>' : '') +
     '<button id="pdf_cerrar">Cerrar</button><button id="pdf_ver">Ver</button><button class="prim" id="pdf_desc">Descargar PDF</button></div>';
   $('fondo').style.display = 'flex';
   $('pdf_cerrar').onclick = cerrarDlg;

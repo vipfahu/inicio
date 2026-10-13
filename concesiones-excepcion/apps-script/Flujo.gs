@@ -212,6 +212,36 @@ function api_retroceder(folio, hacia, motivo) {
   }
 }
 
+/**
+ * Elimina una solicitud (solo administración, con motivo). Se borra su fila de «Solicitudes» y sus registros de «Archivos»; la
+ * carpeta del expediente va a la papelera de Drive (recuperable 30 días). La bitácora del folio se conserva como registro, con una
+ * entrada final que resume lo eliminado. La fila de la hoja de respuestas (si la había) no se toca: queda «sin solicitud» y se
+ * puede volver a importar.
+ */
+function api_eliminarSolicitud(folio, motivo) {
+  const u = requiere_('administracion');
+  motivo = String(motivo || '').trim();
+  if (!motivo) throw new Error('Indique el motivo de la eliminación.');
+  const lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+  try {
+    const s = buscarSolicitud_(folio);
+    if (!puedeVerSolicitud(u, s)) throw new Error('SIN_ACCESO: la solicitud no pertenece a sus programas.');
+    const archivos = archivosDe_(folio);
+    archivos.map(a => a._fila).sort((a, b) => b - a).forEach(f => hoja_(HOJAS.archivos).deleteRow(f));
+    if (s.carpeta_id) { try { DriveApp.getFolderById(s.carpeta_id).setTrashed(true); } catch (e) { /* ya no estaba */ } }
+    hoja_(HOJAS.solicitudes).deleteRow(s._fila);
+    anexar_(HOJAS.bitacora, {
+      fecha: new Date(), folio: folio, tipo: 'sistema', quien: u.correo,
+      texto: 'SOLICITUD ELIMINADA por administración · Motivo: ' + motivo + ' · Era: ' + [s.nombres, s.apellido1, s.apellido2].filter(Boolean).join(' ') + ' · ' + s.programa + ' · estado ' + s.estado +
+        (s.fila_respuesta ? ' · fila de respuestas ' + s.fila_respuesta + ' (conservada)' : '') + ' · ' + archivos.length + ' archivo(s) registrados; carpeta del expediente en la papelera de Drive.'
+    });
+    return { ok: true, filaRespuesta: s.fila_respuesta || '' };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
 /** Vista previa del correo de una transición (no envía nada). */
 function api_previsualizar(folio, hacia, campos) {
   const u = requiere_('edicion');
