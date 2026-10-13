@@ -60,7 +60,9 @@ Revisar también:
   envío: programas que ve, asignaciones hechas en Configuración y cada correo que recibirá con su motivo (rol, marcado, asignación
   por programa o copia heredada de su analista de Registro Curricular). Se recalcula al cambiar rol, nivel, programas o casillas,
   antes de guardar; no hace falta marcar nada a mano para ver qué recibe por rol.
-- Las cuentas no se borran: se desactivan (desmarcar «Cuenta activa»).
+- Para suspender una cuenta, desmarcar «Cuenta activa». **Eliminar** (en «Editar cuenta») borra el registro de la hoja y queda en
+  la bitácora; sirve sobre todo para un registro duplicado (la lista lo marca «Duplicada» y el formulario indica su fila). No se
+  elimina la cuenta institucional, la propia ni la última administración activa.
 
 Al terminar, **recargar el panel** (la lista de analistas para asignar se lee al abrirlo).
 

@@ -56,9 +56,12 @@ function api_cuentas() {
   const ctx = contextoResumen_();
   const resumenes = {};
   ctx.cuentas.forEach(c => { resumenes[String(c.correo).trim().toLowerCase()] = resumenCuenta(c, ctx); });
+  const correos = ctx.cuentas.map(c => String(c.correo).trim().toLowerCase());
   return serializar_({
     resumenes: resumenes,
-    cuentas: leer_(HOJAS.cuentas).map(c => { const o = Object.assign({}, c); delete o._fila; return o; }),
+    // `fila` identifica la fila en la hoja: es lo que distingue dos registros con el mismo correo (duplicados por doble clic).
+    cuentas: ctx.cuentas.map(c => { const o = Object.assign({}, c); o.fila = c._fila; delete o._fila; return o; }),
+    duplicadas: unicos(correos.filter((x, i) => correos.indexOf(x) !== i)),
     duenia: duenia_(),
     roles: ROLES,
     niveles: NIVELES,
@@ -105,6 +108,33 @@ function api_guardarCuenta(c, esNueva) {
       registrarCuenta_(u.correo, 'Cuenta editada: ' + limpia.correo + ' · ' + cambios.join(' · '));
     }
     return { ok: true };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+/**
+ * Elimina una fila de «Cuentas» (p. ej., un registro duplicado). Se identifica por fila y correo, porque dos registros pueden
+ * compartir el correo. No se elimina la cuenta dueña, la propia, ni la última administración activa. Queda en la bitácora.
+ */
+function api_eliminarCuenta(correo, fila) {
+  const u = requiere_('administracion');
+  correo = String(correo || '').trim().toLowerCase(); fila = Number(fila);
+  if (correo === duenia_()) throw new Error('La cuenta institucional dueña no se elimina.');
+  if (correo === u.correo) throw new Error('No puede eliminar su propia cuenta.');
+  const lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try {
+    const cuentas = leer_(HOJAS.cuentas);
+    const c = cuentas.find(x => x._fila === fila && String(x.correo).trim().toLowerCase() === correo);
+    if (!c) throw new Error('La cuenta ya no está en esa fila (¿se eliminó o cambió la hoja?). Recargue la lista.');
+    const restantes = cuentas.filter(x => x !== c);
+    if (!restantes.some(x => x.nivel === 'administracion' && esSi(x.activo) && String(x.correo).toLowerCase() !== duenia_()))
+      throw new Error('Debe quedar al menos una cuenta activa con nivel Administración.');
+    hoja_(HOJAS.cuentas).deleteRow(fila);
+    registrarCuenta_(u.correo, 'Cuenta eliminada: ' + correo + ' · ' + c.nombre + ' · ' + c.rol + ' · ' + c.nivel + ' · programas «' + c.programas + '» · copias «' + (c.recibe_eventos || '') + '»' +
+      (restantes.some(x => String(x.correo).trim().toLowerCase() === correo) ? ' (quedan otros registros con el mismo correo)' : ''));
+    return { ok: true, quedan: restantes.filter(x => String(x.correo).trim().toLowerCase() === correo).length };
   } finally {
     lock.releaseLock();
   }

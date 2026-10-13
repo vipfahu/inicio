@@ -922,3 +922,37 @@ test('cuentas: el panel recibe el resumen efectivo de cada cuenta y puede calcul
   estado.usuario = 'analista.uno@usach.cl';
   assert.throws(() => ctx.api_resumenCuenta({}), /SIN_ACCESO/);
 });
+
+test('cuentas: un registro duplicado se detecta y se elimina por fila; no se elimina la dueña, la propia ni la última administración', () => {
+  const env = instalar(preparar());
+  const { ctx, estado, libro } = env;
+  const hoja = libro.getSheetByName('Cuentas');
+  // Duplicado tal como lo deja un doble clic: misma cuenta dos veces.
+  hoja.appendRow(['consulta@usach.cl', 'Solo Consulta (repetida)', 'Consulta', 'consulta', 'todos', 'SÍ', '', '', '', '']);
+  estado.usuario = 'vice@usach.cl';
+  let r = ctx.api_cuentas();
+  assert.deepEqual([...r.duplicadas], ['consulta@usach.cl']);
+  const repetidas = r.cuentas.filter(c => c.correo === 'consulta@usach.cl');
+  assert.equal(repetidas.length, 2);
+  assert.ok(repetidas.every(c => Number(c.fila) >= 2), 'cada registro trae su fila');
+  const sobrante = repetidas[1];
+  assert.throws(() => ctx.api_eliminarCuenta('otro@usach.cl', sobrante.fila), /ya no está en esa fila/, 'fila y correo deben coincidir');
+  const res = ctx.api_eliminarCuenta(sobrante.correo, sobrante.fila);
+  assert.equal(res.quedan, 1);
+  r = ctx.api_cuentas();
+  assert.deepEqual([...r.duplicadas], []);
+  assert.equal(r.cuentas.filter(c => c.correo === 'consulta@usach.cl').length, 1);
+  assert.ok(tabla(env, 'Bitácora').some(b => b.tipo === 'cuenta' && /Cuenta eliminada: consulta@usach\.cl · Solo Consulta \(repetida\)/.test(b.texto)));
+  // Salvaguardas
+  const vice = r.cuentas.find(c => c.correo === 'vice@usach.cl');
+  assert.throws(() => ctx.api_eliminarCuenta(vice.correo, vice.fila), /propia cuenta/);
+  assert.throws(() => ctx.api_eliminarCuenta(estado.duenia, 2), /dueña/);
+  estado.usuario = estado.duenia;
+  assert.throws(() => ctx.api_eliminarCuenta(vice.correo, vice.fila), /al menos una cuenta activa con nivel Administración/);
+  const consulta = r.cuentas.find(c => c.correo === 'consulta@usach.cl');
+  ctx.api_eliminarCuenta(consulta.correo, consulta.fila);
+  estado.usuario = 'consulta@usach.cl';
+  assert.throws(() => ctx.api_cuentas(), /SIN_ACCESO/, 'eliminada: pierde el acceso de inmediato');
+  estado.usuario = 'analista.uno@usach.cl';
+  assert.throws(() => ctx.api_eliminarCuenta('vice@usach.cl', vice.fila), /SIN_ACCESO/);
+});

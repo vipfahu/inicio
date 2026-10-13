@@ -722,8 +722,8 @@ function pintarCuentas(editando) {
   const filas = lista.map(c => { const rs = resDe(c); return '<div class="fila" style="grid-template-columns:1.4fr 1fr 1fr 1fr 70px;cursor:default"><div><div class="nom">' + h(c.nombre) + '</div><div class="sub mono">' + h(c.correo) + '</div></div>' +
     '<div class="sub">' + h(c.rol) + '</div><div class="sub">' + h(NIV[c.nivel] || c.nivel) + '<br>' + h(rs ? (rs.programas.todos ? 'Todos los programas' : rs.programas.lista.length + ' programa(s)') : c.programas) + '</div>' +
     '<div class="sub" style="white-space:normal">' + (rs ? (rs.copias.length ? rs.copias.map(x => h(x.evento)).join(', ') : 'Sin copias') : h(c.recibe_eventos || '—')) + '</div>' +
-    '<div><span class="tag ' + (c.activo === 'SÍ' ? 't-ok' : 't-no') + '">' + (c.activo === 'SÍ' ? 'Activa' : 'Inactiva') + '</span><br><button data-ed="' + h(c.correo) + '" style="margin-top:6px;padding:5px 9px">Editar</button></div></div>'; }).join('');
-  const c = editando ? r.cuentas.find(x => x.correo === editando) : null, nueva = !c;
+    '<div><span class="tag ' + (c.activo === 'SÍ' ? 't-ok' : 't-no') + '">' + (c.activo === 'SÍ' ? 'Activa' : 'Inactiva') + '</span>' + ((r.duplicadas || []).indexOf(String(c.correo).trim().toLowerCase()) >= 0 ? '<br><span class="tag t-no" style="margin-top:4px">Duplicada</span>' : '') + '<br><button data-ed="' + c.fila + '" style="margin-top:6px;padding:5px 9px">Editar</button></div></div>'; }).join('');
+  const c = editando ? r.cuentas.find(x => String(x.fila) === String(editando)) : null, nueva = !c;
   const v = c || { correo: '', nombre: '', rol: 'Analista', nivel: 'edicion', programas: 'todos', activo: 'SÍ', recibe_eventos: '', notas: '' };
   const evs = String(v.recibe_eventos || '').split(',').map(x => x.trim());
   const progSel = String(v.programas || 'todos').split(';').map(x => x.trim());
@@ -739,7 +739,8 @@ function pintarCuentas(editando) {
     '<label class="chk" style="margin-top:10px"><input type="checkbox" id="k_activo"' + (v.activo === 'SÍ' ? ' checked' : '') + '> Cuenta activa</label>' +
     '<label class="et" style="margin-top:10px" for="k_notas">Notas</label><input id="k_notas" value="' + h(v.notas) + '">' +
     '<div id="k_resumen" style="margin-top:14px">' + tarjetaResumenCuenta(nueva ? null : resDe(v)) + '</div>' +
-    '<div class="acciones" style="justify-content:flex-end;margin-top:14px">' + (nueva ? '' : '<button id="k_nueva">Nueva cuenta</button><button id="k_aviso">Enviar enlace de acceso</button>') + '<button class="prim" id="k_guardar">' + (nueva ? 'Crear cuenta' : 'Guardar') + '</button></div></div>';
+    (!nueva && (r.duplicadas || []).indexOf(String(v.correo).trim().toLowerCase()) >= 0 ? '<div class="aviso a-amb" style="white-space:normal;margin-top:10px">Hay más de un registro con este correo (fila ' + h(v.fila) + ' de la hoja «Cuentas»). Al ingresar se usa el primero; elimine el sobrante.</div>' : '') +
+    '<div class="acciones" style="justify-content:flex-end;margin-top:14px">' + (nueva ? '' : '<button id="k_eliminar" style="margin-right:auto;color:#8A3D2E">Eliminar</button><button id="k_nueva">Nueva cuenta</button><button id="k_aviso">Enviar enlace de acceso</button>') + '<button class="prim" id="k_guardar">' + (nueva ? 'Crear cuenta' : 'Guardar') + '</button></div></div>';
   $('app').innerHTML = '<h2>Cuentas</h2><div class="resumen" style="margin-bottom:16px">El ingreso es con la cuenta Google USACH; aquí se decide qué puede hacer cada persona y qué correos recibe. Los cambios rigen desde la siguiente acción de esa persona. La cuenta institucional (' + h(r.duenia) + ') es administradora fija.</div>' +
     '<div class="pan-f">' + [['', 'Todas'], ['vi', 'Vicedecanato'], ['rc', 'Registro Curricular']].map(g => '<button class="chipf' + (grupo === g[0] ? ' act' : '') + '" data-grupo="' + g[0] + '">' + g[1] + '<span>' + r.cuentas.filter(c => !g[0] || (g[0] === 'rc') === (r.rolesRC || []).indexOf(c.rol) >= 0).length + '</span></button>').join('') + '</div>' +
     (grupo === 'rc' ? '<div class="aviso a-teal" style="white-space:normal;margin-bottom:12px"><b>Cuentas de Registro Curricular.</b> Tres tipos de cuenta (rol): «Registro Curricular» para la registradora curricular; «Analista de Registro Curricular» para sus analistas; y «Cuenta de Registro Curricular del programa» para el correo de RC propio de un programa. Las analistas y las cuentas de programa se asignan a cada programa en Configuración, y reciben copia de las comunicaciones de sus casos; lo que recibe una analista llega también a Registro Curricular. ' +
@@ -767,14 +768,23 @@ function pintarCuentas(editando) {
   if (nueva) refrescarResumen();
   if ($('k_nueva')) $('k_nueva').onclick = () => pintarCuentas();
   if ($('k_aviso')) $('k_aviso').onclick = () => run('api_avisarCuenta', v.correo).then(() => toast('Enlace enviado a ' + v.correo)).catch(fallo);
+  if ($('k_eliminar')) $('k_eliminar').onclick = () => {
+    if (!confirm('¿Eliminar el registro de ' + v.correo + ' (fila ' + v.fila + ')? La persona pierde el acceso y las copias de esta cuenta. Quedará anotado en la bitácora.\n\nSi solo quiere suspenderla, desmarque «Cuenta activa» en vez de eliminar.')) return;
+    $('k_eliminar').disabled = true;
+    run('api_eliminarCuenta', v.correo, v.fila).then(res => { toast('Cuenta eliminada' + (res.quedan ? ' · quedan ' + res.quedan + ' registro(s) con ese correo' : '')); cargarCuentas(); })
+      .catch(err => { fallo(err); $('k_eliminar').disabled = false; });
+  };
   $('k_guardar').onclick = () => {
     const datos = datosForm();
     if (!datos.programas) return toast('Seleccione al menos un programa o «Todos»', true);
+    // Un doble clic no debe crear dos registros: el botón se bloquea hasta que el servidor responda.
+    const b = $('k_guardar'); if (b.disabled) return;
+    b.disabled = true; b.textContent = nueva ? 'Creando…' : 'Guardando…';
     run('api_guardarCuenta', datos, nueva).then(res => {
       toast(res.sinCambios ? 'Sin cambios' : nueva ? 'Cuenta creada' : 'Cuenta actualizada');
       if (nueva && confirm('¿Enviar a ' + datos.correo.trim().toLowerCase() + ' el enlace de acceso al panel?')) run('api_avisarCuenta', datos.correo.trim().toLowerCase()).then(() => toast('Enlace enviado')).catch(fallo);
       cargarCuentas();
-    }).catch(fallo);
+    }).catch(err => { fallo(err); b.disabled = false; b.textContent = nueva ? 'Crear cuenta' : 'Guardar'; });
   };
 }
 
