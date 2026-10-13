@@ -1250,3 +1250,27 @@ test('consulta no ve las plantillas de correo; edición sí', () => {
   estado.usuario = 'analista.uno@usach.cl';
   assert.ok(ctx.api_plantillas().length > 0);
 });
+
+test('programas: desactivar y reactivar desde Configuración; inactivo no se ofrece en el formulario web y sus casos siguen visibles', () => {
+  const env = instalar(preparar());
+  const { ctx, estado } = env;
+  estado.usuario = 'vice@usach.cl';
+  const antes = ctx.api_config().programas.find(p => p.programa === 'Magíster en Prueba A');
+  assert.equal(antes.activo, 'SÍ'); assert.ok(antes.en_curso >= 1, 'cuenta casos en curso');
+  const r = ctx.api_activarPrograma('Magíster en Prueba A', 'NO');
+  assert.equal(r.activo, 'NO'); assert.equal(r.enCurso, antes.en_curso);
+  assert.equal(ctx.api_config().programas.find(p => p.programa === 'Magíster en Prueba A').activo, 'NO');
+  estado.usuario = 'est1@usach.cl';
+  assert.ok(ctx.api_inicioSolicitud().programas.indexOf('Magíster en Prueba A') < 0, 'el formulario web ya no lo ofrece');
+  estado.usuario = 'vice@usach.cl';
+  assert.ok(ctx.api_bandeja().some(s => s.programa === 'Magíster en Prueba A'), 'los casos siguen en la bandeja');
+  assert.ok(tabla(env, 'Bitácora').some(b => /Programa desactivado: Magíster en Prueba A/.test(b.texto)));
+  assert.equal(ctx.api_activarPrograma('Magíster en Prueba A', 'NO').sinCambios, true);
+  ctx.api_activarPrograma('Magíster en Prueba A', 'SÍ');
+  estado.usuario = 'est1@usach.cl';
+  assert.ok(ctx.api_inicioSolicitud().programas.indexOf('Magíster en Prueba A') >= 0);
+  estado.usuario = 'vice@usach.cl';
+  assert.throws(() => ctx.api_activarPrograma('No existe', 'NO'), /no existe/);
+  estado.usuario = 'analista.uno@usach.cl';
+  assert.throws(() => ctx.api_activarPrograma('Magíster en Prueba A', 'NO'), /nivel requerido/);
+});

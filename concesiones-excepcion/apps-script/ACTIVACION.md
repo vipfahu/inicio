@@ -74,7 +74,9 @@ Al terminar, **recargar el panel** (la lista de analistas para asignar se lee al
    - **Correo dirección** — obligatorio. Sin él no salen los correos que van a la dirección de programa o la llevan en copia.
    - **Analista** — opcional. Si se elige, las solicitudes de ese programa se asignan solas a esa analista; si se deja «Sin asignar»,
      se asignan a mano desde el expediente.
-   - **Activo** — los programas inactivos no aparecen en el formulario.
+   - **Estado (Activo / Inactivo)** — botón «Desactivar» / «Reactivar» en cada fila (solo Administración, con confirmación que
+     indica cuántos casos en curso tiene). Un programa inactivo deja de ofrecerse en el formulario web; sus casos existentes
+     siguen visibles y se tramitan igual, y la fila se muestra atenuada al final de la lista. Queda en la bitácora.
 2. **Parámetros** → «Guardar parámetros»:
    - `enlace_rc`: enlace a la plataforma de Registro Curricular (lo usa el correo «No procede»).
    - Revisar `plazo_admisibilidad_dias` (2), `primer_aviso_admisibilidad_dias` (1), `plazo_programa_dias` (2), `plazo_vb_dias` (2), `recordatorio_cada_dias` (2), `recordatorios_max` (3), `max_mb_antecedente` (10),

@@ -46,13 +46,34 @@ function api_inicio() {
 function api_config() {
   requiere_('consulta');
   return serializar_({
-    programas: leer_(HOJAS.programas).map(p => { const o = Object.assign({}, p); delete o._fila; return o; }),
+    programas: (() => {
+      const enCurso = {};
+      leer_(HOJAS.solicitudes).forEach(s => { if (!esCierre(s.estado)) enCurso[s.programa] = (enCurso[s.programa] || 0) + 1; });
+      return leer_(HOJAS.programas).map(p => { const o = Object.assign({}, p); delete o._fila; o.en_curso = enCurso[p.programa] || 0; return o; });
+    })(),
     parametros: leer_(HOJAS.parametros).filter(p => p.clave !== 'carpeta_raiz_id').map(p => ({ clave: p.clave, valor: p.valor, descripcion: p.descripcion })),
     feriados: estadoFeriados_(),
     analistasRC: leer_(HOJAS.cuentas).filter(c => c.rol === 'Analista de Registro Curricular' && esSi(c.activo)).map(c => ({ correo: String(c.correo).toLowerCase(), nombre: c.nombre })),
     cuentasRC: leer_(HOJAS.cuentas).filter(c => c.rol === 'Cuenta de Registro Curricular del programa' && esSi(c.activo)).map(c => ({ correo: String(c.correo).toLowerCase(), nombre: c.nombre })),
     vicedecano: vicedecano_()
   });
+}
+
+/**
+ * Desactiva o reactiva un programa (solo administración). Inactivo = no aparece en el formulario web para solicitudes nuevas;
+ * sus casos existentes siguen visibles y se tramitan igual. Queda en la bitácora con los casos en curso que tenía.
+ */
+function api_activarPrograma(programa, activo) {
+  const u = requiere_('administracion');
+  const nombre = String(programa || '').trim();
+  const actual = leer_(HOJAS.programas).find(x => x.programa === nombre);
+  if (!actual) throw new Error('El programa no existe.');
+  const nuevo = esSi(activo) ? 'SÍ' : 'NO';
+  if (String(actual.activo) === nuevo) return { ok: true, sinCambios: true, activo: nuevo };
+  actualizar_(HOJAS.programas, actual._fila, { activo: nuevo });
+  const enCurso = leer_(HOJAS.solicitudes).filter(s => s.programa === nombre && !esCierre(s.estado)).length;
+  anexar_(HOJAS.bitacora, { fecha: new Date(), folio: '—', tipo: 'sistema', quien: u.correo, texto: 'Programa ' + (nuevo === 'SÍ' ? 'reactivado' : 'desactivado') + ': ' + nombre + (nuevo === 'NO' ? ' · ' + enCurso + ' caso(s) en curso siguen tramitándose; deja de ofrecerse en el formulario web.' : '') });
+  return { ok: true, activo: nuevo, enCurso: enCurso };
 }
 
 function api_guardarPrograma(p, esNuevo) {
