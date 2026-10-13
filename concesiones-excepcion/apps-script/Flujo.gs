@@ -154,6 +154,12 @@ function api_expediente(folio) {
   const visitados = estadosVisitados_(out.bitacora);
   out.anteriores = ESTADOS.filter(e => e.id !== s.estado && visitados.indexOf(e.id) >= 0).map(e => ({ id: e.id, etiqueta: e.etiqueta }));
   out.vbDado = visitados.indexOf('aviso_rc') >= 0 || visitados.indexOf('rechazo_vb') >= 0;
+  // Recordatorio manual: solo en pasos donde se espera una respuesta ajena.
+  const evRec = recordatorioManual(s.estado);
+  if (evRec) {
+    let desc = evRec; try { desc = plantilla_(evRec).descripcion; } catch (e) { /* plantilla aún no agregada */ }
+    out.recordatorio = { evento: evRec, descripcion: desc, enviados: Number(s.recordatorios || 0), ultimo: s.ultimo_recordatorio || '' };
+  }
   // La fundamentación y los archivos (pueden contener datos de salud) solo para Edición o superior.
   out.verDetalle = nivelSuficiente(u.nivel, 'edicion');
   if (out.verDetalle) {
@@ -237,6 +243,46 @@ function api_eliminarSolicitud(folio, motivo) {
         (s.fila_respuesta ? ' · fila de respuestas ' + s.fila_respuesta + ' (conservada)' : '') + ' · ' + archivos.length + ' archivo(s) registrados; carpeta del expediente en la papelera de Drive.'
     });
     return { ok: true, filaRespuesta: s.fila_respuesta || '' };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+/** Vista previa del recordatorio manual del paso actual (no envía nada). */
+function api_previsualizarRecordatorio(folio) {
+  const u = requiere_('edicion');
+  const s = buscarSolicitud_(folio);
+  if (!puedeVerSolicitud(u, s)) throw new Error('SIN_ACCESO: la solicitud no pertenece a sus programas.');
+  const evento = recordatorioManual(s.estado);
+  if (!evento) throw new Error('En el paso «' + estadoPorId(s.estado).etiqueta + '» no se espera respuesta de nadie: no hay recordatorio que enviar.');
+  const c = componer_(evento, s, {});
+  return serializar_({ evento: evento, descripcion: c.descripcion, estadoEtiqueta: estadoPorId(s.estado).etiqueta, enviados: Number(s.recordatorios || 0), ultimo: s.ultimo_recordatorio || '', correo: c });
+}
+
+/**
+ * Envía a mano el recordatorio del paso actual (misma plantilla y destinatarios que el automático). Cuenta como recordatorio
+ * enviado: la tarea diaria espera `recordatorio_cada_dias` días hábiles desde este envío y respeta `recordatorios_max`.
+ */
+function api_enviarRecordatorio(folio, envio) {
+  const u = requiere_('edicion');
+  envio = envio || {};
+  const lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+  try {
+    const s = buscarSolicitud_(folio);
+    if (!puedeVerSolicitud(u, s)) throw new Error('SIN_ACCESO: la solicitud no pertenece a sus programas.');
+    const evento = recordatorioManual(s.estado);
+    if (!evento) throw new Error('En el paso «' + estadoPorId(s.estado).etiqueta + '» no hay recordatorio que enviar.');
+    const c = componer_(evento, s, {});
+    const editado = (envio.asunto && envio.asunto !== c.asunto) || (envio.cuerpo && envio.cuerpo !== c.cuerpo);
+    if (envio.asunto) c.asunto = envio.asunto;
+    if (envio.cuerpo) c.cuerpo = envio.cuerpo;
+    enviar_(c, []);
+    const ahora = new Date();
+    actualizar_(HOJAS.solicitudes, s._fila, { recordatorios: Number(s.recordatorios || 0) + 1, ultimo_recordatorio: ahora, actualizado: ahora });
+    anexar_(HOJAS.bitacora, { fecha: ahora, folio: folio, tipo: 'correo', quien: u.correo, texto: 'Recordatorio enviado a mano: ' + c.descripcion,
+      evento: evento, para: c.para.join(', '), cc: c.cc.join(', '), asunto: c.asunto, editado: editado ? 'SÍ' : 'NO' });
+    return { ok: true, para: c.para, cc: c.cc };
   } finally {
     lock.releaseLock();
   }

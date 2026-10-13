@@ -408,6 +408,10 @@ const RECORDATORIOS = {
   vb: { evento: 'recordatorio_vb', primero: 'plazo_vb_dias', porDefecto: 2, alCumplir: false }
 };
 
+/** Pasos en que se espera una respuesta ajena y el equipo puede enviar un recordatorio a mano (misma plantilla que el automático, si existe). */
+const RECORDATORIO_MANUAL = { recibida: 'recordatorio_admisibilidad', programa: 'recordatorio', vb: 'recordatorio_vb', informe_rc: 'recordatorio_informe_rc', resolucion: 'recordatorio_resolucion' };
+function recordatorioManual(estado) { return RECORDATORIO_MANUAL[estado] || ''; }
+
 /** Las salidas del V°B° (admisible, rechazada, devolución) las registra solo el Vicedecano/a, salvo V°B° dado por otro medio. */
 function requiereVicedecano(desde) {
   return desde === 'vb';
@@ -532,6 +536,6 @@ if (typeof module !== 'undefined') {
   module.exports = { rutaProceso, RUTA_PRINCIPAL, esRolRC, ROLES_RC, tipoVista, mimePorNombre, entradaZipUtil, encargoDe, requiereVicedecano, normalizarRun, normalizarPasaporte, feriadosDesdeEventos, OCULTOS_AL_ESTUDIANTE, sumarDiasHabiles, recordatorioPendiente, RECORDATORIOS, camposRequeridos,
     ESTADOS, CAMPOS_REQUERIDOS, TIPOS_CATALOGO, NIVELES, ROLES, estadoPorId, esCierre, transicionValida, eventoTransicion,
     normalizarFolio, siguienteFolio, estadoMigrado, separarTipos, rellenar, variablesSinResolver, resolverDestinatarios,
-    diasHabilesEntre, necesitaRecordatorio, nivelSuficiente, puedeVerSolicitud, validarCuenta, esSi, listaRoles, validarSolicitud, resumenCuenta
+    diasHabilesEntre, necesitaRecordatorio, nivelSuficiente, puedeVerSolicitud, validarCuenta, esSi, listaRoles, validarSolicitud, resumenCuenta, RECORDATORIO_MANUAL, recordatorioManual
   };
 }

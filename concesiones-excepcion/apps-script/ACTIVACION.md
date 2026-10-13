@@ -106,6 +106,9 @@ Al terminar, **recargar el panel** (la lista de analistas para asignar se lee al
      «Administración» al final de la ficha; pide escribir el folio para confirmar; la carpeta del expediente va a la papelera de
      Drive y la fila de la hoja de respuestas queda sin solicitud), un archivo del expediente (botón «Eliminar» junto a cada
      archivo) o las copias del PDF del formulario. Las cuentas de nivel Edición no ven esos controles.
+   - **Enviar recordatorio** (en la ficha, bajo «Pasar a», solo cuando el paso espera respuesta de alguien: admisibilidad
+     pendiente, pronunciamiento del programa, V°B°, informe o resolución de Registro Curricular): muestra el correo antes de
+     enviarlo, se puede editar, y queda en la bitácora. Cuenta como recordatorio para la tarea diaria.
    - **Volver a un paso anterior** (en la ficha, bajo «Pasar a»): para corregir un avance equivocado. Pide motivo, no envía correo
      y queda en la bitácora. Deshacer un V°B° ya dado lo hace solo el Vicedecano/a o administración.
 3. **Días hábiles y feriados (automáticos):** los plazos cuentan de lunes a viernes descontando los feriados de Chile, que la plataforma

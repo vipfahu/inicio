@@ -1186,3 +1186,40 @@ test('eliminar registros: solo administración, con motivo y constancia (solicit
   const v = ctx.api_verificarMigracion();
   assert.ok(v.diferencias.some(d => d.campo === 'solicitud' && d.fila === 4));
 });
+
+test('recordatorio manual: vista previa y envío según el paso; cuenta para el máximo y queda en la bitácora', () => {
+  const env = instalar(preparar());
+  const { ctx, estado } = env;
+  estado.usuario = 'analista.uno@usach.cl';
+  // 05/2026 está en «programa» (migrado): recordatorio a la dirección del programa con copia a la analista
+  const e = ctx.api_expediente('05/2026');
+  assert.equal(e.estado, 'programa');
+  assert.equal(e.recordatorio.evento, 'recordatorio'); assert.equal(e.recordatorio.enviados, 0);
+  const pv = ctx.api_previsualizarRecordatorio('05/2026');
+  assert.match(pv.correo.para[0], /^dir\d+@usach\.cl$/, 'dirección del programa');
+  assert.ok(pv.correo.cc.indexOf('analista.uno@usach.cl') >= 0);
+  const antes = estado.correos.length;
+  const r = ctx.api_enviarRecordatorio('05/2026', { cuerpo: pv.correo.cuerpo + '\n\nPD: urgente.' });
+  assert.equal(estado.correos.length, antes + 1);
+  assert.match(estado.correos[estado.correos.length - 1].body, /PD: urgente/);
+  const e2 = ctx.api_expediente('05/2026');
+  assert.equal(e2.recordatorio.enviados, 1); assert.ok(e2.recordatorio.ultimo);
+  const b = e2.bitacora.find(x => /Recordatorio enviado a mano/.test(x.texto));
+  assert.ok(b && b.evento === 'recordatorio' && b.editado === 'SÍ' && b.quien === 'analista.uno@usach.cl');
+  // La tarea diaria no repite el recordatorio el mismo día (acaba de enviarse)
+  assert.equal(ctx.recordatorioPendiente(ctx.buscarSolicitud_('05/2026'), new Date(), ctx.parametros_(), []), '');
+  // Paso sin espera ajena: no hay recordatorio
+  assert.equal(ctx.api_expediente('03/2026').recordatorio, undefined);
+  assert.throws(() => ctx.api_previsualizarRecordatorio('03/2026'), /no se espera respuesta/);
+  assert.throws(() => ctx.api_enviarRecordatorio('03/2026', {}), /no hay recordatorio/);
+  // Informe de RC: plantilla nueva a la cuenta con rol Registro Curricular
+  ctx.api_guardarGestion('03/2026', { n_std: '777' });
+  ctx.api_cambiarEstado('03/2026', 'informe_rc', {});
+  const pv2 = ctx.api_previsualizarRecordatorio('03/2026');
+  assert.equal(pv2.evento, 'recordatorio_informe_rc');
+  assert.deepEqual([...pv2.correo.para], ['rc@usach.cl']);
+  assert.match(pv2.correo.cuerpo, /STD N° 777/);
+  assert.ok(!/\{[a-z_]+\}/.test(pv2.correo.cuerpo), 'sin variables sin resolver');
+  estado.usuario = 'consulta@usach.cl';
+  assert.throws(() => ctx.api_enviarRecordatorio('05/2026', {}), /nivel requerido/);
+});

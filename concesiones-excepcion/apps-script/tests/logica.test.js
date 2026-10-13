@@ -366,3 +366,13 @@ test('resumenCuenta: qué ve y qué recibe cada cuenta se deriva de las reglas d
   assert.deepEqual([...vice.programas.lista], ['Magíster B']);
   assert.deepEqual([...vice.copias].map(c => c.evento + '|' + c.origenes.join('/')), ['nueva_solicitud|a todas las cuentas con acceso al panel (solo de los programas que ve)', 'aceptada|marcado en esta cuenta (solo de los programas que ve)', 'vb|por su rol «Vicedecano/a» (solo de los programas que ve)']);
 });
+
+test('recordatorio manual: solo en pasos que esperan respuesta ajena, con la misma plantilla que el automático', () => {
+  assert.equal(L.recordatorioManual('programa'), L.RECORDATORIOS.programa.evento);
+  assert.equal(L.recordatorioManual('vb'), L.RECORDATORIOS.vb.evento);
+  assert.equal(L.recordatorioManual('recibida'), L.RECORDATORIOS.recibida.evento);
+  assert.equal(L.recordatorioManual('informe_rc'), 'recordatorio_informe_rc');
+  assert.equal(L.recordatorioManual('resolucion'), 'recordatorio_resolucion');
+  ['aceptada', 'revision', 'aviso_rc', 'rc_notificado', 'resuelto', 'negado', 'rechazada', 'no_procede', 'rechazo_vb'].forEach(x => assert.equal(L.recordatorioManual(x), '', x));
+  Object.values(L.RECORDATORIO_MANUAL).forEach(ev => assert.ok(L.ESTADOS.length && ev, ev));
+});

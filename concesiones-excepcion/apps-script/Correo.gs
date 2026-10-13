@@ -37,6 +37,7 @@ function variables_(sol, campos, cuentas) {
     plazo_admisibilidad: p.plazo_admisibilidad_dias || 2,
     accion_admisibilidad: sol.analista ? 'abrir la revisión de admisibilidad' : 'asignar analista y abrir la revisión de admisibilidad',
     fecha_recepcion: fechaCorta_(sol.fecha_recepcion),
+    fecha_estado: sol.estado_desde ? fechaCorta_(sol.estado_desde) : '',
     fecha_solicitud_programa: sol.estado === 'programa' ? fechaCorta_(sol.estado_desde) : '',
     vence_programa: sol.estado === 'programa' && sol.estado_desde ? fechaCorta_(sumarDiasHabiles(new Date(sol.estado_desde), Number(p.plazo_programa_dias || 2), feriados_())) : '',
     fecha_solicitud_vb: sol.estado === 'vb' ? fechaCorta_(sol.estado_desde) : '',

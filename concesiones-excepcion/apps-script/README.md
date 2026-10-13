@@ -194,6 +194,16 @@ de los antecedentes del Formulario solo se quita el acceso directo y el registro
 PDF del formulario (`api_quitarPdfDuplicados`) y la reparación de importaciones. Todas exigen motivo y quedan en la bitácora; la
 eliminación de una solicitud pide además escribir el folio para confirmar. Edición no ve esos controles y el servidor los rechaza.
 
+**Recordatorio manual.** En los pasos en que se espera una respuesta ajena, la ficha ofrece «Enviar recordatorio» con vista
+previa editable (`api_previsualizarRecordatorio` / `api_enviarRecordatorio`, nivel Edición). Usa la misma plantilla y los mismos
+destinatarios que el recordatorio automático del paso (`RECORDATORIO_MANUAL` en Logica.gs): «Recibida» → recordatorio interno de
+admisibilidad; «Pronunciamiento del programa» → dirección de programa, cc analista; «V°B°» → Vicedecano/a, cc analista; y dos
+plantillas nuevas para la espera de Registro Curricular: «Informe de Registro Curricular» → `recordatorio_informe_rc` y
+«Resolución en elaboración» → `recordatorio_resolucion` (para: rol Registro Curricular; cc: analista; variable `{fecha_estado}`).
+Un envío manual cuenta como recordatorio: suma a `recordatorios`, fija `ultimo_recordatorio` (la tarea diaria espera
+`recordatorio_cada_dias` desde ahí) y respeta `recordatorios_max` solo para los automáticos; el manual siempre se puede enviar.
+Queda en la bitácora con quién lo envió y si editó el texto. En los demás pasos no hay botón: nadie debe nada.
+
 **Volver a un paso anterior.** En la ficha (Gestión del trámite → «Volver a un paso anterior») se puede devolver la solicitud a
 cualquier paso por el que ya pasó (`api_retroceder(folio, hacia, motivo)`): exige motivo, no envía correo, conserva STD, comentarios,
 observación y resolución, y queda en la bitácora como «Retroceso: A → B · Motivo». Si la solicitud ya tenía V°B° (pasó por «CAE
