@@ -27,6 +27,9 @@ function variables_(sol, campos, cuentas) {
     firmante: (analista ? analista + '\n' : '') + 'Vicedecanato de Investigación y Postgrado · FAHU',
     analista_asignada: analista || 'sin asignar (asígnela desde el expediente)',
     std: campos.n_std || sol.n_std || '',
+    // Referencia al envío por STD: con número si está registrado, sin él si no (las plantillas no dejan «N° » vacío).
+    std_ref: (campos.n_std || sol.n_std) ? 'STD N° ' + String(campos.n_std || sol.n_std).trim() : 'STD',
+    std_frase: (campos.n_std || sol.n_std) ? ' (trámite STD N° ' + String(campos.n_std || sol.n_std).trim() + ')' : '',
     vicedecano: vice,
     encargo_vicedecano: encargoDe(vice),
     motivo: campos.motivo || sol.motivo || '',

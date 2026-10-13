@@ -376,3 +376,10 @@ test('recordatorio manual: solo en pasos que esperan respuesta ajena, con la mis
   ['aceptada', 'revision', 'aviso_rc', 'rc_notificado', 'resuelto', 'negado', 'rechazada', 'no_procede', 'rechazo_vb'].forEach(x => assert.equal(L.recordatorioManual(x), '', x));
   Object.values(L.RECORDATORIO_MANUAL).forEach(ev => assert.ok(L.ESTADOS.length && ev, ev));
 });
+
+test('rellenar: una variable vacía bloquea, salvo las opcionales (frases accesorias como la referencia al STD)', () => {
+  assert.equal(L.rellenar('a {x} b', { x: '' }), 'a {x} b');
+  assert.equal(L.rellenar('a{std_frase} b', { std_frase: '' }), 'a b');
+  assert.equal(L.rellenar('a{std_frase} b', { std_frase: ' (trámite STD N° 1)' }), 'a (trámite STD N° 1) b');
+  assert.deepEqual([...L.variablesSinResolver(L.rellenar('{folio}{std_frase}', { folio: '', std_frase: '' }))], ['folio']);
+});

@@ -195,8 +195,10 @@ function encargoDe(nombre) {
   return 'de ' + nombre;
 }
 
+/** Variables que pueden valer «» sin bloquear el envío: frases accesorias que simplemente no aparecen (p. ej., la referencia al STD). */
+const VARIABLES_OPCIONALES = { std_frase: true };
 function rellenar(texto, vars) {
-  return String(texto || '').replace(/\{(\w+)\}/g, (m, k) => (vars[k] !== undefined && vars[k] !== null && vars[k] !== '') ? String(vars[k]) : m);
+  return String(texto || '').replace(/\{(\w+)\}/g, (m, k) => (vars[k] !== undefined && vars[k] !== null && (vars[k] !== '' || VARIABLES_OPCIONALES[k])) ? String(vars[k]) : m);
 }
 
 function variablesSinResolver(texto) {
@@ -536,6 +538,6 @@ if (typeof module !== 'undefined') {
   module.exports = { rutaProceso, RUTA_PRINCIPAL, esRolRC, ROLES_RC, tipoVista, mimePorNombre, entradaZipUtil, encargoDe, requiereVicedecano, normalizarRun, normalizarPasaporte, feriadosDesdeEventos, OCULTOS_AL_ESTUDIANTE, sumarDiasHabiles, recordatorioPendiente, RECORDATORIOS, camposRequeridos,
     ESTADOS, CAMPOS_REQUERIDOS, TIPOS_CATALOGO, NIVELES, ROLES, estadoPorId, esCierre, transicionValida, eventoTransicion,
     normalizarFolio, siguienteFolio, estadoMigrado, separarTipos, rellenar, variablesSinResolver, resolverDestinatarios,
-    diasHabilesEntre, necesitaRecordatorio, nivelSuficiente, puedeVerSolicitud, validarCuenta, esSi, listaRoles, validarSolicitud, resumenCuenta, RECORDATORIO_MANUAL, recordatorioManual
+    diasHabilesEntre, necesitaRecordatorio, nivelSuficiente, puedeVerSolicitud, validarCuenta, esSi, listaRoles, validarSolicitud, resumenCuenta, RECORDATORIO_MANUAL, recordatorioManual, VARIABLES_OPCIONALES
   };
 }

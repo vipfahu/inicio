@@ -1274,3 +1274,25 @@ test('programas: desactivar y reactivar desde Configuración; inactivo no se ofr
   estado.usuario = 'analista.uno@usach.cl';
   assert.throws(() => ctx.api_activarPrograma('Magíster en Prueba A', 'NO'), /nivel requerido/);
 });
+
+test('correos que aluden a un envío por STD incluyen el número cuando está registrado y no dejan «N°» vacío cuando no', () => {
+  const env = instalar(preparar());
+  const { ctx, estado } = env;
+  estado.usuario = 'analista.uno@usach.cl';
+  // 03/2026 (aceptada) sin STD: la vista previa de «aceptada» no menciona número
+  const sinStd = ctx.componer_('aceptada', ctx.buscarSolicitud_('03/2026'), {});
+  assert.ok(!/STD N°/.test(sinStd.cuerpo) && !/\(\)/.test(sinStd.cuerpo) && !/N°\s*[.,)]/.test(sinStd.cuerpo), sinStd.cuerpo);
+  const rec0 = ctx.componer_('recordatorio_informe_rc', ctx.buscarSolicitud_('03/2026'), {});
+  assert.match(rec0.cuerpo, /tramitada por STD\./);
+  // Con STD registrado: aparece en admisible, CAE admisible, CAE rechazada y recordatorios
+  ctx.api_guardarGestion('03/2026', { n_std: '4521' });
+  const s = ctx.buscarSolicitud_('03/2026');
+  assert.match(ctx.componer_('aceptada', s, {}).cuerpo, /Registro Curricular \(trámite STD N° 4521\) para la emisión/);
+  assert.match(ctx.componer_('cae_admisible', s, {}).cuerpo, /en elaboración \(trámite STD N° 4521\), para su distribución/);
+  assert.match(ctx.componer_('cae_rechazada', s, {}).cuerpo, /en elaboración \(trámite STD N° 4521\), para su distribución/);
+  assert.match(ctx.componer_('recordatorio', s, {}).cuerpo, /Sistema de Trazabilidad Documental \(STD N° 4521\)/);
+  assert.match(ctx.componer_('recordatorio_informe_rc', s, {}).cuerpo, /tramitada por STD N° 4521\./);
+  assert.match(ctx.componer_('recordatorio_resolucion', s, {}).cuerpo, /\), STD N° 4521\./);
+  // El número escrito en el mismo diálogo (campos) tiene prioridad sobre el guardado
+  assert.match(ctx.componer_('cae_admisible', s, { n_std: '9999' }).cuerpo, /STD N° 9999/);
+});
