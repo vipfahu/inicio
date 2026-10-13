@@ -221,7 +221,9 @@ function dialogoSalir() {
 }
 
 function pintarNav() {
-  const tabs = [['bandeja', 'Bandeja'], ['panorama', 'Panorama'], ['indicadores', 'Indicadores'], ['plantillas', 'Plantillas de correo'], ['config', 'Configuración']];
+  const tabs = [['bandeja', 'Bandeja'], ['panorama', 'Panorama'], ['indicadores', 'Indicadores']];
+  if (nivel('edicion')) tabs.push(['plantillas', 'Plantillas de correo']);
+  tabs.push(['config', 'Configuración']);
   if (nivel('administracion')) tabs.push(['cuentas', 'Cuentas']);
   $('nav').innerHTML = tabs.map(t => '<button data-v="' + t[0] + '" class="' + (S.vista === t[0] || (S.vista === 'exp' && t[0] === 'bandeja') ? 'act' : '') + '">' + t[1] + '</button>').join('');
   $('nav').querySelectorAll('button').forEach(b => b.onclick = () => ir(b.dataset.v));

@@ -139,7 +139,7 @@ function avisarFalloCorreo_(evento, sol, err) {
 /* ── Pantalla «Plantillas» ── */
 
 function api_plantillas() {
-  requiere_('consulta');
+  requiere_('edicion'); // Consulta no ve las plantillas (textos internos); solo quien tramita
   return serializar_(leer_(HOJAS.plantillas).map(t => { const o = Object.assign({}, t); delete o._fila; return o; }));
 }
 

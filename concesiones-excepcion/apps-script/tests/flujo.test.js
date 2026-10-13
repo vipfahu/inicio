@@ -1240,3 +1240,13 @@ test('listas desplegables de «Cuentas»: la actualización las renueva con los 
   // Y la lista nueva sigue rechazando un rol inexistente
   assert.throws(() => hc.getRange(30, 3).setValue('Rol inventado'), /infringen/);
 });
+
+test('consulta no ve las plantillas de correo; edición sí', () => {
+  const env = instalar(preparar());
+  const { ctx, estado } = env;
+  estado.usuario = 'consulta@usach.cl';
+  assert.throws(() => ctx.api_plantillas(), /nivel requerido/);
+  assert.ok(ctx.api_bandeja().length > 0, 'la bandeja sigue disponible');
+  estado.usuario = 'analista.uno@usach.cl';
+  assert.ok(ctx.api_plantillas().length > 0);
+});
