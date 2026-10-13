@@ -572,48 +572,56 @@ function verificarMigracion() {
 
 /**
  * Realinea `fila_respuesta` cuando en la hoja de respuestas se insertaron, borraron u ordenaron filas después de la migración.
- * Para cada solicitud migrada busca su fila por identidad (correo verificado; si no, apellidos + nombres); solo cambia cuando la
- * coincidencia es única. No crea ni borra solicitudes: las filas sin solicitud se informan.
+ * Cada solicitud migrada se empareja con una fila del mismo estudiante (correo verificado; si no, apellido y nombres). Cuando el
+ * estudiante tiene varias filas (envió más de una solicitud), se desempata por fecha de envío, programa, año, semestre, tipo,
+ * RUN y teléfono, y la asignación es conjunta: una fila por solicitud, de mayor a menor coincidencia. No crea ni borra
+ * solicitudes: las filas sin solicitud y las solicitudes sin fila se informan.
  */
 function realinearMigracion_(u) {
   const resp = hojaRespuestas_();
   const enc = resp.getRange(1, 1, 1, resp.getLastColumn()).getValues()[0].map(String);
   const n = resp.getLastRow() - 1;
   const datos = n > 0 ? resp.getRange(2, 1, n, enc.length).getValues() : [];
-  const jCorreo = columnaPorPrefijo_(enc, RESPUESTA.correoVerificado), jA1 = columnaPorPrefijo_(enc, RESPUESTA.apellido1),
-    jA2 = columnaPorPrefijo_(enc, RESPUESTA.apellido2), jN = columnaPorPrefijo_(enc, RESPUESTA.nombres);
   const norm = x => String(x === null || x === undefined ? '' : x).trim().toLowerCase().replace(/\s+/g, ' ');
-  const porCorreo = {}, porNombre = {};
+  const digitos = x => String(x || '').replace(/\D/g, '');
+  const fechaTxt = d => d instanceof Date && !isNaN(d) ? Utilities.formatDate(d, Session.getScriptTimeZone(), 'yyyy-MM-dd') : '';
+  const filas = [];
   datos.forEach((r, i) => {
     if (r.every(x => x === '' || x === null)) return;
-    const fila = i + 2;
-    const c = norm(r[jCorreo]); if (c) (porCorreo[c] = porCorreo[c] || []).push(fila);
-    const k = norm(r[jA1]) + '|' + norm(r[jA2]) + '|' + norm(r[jN]); if (k !== '||') (porNombre[k] = porNombre[k] || []).push(fila);
+    const o = {};
+    Object.keys(RESPUESTA).forEach(k => { const j = columnaPorPrefijo_(enc, RESPUESTA[k]); o[k] = j >= 0 ? r[j] : ''; });
+    const t = separarTipos(o.tipos);
+    filas.push({ fila: i + 2, correo: norm(o.correoVerificado), a1: norm(o.apellido1), nombres: norm(o.nombres), fecha: fechaTxt(o.marca),
+      programa: norm(o.programa), anio: norm(o.anio), semestre: semestreNormalizado_(o.semestre), catalogo: norm(t.catalogo), libre: norm(t.libre),
+      run: digitos(o.run), telefono: digitos(o.telefono) });
   });
-  const coincide = (fila, s) => {
-    const r = datos[fila - 2]; if (!r) return false;
-    return (norm(r[jCorreo]) && norm(r[jCorreo]) === norm(s.correo_verificado)) || (norm(r[jA1]) === norm(s.apellido1) && norm(r[jN]) === norm(s.nombres));
-  };
+  const claveSol = s => ({ correo: norm(s.correo_verificado), a1: norm(s.apellido1), nombres: norm(s.nombres), fecha: fechaTxt(s.fecha_recepcion),
+    programa: norm(s.programa), anio: norm(s.anio), semestre: String(s.semestre || '').trim(), catalogo: norm(s.tipo_catalogo), libre: norm(s.tipo_texto_libre),
+    run: digitos(s.run), telefono: digitos(s.telefono) });
+  const mismaPersona = (f, k) => (f.correo && f.correo === k.correo) || (f.a1 && f.nombres && f.a1 === k.a1 && f.nombres === k.nombres);
+  const puntaje = (f, k) => ['fecha', 'programa', 'anio', 'semestre', 'catalogo', 'libre', 'run', 'telefono'].reduce((p, c) => p + (f[c] && f[c] === k[c] ? 1 : 0), 0);
   const sols = leer_(HOJAS.solicitudes).filter(s => Number(s.fila_respuesta));
+  // Todos los pares posibles (solicitud, fila del mismo estudiante), de mayor a menor coincidencia; en empate, la fila actual.
+  const pares = [];
+  sols.forEach((s, i) => { const k = claveSol(s); filas.forEach(f => { if (mismaPersona(f, k)) pares.push({ i: i, fila: f.fila, p: puntaje(f, k), actual: f.fila === Number(s.fila_respuesta) }); }); });
+  pares.sort((a, b) => b.p - a.p || (b.actual ? 1 : 0) - (a.actual ? 1 : 0) || a.fila - b.fila);
+  const asignada = {}, filaOcupada = {};
+  pares.forEach(x => { if (asignada[x.i] === undefined && !filaOcupada[x.fila]) { asignada[x.i] = x.fila; filaOcupada[x.fila] = true; } });
   const cambios = [], pendientes = [];
   let sinCambio = 0;
-  const ocupadas = {};
-  sols.forEach(s => { if (coincide(Number(s.fila_respuesta), s)) ocupadas[Number(s.fila_respuesta)] = s.folio; });
-  sols.forEach(s => {
-    const actual = Number(s.fila_respuesta);
-    if (coincide(actual, s)) { sinCambio++; return; }
-    let cand = porCorreo[norm(s.correo_verificado)] || [];
-    if (cand.length !== 1) cand = porNombre[norm(s.apellido1) + '|' + norm(s.apellido2) + '|' + norm(s.nombres)] || [];
-    cand = cand.filter(f => !ocupadas[f]);
-    if (cand.length !== 1) { pendientes.push({ folio: s.folio, fila: actual, motivo: cand.length ? 'más de una fila coincide' : 'ninguna fila coincide por correo ni por nombre' }); return; }
-    actualizar_(HOJAS.solicitudes, s._fila, { fila_respuesta: cand[0], actualizado: new Date() });
-    ocupadas[cand[0]] = s.folio;
-    cambios.push({ folio: s.folio, de: actual, a: cand[0] });
-    anexar_(HOJAS.bitacora, { fecha: new Date(), folio: s.folio, tipo: 'sistema', quien: u, texto: 'Fila de origen realineada: ' + actual + ' → ' + cand[0] + ' (la hoja de respuestas cambió de orden).' });
+  sols.forEach((s, i) => {
+    const actual = Number(s.fila_respuesta), nueva = asignada[i];
+    if (nueva === undefined) {
+      const hayCandidatas = pares.some(x => x.i === i);
+      pendientes.push({ folio: s.folio, fila: actual, motivo: hayCandidatas ? 'todas las filas de este estudiante ya quedaron asignadas a otros folios' : 'ninguna fila coincide por correo ni por nombre' });
+      return;
+    }
+    if (nueva === actual) { sinCambio++; return; }
+    actualizar_(HOJAS.solicitudes, s._fila, { fila_respuesta: nueva, actualizado: new Date() });
+    cambios.push({ folio: s.folio, de: actual, a: nueva });
+    anexar_(HOJAS.bitacora, { fecha: new Date(), folio: s.folio, tipo: 'sistema', quien: u, texto: 'Fila de origen realineada: ' + actual + ' → ' + nueva + ' (la hoja de respuestas cambió de orden).' });
   });
-  const asignadas = {}; leer_(HOJAS.solicitudes).forEach(s => { if (Number(s.fila_respuesta)) asignadas[Number(s.fila_respuesta)] = true; });
-  const sinSolicitud = [];
-  datos.forEach((r, i) => { if (!r.every(x => x === '' || x === null) && !asignadas[i + 2]) sinSolicitud.push(i + 2); });
+  const sinSolicitud = filas.map(f => f.fila).filter(f => !filaOcupada[f]);
   return { realineadas: cambios, sinCambio: sinCambio, pendientes: pendientes, filasSinSolicitud: sinSolicitud };
 }
 

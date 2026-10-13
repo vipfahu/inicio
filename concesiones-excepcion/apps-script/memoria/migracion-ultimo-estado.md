@@ -22,6 +22,11 @@ nunca pedir a la persona que corrija números de fila a mano; y el «estado migr
 Tras realinear quedaron cinco filas sin solicitud (no una): el diagnóstico de «una fila insertada» era incompleto. Lección: cuando una
 herramienta deja filas huérfanas, debe explicarlas por sí misma (`explicarHuerfana_`: fecha de envío y si coinciden con un folio por
 correo o nombre), porque la persona no debe pegar datos personales en el chat para que se interpreten.
+Segunda corrección: las cinco huérfanas eran de estudiantes con **dos envíos**; «solo coincidencia única» no decidía, y «ya está
+bien» se daba por cierto si la solicitud apuntaba a cualquier fila del estudiante (dos folios quedaron cruzados). Ahora la
+realineación puntúa cada par (fecha, programa, año, semestre, tipo, RUN, teléfono) y asigna en conjunto, una fila por solicitud.
+Lección: la identidad de una fila migrada es estudiante **+ envío**, no solo estudiante; y una regla de «no tocar si hay duda»
+debe decir qué duda queda, no dejar el caso a medias.
 
 Cierre (2026-10-13): el Formulario de Google se cerró (ya no llegan filas); a pedido de la persona, la hoja de respuestas queda
 protegida por el script (solo la cuenta dueña edita), porque el único riesgo restante para la fundamentación migrada era una

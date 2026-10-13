@@ -981,3 +981,28 @@ test('hoja de respuestas protegida: la actualización la protege (solo la dueña
   estado.usuario = 'vice@usach.cl';
   assert.throws(() => ctx.protegerHojaRespuestas(), /dueña|SOLO_DUENIA|cuenta/i);
 });
+
+test('realinear filas migradas: un estudiante con dos envíos se desempata por fecha y tipo; no se asignan dos folios a la misma fila', () => {
+  const env = instalar(preparar());
+  const { ctx, estado, hoja } = env;
+  // Antes de migrar no se puede; se simula después: dos filas nuevas del mismo estudiante (est2) insertadas al inicio, con fechas y tipos distintos,
+  // y la solicitud 02/2026 (fecha 01-02-2026, Renuncia) debe quedar en la fila cuya fecha y tipo coinciden, no en la primera del estudiante.
+  const base = hoja.datos[2].slice(); // fila 3 = 02/2026 (est2)
+  const otra = base.slice(); otra[0] = '07/2026'; otra[1] = new Date(2026, 5, 1); otra[12] = 'Matrícula fuera de plazo';
+  hoja.datos.splice(2, 0, otra); // ahora la fila 3 es el segundo envío de est2 y la original pasa a la 4
+  estado.usuario = 'vice@usach.cl';
+  const r = ctx.api_realinearMigracion();
+  const dos = r.realineadas.find(x => x.folio === '02/2026');
+  assert.ok(dos && dos.a === 4, '02/2026 va a la fila con su misma fecha y tipo (la 4), no a la 3: ' + JSON.stringify(dos));
+  assert.deepEqual([...r.filasSinSolicitud], [3], 'el otro envío del estudiante queda sin solicitud');
+  assert.deepEqual([...r.pendientes], []);
+  const v = ctx.api_verificarMigracion();
+  assert.ok(!v.diferencias.some(d => /misma fila/.test(d.nota)), 'ninguna fila con dos folios');
+  assert.equal(v.diferencias.filter(d => d.tipo === 'formulario' && d.campo !== 'solicitud').length, 0);
+  // Dos solicitudes del mismo estudiante cruzadas entre sí se destraban
+  const sols = ctx.api_bandeja().map(s => s.folio);
+  assert.ok(sols.indexOf('02/2026') >= 0);
+  estado.usuario = 'vice@usach.cl';
+  const r2 = ctx.api_realinearMigracion();
+  assert.equal(r2.realineadas.length, 0, 'segunda pasada: estable');
+});
