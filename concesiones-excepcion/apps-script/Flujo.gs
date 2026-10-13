@@ -94,6 +94,32 @@ function api_bandeja() {
   return serializar_(lista);
 }
 
+/**
+ * Panorama de avance: todos los casos que la cuenta puede ver, con su ruta de pasos (sin fundamentación ni archivos).
+ * Disponible para todo nivel con acceso al panel: Vicedecanato y cuentas de Registro Curricular con nivel Consulta.
+ */
+function api_panorama() {
+  const u = requiere_('consulta');
+  const cuentas = leer_(HOJAS.cuentas);
+  const bit = leer_(HOJAS.bitacora).filter(b => b.tipo === 'estado');
+  const feriados = feriados_();
+  const hoy = new Date();
+  const casos = leer_(HOJAS.solicitudes).filter(s => s.folio && puedeVerSolicitud(u, s)).map(s => {
+    const e = estadoPorId(s.estado) || {};
+    const visitados = bit.filter(b => String(b.folio) === String(s.folio)).map(b => b.estado_nuevo);
+    const desde = s.estado_desde ? new Date(s.estado_desde) : null;
+    return {
+      folio: s.folio, nombre: [s.nombres, s.apellido1, s.apellido2].filter(Boolean).join(' '), programa: s.programa,
+      tipo: [s.tipo_catalogo, s.tipo_texto_libre].filter(Boolean).join(', '), estado: s.estado, etiqueta: e.etiqueta || s.estado,
+      fase: e.fase || '', cerrado: !(e.siguientes || []).length, fecha_recepcion: s.fecha_recepcion, estado_desde: s.estado_desde,
+      diasHabiles: desde && !isNaN(desde) ? diasHabilesEntre(desde, hoy, feriados) : null,
+      analistaNombre: s.analista ? nombreDe_(s.analista, cuentas) : '',
+      ruta: rutaProceso(s.estado, visitados).map(p => ({ id: p.id, etiqueta: p.etiqueta, fase: p.fase, situacion: p.situacion }))
+    };
+  });
+  return serializar_({ casos: casos, fases: ['Admisibilidad', 'Tramitación', 'Resolución', 'Cierre'] });
+}
+
 function api_expediente(folio) {
   const u = requiere_('consulta');
   const s = buscarSolicitud_(folio);
@@ -176,6 +202,7 @@ function api_cambiarEstado(folio, hacia, envio) {
     if (campos.observacion) cambios.obs_vicedecano = campos.observacion;
     if (campos.propuesta_comite) cambios.propuesta_comite = campos.propuesta_comite;
     if (campos.resolucion) cambios.resolucion = campos.resolucion;
+    if (campos.notificacion_rc) cambios.notificacion_rc = campos.notificacion_rc;
     const desdeEtiqueta = estadoPorId(s.estado).etiqueta, haciaEtiqueta = estadoPorId(hacia).etiqueta;
     let registroCorreo = {};
     if (evento) {
@@ -193,7 +220,8 @@ function api_cambiarEstado(folio, hacia, envio) {
     anexar_(HOJAS.bitacora, Object.assign({
       fecha: new Date(), folio: folio, tipo: 'estado', quien: u.correo,
       texto: desdeEtiqueta + ' → ' + haciaEtiqueta + (campos.motivo ? ' · Motivo: ' + campos.motivo : '') +
-        (campos.observacion ? ' · Observación: ' + campos.observacion : '') + (campos.resolucion ? ' · Resolución: ' + campos.resolucion : '') + (campos.comentario ? ' · Comentario: ' + campos.comentario : '') + notaVb,
+        (campos.observacion ? ' · Observación: ' + campos.observacion : '') + (campos.resolucion ? ' · Resolución: ' + campos.resolucion : '') + (campos.comentario ? ' · Comentario: ' + campos.comentario : '') +
+        (campos.notificacion_rc ? ' · Notificación a Registro Curricular: ' + campos.notificacion_rc : '') + notaVb,
       estado_nuevo: hacia
     }, registroCorreo));
     return { ok: true, conCorreo: !!evento, pdfSolicitud: pdfSolicitud };

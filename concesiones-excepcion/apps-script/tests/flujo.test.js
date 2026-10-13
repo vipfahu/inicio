@@ -185,6 +185,18 @@ test('resolución: CAE admisible y CAE rechazada notifican al estudiante; el cie
     estado.usuario = 'analista.uno@usach.cl';
     ctx.api_cambiarEstado(folio, 'vb', { campos: { propuesta_comite: 'Propuesta' } });
     estado.usuario = 'vice@usach.cl';
+    if (hacia === 'resolucion') {
+      // V°B° CAE admisible: primero se registra la notificación a Registro Curricular, sin correo al estudiante.
+      const previo0 = estado.correos.length;
+      ctx.api_cambiarEstado(folio, 'aviso_rc', {});
+      estado.usuario = 'analista.uno@usach.cl';
+      assert.throws(() => ctx.api_cambiarEstado(folio, 'resolucion', {}), /cambió de estado|no permitida/, 'no se avisa al estudiante antes de notificar a RC');
+      assert.throws(() => ctx.api_cambiarEstado(folio, 'rc_notificado', {}), /Falta completar/);
+      ctx.api_cambiarEstado(folio, 'rc_notificado', { campos: { notificacion_rc: 'STD 2026-123 del 12-10-2026' } });
+      assert.equal(estado.correos.length, previo0, 'notificar a RC no envía correo al estudiante');
+      assert.equal(tabla(env, 'Solicitudes').find(x => x.folio === folio).notificacion_rc, 'STD 2026-123 del 12-10-2026');
+      assert.ok(tabla(env, 'Bitácora').some(b => /Notificación a Registro Curricular: STD 2026-123/.test(b.texto)));
+    }
     const pv = ctx.api_previsualizar(folio, hacia, {});
     assert.equal(pv.conCorreo, true);
     assert.deepEqual([...pv.requeridos], []);
@@ -204,6 +216,9 @@ test('resolución: CAE admisible y CAE rechazada notifican al estudiante; el cie
     const mis = ctx.api_misSolicitudes().solicitudes.find(x => x.folio === folio);
     assert.equal(mis.estado, hacia);
     assert.ok(mis.hitos.some(h => h.estado === hacia));
+    // Ve todos los pasos de su ruta, con el actual marcado
+    assert.equal(mis.ruta.filter(p => p.situacion === 'actual').map(p => p.id)[0], hacia);
+    assert.equal(mis.ruta[mis.ruta.length - 1].id, hacia === 'resolucion' ? 'resuelto' : 'negado');
     // Cierre: sin correo y sin campos obligatorios; comentario opcional que queda en la bitácora
     estado.usuario = 'analista.uno@usach.cl';
     const pvc = ctx.api_previsualizar(folio, 'negado', {});
@@ -582,12 +597,12 @@ test('V°B°: solo el Vicedecano/a; la analista solo con «aprueba por otro medi
   const { ctx, estado } = env;
   estado.usuario = 'analista.uno@usach.cl';
   ctx.api_cambiarEstado('05/2026', 'vb', { campos: { propuesta_comite: 'Acoger' } });
-  assert.throws(() => ctx.api_cambiarEstado('05/2026', 'resolucion', {}), /lo registra el Vicedecano\/a/);
-  assert.throws(() => ctx.api_cambiarEstado('05/2026', 'resolucion', { otroMedio: true, campos: {} }), /por qué medio/);
-  const pv = ctx.api_previsualizar('05/2026', 'resolucion', {});
+  assert.throws(() => ctx.api_cambiarEstado('05/2026', 'aviso_rc', {}), /lo registra el Vicedecano\/a/);
+  assert.throws(() => ctx.api_cambiarEstado('05/2026', 'aviso_rc', { otroMedio: true, campos: {} }), /por qué medio/);
+  const pv = ctx.api_previsualizar('05/2026', 'aviso_rc', {});
   assert.equal(pv.requiereVicedecano, true);
   assert.equal(pv.esVicedecano, false);
-  ctx.api_cambiarEstado('05/2026', 'resolucion', { otroMedio: true, campos: { otro_medio: 'Correo del 10-10-2026' } });
+  ctx.api_cambiarEstado('05/2026', 'aviso_rc', { otroMedio: true, campos: { otro_medio: 'Correo del 10-10-2026' } });
   const b = tabla(env, 'Bitácora').filter(x => x.tipo === 'estado').pop();
   assert.match(b.texto, /por otro medio \(Correo del 10-10-2026\), registrado por analista\.uno@usach\.cl/);
   // El Vicedecano/a registra directo, sin marcar nada
@@ -715,4 +730,30 @@ test('PDF del formulario a pedido: analistas y administración sí; consulta no;
   assert.ok(!r3.existente); assert.notEqual(r3.id, r.id);
   estado.usuario = 'consulta@usach.cl';
   assert.throws(() => ctx.api_pdfSolicitud('05/2026'), /nivel requerido/);
+});
+
+test('panorama: Vicedecanato y Registro Curricular (Consulta) ven el avance; cada cuenta solo sus programas; sin datos sensibles', () => {
+  const env = instalar(preparar());
+  const { ctx, estado } = env;
+  const cu = env.libro.getSheetByName('Cuentas');
+  cu.appendRow(['registradora@usach.cl', 'Registradora', 'Registro Curricular', 'consulta', 'todos', 'SÍ', '', '', '', '']);
+  cu.appendRow(['rc.prog@usach.cl', 'RC Programa', 'Analista de Registro Curricular', 'consulta', 'Magíster en Prueba A', 'SÍ', '', '', '', '']);
+  const hs = env.libro.getSheetByName('Solicitudes'); const enc = hs.datos[0];
+  hs.datos[hs.datos.findIndex(x => x[0] === '06/2026')][enc.indexOf('programa')] = 'Doctorado en Prueba B';
+  estado.usuario = 'registradora@usach.cl';
+  const todos = ctx.api_panorama();
+  assert.ok(todos.casos.length >= 5);
+  const c = todos.casos.find(x => x.folio === '05/2026');
+  assert.ok(c.ruta.some(p => p.situacion === 'actual'));
+  assert.ok(c.fase);
+  assert.equal(c.fundamentacion, undefined);
+  assert.equal(c.run, undefined);
+  estado.usuario = 'rc.prog@usach.cl';
+  const propios = ctx.api_panorama().casos;
+  assert.ok(propios.length > 0 && propios.every(x => x.programa === 'Magíster en Prueba A'));
+  assert.ok(propios.length < todos.casos.length);
+  estado.usuario = 'analista.uno@usach.cl';
+  assert.ok(ctx.api_panorama().casos.length >= 5);
+  estado.usuario = 'rc@usach.cl'; // Registro Curricular sin acceso: solo recibe copias
+  assert.throws(() => ctx.api_panorama(), /nivel|acceso/i);
 });

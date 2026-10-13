@@ -77,6 +77,9 @@ Al terminar, **recargar el panel** (la lista de analistas para asignar se lee al
    - **Visor de Word en el panel:** usa el servicio avanzado de Drive, que `appsscript.json` ya declara y `clasp push` activa. No pide
      permisos nuevos (usa el de Drive que ya existe). Si el Diagnóstico dice «Servicio avanzado de Drive no activo», en el editor de Apps
      Script: **Servicios (+) → Drive API → Agregar**, y vuelva a publicar.
+   - **Cuentas de Registro Curricular** (Cuentas → filtro «Registro Curricular»): rol «Registro Curricular» para la registradora y
+     «Analista de Registro Curricular» para sus analistas; nivel «Consulta» para que vean el Panorama, o «Sin acceso» para solo recibir
+     copias; «Programas que ve» = Todos o los programas de esa cuenta; en «Recibe copia» marcar, p. ej., CAE admisible y CAE rechazada.
 3. **Días hábiles y feriados (automáticos):** los plazos cuentan de lunes a viernes descontando los feriados de Chile, que la plataforma
    obtiene sola del calendario público de feriados de Chile de Google y renueva cada mes (año en curso y siguiente). No se cargan a
    mano. Configuración → «Feriados (automáticos)» muestra los próximos; *CAE → Diagnóstico* indica la fuente o si falló la consulta.
@@ -114,7 +117,9 @@ Todos salen desde la cuenta institucional; las respuestas llegan a la analista d
 | Registro de solicitud de pronunciamiento al programa (STD) | *(sin correo)* | — | — |
 | Registro de devolución al programa vía STD (pide observación) | *(sin correo)* | — | — |
 | V°B° a respuesta del Comité (pide propuesta) | V°B° Comité | Vicedecano/a | — |
-| V°B° · CAE admisible (sigue a Registro Curricular vía STD) | CAE admisible · resolución en tramitación | Estudiante | — |
+| V°B° · CAE admisible → «notificar a Registro Curricular» | *(sin correo)* | — | — |
+| Registro de la notificación a Registro Curricular (pide fecha y medio; pasos a seguir y pagos) | *(sin correo)* | — | — |
+| Notificar al estudiante: resolución en elaboración | CAE admisible · resolución en tramitación | Estudiante | Cuentas que lo marquen en «Recibe copia» (filtradas por programa) |
 | V°B° · CAE rechazada (sigue a Registro Curricular vía STD) | CAE rechazada · resolución en tramitación | Estudiante | — |
 | Resuelto / Negado (comentario opcional para el registro; permite cargar el archivo de la resolución) | *(sin correo; el estudiante ve el estado)* | — | — |
 | Caso que sigue «Recibida»: primer aviso al día hábil siguiente a la recepción (`primer_aviso_admisibilidad_dias` = 1), luego cada 2 días hábiles, hasta 3 (automático; indica el vencimiento del plazo de `plazo_admisibilidad_dias` = 2) | Recordatorio de admisibilidad | Analista asignada; si no hay, cuentas con nivel Edición o Administración | — |

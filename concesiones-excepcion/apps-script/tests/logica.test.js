@@ -256,3 +256,47 @@ test('HTML: el JavaScript de cada página se puede interpretar (un error de sint
     }
   });
 });
+
+test('ruta del proceso: camino principal, variantes de cierre y paso actual', () => {
+  const ids = r => [...r].map(p => p.id);
+  const actual = r => r.find(p => p.situacion === 'actual').id;
+  const r1 = L.rutaProceso('programa', []);
+  assert.deepEqual(ids(r1), ['recibida', 'revision', 'aceptada', 'informe_rc', 'programa', 'vb', 'aviso_rc', 'rc_notificado', 'resolucion', 'resuelto']);
+  assert.equal(actual(r1), 'programa');
+  assert.deepEqual([...r1].slice(0, 4).map(p => p.situacion), ['hecho', 'hecho', 'hecho', 'hecho']);
+  assert.equal(r1[5].situacion, 'pendiente');
+  assert.equal(r1.find(p => p.id === 'aviso_rc').estudiante, 'CAE admisible · coordinación con Registro Curricular');
+  assert.deepEqual(ids(L.rutaProceso('rechazada', [])), ['recibida', 'revision', 'rechazada']);
+  assert.deepEqual(ids(L.rutaProceso('no_procede', [])), ['recibida', 'revision', 'no_procede']);
+  assert.deepEqual(ids(L.rutaProceso('rechazo_vb', [])).slice(-3), ['vb', 'rechazo_vb', 'negado']);
+  assert.deepEqual(ids(L.rutaProceso('negado', ['vb', 'rechazo_vb', 'negado'])).slice(-2), ['rechazo_vb', 'negado']);
+  assert.deepEqual(ids(L.rutaProceso('negado', ['vb', 'aviso_rc', 'rc_notificado', 'resolucion', 'negado'])).slice(-2), ['resolucion', 'negado']);
+  // Transiciones nuevas
+  assert.ok(L.transicionValida('vb', 'aviso_rc'));
+  assert.ok(!L.transicionValida('vb', 'resolucion'), 'el estudiante no se notifica antes de avisar a Registro Curricular');
+  assert.ok(L.transicionValida('aviso_rc', 'rc_notificado'));
+  assert.ok(L.transicionValida('rc_notificado', 'resolucion'));
+  assert.deepEqual([...L.camposRequeridos('aviso_rc', 'rc_notificado')], ['notificacion_rc']);
+  assert.equal(L.eventoTransicion('rc_notificado', 'resolucion'), 'cae_admisible');
+  assert.equal(L.eventoTransicion('vb', 'aviso_rc'), '');
+});
+
+test('Registro Curricular: copias por programa, sin aviso de «Equipo», y nivel máximo Consulta', () => {
+  const cuentas = [
+    { correo: 'registradora@usach.cl', rol: 'Registro Curricular', nivel: 'consulta', programas: 'todos', activo: 'SÍ', recibe_eventos: 'cae_admisible' },
+    { correo: 'rc.mag@usach.cl', rol: 'Analista de Registro Curricular', nivel: 'sin_acceso', programas: 'Magíster A', activo: 'SÍ', recibe_eventos: 'cae_admisible, cae_rechazada' },
+    { correo: 'rc.doc@usach.cl', rol: 'Analista de Registro Curricular', nivel: 'consulta', programas: 'Doctorado B', activo: 'SÍ', recibe_eventos: 'cae_admisible' },
+    { correo: 'ana@usach.cl', rol: 'Analista', nivel: 'edicion', programas: 'todos', activo: 'SÍ' }
+  ];
+  const sol = { programa: 'Magíster A', correo_verificado: 'est@usach.cl', analista: 'ana@usach.cl' };
+  const r = L.resolverDestinatarios('Estudiante', '', { cuentas, solicitud: sol, evento: 'cae_admisible' });
+  assert.deepEqual([...r.cc].sort(), ['rc.mag@usach.cl', 'registradora@usach.cl'], 'la cuenta de otro programa no recibe copia');
+  const eq = L.resolverDestinatarios('Equipo', '', { cuentas, solicitud: sol, evento: 'nueva_solicitud' });
+  assert.deepEqual([...eq.para], ['ana@usach.cl'], 'las cuentas de Registro Curricular no reciben «Nueva solicitud» salvo que lo marquen');
+  const porRol = L.resolverDestinatarios('Analista de Registro Curricular', '', { cuentas, solicitud: sol });
+  assert.deepEqual([...porRol.para], ['rc.mag@usach.cl']);
+  const base = { correo: 'nueva.rc@usach.cl', nombre: 'Nueva RC', rol: 'Analista de Registro Curricular', programas: 'todos', activo: 'SÍ' };
+  const admin = [{ correo: 'admin@usach.cl', nivel: 'administracion', activo: 'SÍ' }];
+  assert.match(L.validarCuenta({ ...base, nivel: 'edicion' }, admin, 'duenia@usach.cl', true), /Sin acceso.*Consulta/);
+  assert.equal(L.validarCuenta({ ...base, nivel: 'consulta' }, admin, 'duenia@usach.cl', true), '');
+});

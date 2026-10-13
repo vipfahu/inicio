@@ -20,4 +20,7 @@ Requisitos agregados (2026-10-09): pasar a Informe RC exige N° STD registrado y
 no cambia el estado); al registrar Resuelto/Negado se recuerda en negrita enviar la resolución de inmediato a la Unidad de Registro
 Curricular para su distribución.
 
+CAE admisible (2026-10-13): V°B° → `aviso_rc` (notificar a Registro Curricular) → `rc_notificado` (exige fecha y medio; RC informa al
+estudiante pasos a seguir y pagos) → `resolucion` (recién ahí el correo `cae_admisible`). CAE rechazada no cambió.
+
 **Por qué importa:** no reintroducir la autorización de inicio (la exclusividad en el V°B° del Comité sí está vigente), ni correos al programa, sin que la persona lo pida.

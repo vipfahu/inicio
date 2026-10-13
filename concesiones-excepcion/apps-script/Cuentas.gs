@@ -46,6 +46,8 @@ function api_cuentas() {
     roles: ROLES,
     niveles: NIVELES,
     eventos: leer_(HOJAS.plantillas).map(p => p.evento),
+    eventosDesc: leer_(HOJAS.plantillas).reduce((m, p) => { m[p.evento] = p.descripcion; return m; }, {}),
+    rolesRC: ROLES_RC,
     programas: leer_(HOJAS.programas).map(p => p.programa)
   });
 }

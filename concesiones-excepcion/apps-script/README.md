@@ -121,7 +121,18 @@ límite de Apps Script). El resto se descarga. Los PDF se dibujan con pdf.js (cd
 `isEvalSupported: false`), que se carga solo al abrir el primer PDF. La conversión de Word usa el servicio avanzado de Drive
 (declarado en `appsscript.json`; el Diagnóstico avisa si no está activo).
 
-**Usuarios.** El panel es solo para el equipo del Vicedecanato (analistas y Vicedecano/a). Las direcciones de programa y Registro Curricular no entran: solo reciben correos.
+**Usuarios.** El panel es para el equipo del Vicedecanato (analistas y Vicedecano/a) y, en modo de solo lectura, para Registro
+Curricular: rol «Registro Curricular» (registradora curricular) o «Analista de Registro Curricular», con nivel «Consulta» (ven el
+Panorama y los expedientes sin fundamentación ni archivos) o «Sin acceso» (solo reciben copias); nunca Edición. «Programas que ve»
+define también de qué programas recibe copias una cuenta (cuentas por programa). Las direcciones de programa no entran: solo reciben correos.
+
+**CAE admisible → Registro Curricular → estudiante.** Tras el V°B° «CAE admisible», el caso pasa a «CAE admisible · notificar a
+Registro Curricular»; la analista registra la notificación a Registro Curricular (fecha y medio, p. ej. N° STD) para que esa unidad
+informe al estudiante los pasos a seguir y eventuales pagos («Registro Curricular notificado»), y solo después notifica al estudiante
+que la resolución está en elaboración (correo `cae_admisible`).
+
+**Seguimiento y Panorama.** El estudiante ve todos los pasos de su ruta agrupados por fase, con la fase actual y «paso k de N». La
+pestaña «Panorama» muestra a todo nivel con acceso al panel el avance de cada caso de sus programas, con filtros por fase y programa.
 
 **Ingreso y cierre de sesión.** El panel abre con una página «Iniciar sesión» que muestra la cuenta de Google con que la persona está
 conectada (nombre, rol y nivel) y el botón «Ingresar como …», o «Usar otra cuenta USACH» (selector de cuentas de Google). Si la cuenta

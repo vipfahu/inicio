@@ -15,7 +15,12 @@ const ESTADOS = [
   { id: 'programa',   etiqueta: 'Pronunciamiento del programa (solicitado vía STD)', fase: 'Tramitación', correo: '',     siguientes: ['vb'] },
   // Decisión del V°B°: CAE admisible o CAE rechazada (ambas siguen a Registro Curricular por STD, que elabora y distribuye la
   // resolución) con correo al estudiante que informa el estado; o devolución al programa. El cierre no envía correo.
-  { id: 'vb',         etiqueta: 'V°B° Vicedecano/a a respuesta del Comité',  fase: 'Tramitación',   correo: 'vb',         siguientes: ['resolucion', 'rechazo_vb', 'programa'] },
+  { id: 'vb',         etiqueta: 'V°B° Vicedecano/a a respuesta del Comité',  fase: 'Tramitación',   correo: 'vb',         siguientes: ['aviso_rc', 'rechazo_vb', 'programa'] },
+  // CAE admisible: antes de avisar al estudiante, se registra la notificación a Registro Curricular (pasos a seguir y pagos).
+  { id: 'aviso_rc',   etiqueta: 'CAE admisible · notificar a Registro Curricular', fase: 'Resolución', correo: '',            siguientes: ['rc_notificado'],
+    estudiante: 'CAE admisible · coordinación con Registro Curricular' },
+  { id: 'rc_notificado', etiqueta: 'CAE admisible · Registro Curricular notificado', fase: 'Resolución', correo: '',          siguientes: ['resolucion'],
+    estudiante: 'Registro Curricular le informará los pasos a seguir' },
   { id: 'resolucion', etiqueta: 'CAE admisible · resolución en tramitación', fase: 'Resolución', correo: 'cae_admisible', siguientes: ['resuelto', 'negado'] },
   { id: 'rechazo_vb', etiqueta: 'CAE rechazada · resolución en tramitación', fase: 'Resolución', correo: 'cae_rechazada', siguientes: ['negado'] },
   { id: 'resuelto',   etiqueta: 'Resuelto',                                  fase: 'Cierre',        correo: '',           siguientes: [] },
@@ -28,7 +33,8 @@ const ESTADOS = [
 const CAMPOS_REQUERIDOS = {
   rechazada: ['motivo'],
   'vb>programa': ['observacion'],
-  vb: ['propuesta_comite']
+  vb: ['propuesta_comite'],
+  'aviso_rc>rc_notificado': ['notificacion_rc']
   // Cierre (Resuelto / Negado): sin campos obligatorios; admite un comentario opcional para el registro (bitácora).
 };
 
@@ -39,7 +45,26 @@ const TIPOS_CATALOGO = [
 ];
 
 const NIVELES = ['sin_acceso', 'consulta', 'edicion', 'administracion'];
-const ROLES = ['Analista', 'Vicedecano/a', 'Registro Curricular', 'Consulta'];
+const ROLES = ['Analista', 'Vicedecano/a', 'Registro Curricular', 'Analista de Registro Curricular', 'Consulta'];
+/** Roles de Registro Curricular: ven el panorama (nivel Consulta) o solo reciben copias (Sin acceso); nunca tramitan. */
+const ROLES_RC = ['Registro Curricular', 'Analista de Registro Curricular'];
+function esRolRC(rol) { return ROLES_RC.indexOf(rol) >= 0; }
+
+/** Ruta del trámite tal como la ve quien consulta: camino principal o la variante de cierre que corresponda. */
+const RUTA_PRINCIPAL = ['recibida', 'revision', 'aceptada', 'informe_rc', 'programa', 'vb', 'aviso_rc', 'rc_notificado', 'resolucion', 'resuelto'];
+function rutaProceso(estado, visitados) {
+  const hasta = id => RUTA_PRINCIPAL.slice(0, RUTA_PRINCIPAL.indexOf(id) + 1);
+  let ruta;
+  if (estado === 'rechazada' || estado === 'no_procede') ruta = hasta('revision').concat([estado]);
+  else if (estado === 'rechazo_vb' || (estado === 'negado' && (visitados || []).indexOf('rechazo_vb') >= 0)) ruta = hasta('vb').concat(['rechazo_vb', 'negado']);
+  else if (estado === 'negado') ruta = hasta('resolucion').concat(['negado']);
+  else ruta = RUTA_PRINCIPAL.slice();
+  const i = ruta.indexOf(estado);
+  return ruta.map((id, k) => {
+    const e = ESTADOS.find(x => x.id === id);
+    return { id: id, etiqueta: e.etiqueta, estudiante: e.estudiante || e.etiqueta, fase: e.fase, situacion: k < i ? 'hecho' : k === i ? 'actual' : 'pendiente' };
+  });
+}
 
 function estadoPorId(id) {
   return ESTADOS.find(e => e.id === id) || null;
@@ -208,7 +233,7 @@ function resolverDestinatarios(rolesPara, rolesCc, ctx) {
     if (rol === 'Analista') return s.analista ? [s.analista] : (registro.push('analista asignada/o'), []);
     if (rol === 'Equipo') {
       // Toda cuenta activa con acceso al panel (consulta, edición o administración).
-      const r = activas.filter(c => c.nivel && c.nivel !== 'sin_acceso').map(c => c.correo);
+      const r = activas.filter(c => c.nivel && c.nivel !== 'sin_acceso' && !esRolRC(c.rol)).map(c => c.correo);
       if (!r.length) registro.push('cuentas activas con acceso al panel');
       return r;
     }
@@ -228,7 +253,8 @@ function resolverDestinatarios(rolesPara, rolesCc, ctx) {
       const p = (ctx.programas || []).find(x => x.programa === s.programa);
       return p && p.correo_direccion && p.correo_direccion.indexOf('@') > 0 ? [p.correo_direccion] : (registro.push('correo de dirección de «' + s.programa + '»'), []);
     }
-    const r = activas.filter(c => c.rol === rol).map(c => c.correo);
+    // Cuentas por programa: solo las que cubren el programa de la solicitud.
+    const r = activas.filter(c => c.rol === rol && (!s.programa || puedeVerSolicitud(c, s))).map(c => c.correo);
     if (!r.length) registro.push('cuenta activa con rol «' + rol + '»');
     return r;
   };
@@ -237,7 +263,8 @@ function resolverDestinatarios(rolesPara, rolesCc, ctx) {
   registro = omitidos;
   listaRoles(rolesCc).forEach(r => porRol(r).forEach(x => cc.push(x)));
   if (ctx.evento) {
-    activas.filter(c => listaRoles(c.recibe_eventos).indexOf(ctx.evento) >= 0).forEach(c => cc.push(c.correo));
+    const s = ctx.solicitud || {};
+    activas.filter(c => listaRoles(c.recibe_eventos).indexOf(ctx.evento) >= 0 && (!s.programa || puedeVerSolicitud(c, s))).forEach(c => cc.push(c.correo));
   }
   const norm = x => String(x).trim().toLowerCase();
   const paraU = unicos(para.map(norm));
@@ -356,6 +383,7 @@ function validarCuenta(c, cuentas, duenia, esNueva) {
   if (!String(c.nombre || '').trim()) return 'Falta el nombre.';
   if (ROLES.indexOf(c.rol) < 0) return 'Rol no válido.';
   if (NIVELES.indexOf(c.nivel) < 0) return 'Nivel no válido.';
+  if (esRolRC(c.rol) && (c.nivel === 'edicion' || c.nivel === 'administracion')) return 'Las cuentas de Registro Curricular tienen nivel «Sin acceso» (solo copias) o «Consulta» (panorama y expedientes sin datos sensibles).';
   const existe = cuentas.some(x => String(x.correo).toLowerCase() === correo);
   if (esNueva && existe) return 'Ya existe una cuenta con ese correo.';
   if (!esNueva && !existe) return 'La cuenta no existe.';
@@ -430,7 +458,7 @@ function validarSolicitud(d, ctx) {
 }
 
 if (typeof module !== 'undefined') {
-  module.exports = { tipoVista, mimePorNombre, entradaZipUtil, encargoDe, requiereVicedecano, normalizarRun, normalizarPasaporte, feriadosDesdeEventos, OCULTOS_AL_ESTUDIANTE, sumarDiasHabiles, recordatorioPendiente, RECORDATORIOS, camposRequeridos,
+  module.exports = { rutaProceso, RUTA_PRINCIPAL, esRolRC, ROLES_RC, tipoVista, mimePorNombre, entradaZipUtil, encargoDe, requiereVicedecano, normalizarRun, normalizarPasaporte, feriadosDesdeEventos, OCULTOS_AL_ESTUDIANTE, sumarDiasHabiles, recordatorioPendiente, RECORDATORIOS, camposRequeridos,
     ESTADOS, CAMPOS_REQUERIDOS, TIPOS_CATALOGO, NIVELES, ROLES, estadoPorId, esCierre, transicionValida, eventoTransicion,
     normalizarFolio, siguienteFolio, estadoMigrado, separarTipos, rellenar, variablesSinResolver, resolverDestinatarios,
     diasHabilesEntre, necesitaRecordatorio, nivelSuficiente, puedeVerSolicitud, validarCuenta, esSi, listaRoles, validarSolicitud

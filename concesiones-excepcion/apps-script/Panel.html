@@ -71,6 +71,20 @@
   .cargando{font:400 14px Spectral,serif;color:var(--apagado);padding:40px 0;text-align:center}
   .lista-item{padding:13px 18px;border-left:3px solid transparent;border-bottom:1px solid var(--fila);cursor:pointer}
   .lista-item.sel{border-left-color:var(--teal);background:var(--fcampo)}
+  .pan-f{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:14px 0}
+  .chipf{border:1px solid var(--borde);background:#fff;border-radius:999px;padding:6px 12px;font:600 12px Archivo,sans-serif;color:var(--tinta)}
+  .chipf.act{background:var(--tinta);color:#fff;border-color:var(--tinta)}
+  .chipf span{font-family:'IBM Plex Mono',monospace;font-weight:600;opacity:.7;margin-left:4px}
+  .prow{display:grid;grid-template-columns:1.25fr 1fr 1.7fr 1fr;gap:14px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--fila);cursor:pointer}
+  .prow:hover,.prow:focus-visible{background:var(--fcampo)}
+  .prow .sub{white-space:normal}
+  .track{display:flex;align-items:center;margin-bottom:5px}
+  .track i{width:10px;height:10px;border-radius:50%;flex-shrink:0;border:2px solid #D8D3C5;background:#fff;box-sizing:border-box}
+  .track i.h{background:var(--teal2);border-color:var(--teal2)}
+  .track i.a{background:var(--naranja);border-color:var(--naranja);width:14px;height:14px}
+  .track i.n{background:#8A3D2E;border-color:#8A3D2E;width:14px;height:14px}
+  .track b{flex:1;height:2px;background:#E0DCD0;min-width:4px} .track b.h{background:var(--teal2)}
+  @media(max-width:760px){.prow{grid-template-columns:1fr;gap:6px}}
   .vars code{font:400 11px 'IBM Plex Mono',monospace;background:#EFECE4;border-radius:4px;padding:2px 5px;margin:2px;display:inline-block}
   .acciones{display:flex;gap:8px;flex-wrap:wrap}
   label.chk{display:flex;gap:8px;align-items:center;font:400 13px Archivo,sans-serif;margin:4px 0} label.chk input{width:auto}
@@ -204,7 +218,7 @@ function dialogoSalir() {
 }
 
 function pintarNav() {
-  const tabs = [['bandeja', 'Bandeja'], ['indicadores', 'Indicadores'], ['plantillas', 'Plantillas de correo'], ['config', 'Configuración']];
+  const tabs = [['bandeja', 'Bandeja'], ['panorama', 'Panorama'], ['indicadores', 'Indicadores'], ['plantillas', 'Plantillas de correo'], ['config', 'Configuración']];
   if (nivel('administracion')) tabs.push(['cuentas', 'Cuentas']);
   $('nav').innerHTML = tabs.map(t => '<button data-v="' + t[0] + '" class="' + (S.vista === t[0] || (S.vista === 'exp' && t[0] === 'bandeja') ? 'act' : '') + '">' + t[1] + '</button>').join('');
   $('nav').querySelectorAll('button').forEach(b => b.onclick = () => ir(b.dataset.v));
@@ -212,6 +226,7 @@ function pintarNav() {
 function ir(v) {
   S.vista = v; pintarNav();
   if (v === 'bandeja') return cargarBandeja();
+  if (v === 'panorama') return cargarPanorama();
   if (v === 'indicadores') return pintarIndicadores();
   if (v === 'plantillas') return cargarPlantillas();
   if (v === 'cuentas') return cargarCuentas();
@@ -333,11 +348,13 @@ function panelGestion(e, edita) {
   const vbAjeno = e.estado === 'vb' && !esVice; // el V°B° es del Vicedecano/a; la analista solo lo registra si se dio por otro medio
   const botones = e.siguientes.length ? (vbAjeno ? '<div class="aviso a-amb" style="margin-bottom:8px;white-space:normal">El V°B° lo registra el Vicedecano/a desde su cuenta. Si lo dio por otro medio (correo, reunión, STD), márquelo para registrarlo usted.</div>' +
     '<label class="chk" style="margin-bottom:8px"><input type="checkbox" id="otro_medio"> Vicedecano/a aprueba por otro medio</label>' : '') + e.siguientes.map(s => {
-    const prim = esVice && s.id === 'resolucion';
+    const prim = esVice && s.id === 'aviso_rc';
     const amb = esVice && (s.id === 'programa' || s.id === 'rechazo_vb');
     // El programa se consulta por STD: aquí solo se registra que se solicitó (o que se devolvió con observación).
     const txt = s.id === 'programa' ? (e.estado === 'vb' ? 'Registrar devolución al programa (vía STD) con observación' : 'Registrar solicitud de pronunciamiento al programa (vía STD)')
-      : e.estado === 'vb' && s.id === 'resolucion' ? 'V°B° · CAE admisible: sigue a Registro Curricular (STD)'
+      : e.estado === 'vb' && s.id === 'aviso_rc' ? 'V°B° · CAE admisible: notificar a Registro Curricular'
+      : s.id === 'rc_notificado' ? 'Registrar notificación a Registro Curricular (pasos a seguir y pagos)'
+      : e.estado === 'rc_notificado' && s.id === 'resolucion' ? 'Notificar al estudiante: resolución en elaboración'
       : e.estado === 'vb' && s.id === 'rechazo_vb' ? 'V°B° · CAE rechazada: sigue a Registro Curricular (STD)'
       : s.id === 'resuelto' || s.id === 'negado' ? 'Registrar resolución a Registro Curricular → ' + s.etiqueta
       : s.etiqueta;
@@ -478,7 +495,7 @@ async function pintarDocumento(r, n) {
 }
 
 /* ── Diálogo de cambio de estado ── */
-const ROT_CAMPO = { motivo: 'Motivo (se incluye en el correo)', observacion: 'Observación del Vicedecanato (se incluye en el correo)', propuesta_comite: 'Propuesta del Comité', resolucion: 'Resolución (N° y fecha)' };
+const ROT_CAMPO = { notificacion_rc: 'Fecha y medio de la notificación a Registro Curricular (p. ej., STD N° o correo del dd-mm-aaaa)', motivo: 'Motivo (se incluye en el correo)', observacion: 'Observación del Vicedecanato (se incluye en el correo)', propuesta_comite: 'Propuesta del Comité', resolucion: 'Resolución (N° y fecha)' };
 function cerrarDlg() { $('fondo').style.display = 'none'; }
 function ofrecerPdfSolicitud(pdf, texto, titulo) {
   $('dlg').innerHTML = '<div class="kicker" style="color:var(--apagado)">' + h(titulo || 'Formulario de solicitud') + '</div><h3 style="margin-top:6px">' + h(pdf.nombre) + '</h3>' +
@@ -597,6 +614,48 @@ function pintarIndicadores() {
     barras('Por tipo de requerimiento', contar(s => String(s.tipo).split(',').map(x => x.trim()))) + '</div>';
 }
 
+/* ── Panorama: avance de cada caso en su ruta de pasos (Vicedecanato y Registro Curricular) ── */
+function cargarPanorama() {
+  $('app').innerHTML = '<div class="cargando">Cargando panorama…</div>';
+  run('api_panorama').then(r => { S.pan = r; S.panF = S.panF || { fase: '', programa: '', q: '' }; pintarPanorama(); }).catch(fallo);
+}
+function pintarPanorama() {
+  const r = S.pan, f = S.panF;
+  const NEG = ['rechazada', 'no_procede', 'negado', 'rechazo_vb'];
+  const programas = [...new Set(r.casos.map(c => c.programa).filter(Boolean))].sort();
+  const base = r.casos.filter(c => (!f.programa || c.programa === f.programa) &&
+    (!f.q || (c.folio + ' ' + c.nombre).toLowerCase().indexOf(f.q.toLowerCase()) >= 0));
+  // Sin filtro de fase se muestran los casos en curso; «Cierre» muestra los cerrados.
+  const lista = base.filter(c => f.fase ? c.fase === f.fase : !c.cerrado)
+    .sort((a, b) => r.fases.indexOf(a.fase) - r.fases.indexOf(b.fase) || (b.diasHabiles || 0) - (a.diasHabiles || 0));
+  const n = fase => base.filter(c => fase ? c.fase === fase : !c.cerrado).length;
+  const chip = (val, txt) => '<button class="chipf' + (f.fase === val ? ' act' : '') + '" data-fase="' + h(val) + '">' + h(txt) + '<span>' + n(val) + '</span></button>';
+  const pista = c => {
+    const neg = NEG.indexOf(c.estado) >= 0;
+    return '<div class="track" aria-hidden="true">' + c.ruta.map((p, k) => (k ? '<b class="' + (p.situacion !== 'pendiente' ? 'h' : '') + '"></b>' : '') +
+      '<i class="' + (p.situacion === 'hecho' ? 'h' : p.situacion === 'actual' ? (neg ? 'n' : 'a') : '') + '" title="' + h(p.etiqueta) + '"></i>').join('') + '</div>';
+  };
+  const filas = lista.map(c => {
+    const k = c.ruta.findIndex(p => p.situacion === 'actual');
+    return '<div class="prow" tabindex="0" data-f="' + h(c.folio) + '" aria-label="Abrir expediente ' + h(c.folio) + '">' +
+      '<div style="min-width:0"><div class="mono" style="font-size:11.5px;color:var(--apagado)">' + h(c.folio) + '</div><div class="nom">' + h(c.nombre || '—') + '</div></div>' +
+      '<div class="sub" style="min-width:0">' + h(c.programa) + (c.tipo ? '<br>' + h(c.tipo) : '') + '</div>' +
+      '<div style="min-width:0">' + pista(c) + '<div class="sub">Paso ' + (k + 1) + ' de ' + c.ruta.length + ' · ' + h(c.fase) + '</div></div>' +
+      '<div style="min-width:0">' + tag(c.estado) + '<div class="sub" style="margin-top:4px">' +
+        (c.cerrado ? 'Cerrado ' + fecha(c.estado_desde) : (c.diasHabiles === null ? '' : c.diasHabiles + ' día(s) hábil(es) en este paso')) +
+        (c.analistaNombre ? '<br>Analista: ' + h(c.analistaNombre) : '') + '</div></div></div>';
+  }).join('') || '<div class="sub" style="padding:20px">No hay casos con estos filtros.</div>';
+  $('app').innerHTML = '<h2>Panorama de avance</h2><div class="resumen" style="margin-top:4px">Cada caso con su ruta de pasos: verde = cumplido, naranjo = paso actual, rojo = cierre desfavorable. Se muestran los programas que su cuenta puede ver; haga clic en un caso para abrir su expediente.</div>' +
+    '<div class="pan-f">' + chip('', 'En curso') + r.fases.map(x => chip(x, x)).join('') +
+    '<select id="pan_prog" aria-label="Programa" style="width:auto;min-width:180px"><option value="">Todos los programas</option>' + programas.map(p => '<option' + (p === f.programa ? ' selected' : '') + '>' + h(p) + '</option>').join('') + '</select>' +
+    '<input id="pan_q" placeholder="Buscar folio o nombre" value="' + h(f.q) + '" style="width:auto;min-width:200px;flex:1"></div>' +
+    '<div class="tabla">' + filas + '</div>';
+  document.querySelectorAll('[data-fase]').forEach(b => b.onclick = () => { f.fase = b.dataset.fase; pintarPanorama(); });
+  $('pan_prog').onchange = e => { f.programa = e.target.value; pintarPanorama(); };
+  $('pan_q').oninput = e => { f.q = e.target.value; const pos = e.target.selectionStart; pintarPanorama(); $('pan_q').focus(); $('pan_q').setSelectionRange(pos, pos); };
+  document.querySelectorAll('.prow').forEach(row => { row.onclick = () => abrir(row.dataset.f); row.onkeydown = ev => { if (ev.key === 'Enter') abrir(row.dataset.f); }; });
+}
+
 /* ── Plantillas ── */
 function cargarPlantillas() {
   $('app').innerHTML = '<div class="cargando">Cargando plantillas…</div>';
@@ -628,7 +687,9 @@ function cargarCuentas() {
 function pintarCuentas(editando) {
   const r = S.cuentas;
   const NIV = { sin_acceso: 'Sin acceso (solo recibe correos)', consulta: 'Consulta', edicion: 'Edición', administracion: 'Administración' };
-  const filas = r.cuentas.map(c => '<div class="fila" style="grid-template-columns:1.4fr 1fr 1fr 1fr 70px;cursor:default"><div><div class="nom">' + h(c.nombre) + '</div><div class="sub mono">' + h(c.correo) + '</div></div>' +
+  const grupo = S.ctaGrupo || '';
+  const lista = r.cuentas.filter(c => !grupo || (grupo === 'rc') === (r.rolesRC || []).indexOf(c.rol) >= 0);
+  const filas = lista.map(c => '<div class="fila" style="grid-template-columns:1.4fr 1fr 1fr 1fr 70px;cursor:default"><div><div class="nom">' + h(c.nombre) + '</div><div class="sub mono">' + h(c.correo) + '</div></div>' +
     '<div class="sub">' + h(c.rol) + '</div><div class="sub">' + h(NIV[c.nivel] || c.nivel) + '<br>' + h(c.programas) + '</div><div class="sub">' + h(c.recibe_eventos || '—') + '</div>' +
     '<div><span class="tag ' + (c.activo === 'SÍ' ? 't-ok' : 't-no') + '">' + (c.activo === 'SÍ' ? 'Activa' : 'Inactiva') + '</span><br><button data-ed="' + h(c.correo) + '" style="margin-top:6px;padding:5px 9px">Editar</button></div></div>').join('');
   const c = editando ? r.cuentas.find(x => x.correo === editando) : null, nueva = !c;
@@ -643,12 +704,18 @@ function pintarCuentas(editando) {
     '<span class="et" style="margin-top:12px">Programas que ve</span><label class="chk"><input type="checkbox" id="k_todos"' + (progSel[0] === 'todos' ? ' checked' : '') + '> Todos</label>' +
     '<div id="k_progs" style="max-height:150px;overflow:auto;' + (progSel[0] === 'todos' ? 'display:none' : '') + '">' + r.programas.map(p => '<label class="chk"><input type="checkbox" class="kp" value="' + h(p) + '"' + (progSel.indexOf(p) >= 0 ? ' checked' : '') + '> ' + h(p) + '</label>').join('') + '</div>' +
     '<span class="et" style="margin-top:12px">Recibe copia de estos correos (además de los de su rol)</span><div style="max-height:150px;overflow:auto">' +
-    r.eventos.map(ev => '<label class="chk"><input type="checkbox" class="ke" value="' + h(ev) + '"' + (evs.indexOf(ev) >= 0 ? ' checked' : '') + '> <span class="mono" style="font-size:12px">' + h(ev) + '</span></label>').join('') + '</div>' +
+    r.eventos.map(ev => '<label class="chk"><input type="checkbox" class="ke" value="' + h(ev) + '"' + (evs.indexOf(ev) >= 0 ? ' checked' : '') + '> <span style="font-size:12.5px">' + h((r.eventosDesc || {})[ev] || ev) + '</span> <span class="mono sub" style="font-size:10.5px">' + h(ev) + '</span></label>').join('') + '</div>' +
     '<label class="chk" style="margin-top:10px"><input type="checkbox" id="k_activo"' + (v.activo === 'SÍ' ? ' checked' : '') + '> Cuenta activa</label>' +
     '<label class="et" style="margin-top:10px" for="k_notas">Notas</label><input id="k_notas" value="' + h(v.notas) + '">' +
     '<div class="acciones" style="justify-content:flex-end;margin-top:14px">' + (nueva ? '' : '<button id="k_nueva">Nueva cuenta</button><button id="k_aviso">Enviar enlace de acceso</button>') + '<button class="prim" id="k_guardar">' + (nueva ? 'Crear cuenta' : 'Guardar') + '</button></div></div>';
   $('app').innerHTML = '<h2>Cuentas</h2><div class="resumen" style="margin-bottom:16px">El ingreso es con la cuenta Google USACH; aquí se decide qué puede hacer cada persona y qué correos recibe. Los cambios rigen desde la siguiente acción de esa persona. La cuenta institucional (' + h(r.duenia) + ') es administradora fija.</div>' +
-    '<div class="grid2"><div class="tabla">' + filas + '</div><div class="lado">' + form + '</div></div>';
+    '<div class="pan-f">' + [['', 'Todas'], ['vi', 'Vicedecanato'], ['rc', 'Registro Curricular']].map(g => '<button class="chipf' + (grupo === g[0] ? ' act' : '') + '" data-grupo="' + g[0] + '">' + g[1] + '<span>' + r.cuentas.filter(c => !g[0] || (g[0] === 'rc') === (r.rolesRC || []).indexOf(c.rol) >= 0).length + '</span></button>').join('') + '</div>' +
+    (grupo === 'rc' ? '<div class="aviso a-teal" style="white-space:normal;margin-bottom:12px"><b>Cuentas de Registro Curricular.</b> Rol «Registro Curricular» para la registradora curricular y «Analista de Registro Curricular» para sus analistas. ' +
+      '«Programas que ve» = Todos, o solo los programas de esa cuenta (cuenta por programa: recibe copias y ve casos solo de esos programas). ' +
+      'Nivel «Consulta» para ver el Panorama y los expedientes (sin fundamentación ni archivos); «Sin acceso» para recibir solo copias. ' +
+      'En «Recibe copia de estos correos» marque los mensajes que debe recibir (p. ej., CAE admisible y CAE rechazada).</div>' : '') +
+    '<div class="grid2"><div class="tabla">' + (filas || '<div class="sub" style="padding:16px">Sin cuentas en este grupo.</div>') + '</div><div class="lado">' + form + '</div></div>';
+  document.querySelectorAll('[data-grupo]').forEach(b => b.onclick = () => { S.ctaGrupo = b.dataset.grupo; pintarCuentas(); });
   document.querySelectorAll('[data-ed]').forEach(b => b.onclick = () => pintarCuentas(b.dataset.ed));
   $('k_todos').onchange = e => { $('k_progs').style.display = e.target.checked ? 'none' : ''; };
   if ($('k_nueva')) $('k_nueva').onclick = () => pintarCuentas();

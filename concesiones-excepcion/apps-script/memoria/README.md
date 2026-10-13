@@ -3,8 +3,8 @@
 Una lección por archivo; la primera línea de cada uno es su resumen. Leer este índice al iniciar una sesión.
 Mantenimiento: actualizar la nota existente en vez de duplicar; borrar las que resulten erróneas; no guardar lo que ya dicen el código o el historial de git.
 
-- [alcance-solo-equipo-vicedecanato](alcance-solo-equipo-vicedecanato.md) — El panel es solo para el equipo del Vicedecanato; direcciones de programa, Registro Curricular y estudiantes solo reciben correos.
-- [aviso-nueva-solicitud-a-todo-el-panel](aviso-nueva-solicitud-a-todo-el-panel.md) — El aviso «Nueva solicitud CAE» va a toda cuenta activa con acceso al panel (consulta, edición, administración), no solo a Vicedecano/a y analistas.
+- [alcance-solo-equipo-vicedecanato](alcance-solo-equipo-vicedecanato.md) — El panel es del equipo del Vicedecanato; Registro Curricular entra solo en lectura (nivel Consulta: Panorama y expedientes sin datos sensibles) o recibe copias (Sin acceso); programas y estudiantes no entran.
+- [aviso-nueva-solicitud-a-todo-el-panel](aviso-nueva-solicitud-a-todo-el-panel.md) — El aviso «Nueva solicitud CAE» va a toda cuenta activa con acceso al panel del Vicedecanato (consulta, edición, administración); las cuentas de Registro Curricular no, salvo que lo marquen.
 - [cambios-de-flujo-en-commits-separados](cambios-de-flujo-en-commits-separados.md) — Cada cambio de flujo va en su propio commit (código, plantillas, pruebas y documentación juntos) para poder revertirlo limpio.
 - [correos-con-confirmacion](correos-con-confirmacion.md) — Ningún correo sale por editar una celda: cambio de estado = vista previa editable; el estado solo cambia si el envío funciona; si falta el destinatario principal o una variable, no se envía; si falta uno en copia (p. ej. correo de dirección del programa), sale igual con aviso (pedido de la persona: que el estudiante no quede sin notificar).
 - [credenciales-solo-en-maquina-de-la-persona](credenciales-solo-en-maquina-de-la-persona.md) — La credencial institucional nunca sale del computador de la persona: clasp local; nada de tokens en la nube, GitHub Actions ni contraseñas compartidas.

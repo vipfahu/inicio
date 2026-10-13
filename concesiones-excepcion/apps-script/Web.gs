@@ -114,10 +114,12 @@ function api_misSolicitudes() {
       // Lo que no se notifica al estudiante tampoco se muestra en su seguimiento.
       const visible = OCULTOS_AL_ESTUDIANTE[s.estado] || s.estado;
       const e = estadoPorId(visible) || {};
+      const visitados = bit.filter(b => String(b.folio) === String(s.folio)).map(b => b.estado_nuevo);
       return {
+        ruta: rutaProceso(visible, visitados),
         folio: s.folio, programa: s.programa, anio: s.anio, semestre: s.semestre,
         tipo: [s.tipo_catalogo, s.tipo_texto_libre].filter(Boolean).join(', '),
-        estado: visible, estadoEtiqueta: e.etiqueta, fecha_recepcion: s.fecha_recepcion,
+        estado: visible, estadoEtiqueta: e.estudiante || e.etiqueta, fase: e.fase, fecha_recepcion: s.fecha_recepcion,
         hitos: bit.filter(b => String(b.folio) === String(s.folio) && b.estado_nuevo && !OCULTOS_AL_ESTUDIANTE[b.estado_nuevo]).map(b => ({ fecha: b.fecha, estado: b.estado_nuevo })),
         analistaNombre: s.analista ? nombreDe_(s.analista, cuentas) : '', analistaCorreo: s.analista || ''
       };
