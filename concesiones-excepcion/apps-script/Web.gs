@@ -138,6 +138,12 @@ function api_importarFilasSinSolicitud() {
   return serializar_(importarFilasSinSolicitud_(u.correo));
 }
 
+/** Reparación desde el panel (Administración): deshace importaciones que duplican folios atascados y realinea. */
+function api_repararImportacion() {
+  const u = requiere_('administracion');
+  return serializar_(repararImportacion_(u.correo));
+}
+
 /** Correo de la dirección de un programa: lo puede editar cualquier cuenta con nivel edición (analistas). */
 function api_guardarCorreoPrograma(programa, correo) {
   const u = requiere_('edicion');

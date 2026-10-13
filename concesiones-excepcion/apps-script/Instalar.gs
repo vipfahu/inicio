@@ -16,6 +16,7 @@ function onOpen() {
     .addItem('Verificar migración (planilla original ↔ Solicitudes)', 'verificarMigracion')
     .addItem('Realinear filas migradas (tras insertar u ordenar filas)', 'realinearMigracion')
     .addItem('Importar filas sin solicitud (quedan «Por revisar»)', 'importarFilasSinSolicitud')
+    .addItem('Reparar importación (deshace copias de folios atascados y realinea)', 'repararImportacion')
     .addItem('Proteger hoja de respuestas (solo la cuenta dueña edita)', 'protegerHojaRespuestas')
     .addItem('Actualizar (tras subir código nuevo)', 'actualizarInstalacion')
     .addSeparator()
@@ -252,7 +253,7 @@ function actualizarInstalacion() {
  */
 function huellaEstructura_() {
   // El último elemento es una marca de versión de lo que la actualización hace además de columnas, parámetros y plantillas.
-  const txt = JSON.stringify([COLUMNAS, PARAMETROS_INICIALES.map(p => p[0]), PLANTILLAS_INICIALES, 'proteccion-respuestas-1']);
+  const txt = JSON.stringify([COLUMNAS, PARAMETROS_INICIALES.map(p => p[0]), PLANTILLAS_INICIALES, 'proteccion-respuestas-1', 'folio-texto-1']);
   let h = 2166136261;
   for (let i = 0; i < txt.length; i++) { h ^= txt.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; }
   return h.toString(16) + '-' + txt.length;
@@ -345,6 +346,14 @@ function aplicarActualizacion_() {
   })));
   if (nuevas.length) anexar_(HOJAS.bitacora, { fecha: new Date(), folio: '—', tipo: 'sistema', quien: duenia_(), texto: 'Actualización: plantillas agregadas ' + nuevas.map(t => t[0]).join(', ') });
   if (nuevas.length) cambios.push('Plantillas: ' + nuevas.map(t => t[0]).join(', '));
+  // Folios que Sheets guardó como fecha (p. ej. «03/2025» → marzo de 2025): vuelven a texto normalizado.
+  if (libro_().getSheetByName(HOJAS.solicitudes)) {
+    const comoFecha = leer_(HOJAS.solicitudes).filter(s => Object.prototype.toString.call(s.folio) === '[object Date]');
+    comoFecha.forEach(s => actualizar_(HOJAS.solicitudes, s._fila, { folio: normalizarFolio(s.folio) }));
+    if (comoFecha.length) cambios.push('Folios guardados como fecha corregidos: ' + comoFecha.map(s => normalizarFolio(s.folio)).join(', '));
+    const h = hoja_(HOJAS.solicitudes), jF = encabezados_(HOJAS.solicitudes).indexOf('folio');
+    if (jF >= 0 && h.getLastRow() > 1) h.getRange(2, jF + 1, h.getLastRow() - 1, 1).setNumberFormat('@');
+  }
   try {
     const pr = protegerHojaRespuestas_();
     if (pr.nueva) cambios.push('Hoja de respuestas protegida (solo la cuenta dueña la edita)');
@@ -464,11 +473,18 @@ function bitacoraDesdePlanilla_(s, quien) {
  * que la migración no alcanzó a cubrir). Todas quedan «Por revisar», sin correo al estudiante. Si el folio de la planilla ya está en
  * uso, se asigna el siguiente y se anota el original. Conviene ejecutar «Realinear filas» antes.
  */
-function importarFilasSinSolicitud_(u) {
+function importarFilasSinSolicitud_(u, opciones) {
+  opciones = opciones || {};
+  // Antes de importar, cada solicitud existente debe estar en su fila: si no, se importarían copias de folios atascados.
+  if (opciones.realinear !== false) {
+    const r = realinearMigracion_(u);
+    if (r.pendientes.length) throw new Error('No se importó nada: ' + r.pendientes.length + ' solicitud(es) sin fila resuelta (' + r.pendientes.map(p => p.folio + ': ' + p.motivo).join('; ') + '). Use «Reparar importación».');
+  }
   const c = contextoRespuestas_();
   const sols = leer_(HOJAS.solicitudes);
-  const asignadas = {};
-  sols.forEach(s => { if (Number(s.fila_respuesta)) asignadas[Number(s.fila_respuesta)] = true; });
+  const asignadas = {}, repetidas = [];
+  sols.forEach(s => { const f = Number(s.fila_respuesta); if (!f) return; if (asignadas[f]) repetidas.push(f); asignadas[f] = true; });
+  if (repetidas.length) throw new Error('No se importó nada: más de una solicitud apunta a la(s) fila(s) ' + repetidas.join(', ') + '. Use «Reparar importación».');
   const folios = sols.map(s => s.folio);
   const norm = x => String(x === null || x === undefined ? '' : x).trim().toLowerCase().replace(/\s+/g, ' ');
   const ahora = new Date();
@@ -502,6 +518,56 @@ function importarFilasSinSolicitud_(u) {
   nuevas.forEach(s => { const l = leidas.find(x => x.folio === s.folio); if (l) vincularAntecedentes_(l, s._adjunto); });
   anexar_(HOJAS.bitacora, { fecha: ahora, folio: '—', tipo: 'sistema', quien: u, texto: 'Importación de filas sin solicitud: ' + nuevas.map(s => s.folio + ' (fila ' + s.fila_respuesta + ')').join(', ') + '.' });
   return { importadas: nuevas.map(s => ({ folio: s.folio, fila: s.fila_respuesta, estado: s.estado, folioPlanilla: s._folioPlanilla, nota: s.nota_migracion })) };
+}
+
+/**
+ * Deshace las importaciones que solo duplican un folio atascado: una solicitud importada cuya fila pertenece a un estudiante
+ * que ya tiene una solicitud no importada apuntando a una fila que no es suya. Esas importadas no tienen trámite propio
+ * (solo bitácora de importación y antecedentes del formulario); se eliminan, se restaura el folio original en la columna A y se
+ * realinea. Las importadas legítimas (segundos envíos sin folio atascado) se conservan.
+ */
+function repararImportacion_(u) {
+  const ci = filasConIdentidad_();
+  const norm = ci.norm;
+  const porFila = {}; ci.filas.forEach(f => { porFila[f.fila] = f; });
+  const sols = leer_(HOJAS.solicitudes);
+  const identidad = s => ({ correo: norm(s.correo_verificado), a1: norm(s.apellido1), nombres: norm(s.nombres) });
+  const mismaPersona = (f, k) => !!f && ((f.correo && f.correo === k.correo) || (f.a1 && f.nombres && f.a1 === k.a1 && f.nombres === k.nombres));
+  const enSuFila = s => mismaPersona(porFila[Number(s.fila_respuesta)], identidad(s));
+  const importadas = sols.filter(s => /importada/i.test(String(s.origen || '')));
+  const originales = sols.filter(s => !/importada/i.test(String(s.origen || '')) && Number(s.fila_respuesta));
+  const bit = leer_(HOJAS.bitacora), arch = leer_(HOJAS.archivos);
+  const deshechas = [], conservadas = [];
+  importadas.forEach(im => {
+    const k = identidad(im);
+    const atascada = originales.find(o => mismaPersona({ correo: norm(o.correo_verificado), a1: norm(o.apellido1), nombres: norm(o.nombres) }, k) && !enSuFila(o));
+    if (!atascada) { conservadas.push(im.folio); return; }
+    const conActividad = bit.some(b => String(b.folio) === String(im.folio) && ['Formulario', 'importación', 'Sistema'].indexOf(String(b.quien)) < 0) ||
+      arch.some(a => String(a.folio) === String(im.folio) && a.categoria !== 'antecedentes_formulario');
+    if (conActividad) { conservadas.push(im.folio + ' (tiene trámite propio)'); return; }
+    const m = /Folio de la planilla «([^»]+)» ya usado/.exec(String(im.nota_migracion || ''));
+    deshechas.push({ solicitud: im, folioPlanilla: m ? m[1] : '', duplicaA: atascada.folio });
+  });
+  // Borrado por hoja, de abajo hacia arriba, para que las filas no se corran.
+  const folios = deshechas.map(d => String(d.solicitud.folio));
+  const quitar = (nombre, filasHoja) => filasHoja.sort((a, b) => b - a).forEach(f => hoja_(nombre).deleteRow(f));
+  quitar(HOJAS.bitacora, bit.filter(b => folios.indexOf(String(b.folio)) >= 0).map(b => b._fila));
+  quitar(HOJAS.archivos, arch.filter(a => folios.indexOf(String(a.folio)) >= 0).map(a => a._fila));
+  deshechas.forEach(d => { if (d.solicitud.carpeta_id) { try { DriveApp.getFolderById(d.solicitud.carpeta_id).setTrashed(true); } catch (e) { /* ya no está */ } } });
+  quitar(HOJAS.solicitudes, deshechas.map(d => d.solicitud._fila));
+  const resp = hojaRespuestas_();
+  deshechas.forEach(d => resp.getRange(Number(d.solicitud.fila_respuesta), 1).setNumberFormat('@').setValue(d.folioPlanilla));
+  if (deshechas.length) anexar_(HOJAS.bitacora, { fecha: new Date(), folio: '—', tipo: 'sistema', quien: u, texto: 'Reparación de importación: eliminadas ' + deshechas.map(d => d.solicitud.folio + ' (fila ' + d.solicitud.fila_respuesta + ', duplicaba a ' + d.duplicaA + ')').join(', ') + '.' });
+  const realineado = realinearMigracion_(u);
+  return { deshechas: deshechas.map(d => ({ folio: d.solicitud.folio, fila: d.solicitud.fila_respuesta, duplicabaA: d.duplicaA })), conservadas: conservadas, realineado: realineado };
+}
+
+/** Menú CAE (cuenta dueña). */
+function repararImportacion() {
+  soloDuenia_();
+  const r = repararImportacion_(duenia_());
+  avisar_('Reparación de importación', (r.deshechas.length ? 'Eliminadas: ' + r.deshechas.map(d => d.folio + ' (duplicaba a ' + d.duplicabaA + ')').join(', ') : 'No había importaciones que duplicaran folios.') +
+    '\nRealineadas: ' + r.realineado.realineadas.length + ' · sin resolver: ' + r.realineado.pendientes.length + ' · filas sin solicitud: ' + (r.realineado.filasSinSolicitud.join(', ') || 'ninguna') + '.');
 }
 
 /** Menú CAE (cuenta dueña). */
@@ -653,7 +719,7 @@ function verificarMigracion() {
  * RUN y teléfono, y la asignación es conjunta: una fila por solicitud, de mayor a menor coincidencia. No crea ni borra
  * solicitudes: las filas sin solicitud y las solicitudes sin fila se informan.
  */
-function realinearMigracion_(u) {
+function filasConIdentidad_() {
   const resp = hojaRespuestas_();
   const enc = resp.getRange(1, 1, 1, resp.getLastColumn()).getValues()[0].map(String);
   const n = resp.getLastRow() - 1;
@@ -671,6 +737,12 @@ function realinearMigracion_(u) {
       programa: norm(o.programa), anio: norm(o.anio), semestre: semestreNormalizado_(o.semestre), catalogo: norm(t.catalogo), libre: norm(t.libre),
       run: digitos(o.run), telefono: digitos(o.telefono) });
   });
+  return { filas: filas, norm: norm, digitos: digitos, fechaTxt: fechaTxt };
+}
+
+function realinearMigracion_(u) {
+  const ci = filasConIdentidad_();
+  const filas = ci.filas, norm = ci.norm, digitos = ci.digitos, fechaTxt = ci.fechaTxt;
   const claveSol = s => ({ correo: norm(s.correo_verificado), a1: norm(s.apellido1), nombres: norm(s.nombres), fecha: fechaTxt(s.fecha_recepcion),
     programa: norm(s.programa), anio: norm(s.anio), semestre: String(s.semestre || '').trim(), catalogo: norm(s.tipo_catalogo), libre: norm(s.tipo_texto_libre),
     run: digitos(s.run), telefono: digitos(s.telefono) });

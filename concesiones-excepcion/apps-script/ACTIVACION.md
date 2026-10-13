@@ -97,7 +97,9 @@ Al terminar, **recargar el panel** (la lista de analistas para asignar se lee al
      publicar (y con *CAE → Proteger hoja de respuestas*): solo la cuenta dueña puede editarla; el resto de la planilla no cambia.
      El Formulario de Google está cerrado, así que ya no recibe filas nuevas. Si alguien con acceso directo necesita corregir un dato
      de esa hoja, debe hacerlo con la cuenta dueña y sin ordenar ni borrar filas. Si tras realinear quedan filas «sin solicitud»
-     (segundos envíos de un mismo estudiante), use **«Importar filas»** en el mismo diálogo: crea una solicitud por fila, «Por
+     (segundos envíos de un mismo estudiante), use **«Importar filas»** en el mismo diálogo (realinea antes por sí sola y no
+     importa si quedan solicitudes chocando en una fila; en ese caso el diálogo ofrece **«Reparar importación»**, que elimina las
+     copias importadas de folios atascados y realinea): crea una solicitud por fila, «Por
      revisar», sin correo; luego, en cada ficha, decida si es un envío repetido (ciérrela con «No procede» y una nota) o una
      solicitud distinta. Coherencia esperada al terminar: cada fila con datos tiene exactamente una solicitud y viceversa.
    - **Volver a un paso anterior** (en la ficha, bajo «Pasar a»): para corregir un avance equivocado. Pide motivo, no envía correo

@@ -1090,3 +1090,58 @@ test('volver a un paso anterior: solo a pasos ya recorridos, con motivo, sin cor
   assert.equal(ctx.api_expediente('06/2026').estado, 'vb');
   assert.ok(tabla(env, 'Bitácora').some(b => b.folio === '06/2026' && /Deshace el V°B° registrado/.test(b.texto)));
 });
+
+test('reparar importación: deshace la copia importada de un folio atascado, restaura el folio en la planilla y realinea; conserva importaciones legítimas', () => {
+  const env = instalar(preparar());
+  const { ctx, estado, hoja } = env;
+  // Escenario real: est2 (02/2026) tiene un segundo envío insertado en la fila 3; 02/2026 queda atascado en la fila 4 (de est3) por desorden.
+  const segundo = hoja.datos[2].slice(); segundo[0] = '02/2026'; segundo[1] = new Date(2026, 5, 1); segundo[12] = 'Matrícula fuera de plazo';
+  hoja.datos.splice(2, 0, segundo);           // fila 3 = segundo envío de est2; est2 original pasa a la fila 4; est3 a la 5…
+  // Además un envío legítimo de est9 (sin folio atascado) al final.
+  const nueve = hoja.datos[3].slice(); nueve[0] = ''; nueve[2] = 'est9@usach.cl'; nueve[3] = 'Apellido9'; nueve[5] = 'Nombre9'; nueve[7] = 'est9@usach.cl'; nueve[1] = new Date(2026, 6, 1);
+  hoja.datos.push(nueve);
+  estado.usuario = 'vice@usach.cl';
+  // Importación «a ciegas» (como ocurrió): sin realinear, cada fila sin solicitud se importa, incluidas las filas verdaderas de folios atascados.
+  const imp = ctx.importarFilasSinSolicitud_('vice@usach.cl', { realinear: false });
+  assert.ok(imp.importadas.length >= 2);
+  // Realinear después: el folio atascado no puede ir a su fila (la ocupa la copia importada) y queda chocando con otro.
+  const ra = ctx.realinearMigracion_('vice@usach.cl');
+  assert.ok(ra.pendientes.length >= 1, 'folio atascado sin fila libre');
+  let v = ctx.api_verificarMigracion();
+  assert.ok(v.diferencias.some(d => d.campo === 'fila_respuesta' && /misma fila/.test(d.nota)), 'colisiones presentes');
+  assert.throws(() => ctx.api_importarFilasSinSolicitud(), /No se importó nada/);
+  const antes = tabla(env, 'Solicitudes').length;
+  const r = ctx.api_repararImportacion();
+  assert.ok(r.deshechas.length >= 1, 'se deshizo al menos una copia');
+  assert.ok(r.deshechas.every(d => /^0[2-6]\/2026$/.test(d.duplicabaA)), 'cada una duplicaba un folio atascado');
+  assert.equal(r.realineado.pendientes.length, 0);
+  v = ctx.api_verificarMigracion();
+  assert.equal(v.diferencias.filter(d => d.campo === 'fila_respuesta').length, 0, 'sin colisiones');
+  assert.equal(v.diferencias.filter(d => d.tipo === 'formulario' && d.campo !== 'solicitud').length, 0, 'todo en su fila');
+  const sols = tabla(env, 'Solicitudes');
+  assert.equal(sols.length, antes - r.deshechas.length);
+  assert.ok(sols.some(s => s.correo_verificado === 'est9@usach.cl' && /importada/.test(s.origen)), 'la importación legítima se conserva');
+  const dos = sols.find(s => s.folio === '02/2026');
+  assert.ok([3, 4].indexOf(Number(dos.fila_respuesta)) >= 0 && hoja.datos[Number(dos.fila_respuesta) - 1][2] === 'est2@usach.cl');
+  assert.ok(tabla(env, 'Bitácora').some(b => b.tipo === 'sistema' && /Reparación de importación: eliminadas/.test(b.texto)));
+  assert.ok(!tabla(env, 'Bitácora').some(b => r.deshechas.map(d => d.folio).indexOf(b.folio) >= 0), 'sin bitácora huérfana');
+  // La fila del segundo envío de est2 queda sin solicitud y ahora sí se puede importar (realinea antes, sin colisiones)
+  const r2 = ctx.api_importarFilasSinSolicitud();
+  assert.equal(tabla(env, 'Solicitudes').filter(s => s.correo_verificado === 'est2@usach.cl').length, 2);
+  assert.equal(ctx.api_verificarMigracion().diferencias.filter(d => d.tipo === 'formulario').length, 0, 'coherencia total: cada fila una solicitud');
+  assert.equal(ctx.api_repararImportacion().deshechas.length, 0, 'nada que reparar');
+});
+
+test('folios guardados como fecha por Sheets se corrigen a texto en la actualización automática', () => {
+  const env = instalar(preparar());
+  const { ctx, estado, libro } = env;
+  const hs = libro.getSheetByName('Solicitudes');
+  const f = hs.datos.findIndex(x => x[0] === '03/2026');
+  hs.datos[f][0] = new Date(2026, 2, 1); // lo que Sheets hace con «03/2026» sin formato de texto
+  estado.usuario = 'vice@usach.cl';
+  assert.throws(() => ctx.api_expediente('03/2026'), /No existe/);
+  const cambios = ctx.aplicarActualizacion_();
+  assert.ok(cambios.some(c => /Folios guardados como fecha corregidos: 03\/2026/.test(c)));
+  assert.equal(ctx.api_expediente('03/2026').folio, '03/2026');
+  assert.ok(ctx.api_expediente('03/2026').bitacora.length > 0, 'la bitácora vuelve a enlazar');
+});

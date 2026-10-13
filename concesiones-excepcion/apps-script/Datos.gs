@@ -52,15 +52,18 @@ function encabezados_(nombre) {
 }
 
 function anexar_(nombre, obj) {
-  const enc = encabezados_(nombre);
-  hoja_(nombre).appendRow(enc.map(k => obj[k] === undefined ? '' : obj[k]));
+  anexarVarias_(nombre, [obj]);
 }
 
 function anexarVarias_(nombre, objs) {
   if (!objs.length) return;
   const enc = encabezados_(nombre);
   const h = hoja_(nombre);
-  h.getRange(h.getLastRow() + 1, 1, objs.length, enc.length).setValues(objs.map(o => enc.map(k => o[k] === undefined ? '' : o[k])));
+  const desde = h.getLastRow() + 1;
+  // Un folio como «03/2025» lo interpretaría Sheets como fecha: la columna se fija como texto antes de escribir.
+  const jFolio = nombre === HOJAS.solicitudes ? enc.indexOf('folio') : -1;
+  if (jFolio >= 0) h.getRange(desde, jFolio + 1, objs.length, 1).setNumberFormat('@');
+  h.getRange(desde, 1, objs.length, enc.length).setValues(objs.map(o => enc.map(k => o[k] === undefined ? '' : o[k])));
 }
 
 function actualizar_(nombre, fila, cambios) {
@@ -69,7 +72,9 @@ function actualizar_(nombre, fila, cambios) {
   Object.keys(cambios).forEach(k => {
     const j = enc.indexOf(k);
     if (j < 0) throw new Error('Columna desconocida «' + k + '» en ' + nombre);
-    h.getRange(fila, j + 1).setValue(cambios[k]);
+    const celda = h.getRange(fila, j + 1);
+    if (k === 'folio' && nombre === HOJAS.solicitudes) celda.setNumberFormat('@');
+    celda.setValue(cambios[k]);
   });
 }
 

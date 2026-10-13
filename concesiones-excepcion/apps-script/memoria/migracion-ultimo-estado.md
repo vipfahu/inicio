@@ -30,6 +30,11 @@ debe decir qué duda queda, no dejar el caso a medias.
 Decisión de la persona (2026-10-13): conservar **todas** las solicitudes, también las repetidas, y velar por la coherencia fila ↔
 solicitud. De ahí «Importar filas» (reutiliza `solicitudDesdeFila_`, el mismo código de la migración, para no tener dos lecturas de
 la planilla) y la regla de cierre: cada fila con datos tiene exactamente una solicitud.
+Tercera corrección: la persona pulsó «Importar» antes que «Realinear» (ambos botones estaban a la vista; el orden iba solo en un
+texto de ayuda) y las filas verdaderas de los folios atascados quedaron ocupadas por copias importadas. Además, al escribir la
+importada, Sheets convirtió el folio «03/2025» en fecha. Lecciones: (1) una acción que depende de otra debe ejecutarla ella misma
+o negarse, nunca confiar en que la persona lea el orden; (2) todo folio escrito en «Solicitudes» va con formato de texto;
+(3) la reparación de un error de herramienta la hace la herramienta (`repararImportacion_`), con criterio estrecho y constancia.
 
 Cierre (2026-10-13): el Formulario de Google se cerró (ya no llegan filas); a pedido de la persona, la hoja de respuestas queda
 protegida por el script (solo la cuenta dueña edita), porque el único riesgo restante para la fundamentación migrada era una

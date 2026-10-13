@@ -137,7 +137,13 @@ en conjunto (una fila por solicitud, de mayor a menor coincidencia), y deja cons
 sin solicitud (p. ej., segundos envíos de un mismo estudiante) se incorporan con «Importar filas» (`importarFilasSinSolicitud_`,
 también en el menú CAE): una solicitud por fila con los mismos criterios de la migración (`solicitudDesdeFila_`), marcada
 «Por revisar», sin correo; si el folio de la planilla ya está en uso se asigna el siguiente y se anota el original, y la nota indica
-con qué folios comparte estudiante. El sistema conserva todas las solicitudes, también las repetidas: la decisión queda en la ficha. La hoja de respuestas se protege en cada actualización automática
+con qué folios comparte estudiante. El sistema conserva todas las solicitudes, también las repetidas: la decisión queda en la ficha.
+La importación **realinea antes** y se niega si queda alguna solicitud sin fila resuelta o dos apuntando a la misma fila: importar en
+ese estado crea copias de folios atascados. Si eso ya ocurrió, «Reparar importación» (`repararImportacion_`, también en el menú)
+elimina las importadas que solo duplican un folio atascado (mismo estudiante, folio original fuera de su fila, sin trámite propio),
+restaura el folio en la columna A y realinea; las importadas legítimas se conservan. El folio de «Solicitudes» se escribe siempre con
+formato de texto (`anexarVarias_`/`actualizar_`): sin eso Sheets convierte «03/2025» en una fecha y la ficha deja de enlazar con su
+bitácora; la actualización automática corrige los que hayan quedado así. La hoja de respuestas se protege en cada actualización automática
 (`protegerHojaRespuestas_`: solo la cuenta dueña edita; sin edición por dominio) y el Diagnóstico avisa si dejó de estarlo. Las filas sin solicitud se informan y no se importan solas. Para cada una, la
 verificación indica su fecha de envío y si pertenece al mismo estudiante que algún folio existente (posible envío repetido) o a nadie
 conocido (respuesta llegada después de la migración o fila nunca importada). La fundamentación de los casos migrados se lee de su fila original y, antes de mostrarla o

@@ -851,14 +851,25 @@ function verificarMigracionPanel() {
 function mostrarVerificacion(v) {
   const r = v.resumen;
   const huerfanas = v.diferencias.filter(d => d.campo === 'solicitud').length;
+  const colisiones = v.diferencias.filter(d => d.campo === 'fila_respuesta').length; // misma fila, fila vacía o inexistente
   const filas = v.diferencias.map(d => '<tr><td class="mono">' + h(d.fila) + '</td><td class="mono">' + h(d.folio) + '</td><td>' + h(d.campo) + '</td><td>' + h(d.original) + '</td><td>' + h(d.sistema) + '</td><td class="sub" style="white-space:normal">' + h(d.tipo) + (d.nota ? ' · ' + h(d.nota) : '') + '</td></tr>').join('');
   $('dlg').innerHTML = '<div class="kicker" style="color:var(--apagado)">Verificación de la migración</div><h3 style="margin-top:6px">' + r.filas + ' filas con datos · ' + r.migradas + ' con solicitud · ' + r.nuevas + ' del formulario web</h3>' +
     '<div class="aviso ' + (r.formulario ? 'a-amb' : 'a-teal') + '" style="white-space:normal;margin:10px 0">' + (r.diferencias ? r.diferencias + ' diferencia(s): <b>' + r.formulario + '</b> en datos del formulario y ' + r.gestion + ' en datos de gestión (estado, analista, N° STD, comentarios, resolución), que pueden haberse editado después en el panel.' : 'Sin diferencias: la planilla original y el sistema coinciden.') + ' El detalle quedó en la hoja «' + h(v.hoja) + '» de la planilla.</div>' +
     (filas ? '<div style="max-height:50vh;overflow:auto"><table style="width:100%;border-collapse:collapse;font:400 12px Archivo,sans-serif"><thead><tr style="text-align:left"><th>Fila</th><th>Folio</th><th>Campo</th><th>Planilla original</th><th>Sistema</th><th>Tipo · nota</th></tr></thead><tbody>' + filas + '</tbody></table></div>' : '') +
     (r.formulario ? '<div class="aviso a-teal" style="white-space:normal;margin-top:10px">Si las diferencias se repiten fila tras fila (los datos del sistema coinciden con la fila siguiente o anterior), en la hoja de respuestas se insertaron, borraron u ordenaron filas después de la migración. «Realinear filas» vuelve a enlazar cada solicitud con su fila por correo verificado o nombre, sin tocar los datos.</div>' : '') +
-    (huerfanas ? '<div class="aviso a-amb" style="white-space:normal;margin-top:10px">' + huerfanas + ' fila(s) de la hoja de respuestas sin solicitud en el sistema. «Importar filas» crea una solicitud por cada una con el estado que tenga la planilla, marcada «Por revisar» y sin correo al estudiante; si el folio ya está en uso se asigna el siguiente y se anota el original. Realinee primero.</div>' : '') +
-    '<div class="acciones" style="justify-content:flex-end;margin-top:14px">' + (r.formulario ? '<button id="mig_realinear">Realinear filas</button>' : '') + (huerfanas ? '<button id="mig_importar">Importar ' + huerfanas + ' fila(s)</button>' : '') + '<button class="prim" id="mig_cerrar">Cerrar</button></div>';
+    (colisiones ? '<div class="aviso a-rojo" style="white-space:normal;margin-top:10px">' + colisiones + ' solicitud(es) apuntan a una fila repetida, vacía o inexistente. «Reparar importación» elimina las solicitudes importadas que solo duplican un folio atascado (sin trámite propio), restaura el folio en la planilla y realinea; luego, si quedan filas sin solicitud, podrá importarlas.</div>' : '') +
+    (huerfanas && !colisiones ? '<div class="aviso a-amb" style="white-space:normal;margin-top:10px">' + huerfanas + ' fila(s) de la hoja de respuestas sin solicitud en el sistema. «Importar filas» crea una solicitud por cada una con el estado que tenga la planilla, marcada «Por revisar» y sin correo al estudiante; si el folio ya está en uso se asigna el siguiente y se anota el original. Realinee primero.</div>' : '') +
+    '<div class="acciones" style="justify-content:flex-end;margin-top:14px">' + (r.formulario ? '<button id="mig_realinear">Realinear filas</button>' : '') + (colisiones ? '<button id="mig_reparar" class="ambar">Reparar importación</button>' : '') + (huerfanas && !colisiones ? '<button id="mig_importar">Importar ' + huerfanas + ' fila(s)</button>' : '') + '<button class="prim" id="mig_cerrar">Cerrar</button></div>';
   $('fondo').style.display = 'flex'; $('mig_cerrar').onclick = cerrarDlg;
+  const brp = $('mig_reparar');
+  if (brp) brp.onclick = () => {
+    if (!confirm('¿Reparar? Se eliminarán las solicitudes importadas que solo duplican un folio atascado (sin trámite propio) y se realinearán las filas. Quedará en la bitácora.')) return;
+    brp.disabled = true; brp.textContent = 'Reparando…';
+    run('api_repararImportacion').then(x => {
+      toast((x.deshechas.length ? 'Eliminadas ' + x.deshechas.map(d => d.folio).join(', ') + ' · ' : 'Nada que eliminar · ') + x.realineado.realineadas.length + ' realineada(s)' + (x.realineado.pendientes.length ? ' · ' + x.realineado.pendientes.length + ' sin resolver' : ''));
+      cerrarDlg(); verificarMigracionPanel();
+    }).catch(err => { fallo(err); if (document.body.contains(brp)) { brp.disabled = false; brp.textContent = 'Reparar importación'; } });
+  };
   const bi = $('mig_importar');
   if (bi) bi.onclick = () => {
     if (!confirm('¿Crear ' + huerfanas + ' solicitud(es) a partir de las filas sin solicitud? Quedarán «Por revisar»; no se envía ningún correo.')) return;
