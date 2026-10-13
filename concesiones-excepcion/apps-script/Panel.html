@@ -812,6 +812,34 @@ function pintarCuentas(editando) {
   };
 }
 
+/* ── Verificación de la migración (Configuración → Migración) ──
+   La verificación tarda varios segundos; la respuesta puede llegar cuando ya se cambió de pestaña y el botón no existe. */
+function botonMig(texto, deshabilitado) { const b = $('mig_ok'); if (b) { b.disabled = deshabilitado; b.textContent = texto; } }
+function verificarMigracionPanel() {
+  botonMig('Verificando…', true);
+  run('api_verificarMigracion').then(v => { botonMig('Verificar migración', false); mostrarVerificacion(v); })
+    .catch(err => { fallo(err); botonMig('Verificar migración', false); });
+}
+function mostrarVerificacion(v) {
+  const r = v.resumen;
+  const filas = v.diferencias.map(d => '<tr><td class="mono">' + h(d.fila) + '</td><td class="mono">' + h(d.folio) + '</td><td>' + h(d.campo) + '</td><td>' + h(d.original) + '</td><td>' + h(d.sistema) + '</td><td class="sub" style="white-space:normal">' + h(d.tipo) + (d.nota ? ' · ' + h(d.nota) : '') + '</td></tr>').join('');
+  $('dlg').innerHTML = '<div class="kicker" style="color:var(--apagado)">Verificación de la migración</div><h3 style="margin-top:6px">' + r.filas + ' filas con datos · ' + r.migradas + ' con solicitud · ' + r.nuevas + ' del formulario web</h3>' +
+    '<div class="aviso ' + (r.formulario ? 'a-amb' : 'a-teal') + '" style="white-space:normal;margin:10px 0">' + (r.diferencias ? r.diferencias + ' diferencia(s): <b>' + r.formulario + '</b> en datos del formulario y ' + r.gestion + ' en datos de gestión (estado, analista, N° STD, comentarios, resolución), que pueden haberse editado después en el panel.' : 'Sin diferencias: la planilla original y el sistema coinciden.') + ' El detalle quedó en la hoja «' + h(v.hoja) + '» de la planilla.</div>' +
+    (filas ? '<div style="max-height:50vh;overflow:auto"><table style="width:100%;border-collapse:collapse;font:400 12px Archivo,sans-serif"><thead><tr style="text-align:left"><th>Fila</th><th>Folio</th><th>Campo</th><th>Planilla original</th><th>Sistema</th><th>Tipo · nota</th></tr></thead><tbody>' + filas + '</tbody></table></div>' : '') +
+    (r.formulario ? '<div class="aviso a-teal" style="white-space:normal;margin-top:10px">Si las diferencias se repiten fila tras fila (los datos del sistema coinciden con la fila siguiente o anterior), en la hoja de respuestas se insertaron, borraron u ordenaron filas después de la migración. «Realinear filas» vuelve a enlazar cada solicitud con su fila por correo verificado o nombre, sin tocar los datos.</div>' : '') +
+    '<div class="acciones" style="justify-content:flex-end;margin-top:14px">' + (r.formulario ? '<button id="mig_realinear">Realinear filas</button>' : '') + '<button class="prim" id="mig_cerrar">Cerrar</button></div>';
+  $('fondo').style.display = 'flex'; $('mig_cerrar').onclick = cerrarDlg;
+  const br = $('mig_realinear');
+  if (br) br.onclick = () => {
+    br.disabled = true; br.textContent = 'Realineando…';
+    run('api_realinearMigracion').then(x => {
+      toast(x.realineadas.length + ' solicitud(es) realineada(s)' + (x.pendientes.length ? ' · ' + x.pendientes.length + ' sin resolver' : ''));
+      if (x.filasSinSolicitud.length) toast('Filas sin solicitud en el sistema: ' + x.filasSinSolicitud.join(', '), true);
+      cerrarDlg(); verificarMigracionPanel(); // vuelve a verificar aunque ya no se esté en Configuración
+    }).catch(err => { fallo(err); if (document.body.contains(br)) { br.disabled = false; br.textContent = 'Realinear filas'; } });
+  };
+}
+
 /* ── Configuración ── */
 function tarjetaFeriados(f) {
   f = f || {};
@@ -874,28 +902,7 @@ function pintarConfig() {
     run('api_guardarCorreoPrograma', r.programas[i].programa, el.value).then(() => { toast('Correo de dirección guardado'); cargarConfig(); }).catch(fallo);
   });
   if (!adm) return;
-  $('mig_ok').onclick = () => {
-    $('mig_ok').disabled = true; $('mig_ok').textContent = 'Verificando…';
-    run('api_verificarMigracion').then(v => {
-      $('mig_ok').disabled = false; $('mig_ok').textContent = 'Verificar migración';
-      const r = v.resumen;
-      const filas = v.diferencias.map(d => '<tr><td class="mono">' + h(d.fila) + '</td><td class="mono">' + h(d.folio) + '</td><td>' + h(d.campo) + '</td><td>' + h(d.original) + '</td><td>' + h(d.sistema) + '</td><td class="sub" style="white-space:normal">' + h(d.tipo) + (d.nota ? ' · ' + h(d.nota) : '') + '</td></tr>').join('');
-      $('dlg').innerHTML = '<div class="kicker" style="color:var(--apagado)">Verificación de la migración</div><h3 style="margin-top:6px">' + r.filas + ' filas con datos · ' + r.migradas + ' con solicitud · ' + r.nuevas + ' del formulario web</h3>' +
-        '<div class="aviso ' + (r.formulario ? 'a-amb' : 'a-teal') + '" style="white-space:normal;margin:10px 0">' + (r.diferencias ? r.diferencias + ' diferencia(s): <b>' + r.formulario + '</b> en datos del formulario y ' + r.gestion + ' en datos de gestión (estado, analista, N° STD, comentarios, resolución), que pueden haberse editado después en el panel.' : 'Sin diferencias: la planilla original y el sistema coinciden.') + ' El detalle quedó en la hoja «' + h(v.hoja) + '» de la planilla.</div>' +
-        (filas ? '<div style="max-height:50vh;overflow:auto"><table style="width:100%;border-collapse:collapse;font:400 12px Archivo,sans-serif"><thead><tr style="text-align:left"><th>Fila</th><th>Folio</th><th>Campo</th><th>Planilla original</th><th>Sistema</th><th>Tipo · nota</th></tr></thead><tbody>' + filas + '</tbody></table></div>' : '') +
-        (r.formulario ? '<div class="aviso a-teal" style="white-space:normal;margin-top:10px">Si las diferencias se repiten fila tras fila (los datos del sistema coinciden con la fila siguiente o anterior), en la hoja de respuestas se insertaron, borraron u ordenaron filas después de la migración. «Realinear filas» vuelve a enlazar cada solicitud con su fila por correo verificado o nombre, sin tocar los datos.</div>' : '') +
-        '<div class="acciones" style="justify-content:flex-end;margin-top:14px">' + (r.formulario ? '<button id="mig_realinear">Realinear filas</button>' : '') + '<button class="prim" id="mig_cerrar">Cerrar</button></div>';
-      $('fondo').style.display = 'flex'; $('mig_cerrar').onclick = cerrarDlg;
-      if ($('mig_realinear')) $('mig_realinear').onclick = () => {
-        $('mig_realinear').disabled = true; $('mig_realinear').textContent = 'Realineando…';
-        run('api_realinearMigracion').then(x => {
-          toast(x.realineadas.length + ' solicitud(es) realineada(s)' + (x.pendientes.length ? ' · ' + x.pendientes.length + ' sin resolver' : ''));
-          if (x.filasSinSolicitud.length) toast('Filas sin solicitud en el sistema: ' + x.filasSinSolicitud.join(', '), true);
-          cerrarDlg(); $('mig_ok').click();
-        }).catch(err => { fallo(err); $('mig_realinear').disabled = false; $('mig_realinear').textContent = 'Realinear filas'; });
-      };
-    }).catch(err => { fallo(err); $('mig_ok').disabled = false; $('mig_ok').textContent = 'Verificar migración'; });
-  };
+  $('mig_ok').onclick = verificarMigracionPanel;
   document.querySelectorAll('select[data-rc]').forEach(sel => sel.onchange = () => {
     const caja = document.querySelector('[data-nueva="' + sel.dataset.i + '-' + sel.dataset.k + '"]');
     const nueva = sel.value === '__nueva';
