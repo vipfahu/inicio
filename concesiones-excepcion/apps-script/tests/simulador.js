@@ -71,7 +71,7 @@ function crearEntorno() {
     setDataValidation() { return this; }
   }
   class Hoja {
-    constructor(nombre, libro) { this.nombre = nombre; this.libro = libro; this.datos = []; this.ocultas = []; this.notas = {}; this.formUrl = null; }
+    constructor(nombre, libro) { this.nombre = nombre; this.libro = libro; this.datos = []; this.ocultas = []; this.notas = {}; this.formUrl = null; this.protecciones = []; }
     getName() { return this.nombre; }
     getFormUrl() { return this.formUrl; }
     set(f, c, v) { while (this.datos.length < f) this.datos.push([]); const fila = this.datos[f - 1]; while (fila.length < c) fila.push(''); fila[c - 1] = v; }
@@ -83,6 +83,21 @@ function crearEntorno() {
     setFrozenRows() {}
     hideColumns(c, n) { for (let i = 0; i < n; i++) this.ocultas.push(c + i); }
     deleteRow(f) { this.datos.splice(f - 1, 1); }
+    // Protección de hoja: quien la crea (la cuenta dueña) queda como editor; el dominio edita por defecto.
+    protect() { const p = new Proteccion(this); this.protecciones.push(p); return p; }
+    getProtections() { return this.protecciones.slice(); }
+  }
+  class Proteccion {
+    constructor(hoja) { this.hoja = hoja; this.descripcion = ''; this.aviso = false; this.dominio = true; this.editores = [estado.duenia, 'otro.editor@usach.cl']; }
+    setDescription(d) { this.descripcion = d; return this; }
+    getDescription() { return this.descripcion; }
+    isWarningOnly() { return this.aviso; }
+    setWarningOnly(v) { this.aviso = !!v; return this; }
+    canDomainEdit() { return this.dominio; }
+    setDomainEdit(v) { this.dominio = !!v; return this; }
+    getEditors() { return this.editores.map(e => ({ getEmail: () => e })); }
+    removeEditors(lista) { const q = lista.map(x => String(typeof x === 'string' ? x : x.getEmail()).toLowerCase()); this.editores = this.editores.filter(e => q.indexOf(e.toLowerCase()) < 0 || e === estado.duenia); return this; }
+    remove() { this.hoja.protecciones = this.hoja.protecciones.filter(p => p !== this); }
   }
   class Libro {
     constructor(nombre) { this.id = nid('ss'); this.nombre = nombre; this.hojas = [new Hoja('Hoja 1', this)]; estado.archivos[this.id] = archivo(this.id, nombre, 1000); }
@@ -98,7 +113,8 @@ function crearEntorno() {
     openById: id => { if (!libros[id]) throw new Error('No existe ' + id); return libros[id]; },
     create: n => { const l = new Libro(n); libros[l.id] = l; return l; },
     newDataValidation: () => ({ requireValueInList() { return this; }, setAllowInvalid() { return this; }, build() { return {}; } }),
-    getUi: () => { throw new Error('Sin interfaz en pruebas'); }
+    getUi: () => { throw new Error('Sin interfaz en pruebas'); },
+    ProtectionType: { SHEET: 'SHEET', RANGE: 'RANGE' }
   };
 
   // ── Drive ──

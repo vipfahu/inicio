@@ -128,7 +128,8 @@ datos de gestión (estado migrado, analista, N° STD, comentarios, observación,
 queda en la hoja «Verificación migración». Si las diferencias se repiten fila tras fila (los datos coinciden con la fila siguiente o
 anterior), en la hoja de respuestas se insertaron, borraron u ordenaron filas: «Realinear filas» (en el mismo diálogo, o CAE →
 Realinear filas migradas) vuelve a enlazar cada solicitud con su fila por correo verificado o por apellidos y nombres, solo cuando la
-coincidencia es única, y deja constancia en la bitácora; las filas sin solicitud se informan y no se importan solas. Para cada una, la
+coincidencia es única, y deja constancia en la bitácora. La hoja de respuestas se protege en cada actualización automática
+(`protegerHojaRespuestas_`: solo la cuenta dueña edita; sin edición por dominio) y el Diagnóstico avisa si dejó de estarlo. Las filas sin solicitud se informan y no se importan solas. Para cada una, la
 verificación indica su fecha de envío y si pertenece al mismo estudiante que algún folio existente (posible envío repetido) o a nadie
 conocido (respuesta llegada después de la migración o fila nunca importada). La fundamentación de los casos migrados se lee de su fila original y, antes de mostrarla o
 ponerla en el PDF, se comprueba que la fila siga siendo de la misma persona; si no, se muestra una alerta en vez del texto.

@@ -23,5 +23,9 @@ Tras realinear quedaron cinco filas sin solicitud (no una): el diagnóstico de �
 herramienta deja filas huérfanas, debe explicarlas por sí misma (`explicarHuerfana_`: fecha de envío y si coinciden con un folio por
 correo o nombre), porque la persona no debe pegar datos personales en el chat para que se interpreten.
 
+Cierre (2026-10-13): el Formulario de Google se cerró (ya no llegan filas); a pedido de la persona, la hoja de respuestas queda
+protegida por el script (solo la cuenta dueña edita), porque el único riesgo restante para la fundamentación migrada era una
+edición manual. Cambiar permisos solo se hace con pedido explícito: aquí lo hubo («Sí, protege la hoja»).
+
 **Por qué importa:** La planilla original tenía tres columnas de estado contradictorias, y la fundamentación migrada depende del
 número de fila: la verificación y la alerta son las salvaguardas.

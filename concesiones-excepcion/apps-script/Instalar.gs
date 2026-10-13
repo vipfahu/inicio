@@ -15,6 +15,7 @@ function onOpen() {
     .addItem('Diagnóstico', 'diagnostico')
     .addItem('Verificar migración (planilla original ↔ Solicitudes)', 'verificarMigracion')
     .addItem('Realinear filas migradas (tras insertar u ordenar filas)', 'realinearMigracion')
+    .addItem('Proteger hoja de respuestas (solo la cuenta dueña edita)', 'protegerHojaRespuestas')
     .addItem('Actualizar (tras subir código nuevo)', 'actualizarInstalacion')
     .addSeparator()
     .addItem('Instalación · paso 1 (estructura)', 'instalarPaso1')
@@ -229,6 +230,7 @@ function instalarPaso2() {
 
   const acc = accesosNoAutorizados_();
   if (acc.length) informe.push('ATENCIÓN · accesos directos no autorizados (retírelos cuando el panel esté en uso):\n- ' + acc.join('\n- '));
+  try { protegerHojaRespuestas_(); informe.push('Hoja de respuestas protegida: solo la cuenta dueña la edita.'); } catch (e) { informe.push('No se pudo proteger la hoja de respuestas: ' + e.message); }
   informe.push('Panel: ' + urlPanel_() + '\nSiguiente: pruebe el panel con la cuenta de una analista y ejecute «Diagnóstico».');
   avisar_('Instalación · paso 2 listo', informe.join('\n\n'));
 }
@@ -255,6 +257,7 @@ function diagnostico() {
   leer_(HOJAS.programas).filter(x => esSi(x.activo)).forEach(x => {
     if (!x.correo_direccion) p.push('Programa sin correo de dirección: ' + x.programa);
   });
+  try { if (!hojaRespuestasProtegida_()) p.push('La hoja de respuestas no está protegida (CAE → Proteger hoja de respuestas): ordenar o borrar filas rompe la fundamentación de los casos migrados.'); else ok.push('Hoja de respuestas protegida: solo la cuenta dueña la edita.'); } catch (e) { p.push('Hoja de respuestas: ' + e.message); }
   if (typeof Drive === 'undefined') p.push('Servicio avanzado de Drive no activo: el panel no podrá mostrar documentos Word (ver ACTIVACION.md).');
   const par = parametros_();
   if (!par.enlace_rc || par.enlace_rc === 'COMPLETAR') p.push('Falta «enlace_rc» en Parámetros (lo usa el correo «No procede»).');
@@ -296,7 +299,8 @@ function actualizarInstalacion() {
  * la planilla se pone al día sola en la siguiente visita al panel o al formulario, sin pasar por el menú.
  */
 function huellaEstructura_() {
-  const txt = JSON.stringify([COLUMNAS, PARAMETROS_INICIALES.map(p => p[0]), PLANTILLAS_INICIALES]);
+  // El último elemento es una marca de versión de lo que la actualización hace además de columnas, parámetros y plantillas.
+  const txt = JSON.stringify([COLUMNAS, PARAMETROS_INICIALES.map(p => p[0]), PLANTILLAS_INICIALES, 'proteccion-respuestas-1']);
   let h = 2166136261;
   for (let i = 0; i < txt.length; i++) { h ^= txt.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; }
   return h.toString(16) + '-' + txt.length;
@@ -389,7 +393,46 @@ function aplicarActualizacion_() {
   })));
   if (nuevas.length) anexar_(HOJAS.bitacora, { fecha: new Date(), folio: '—', tipo: 'sistema', quien: duenia_(), texto: 'Actualización: plantillas agregadas ' + nuevas.map(t => t[0]).join(', ') });
   if (nuevas.length) cambios.push('Plantillas: ' + nuevas.map(t => t[0]).join(', '));
+  try {
+    const pr = protegerHojaRespuestas_();
+    if (pr.nueva) cambios.push('Hoja de respuestas protegida (solo la cuenta dueña la edita)');
+    else if (pr.quitados.length) cambios.push('Hoja de respuestas: edición retirada a ' + pr.quitados.join(', '));
+  } catch (e) { cambios.push('No se pudo proteger la hoja de respuestas: ' + e.message); }
   return cambios;
+}
+
+const PROTECCION_RESPUESTAS = 'Plataforma CAE · hoja de origen de los casos migrados: solo la cuenta dueña la edita. No ordenar, insertar ni borrar filas (las solicitudes migradas leen su fundamentación por número de fila).';
+/**
+ * Protege la hoja de respuestas del Formulario: solo la cuenta dueña (con la que corre el script) puede editarla; el resto del dominio
+ * y cualquier otro editor de la planilla quedan en lectura. Idempotente: se llama en cada actualización automática.
+ */
+function protegerHojaRespuestas_() {
+  const h = hojaRespuestas_();
+  let p = h.getProtections(SpreadsheetApp.ProtectionType.SHEET)[0];
+  const nueva = !p;
+  if (!p) p = h.protect();
+  p.setDescription(PROTECCION_RESPUESTAS);
+  if (p.isWarningOnly()) p.setWarningOnly(false);
+  const yo = String(Session.getEffectiveUser().getEmail()).toLowerCase();
+  const quitados = p.getEditors().map(e => String(e.getEmail()).toLowerCase()).filter(e => e && e !== yo);
+  if (quitados.length) p.removeEditors(quitados);
+  if (p.canDomainEdit()) p.setDomainEdit(false);
+  return { nueva: nueva, quitados: quitados };
+}
+
+/** Menú CAE (cuenta dueña). */
+function protegerHojaRespuestas() {
+  soloDuenia_();
+  const r = protegerHojaRespuestas_();
+  avisar_('Hoja de respuestas', (r.nueva ? 'Protegida: ' : 'Ya estaba protegida: ') + 'solo ' + duenia_() + ' puede editarla.' + (r.quitados.length ? '\nSe retiró la edición a: ' + r.quitados.join(', ') : ''));
+}
+
+/** Diagnóstico: true si la hoja de respuestas está protegida y nadie más que la cuenta dueña la edita. */
+function hojaRespuestasProtegida_() {
+  const p = hojaRespuestas_().getProtections(SpreadsheetApp.ProtectionType.SHEET)[0];
+  if (!p || p.isWarningOnly() || p.canDomainEdit()) return false;
+  const yo = String(Session.getEffectiveUser().getEmail()).toLowerCase();
+  return p.getEditors().every(e => String(e.getEmail()).toLowerCase() === yo);
 }
 
 /* ── Verificación de la migración: cada fila de la hoja de respuestas contra su solicitud en «Solicitudes» ── */

@@ -956,3 +956,28 @@ test('cuentas: un registro duplicado se detecta y se elimina por fila; no se eli
   estado.usuario = 'analista.uno@usach.cl';
   assert.throws(() => ctx.api_eliminarCuenta('vice@usach.cl', vice.fila), /SIN_ACCESO/);
 });
+
+test('hoja de respuestas protegida: la actualización la protege (solo la dueña edita) y el menú y el diagnóstico lo reflejan', () => {
+  const env = instalar(preparar());
+  const { ctx, estado, libro } = env;
+  const hoja = libro.getSheets().find(h => h.getFormUrl());
+  assert.ok(hoja, 'hay hoja de respuestas');
+  // La instalación (paso 2) ya pasa por aplicarActualizacion_; la hoja debe quedar protegida.
+  const p = hoja.getProtections('SHEET')[0];
+  assert.ok(p, 'protegida');
+  assert.equal(p.canDomainEdit(), false);
+  assert.equal(p.isWarningOnly(), false);
+  assert.deepEqual(p.getEditors().map(e => e.getEmail()), [estado.duenia], 'solo la cuenta dueña');
+  assert.match(p.getDescription(), /No ordenar, insertar ni borrar filas/);
+  // Idempotente desde el menú: no crea una segunda protección ni falla.
+  estado.usuario = estado.duenia;
+  ctx.protegerHojaRespuestas();
+  assert.equal(hoja.getProtections('SHEET').length, 1);
+  // Si alguien reabre la edición al dominio, la siguiente actualización la cierra y lo anota.
+  p.setDomainEdit(true);
+  const cambios = ctx.aplicarActualizacion_();
+  assert.equal(p.canDomainEdit(), false);
+  assert.ok(!cambios.some(c => /No se pudo proteger/.test(c)));
+  estado.usuario = 'vice@usach.cl';
+  assert.throws(() => ctx.protegerHojaRespuestas(), /dueña|SOLO_DUENIA|cuenta/i);
+});

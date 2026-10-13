@@ -93,7 +93,10 @@ Al terminar, **recargar el panel** (la lista de analistas para asignar se lee al
      → «Verificar migración». Revise la hoja «Verificación migración»: las diferencias de tipo «formulario» son errores de
      correspondencia; las de tipo «gestión» pueden ser ediciones legítimas hechas en el panel. Si todo aparece corrido una fila, use
      «Realinear filas» en ese mismo diálogo y vuelva a verificar. No ordene ni borre filas en la hoja de respuestas: las solicitudes
-     migradas apuntan a su fila por número.
+     migradas apuntan a su fila por número. Desde 2026-10-13 la hoja de respuestas queda **protegida** en la primera visita tras
+     publicar (y con *CAE → Proteger hoja de respuestas*): solo la cuenta dueña puede editarla; el resto de la planilla no cambia.
+     El Formulario de Google está cerrado, así que ya no recibe filas nuevas. Si alguien con acceso directo necesita corregir un dato
+     de esa hoja, debe hacerlo con la cuenta dueña y sin ordenar ni borrar filas.
 3. **Días hábiles y feriados (automáticos):** los plazos cuentan de lunes a viernes descontando los feriados de Chile, que la plataforma
    obtiene sola del calendario público de feriados de Chile de Google y renueva cada mes (año en curso y siguiente). No se cargan a
    mano. Configuración → «Feriados (automáticos)» muestra los próximos; *CAE → Diagnóstico* indica la fuente o si falló la consulta.
