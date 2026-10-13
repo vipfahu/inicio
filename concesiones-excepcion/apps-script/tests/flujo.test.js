@@ -825,3 +825,45 @@ test('«No enviar notificación»: el cambio queda hecho y registrado, sin corre
   env2.ctx.api_cambiarEstado('06/2026', 'rechazada', { sinCorreo: true, campos: { motivo: 'Fuera de plazo' } });
   assert.equal(env2.estado.correos.length, antes2);
 });
+
+test('verificación de la migración: sin diferencias tras instalar; detecta celdas cambiadas y filas desplazadas', () => {
+  const env = instalar(preparar());
+  const { ctx, estado, hoja } = env;
+  estado.usuario = 'vice@usach.cl';
+  const v0 = ctx.api_verificarMigracion();
+  assert.equal(v0.resumen.filas, 6); assert.equal(v0.resumen.migradas, 6); assert.equal(v0.resumen.nuevas, 0);
+  assert.equal(v0.resumen.formulario, 0, JSON.stringify([...v0.diferencias]));
+  assert.equal(v0.resumen.gestion, 0, JSON.stringify([...v0.diferencias]));
+  assert.ok(env.libro.getSheetByName('Verificación migración'), 'deja el detalle en una hoja');
+  assert.ok(tabla(env, 'Bitácora').some(b => /Verificación de la migración: 0 diferencia/.test(b.texto)));
+  // Un dato del formulario cambiado en la planilla original
+  const enc = hoja.datos[0];
+  hoja.datos[1][enc.indexOf('Primer Apellido')] = 'ApellidoCambiado';
+  const v1 = ctx.api_verificarMigracion();
+  assert.equal(v1.resumen.formulario, 1);
+  assert.deepEqual({ ...v1.diferencias[0] }, { fila: 2, folio: '01/2026', campo: 'apellido1', original: 'ApellidoCambiado', sistema: 'Apellido1', tipo: 'formulario', nota: '' });
+  hoja.datos[1][enc.indexOf('Primer Apellido')] = 'Apellido1';
+  // Un dato de gestión editado en el panel: se informa como «gestión», no como error del formulario
+  estado.usuario = 'analista.uno@usach.cl';
+  ctx.api_guardarGestion('01/2026', { n_std: 'STD-NUEVO' });
+  estado.usuario = 'vice@usach.cl';
+  const v2 = ctx.api_verificarMigracion();
+  assert.equal(v2.resumen.formulario, 0); assert.equal(v2.resumen.gestion, 1); assert.equal(v2.diferencias[0].campo, 'n_std');
+  // Filas desplazadas en la hoja de respuestas (como al ordenar): fundamentación de otra persona → alerta, nunca el texto ajeno
+  const f2 = hoja.datos[2].slice(), f3 = hoja.datos[3].slice();
+  hoja.datos[2] = f3; hoja.datos[3] = f2;
+  const v3 = ctx.api_verificarMigracion();
+  assert.ok(v3.resumen.formulario >= 4, 'nombres, apellidos y correos ya no cuadran en dos filas');
+  estado.usuario = 'analista.uno@usach.cl';
+  const e = ctx.api_expediente('02/2026');
+  assert.equal(e.fundamentacion, '');
+  assert.match(e.alertaFundamentacion, /ya no corresponde/);
+  assert.throws(() => ctx.api_pdfSolicitud('02/2026'), /No se generó el PDF/);
+  hoja.datos[2] = f2; hoja.datos[3] = f3;
+  // Restaurado: el PDF del caso migrado incluye la fundamentación leída de su fila
+  ctx.api_pdfSolicitud('02/2026');
+  assert.match(estado.pdfs[estado.pdfs.length - 1], /Fundamentación confidencial 2/);
+  // Solo Administración
+  estado.usuario = 'consulta@usach.cl';
+  assert.throws(() => ctx.api_verificarMigracion(), /nivel requerido/);
+});

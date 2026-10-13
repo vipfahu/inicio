@@ -121,6 +121,12 @@ límite de Apps Script). El resto se descarga. Los PDF se dibujan con pdf.js (cd
 `isEvalSupported: false`), que se carga solo al abrir el primer PDF. La conversión de Word usa el servicio avanzado de Drive
 (declarado en `appsscript.json`; el Diagnóstico avisa si no está activo).
 
+**Verificar migración.** Configuración → «Migración» → «Verificar migración» (Administración; también CAE → Verificar migración en la
+planilla) compara cada fila de la hoja de respuestas con su solicitud por `fila_respuesta`: datos del formulario (deben coincidir) y
+datos de gestión (estado migrado, analista, N° STD, comentarios, observación, resolución; pueden haberse editado después). El detalle
+queda en la hoja «Verificación migración». La fundamentación de los casos migrados se lee de su fila original y, antes de mostrarla o
+ponerla en el PDF, se comprueba que la fila siga siendo de la misma persona; si no, se muestra una alerta en vez del texto.
+
 **No notificar.** En la vista previa de cualquier cambio de estado con correo se puede marcar «No enviar notificación»: el cambio
 queda hecho y registrado, sin correo ni copias; la bitácora anota quién lo decidió y, si se escribe, el motivo. Los datos obligatorios
 del paso (p. ej., el motivo de un rechazo) se siguen exigiendo. Los correos automáticos (recepción, recordatorios) no tienen esta opción.

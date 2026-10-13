@@ -120,6 +120,23 @@ function api_panorama() {
   return serializar_({ casos: casos, fases: ['Admisibilidad', 'Tramitación', 'Resolución', 'Cierre'] });
 }
 
+/**
+ * Fundamentación de una solicitud. Las del formulario web están en «Solicitudes»; las migradas se leen de su fila en la hoja de
+ * respuestas, y antes de mostrarla se comprueba que esa fila siga siendo de la misma persona (si alguien ordenó o borró filas en la
+ * hoja de respuestas, la fila apuntaría a otro estudiante y se mostrarían datos ajenos).
+ */
+function fundamentacionDe_(s) {
+  if (String(s.fundamentacion || '').trim()) return { texto: s.fundamentacion, origen: 'solicitud', alerta: '' };
+  if (!s.fila_respuesta) return { texto: '', origen: '', alerta: '' };
+  let r;
+  try { r = leerRespuesta_(Number(s.fila_respuesta)); } catch (e) { return { texto: '', origen: 'respuestas', alerta: 'No se pudo leer la fila ' + s.fila_respuesta + ' de la hoja de respuestas: ' + e.message }; }
+  const n = x => String(x === null || x === undefined ? '' : x).trim().toLowerCase();
+  const coincide = (n(r.correoVerificado) && n(r.correoVerificado) === n(s.correo_verificado)) ||
+    (n(r.apellido1) === n(s.apellido1) && n(r.nombres) === n(s.nombres));
+  if (!coincide) return { texto: '', origen: 'respuestas', alerta: 'La fila ' + s.fila_respuesta + ' de la hoja de respuestas ya no corresponde a esta solicitud (¿se ordenaron o borraron filas?). Ejecute «Verificar migración» en Configuración.' };
+  return { texto: r.fundamentacion || '', origen: 'respuestas', alerta: '' };
+}
+
 function api_expediente(folio) {
   const u = requiere_('consulta');
   const s = buscarSolicitud_(folio);
@@ -136,7 +153,9 @@ function api_expediente(folio) {
   // La fundamentación y los archivos (pueden contener datos de salud) solo para Edición o superior.
   out.verDetalle = nivelSuficiente(u.nivel, 'edicion');
   if (out.verDetalle) {
-    out.fundamentacion = s.fundamentacion || (s.fila_respuesta ? leerRespuesta_(s.fila_respuesta).fundamentacion : '');
+    const f = fundamentacionDe_(s);
+    out.fundamentacion = f.texto;
+    if (f.alerta) out.alertaFundamentacion = f.alerta;
     out.archivos = archivosDe_(folio).map(a => ({ id: a.archivo_id, nombre: a.nombre, categoria: CATEGORIAS_ARCHIVO[a.categoria] || a.categoria, tamano_mb: a.tamano_mb, fecha: a.fecha, vista: tipoVista(a.nombre) }));
   } else {
     // La fundamentación (ahora también guardada en «Solicitudes») no debe llegar a Consulta.

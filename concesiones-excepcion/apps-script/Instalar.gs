@@ -13,6 +13,7 @@ function onOpen() {
   SpreadsheetApp.getUi().createMenu('CAE')
     .addItem('Abrir panel', 'abrirPanel')
     .addItem('Diagnóstico', 'diagnostico')
+    .addItem('Verificar migración (planilla original ↔ Solicitudes)', 'verificarMigracion')
     .addItem('Actualizar (tras subir código nuevo)', 'actualizarInstalacion')
     .addSeparator()
     .addItem('Instalación · paso 1 (estructura)', 'instalarPaso1')
@@ -162,7 +163,7 @@ function instalarPaso2() {
     const correoAn = nombreAn ? (porNombre[nombreAn.toLowerCase()] || '') : '';
     if (nombreAn && !correoAn) { notas.push('Analista «' + nombreAn + '» sin cuenta.'); revisar = true; }
     const sem = String(o.semestre || '').trim();
-    const semN = sem === 'Semestre I' || sem === 'Semestre II' ? sem : (/primer|\bI\b/i.test(sem) ? 'Semestre I' : (sem ? 'Semestre II' : ''));
+    const semN = semestreNormalizado_(sem);
     if (sem && sem !== semN) notas.push('Semestre «' + sem + '» normalizado.');
     const std = String(val(r, J.std) || '').trim();
     const tipos = separarTipos(o.tipos);
@@ -388,4 +389,122 @@ function aplicarActualizacion_() {
   if (nuevas.length) anexar_(HOJAS.bitacora, { fecha: new Date(), folio: '—', tipo: 'sistema', quien: duenia_(), texto: 'Actualización: plantillas agregadas ' + nuevas.map(t => t[0]).join(', ') });
   if (nuevas.length) cambios.push('Plantillas: ' + nuevas.map(t => t[0]).join(', '));
   return cambios;
+}
+
+/* ── Verificación de la migración: cada fila de la hoja de respuestas contra su solicitud en «Solicitudes» ── */
+
+function semestreNormalizado_(sem) {
+  sem = String(sem || '').trim();
+  return sem === 'Semestre I' || sem === 'Semestre II' ? sem : (/primer|\bI\b/i.test(sem) ? 'Semestre I' : (sem ? 'Semestre II' : ''));
+}
+function stdNormalizado_(std) {
+  std = String(std || '').trim();
+  return std === '0' || std === '-' ? '' : std.split('/')[0].trim();
+}
+
+/**
+ * Compara la planilla original (hoja de respuestas) con «Solicitudes», fila por fila (por `fila_respuesta`).
+ * Campos del formulario: deben coincidir. Campos de gestión (estado, analista, N° STD, comentarios, observación, resolución):
+ * se compara lo migrado con el valor original, pero pueden haberse editado después en el panel; se marcan como tales.
+ */
+function verificarMigracion_() {
+  const resp = hojaRespuestas_();
+  const enc = resp.getRange(1, 1, 1, resp.getLastColumn()).getValues()[0].map(String);
+  const n = resp.getLastRow() - 1;
+  const datos = n > 0 ? resp.getRange(2, 1, n, enc.length).getValues() : [];
+  const col = (pref, exacto) => columnaPorPrefijo_(enc, pref, exacto);
+  const J = { pres: col(LEGADO.presentacion), est: col(LEGADO.estado, true), act: col(LEGADO.actual), an: col(LEGADO.analista),
+    obs: col(LEGADO.obsVicedecano), com: col(LEGADO.comentarios), std: col(LEGADO.std), ext: col(LEGADO.extras), cae: col(LEGADO.archivoCae), res: col(LEGADO.resolucion) };
+  const val = (r, j) => j >= 0 ? r[j] : '';
+  const sols = leer_(HOJAS.solicitudes);
+  const bit = leer_(HOJAS.bitacora);
+  const cuentas = leer_(HOJAS.cuentas);
+  const porNombre = {};
+  cuentas.forEach(c => { porNombre[String(c.nombre).trim().toLowerCase()] = String(c.correo).trim().toLowerCase(); });
+  const porFila = {}, duplicadas = [];
+  sols.forEach(s => { const f = Number(s.fila_respuesta); if (!f) return; if (porFila[f]) duplicadas.push(f); porFila[f] = s; });
+  const norm = x => String(x === null || x === undefined ? '' : x).trim().toLowerCase().replace(/\s+/g, ' ');
+  const fechaTxt = d => d instanceof Date && !isNaN(d) ? Utilities.formatDate(d, Session.getScriptTimeZone(), 'yyyy-MM-dd') : String(d || '');
+  const dif = [];
+  const anota = (fila, folio, campo, original, sistema, tipo, nota) => dif.push({ fila: fila, folio: folio, campo: campo, original: String(original === null || original === undefined ? '' : original), sistema: String(sistema === null || sistema === undefined ? '' : sistema), tipo: tipo, nota: nota || '' });
+  const cmp = (fila, folio, campo, original, sistema, tipo, nota) => { if (norm(original) !== norm(sistema)) anota(fila, folio, campo, original, sistema, tipo, nota); };
+  let filas = 0, migradas = 0;
+  datos.forEach((r, i) => {
+    if (r.every(x => x === '' || x === null)) return;
+    filas++;
+    const fila = i + 2;
+    const s = porFila[fila];
+    const o = {};
+    Object.keys(RESPUESTA).forEach(k => { const j = columnaPorPrefijo_(enc, RESPUESTA[k]); o[k] = j >= 0 ? r[j] : ''; });
+    if (!s) { anota(fila, normalizarFolio(r[0]), 'solicitud', 'fila con datos', 'sin solicitud asociada', 'formulario', 'Ninguna solicitud apunta a esta fila.'); return; }
+    migradas++;
+    const F = s.folio;
+    cmp(fila, F, 'folio', normalizarFolio(r[0]), s.folio, 'formulario', r[0] instanceof Date ? 'En la planilla original el folio quedó guardado como fecha.' : '');
+    cmp(fila, F, 'fecha_recepcion', fechaTxt(o.marca), fechaTxt(s.fecha_recepcion), 'formulario', o.marca instanceof Date ? '' : 'La marca temporal original no era una fecha; se usó la fecha de la migración.');
+    cmp(fila, F, 'correo_verificado', o.correoVerificado, s.correo_verificado, 'formulario');
+    cmp(fila, F, 'apellido1', o.apellido1, s.apellido1, 'formulario');
+    cmp(fila, F, 'apellido2', o.apellido2, s.apellido2, 'formulario');
+    cmp(fila, F, 'nombres', o.nombres, s.nombres, 'formulario');
+    cmp(fila, F, 'run', o.run, s.run, 'formulario');
+    cmp(fila, F, 'correo', o.correo || o.correoVerificado, s.correo, 'formulario');
+    cmp(fila, F, 'telefono', o.telefono, s.telefono, 'formulario');
+    cmp(fila, F, 'programa', o.programa, s.programa, 'formulario');
+    cmp(fila, F, 'anio', o.anio, s.anio, 'formulario');
+    cmp(fila, F, 'semestre', semestreNormalizado_(o.semestre), s.semestre, 'formulario', norm(o.semestre) !== norm(semestreNormalizado_(o.semestre)) ? 'Original: «' + o.semestre + '» (normalizado).' : '');
+    const t = separarTipos(o.tipos);
+    cmp(fila, F, 'tipo_catalogo', t.catalogo, s.tipo_catalogo, 'formulario');
+    cmp(fila, F, 'tipo_texto_libre', t.libre, s.tipo_texto_libre, 'formulario');
+    if (String(s.fundamentacion || '').trim()) cmp(fila, F, 'fundamentacion', o.fundamentacion, s.fundamentacion, 'formulario');
+    else if (!String(o.fundamentacion || '').trim()) anota(fila, F, 'fundamentacion', '(vacía)', '(se lee de esta fila)', 'formulario', 'La fila original no tiene fundamentación.');
+    // Gestión: lo migrado pudo editarse después en el panel.
+    const nombreAn = String(val(r, J.an) || '').trim();
+    cmp(fila, F, 'analista', nombreAn ? (porNombre[nombreAn.toLowerCase()] || '(sin cuenta: ' + nombreAn + ')') : '', s.analista, 'gestión', 'Editable en el panel.');
+    cmp(fila, F, 'n_std', stdNormalizado_(val(r, J.std)), s.n_std, 'gestión', 'Editable en el panel. Original: «' + val(r, J.std) + '».');
+    cmp(fila, F, 'comentarios_analista', val(r, J.com), s.comentarios_analista, 'gestión', 'Editable en el panel.');
+    cmp(fila, F, 'obs_vicedecano', val(r, J.obs), s.obs_vicedecano, 'gestión', 'Editable en el panel.');
+    cmp(fila, F, 'resolucion', [val(r, J.res), val(r, J.cae)].filter(x => String(x || '').trim()).join(' · '), s.resolucion, 'gestión', 'Editable en el panel.');
+    const comentarios = [val(r, J.com), val(r, J.ext)].join(' ');
+    const m = estadoMigrado(val(r, J.pres), val(r, J.est), val(r, J.act), comentarios);
+    const migrado = (bit.find(b => String(b.folio) === String(F) && b.quien === 'migración' && b.tipo === 'estado') || {}).estado_nuevo || 'recibida';
+    const crudo = [val(r, J.act), val(r, J.est), val(r, J.pres)].map(x => String(x || '').trim()).find(x => x) || '(vacío)';
+    cmp(fila, F, 'estado migrado', m.estado, migrado, 'gestión', 'Original: «' + crudo + '». Estado actual en el sistema: ' + s.estado + '.');
+  });
+  // Solicitudes que apuntan a filas inexistentes o repetidas
+  sols.forEach(s => {
+    const f = Number(s.fila_respuesta);
+    if (f && (f < 2 || f > datos.length + 1 || datos[f - 2].every(x => x === '' || x === null))) anota(f, s.folio, 'fila_respuesta', '(fila vacía o inexistente)', f, 'formulario', 'La solicitud apunta a una fila sin datos: ¿se borraron filas en la hoja de respuestas?');
+  });
+  duplicadas.forEach(f => anota(f, (porFila[f] || {}).folio, 'fila_respuesta', '', f, 'formulario', 'Más de una solicitud apunta a la misma fila.'));
+  const formulario = dif.filter(d => d.tipo === 'formulario').length;
+  return {
+    resumen: { filas: filas, solicitudes: sols.length, migradas: migradas, nuevas: sols.filter(s => !Number(s.fila_respuesta)).length,
+      diferencias: dif.length, formulario: formulario, gestion: dif.length - formulario, fecha: new Date() },
+    diferencias: dif
+  };
+}
+
+const HOJA_VERIFICACION = 'Verificación migración';
+/** Deja el detalle en una hoja (se reemplaza en cada ejecución). */
+function escribirVerificacion_(v) {
+  const libro = libro_();
+  const previa = libro.getSheetByName(HOJA_VERIFICACION);
+  if (previa) libro.deleteSheet(previa);
+  const h = libro.insertSheet(HOJA_VERIFICACION);
+  const enc = ['fila_respuesta', 'folio', 'campo', 'planilla original', 'sistema', 'tipo', 'nota'];
+  const filas = [enc].concat(v.diferencias.map(d => [d.fila, d.folio, d.campo, d.original, d.sistema, d.tipo, d.nota]));
+  if (!v.diferencias.length) filas.push(['', '', 'Sin diferencias', '', '', '', 'Verificado el ' + Utilities.formatDate(v.resumen.fecha, Session.getScriptTimeZone(), 'dd-MM-yyyy HH:mm')]);
+  h.getRange(1, 1, filas.length, enc.length).setValues(filas);
+  h.getRange(1, 1, 1, enc.length).setFontWeight('bold').setBackground('#3A4450').setFontColor('#FFFFFF');
+  h.setFrozenRows(1);
+  return h;
+}
+
+/** Menú CAE (cuenta dueña): verifica y deja el detalle en la hoja «Verificación migración». */
+function verificarMigracion() {
+  soloDuenia_();
+  const v = verificarMigracion_();
+  escribirVerificacion_(v);
+  const r = v.resumen;
+  avisar_('Verificación de la migración', r.filas + ' filas con datos en la hoja de respuestas · ' + r.migradas + ' con solicitud · ' + r.nuevas + ' solicitudes del formulario web.\n' +
+    r.diferencias + ' diferencia(s): ' + r.formulario + ' en datos del formulario, ' + r.gestion + ' en datos de gestión (pueden haberse editado en el panel).\nDetalle en la hoja «' + HOJA_VERIFICACION + '».');
 }

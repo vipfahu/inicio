@@ -1,7 +1,19 @@
-Regla de migración: «el último estado es el definitivo» = columna no vacía más a la derecha (ESTADO ACTUAL → ESTADO → Estado de Presentación).
+Regla de migración: «el último estado es el definitivo» = columna no vacía más a la derecha (ESTADO ACTUAL → ESTADO → Estado de Presentación). Verificable con «Verificar migración».
 
 Tipo: confirmado
 
 Los casos ambiguos quedan `revisar = SÍ` (filtro «Por revisar»). La migración real coincidió con la copia de prueba (5 casos por revisar).
 
-**Por qué importa:** La planilla original tenía tres columnas de estado contradictorias.
+Revisión de correspondencia (2026-10-13, pedido de la persona): lo que la migración copia y lo que no.
+- Copiado a «Solicitudes»: marca temporal (si no era fecha, se usó la fecha de la migración), correo verificado, apellidos, nombres, RUN
+  (sin normalizar), correo (si vacío, el verificado), teléfono, programa, año, semestre (normalizado a «Semestre I/II»), tipos (catálogo /
+  texto libre), estado (regla de arriba), analista (nombre → correo de Cuentas; sin cuenta → revisar), N° STD («0»/«-» → vacío y se
+  corta en «/»), comentarios, observación Vicedecano/a, «archivo resolución» + «Archivo CAE» → texto en `resolucion` (no como archivos).
+- No copiado: la **fundamentación** (se lee en vivo de la fila original por `fila_respuesta`; por eso ordenar o borrar filas en la hoja
+  de respuestas rompe la correspondencia; `fundamentacionDe_` lo detecta y muestra alerta en vez de texto ajeno) y OBSERVACIONES EXTRAS /
+  columnas sin nombre (van solo a la bitácora como notas).
+- Ambigüedad que la herramienta no resuelve: «Rechazado» legado → `rechazada` (rechazo de admisibilidad) y «Aprobado» → `aceptada`;
+  si en la planilla original significaban rechazo/aprobación de la CAE tras el Comité, hay que corregirlos a mano.
+
+**Por qué importa:** La planilla original tenía tres columnas de estado contradictorias, y la fundamentación migrada depende del
+número de fila: la verificación y la alerta son las salvaguardas.

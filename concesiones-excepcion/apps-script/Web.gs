@@ -115,6 +115,15 @@ function asegurarCuentaRC_(cuentas, nombreCuenta, correo, rol, programa, u) {
   return correo;
 }
 
+/** Verificación de la migración desde el panel (Administración): resumen y diferencias; el detalle queda en la hoja. */
+function api_verificarMigracion() {
+  const u = requiere_('administracion');
+  const v = verificarMigracion_();
+  escribirVerificacion_(v);
+  anexar_(HOJAS.bitacora, { fecha: new Date(), folio: '—', tipo: 'sistema', quien: u.correo, texto: 'Verificación de la migración: ' + v.resumen.diferencias + ' diferencia(s) (' + v.resumen.formulario + ' de formulario, ' + v.resumen.gestion + ' de gestión).' });
+  return serializar_({ resumen: v.resumen, diferencias: v.diferencias.slice(0, 300), hoja: HOJA_VERIFICACION });
+}
+
 /** Correo de la dirección de un programa: lo puede editar cualquier cuenta con nivel edición (analistas). */
 function api_guardarCorreoPrograma(programa, correo) {
   const u = requiere_('edicion');

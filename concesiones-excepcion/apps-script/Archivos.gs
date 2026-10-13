@@ -221,6 +221,10 @@ function generarPdfSolicitud_(s, u, motivo) {
   const previo = pdfSolicitudExistente_(s.folio);
   if (previo) return previo;
   const antecedentes = archivosDe_(s.folio).filter(a => a.categoria === 'antecedentes_formulario').map(a => a.nombre);
+  // Casos migrados: la fundamentación vive en la hoja de respuestas; no se genera el PDF si la fila ya no corresponde.
+  const fund = fundamentacionDe_(s);
+  if (fund.alerta) throw new Error('No se generó el PDF: ' + fund.alerta);
+  s = Object.assign({}, s, { fundamentacion: fund.texto });
   const nombre = 'Solicitud CAE ' + String(s.folio).replace(/\//g, '-') + ' (formulario).pdf';
   let pdf;
   try {

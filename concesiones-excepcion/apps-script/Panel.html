@@ -309,7 +309,7 @@ function pintarExp() {
       '<div class="tarjeta"><h3>I. Persona solicitante</h3><div class="dl"><div><span class="et">RUN o pasaporte</span><div class="mono">' + h(e.run || '—') + '</div></div>' +
       '<div><span class="et">Correo</span><a href="mailto:' + h(e.correo) + '">' + h(e.correo) + '</a></div><div><span class="et">Teléfono</span><div class="mono">' + h(e.telefono || '—') + '</div></div></div></div>' +
       '<div class="tarjeta"><h3>II. Requerimiento</h3>' + (e.tipo_catalogo ? '<span class="tag t-tra">' + h(e.tipo_catalogo) + '</span> ' : '') + (e.tipo_texto_libre ? '<span class="tag t-adm">Otro: ' + h(e.tipo_texto_libre) + '</span>' : '') +
-      (e.verDetalle ? '<p style="font:400 14px/1.65 Spectral,serif;white-space:pre-line">' + h(e.fundamentacion) + '</p>' : '<p class="sub" style="margin-top:12px">La fundamentación y los archivos son visibles solo con nivel Edición.</p>') + '</div>' +
+      (e.verDetalle ? (e.alertaFundamentacion ? '<div class="aviso a-rojo" style="white-space:normal;margin-top:10px">' + h(e.alertaFundamentacion) + '</div>' : '') + '<p style="font:400 14px/1.65 Spectral,serif;white-space:pre-line">' + h(e.fundamentacion) + '</p>' : '<p class="sub" style="margin-top:12px">La fundamentación y los archivos son visibles solo con nivel Edición.</p>') + '</div>' +
       (e.verDetalle ? '<div class="tarjeta"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px"><h3 style="margin:0">Archivos del expediente</h3>' +
         (edita ? '<button id="pdf_solicitud" title="Genera un PDF con lo que el estudiante envió en el formulario">PDF del formulario de solicitud</button>' : '') + '</div>' + archivos +
         (edita ? '<div style="margin-top:14px;border:1px dashed #D8D3C5;background:#FBFAF6;border-radius:12px;padding:14px"><span class="et">Agregar archivo (máx. ' + S.ini.maxMb + ' MB)</span>' +
@@ -802,12 +802,26 @@ function pintarConfig() {
     (adm ? '<div class="tarjeta"><h3>Agregar programa</h3><div style="display:grid;grid-template-columns:1.5fr 1fr auto;gap:8px"><input id="np_nombre" placeholder="Nombre exacto, como aparece en el Formulario"><input id="np_correo" class="mono" placeholder="dirección@usach.cl"><button class="prim" id="np_ok">Agregar</button></div><div class="sub" style="white-space:normal;margin-top:6px">Si agrega un programa aquí, agréguelo también como opción en el Formulario de Google.</div></div>' : '') +
     '</div><div class="lado pila"><div class="tarjeta"><h3>Parámetros</h3>' + pars + (adm ? '<button class="prim" id="par_ok" style="width:100%">Guardar parámetros</button>' : '') + '</div>' +
     tarjetaVicedecano(r.vicedecano) +
+    (adm ? '<div class="tarjeta" id="mig_tarjeta"><h3>Migración</h3><div class="sub" style="white-space:normal;margin-bottom:10px">Compara cada fila de la planilla original (hoja de respuestas) con su solicitud en el sistema: datos del formulario y datos de gestión.</div><button id="mig_ok" style="width:100%">Verificar migración</button></div>' : '') +
     tarjetaFeriados(r.feriados) + '</div></div>';
   document.querySelectorAll('[data-gc]').forEach(b => b.onclick = () => {
     const i = b.dataset.gc, el = document.querySelector('[data-i="' + i + '"][data-k="correo_direccion"]');
     run('api_guardarCorreoPrograma', r.programas[i].programa, el.value).then(() => { toast('Correo de dirección guardado'); cargarConfig(); }).catch(fallo);
   });
   if (!adm) return;
+  $('mig_ok').onclick = () => {
+    $('mig_ok').disabled = true; $('mig_ok').textContent = 'Verificando…';
+    run('api_verificarMigracion').then(v => {
+      $('mig_ok').disabled = false; $('mig_ok').textContent = 'Verificar migración';
+      const r = v.resumen;
+      const filas = v.diferencias.map(d => '<tr><td class="mono">' + h(d.fila) + '</td><td class="mono">' + h(d.folio) + '</td><td>' + h(d.campo) + '</td><td>' + h(d.original) + '</td><td>' + h(d.sistema) + '</td><td class="sub" style="white-space:normal">' + h(d.tipo) + (d.nota ? ' · ' + h(d.nota) : '') + '</td></tr>').join('');
+      $('dlg').innerHTML = '<div class="kicker" style="color:var(--apagado)">Verificación de la migración</div><h3 style="margin-top:6px">' + r.filas + ' filas con datos · ' + r.migradas + ' con solicitud · ' + r.nuevas + ' del formulario web</h3>' +
+        '<div class="aviso ' + (r.formulario ? 'a-amb' : 'a-teal') + '" style="white-space:normal;margin:10px 0">' + (r.diferencias ? r.diferencias + ' diferencia(s): <b>' + r.formulario + '</b> en datos del formulario y ' + r.gestion + ' en datos de gestión (estado, analista, N° STD, comentarios, resolución), que pueden haberse editado después en el panel.' : 'Sin diferencias: la planilla original y el sistema coinciden.') + ' El detalle quedó en la hoja «' + h(v.hoja) + '» de la planilla.</div>' +
+        (filas ? '<div style="max-height:50vh;overflow:auto"><table style="width:100%;border-collapse:collapse;font:400 12px Archivo,sans-serif"><thead><tr style="text-align:left"><th>Fila</th><th>Folio</th><th>Campo</th><th>Planilla original</th><th>Sistema</th><th>Tipo · nota</th></tr></thead><tbody>' + filas + '</tbody></table></div>' : '') +
+        '<div class="acciones" style="justify-content:flex-end;margin-top:14px"><button class="prim" id="mig_cerrar">Cerrar</button></div>';
+      $('fondo').style.display = 'flex'; $('mig_cerrar').onclick = cerrarDlg;
+    }).catch(err => { fallo(err); $('mig_ok').disabled = false; $('mig_ok').textContent = 'Verificar migración'; });
+  };
   document.querySelectorAll('select[data-rc]').forEach(sel => sel.onchange = () => {
     const caja = document.querySelector('[data-nueva="' + sel.dataset.i + '-' + sel.dataset.k + '"]');
     const nueva = sel.value === '__nueva';

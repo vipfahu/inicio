@@ -20,7 +20,7 @@ Mantenimiento: actualizar la nota existente en vez de duplicar; borrar las que r
 - [identidad-getactiveuser-verificada](identidad-getactiveuser-verificada.md) — Web App «ejecutar como yo» + acceso «dominio»: `Session.getActiveUser()` devuelve el correo de una analista del dominio; verificado en producción.
 - [ingreso-es-paso-de-interfaz](ingreso-es-paso-de-interfaz.md) — La página «Iniciar sesión» y el botón «Cerrar sesión» del panel son pasos de interfaz: la identidad la entrega siempre Google.
 - [menu-cae-ausente-push-no-llego](menu-cae-ausente-push-no-llego.md) — Si falta una opción del menú CAE, casi siempre el push no llegó: recargar la planilla, ver archivos en el editor, `clasp status`, revisar scriptId.
-- [migracion-ultimo-estado](migracion-ultimo-estado.md) — Regla de migración: «el último estado es el definitivo» = columna no vacía más a la derecha (ESTADO ACTUAL → ESTADO → Estado de Presentación).
+- [migracion-ultimo-estado](migracion-ultimo-estado.md) — Regla de migración: «el último estado es el definitivo» = columna no vacía más a la derecha (ESTADO ACTUAL → ESTADO → Estado de Presentación). Verificable con «Verificar migración».
 - [no-se-pudo-abrir-el-archivo](no-se-pudo-abrir-el-archivo.md) — «No se pudo abrir el archivo en este momento» suele ser multicuenta de Google en el navegador o implementación inactiva, no un error del código.
 - [nombres-gs-html-distintos](nombres-gs-html-distintos.md) — En Apps Script un `.gs` y un `.html` no pueden compartir nombre base; `clasp push` falla entero («A file with this name already exists»).
 - [nueva-implementacion-cambia-url](nueva-implementacion-cambia-url.md) — «Nueva implementación» crea otra URL; para conservarla: editar la existente → «Nueva versión», o `clasp redeploy`.
