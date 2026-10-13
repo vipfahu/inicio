@@ -40,6 +40,8 @@
   .tabla{background:#fff;border:1px solid var(--borde);border-radius:14px;overflow:hidden}
   .fila{display:grid;grid-template-columns:76px 1.3fr 1.1fr 170px 140px 96px 52px;gap:10px;padding:13px 20px;border-bottom:1px solid var(--fila);align-items:center;cursor:pointer}
   .fila:hover{background:var(--fcampo)} .fila.enc{cursor:default;background:var(--fcampo);font:600 10.5px Archivo,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--apagado)}
+  .fila.enc .ord{cursor:pointer;user-select:none;border-radius:5px;padding:2px 4px;margin:-2px -4px} .fila.enc .ord:hover,.fila.enc .ord:focus-visible{color:var(--tinta);background:#fff;outline:none}
+  .fila.enc .ord.act{color:var(--tinta)} .fila.enc .flecha{font-size:8px;margin-left:4px;vertical-align:1px}
   .nom{font:700 13.5px Archivo,sans-serif} .sub{font:400 12px Archivo,sans-serif;color:var(--apagado);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .filtros{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:10px;margin:16px 0}
   .grid2{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:26px;align-items:start}
@@ -134,7 +136,7 @@ const URL_SALIR_GOOGLE = 'https://accounts.google.com/Logout';
 const CLAVE_SESION = 'cae_sesion';
 const sesionGuardada = () => { try { return sessionStorage.getItem(CLAVE_SESION) || ''; } catch (e) { return ''; } };
 const guardarSesion = v => { try { v ? sessionStorage.setItem(CLAVE_SESION, v) : sessionStorage.removeItem(CLAVE_SESION); } catch (e) { /* sin almacenamiento: se pedirá ingresar en cada carga */ } };
-const S = { ini: null, vista: 'bandeja', bandeja: [], filtro: { q: '', grupo: 'curso', programa: '', analista: '' }, exp: null, plantillas: [], plSel: '', plModo: 'editar', cuentas: null, config: null };
+const S = { ini: null, vista: 'bandeja', bandeja: [], filtro: { q: '', grupo: 'curso', programa: '', analista: '' }, orden: { campo: 'fecha_recepcion', dir: -1 }, exp: null, plantillas: [], plSel: '', plModo: 'editar', cuentas: null, config: null };
 
 /* ── utilidades ── */
 const h = s => String(s === null || s === undefined ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -201,7 +203,8 @@ function entrar() {
   $('sesion').textContent = (r.usuario.nombre || r.usuario.correo) + ' · ' + ({ consulta: 'Consulta', edicion: 'Edición', administracion: 'Administración' })[r.usuario.nivel];
   $('salir').hidden = false;
   $('salir').onclick = dialogoSalir;
-  if (r.usuario.rol === 'Vicedecano/a') S.filtro.grupo = 'vb';
+  // El Vicedecano/a parte con la planilla completa (todos los estados); «Pendiente V°B°» queda como filtro y en el resumen.
+  if (r.usuario.rol === 'Vicedecano/a') S.filtro.grupo = 'todas';
   pintarNav();
   cargarBandeja().then(() => { if (/^\d{2}\/\d{4}$/.test(FOLIO_INICIAL)) abrir(FOLIO_INICIAL); });
 }
@@ -248,7 +251,26 @@ function filtrar() {
     if (f.programa && s.programa !== f.programa) return false;
     if (f.analista === '__sin' ? !!s.analista : (f.analista && s.analista !== f.analista)) return false;
     return !q || [s.folio, s.nombre, s.run, s.programa, s.tipo].join(' ').toLowerCase().indexOf(q) >= 0;
-  }).sort((a, b) => String(b.fecha_recepcion).localeCompare(String(a.fecha_recepcion)));
+  }).sort(comparador());
+}
+/* Columnas por las que se ordena la Bandeja (clic en el encabezado; segundo clic invierte). */
+const ORDENES = {
+  folio: { titulo: 'Folio', clave: s => { const m = /^(\d+)\/(\d{4})$/.exec(s.folio || ''); return m ? Number(m[2]) * 1000 + Number(m[1]) : 0; } },
+  nombre: { titulo: 'Solicitante', clave: s => String(s.nombre || '').toLowerCase() },
+  programa: { titulo: 'Programa · tipo', clave: s => String(s.programa || '').toLowerCase() + '|' + String(s.tipo || '').toLowerCase() },
+  estado: { titulo: 'Estado', clave: s => { const i = S.ini.estados.findIndex(e => e.id === s.estado); return i < 0 ? 999 : i; } },
+  analista: { titulo: 'Analista', clave: s => String(s.analistaNombre || '').toLowerCase() || '~' },
+  fecha_recepcion: { titulo: 'Recibida', clave: s => String(s.fecha_recepcion || '') },
+  dias: { titulo: 'Días', clave: s => cierre(s.estado) ? -1 : dias(s.estado_desde) || 0 }
+};
+function comparador() {
+  const o = ORDENES[S.orden.campo] || ORDENES.fecha_recepcion, dir = S.orden.dir || -1;
+  return (a, b) => { const x = o.clave(a), y = o.clave(b); const c = typeof x === 'number' && typeof y === 'number' ? x - y : String(x).localeCompare(String(y)); return (c || String(b.fecha_recepcion).localeCompare(String(a.fecha_recepcion))) * (c ? dir : 1); };
+}
+function ordenarPor(campo) {
+  if (S.orden.campo === campo) S.orden.dir = -S.orden.dir;
+  else S.orden = { campo: campo, dir: campo === 'fecha_recepcion' || campo === 'dias' || campo === 'folio' ? -1 : 1 };
+  pintarFilas();
 }
 function pintarBandeja() {
   const l = S.bandeja, curso = l.filter(s => !cierre(s.estado)).length, vb = l.filter(s => s.estado === 'vb').length, rev = l.filter(s => s.revisar === 'SÍ').length;
@@ -271,7 +293,8 @@ function pintarBandeja() {
 function pintarFilas() {
   const l = filtrar();
   $('cont').textContent = l.length + ' de ' + S.bandeja.length;
-  $('tabla').innerHTML = '<div class="fila enc"><div>Folio</div><div>Solicitante</div><div>Programa · tipo</div><div>Estado</div><div>Analista</div><div>Recibida</div><div>Días</div></div>' +
+  const enc = Object.keys(ORDENES).map(k => { const act = S.orden.campo === k; return '<div class="ord' + (act ? ' act' : '') + '" data-o="' + k + '" role="button" tabindex="0" title="Ordenar por ' + h(ORDENES[k].titulo) + '" aria-sort="' + (act ? (S.orden.dir > 0 ? 'ascending' : 'descending') : 'none') + '">' + h(ORDENES[k].titulo) + (act ? '<span class="flecha">' + (S.orden.dir > 0 ? '▲' : '▼') + '</span>' : '') + '</div>'; }).join('');
+  $('tabla').innerHTML = '<div class="fila enc">' + enc + '</div>' +
     (l.length ? l.map(s => '<div class="fila" data-f="' + h(s.folio) + '" tabindex="0"><div class="mono" style="font-weight:600;font-size:12px">' + h(s.folio) + (s.revisar === 'SÍ' ? ' <span title="Revisar (migración)" style="color:#94571B">●</span>' : '') + '</div>' +
       '<div><div class="nom">' + h(s.nombre) + '</div><div class="sub mono">' + h(s.run) + '</div></div>' +
       '<div style="min-width:0"><div class="sub" style="color:var(--tinta);font-weight:600">' + h(s.programa) + '</div><div class="sub">' + h(s.tipo) + '</div></div>' +
@@ -280,6 +303,7 @@ function pintarFilas() {
       '<div class="mono" style="font-weight:600;font-size:12px;color:' + (cierre(s.estado) ? 'var(--deshab)' : 'var(--naranja)') + '">' + (cierre(s.estado) ? '—' : dias(s.estado_desde)) + '</div></div>').join('')
       : '<div class="cargando">Sin solicitudes con estos filtros.</div>');
   $('tabla').querySelectorAll('.fila[data-f]').forEach(r => { r.onclick = () => abrir(r.dataset.f); r.onkeydown = e => { if (e.key === 'Enter') abrir(r.dataset.f); }; });
+  $('tabla').querySelectorAll('[data-o]').forEach(c => { c.onclick = () => ordenarPor(c.dataset.o); c.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); ordenarPor(c.dataset.o); } }; });
 }
 
 /* ── Expediente ── */
