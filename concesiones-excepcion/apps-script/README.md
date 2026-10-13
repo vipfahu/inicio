@@ -182,6 +182,10 @@ falla, el estado no cambia. Los destinatarios son roles que se traducen al envia
 | Dirección de programa | `correo_direccion` del programa |
 | (copias) | cuentas activas con el evento en `recibe_eventos` |
 
+`resumenCuenta(cuenta, ctx)` (Logica.gs) deriva de estas mismas reglas qué programas ve una cuenta y qué correos recibe con su
+motivo; el panel lo muestra en «Editar cuenta» (`api_cuentas` lo trae para todas; `api_resumenCuenta` lo calcula para el formulario
+sin guardar) y advierte si una cuenta recibe copias de un programa que no tiene entre los que ve.
+
 **Archivos.** Las analistas suben informe académico, acta del Comité, resolución, etc. (máx. `max_mb_archivo`, 20 MB) y pueden
 adjuntarlos al correo de un cambio de estado (máx. 24 MB por correo). Los antecedentes del Formulario (hasta 100 MB) se vinculan con
 un acceso directo; si superan el máximo de descarga por el panel, se concede acceso de lectura a ese archivo a quien lo pide, y queda en la bitácora.

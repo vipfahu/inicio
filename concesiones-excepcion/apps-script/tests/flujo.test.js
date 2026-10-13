@@ -904,3 +904,21 @@ test('realinear filas migradas: una fila insertada en la hoja de respuestas desp
   assert.equal(e.fundamentacion, 'Fundamentación confidencial 2');
   assert.ok(tabla(env, 'Bitácora').some(b => b.folio === '02/2026' && /realineada: 3 → 4/.test(b.texto)));
 });
+
+test('cuentas: el panel recibe el resumen efectivo de cada cuenta y puede calcularlo para un formulario sin guardar', () => {
+  const env = instalar(preparar());
+  const { ctx, estado } = env;
+  estado.usuario = 'vice@usach.cl';
+  ctx.api_guardarPrograma({ programa: 'Magíster en Prueba A', correo_direccion: 'dir@usach.cl', analista: 'analista.uno@usach.cl', activo: 'SÍ', nuevo_analista_rc: { nombre: 'Ana RC', correo: 'rc.ana@usach.cl' } }, false);
+  const r = ctx.api_cuentas();
+  const rcAna = r.resumenes['rc.ana@usach.cl'];
+  assert.ok(rcAna, 'la cuenta creada desde Configuración tiene resumen');
+  assert.ok(rcAna.copias.some(c => c.evento === 'cae_admisible' && /Configuración a «Magíster en Prueba A»/.test(c.origenes[0])));
+  assert.ok(r.resumenes['analista.uno@usach.cl'].copias.some(c => c.evento === 'nueva_solicitud'));
+  // Vista previa de un formulario: rol Registro Curricular, sin nada marcado → hereda lo de la analista de RC.
+  const prev = ctx.api_resumenCuenta({ correo: 'nueva@usach.cl', rol: 'Registro Curricular', nivel: 'consulta', programas: 'todos', activo: 'SÍ', recibe_eventos: '' });
+  assert.ok(prev.copias.some(c => c.evento === 'aceptada' && /analista de Registro Curricular/.test(c.origenes[0])));
+  assert.match(prev.acceso, /consulta/);
+  estado.usuario = 'analista.uno@usach.cl';
+  assert.throws(() => ctx.api_resumenCuenta({}), /SIN_ACCESO/);
+});

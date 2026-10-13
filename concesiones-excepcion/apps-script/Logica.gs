@@ -293,6 +293,60 @@ function unicos(a) {
   return a.filter((x, i) => x && a.indexOf(x) === i);
 }
 
+/**
+ * Qué ve y qué recibe una cuenta, derivado de las mismas reglas que usa resolverDestinatarios (no de lo que se marcó a mano).
+ * ctx = { programas: filas de «Programas», plantillas: filas de «Plantillas» (evento, descripcion, para, cc), eventosRC, cuentas }.
+ * Devuelve { activa, acceso, programas: { todos, lista, asignaciones, sinVista }, copias: [{ evento, descripcion, origenes }] }.
+ */
+function resumenCuenta(cuenta, ctx) {
+  const correo = String(cuenta.correo || '').trim().toLowerCase();
+  const rol = cuenta.rol, nivel = cuenta.nivel;
+  const activa = esSi(cuenta.activo);
+  const progs = (ctx.programas || []).filter(p => p.programa);
+  const todos = !String(cuenta.programas || '').trim() || String(cuenta.programas).trim().toLowerCase() === 'todos';
+  const vistos = todos ? progs.map(p => p.programa) : String(cuenta.programas).split(';').map(x => x.trim()).filter(Boolean);
+  const ve = p => todos || vistos.indexOf(p) >= 0;
+  const asignaciones = [];
+  progs.forEach(p => {
+    [['analista', 'analista por defecto de las solicitudes nuevas'], ['analista_rc', 'analista de Registro Curricular'], ['cuenta_rc', 'cuenta de Registro Curricular del programa']]
+      .forEach(([k, como]) => { if (String(p[k] || '').trim().toLowerCase() === correo) asignaciones.push({ programa: p.programa, campo: k, como: como }); });
+  });
+  const sinVista = unicos(asignaciones.filter(a => !ve(a.programa)).map(a => a.programa));
+  const acceso = nivel === 'sin_acceso' ? 'No entra al panel: solo recibe correos.' :
+    nivel === 'consulta' ? 'Entra al panel en modo consulta: Panorama y expedientes' + (esRolRC(rol) ? ' sin fundamentación ni archivos' : '') + ', sin tramitar.' :
+    nivel === 'edicion' ? 'Tramita solicitudes (edición).' : 'Tramita y administra cuentas, plantillas y configuración.';
+  const porEvento = {};
+  const agrega = (evento, origen) => { (porEvento[evento] = porEvento[evento] || []).push(origen); };
+  const soloVistos = todos ? '' : ' (solo de los programas que ve)';
+  (ctx.plantillas || []).forEach(t => {
+    const roles = listaRoles(t.para).concat(listaRoles(t.cc));
+    roles.forEach(r => {
+      if (r === 'Estudiante' || r === 'Dirección de programa') return;
+      if (r === 'Analista') { if (rol === 'Analista') agrega(t.evento, 'cuando es la analista asignada al caso'); return; }
+      if (r === 'Analistas') { if (rol === 'Analista') agrega(t.evento, 'a todas las analistas' + soloVistos); return; }
+      if (r === 'Equipo') { if (nivel && nivel !== 'sin_acceso' && !esRolRC(rol)) agrega(t.evento, 'a todas las cuentas con acceso al panel' + soloVistos); return; }
+      if (r === 'Analista o equipo') { if (nivel === 'edicion' || nivel === 'administracion') agrega(t.evento, 'mientras el caso no tenga analista asignada' + soloVistos); return; }
+      if (r === rol) agrega(t.evento, 'por su rol «' + rol + '»' + soloVistos);
+    });
+  });
+  listaRoles(cuenta.recibe_eventos).forEach(ev => agrega(ev, 'marcado en esta cuenta' + soloVistos));
+  const eventosRC = ctx.eventosRC || [];
+  const progsRC = unicos(asignaciones.filter(a => a.campo !== 'analista').map(a => a.programa));
+  if (progsRC.length) eventosRC.forEach(ev => agrega(ev, 'asignada en Configuración a ' + progsRC.map(p => '«' + p + '»').join(', ')));
+  if (rol === 'Registro Curricular') {
+    const activas = (ctx.cuentas || []).filter(c => esSi(c.activo) && c.correo);
+    const analistasRC = activas.filter(c => c.rol === 'Analista de Registro Curricular').map(c => String(c.correo).trim().toLowerCase());
+    const conAnalista = progs.filter(p => ve(p.programa) && analistasRC.indexOf(String(p.analista_rc || '').trim().toLowerCase()) >= 0).map(p => p.programa);
+    if (conAnalista.length) eventosRC.forEach(ev => agrega(ev, 'copia de lo que recibe la analista de Registro Curricular de ' + conAnalista.map(p => '«' + p + '»').join(', ')));
+    activas.filter(c => c.rol === 'Analista de Registro Curricular').forEach(c => listaRoles(c.recibe_eventos).forEach(ev => agrega(ev, 'copia de lo marcado en la cuenta de ' + c.correo)));
+  }
+  const desc = {}; (ctx.plantillas || []).forEach(t => { desc[t.evento] = t.descripcion; });
+  const orden = (ctx.plantillas || []).map(t => t.evento);
+  const copias = Object.keys(porEvento).sort((a, b) => (orden.indexOf(a) < 0 ? 999 : orden.indexOf(a)) - (orden.indexOf(b) < 0 ? 999 : orden.indexOf(b)))
+    .map(ev => ({ evento: ev, descripcion: desc[ev] || ev, origenes: unicos(porEvento[ev]) }));
+  return { activa: activa, acceso: acceso, programas: { todos: todos, lista: vistos, asignaciones: asignaciones, sinVista: sinVista }, copias: copias };
+}
+
 /** Días hábiles (lunes a viernes) transcurridos después de `desde` hasta `hasta`. `feriados`: lista 'AAAA-MM-DD' (automática, ver Feriados.gs). */
 function diasHabilesEntre(desde, hasta, feriados) {
   const f = new Set(feriados || []);
@@ -478,6 +532,6 @@ if (typeof module !== 'undefined') {
   module.exports = { rutaProceso, RUTA_PRINCIPAL, esRolRC, ROLES_RC, tipoVista, mimePorNombre, entradaZipUtil, encargoDe, requiereVicedecano, normalizarRun, normalizarPasaporte, feriadosDesdeEventos, OCULTOS_AL_ESTUDIANTE, sumarDiasHabiles, recordatorioPendiente, RECORDATORIOS, camposRequeridos,
     ESTADOS, CAMPOS_REQUERIDOS, TIPOS_CATALOGO, NIVELES, ROLES, estadoPorId, esCierre, transicionValida, eventoTransicion,
     normalizarFolio, siguienteFolio, estadoMigrado, separarTipos, rellenar, variablesSinResolver, resolverDestinatarios,
-    diasHabilesEntre, necesitaRecordatorio, nivelSuficiente, puedeVerSolicitud, validarCuenta, esSi, listaRoles, validarSolicitud
+    diasHabilesEntre, necesitaRecordatorio, nivelSuficiente, puedeVerSolicitud, validarCuenta, esSi, listaRoles, validarSolicitud, resumenCuenta
   };
 }

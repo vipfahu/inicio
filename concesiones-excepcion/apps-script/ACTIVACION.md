@@ -56,6 +56,10 @@ Revisar también:
 - Las cuentas precargadas por la migración (analistas de la planilla antigua) tienen rol **Analista** y están activas.
 - «Recibe copia de estos correos»: solo para quien deba recibir avisos además de los de su rol (por ejemplo, Registro Curricular
   marcando `nueva_solicitud`, si lo quieren enterado desde el inicio).
+- La tarjeta **«Lo que esta cuenta ve y recibe»** (al final del formulario) muestra el resultado efectivo con las reglas reales de
+  envío: programas que ve, asignaciones hechas en Configuración y cada correo que recibirá con su motivo (rol, marcado, asignación
+  por programa o copia heredada de su analista de Registro Curricular). Se recalcula al cambiar rol, nivel, programas o casillas,
+  antes de guardar; no hace falta marcar nada a mano para ver qué recibe por rol.
 - Las cuentas no se borran: se desactivan (desmarcar «Cuenta activa»).
 
 Al terminar, **recargar el panel** (la lista de analistas para asignar se lee al abrirlo).

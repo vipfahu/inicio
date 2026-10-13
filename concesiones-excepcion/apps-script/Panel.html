@@ -698,14 +698,31 @@ function cargarCuentas() {
   $('app').innerHTML = '<div class="cargando">Cargando cuentas…</div>';
   run('api_cuentas').then(r => { S.cuentas = r; pintarCuentas(); }).catch(fallo);
 }
+/** Tarjeta «Lo que esta cuenta ve y recibe», derivada de las reglas de envío (no de lo marcado a mano). */
+function tarjetaResumenCuenta(rs) {
+  if (!rs) return '<div class="tarjeta" style="background:var(--fondo2,#F6F5F2)"><span class="et">Lo que esta cuenta ve y recibe</span><div class="sub">Calculando…</div></div>';
+  const P = rs.programas;
+  const progs = P.todos ? 'Todos los programas.' : (P.lista.length ? P.lista.map(p => h(p)).join(' · ') + '.' : 'Ningún programa: no verá ni recibirá casos.');
+  const asig = P.asignaciones.length ? '<div class="sub" style="white-space:normal;margin-top:4px">Asignada en Configuración como ' + P.asignaciones.map(a => a.como + ' de «' + h(a.programa) + '»').join('; ') + '.</div>' : '';
+  const sinVista = P.sinVista.length ? '<div class="aviso a-amb" style="white-space:normal;margin-top:6px">Recibe copias de ' + P.sinVista.map(p => '«' + h(p) + '»').join(', ') + ' por Configuración, pero no lo tiene entre los programas que ve: en el panel no encontrará esos casos.</div>' : '';
+  const copias = rs.copias.length ? rs.copias.map(c => '<div style="margin:5px 0"><b style="font:600 12.5px Archivo,sans-serif;color:var(--tinta,#222)">' + h(c.descripcion) + '</b> <span class="mono sub" style="font-size:10.5px">' + h(c.evento) + '</span><div class="sub" style="white-space:normal">' + c.origenes.map(h).join(' · ') + '</div></div>').join('') :
+    '<div class="sub">Ningún correo: ni por rol, ni marcado, ni asignado en Configuración.</div>';
+  return '<div class="tarjeta" style="background:var(--fondo2,#F6F5F2)"><span class="et">Lo que esta cuenta ve y recibe</span>' +
+    (rs.activa ? '' : '<div class="aviso a-amb" style="white-space:normal;margin-bottom:6px">Cuenta inactiva: no entra al panel ni recibe correos mientras siga así. Abajo, lo que tendría si se activa.</div>') +
+    '<div style="font-size:13px">' + h(rs.acceso) + '</div>' +
+    '<div class="sub" style="white-space:normal;margin-top:8px"><b style="font-weight:600;color:var(--tinta,#222)">Ve:</b> ' + progs + '</div>' + asig + sinVista +
+    '<div class="sub" style="margin-top:10px"><b style="font-weight:600;color:var(--tinta,#222)">Recibe estos correos:</b></div>' + copias + '</div>';
+}
 function pintarCuentas(editando) {
   const r = S.cuentas;
   const NIV = { sin_acceso: 'Sin acceso (solo recibe correos)', consulta: 'Consulta', edicion: 'Edición', administracion: 'Administración' };
   const grupo = S.ctaGrupo || '';
   const lista = r.cuentas.filter(c => !grupo || (grupo === 'rc') === (r.rolesRC || []).indexOf(c.rol) >= 0);
-  const filas = lista.map(c => '<div class="fila" style="grid-template-columns:1.4fr 1fr 1fr 1fr 70px;cursor:default"><div><div class="nom">' + h(c.nombre) + '</div><div class="sub mono">' + h(c.correo) + '</div></div>' +
-    '<div class="sub">' + h(c.rol) + '</div><div class="sub">' + h(NIV[c.nivel] || c.nivel) + '<br>' + h(c.programas) + '</div><div class="sub">' + h(c.recibe_eventos || '—') + '</div>' +
-    '<div><span class="tag ' + (c.activo === 'SÍ' ? 't-ok' : 't-no') + '">' + (c.activo === 'SÍ' ? 'Activa' : 'Inactiva') + '</span><br><button data-ed="' + h(c.correo) + '" style="margin-top:6px;padding:5px 9px">Editar</button></div></div>').join('');
+  const resDe = c => (r.resumenes || {})[String(c.correo).trim().toLowerCase()];
+  const filas = lista.map(c => { const rs = resDe(c); return '<div class="fila" style="grid-template-columns:1.4fr 1fr 1fr 1fr 70px;cursor:default"><div><div class="nom">' + h(c.nombre) + '</div><div class="sub mono">' + h(c.correo) + '</div></div>' +
+    '<div class="sub">' + h(c.rol) + '</div><div class="sub">' + h(NIV[c.nivel] || c.nivel) + '<br>' + h(rs ? (rs.programas.todos ? 'Todos los programas' : rs.programas.lista.length + ' programa(s)') : c.programas) + '</div>' +
+    '<div class="sub" style="white-space:normal">' + (rs ? (rs.copias.length ? rs.copias.map(x => h(x.evento)).join(', ') : 'Sin copias') : h(c.recibe_eventos || '—')) + '</div>' +
+    '<div><span class="tag ' + (c.activo === 'SÍ' ? 't-ok' : 't-no') + '">' + (c.activo === 'SÍ' ? 'Activa' : 'Inactiva') + '</span><br><button data-ed="' + h(c.correo) + '" style="margin-top:6px;padding:5px 9px">Editar</button></div></div>'; }).join('');
   const c = editando ? r.cuentas.find(x => x.correo === editando) : null, nueva = !c;
   const v = c || { correo: '', nombre: '', rol: 'Analista', nivel: 'edicion', programas: 'todos', activo: 'SÍ', recibe_eventos: '', notas: '' };
   const evs = String(v.recibe_eventos || '').split(',').map(x => x.trim());
@@ -721,6 +738,7 @@ function pintarCuentas(editando) {
     r.eventos.map(ev => '<label class="chk"><input type="checkbox" class="ke" value="' + h(ev) + '"' + (evs.indexOf(ev) >= 0 ? ' checked' : '') + '> <span style="font-size:12.5px">' + h((r.eventosDesc || {})[ev] || ev) + '</span> <span class="mono sub" style="font-size:10.5px">' + h(ev) + '</span></label>').join('') + '</div>' +
     '<label class="chk" style="margin-top:10px"><input type="checkbox" id="k_activo"' + (v.activo === 'SÍ' ? ' checked' : '') + '> Cuenta activa</label>' +
     '<label class="et" style="margin-top:10px" for="k_notas">Notas</label><input id="k_notas" value="' + h(v.notas) + '">' +
+    '<div id="k_resumen" style="margin-top:14px">' + tarjetaResumenCuenta(nueva ? null : resDe(v)) + '</div>' +
     '<div class="acciones" style="justify-content:flex-end;margin-top:14px">' + (nueva ? '' : '<button id="k_nueva">Nueva cuenta</button><button id="k_aviso">Enviar enlace de acceso</button>') + '<button class="prim" id="k_guardar">' + (nueva ? 'Crear cuenta' : 'Guardar') + '</button></div></div>';
   $('app').innerHTML = '<h2>Cuentas</h2><div class="resumen" style="margin-bottom:16px">El ingreso es con la cuenta Google USACH; aquí se decide qué puede hacer cada persona y qué correos recibe. Los cambios rigen desde la siguiente acción de esa persona. La cuenta institucional (' + h(r.duenia) + ') es administradora fija.</div>' +
     '<div class="pan-f">' + [['', 'Todas'], ['vi', 'Vicedecanato'], ['rc', 'Registro Curricular']].map(g => '<button class="chipf' + (grupo === g[0] ? ' act' : '') + '" data-grupo="' + g[0] + '">' + g[1] + '<span>' + r.cuentas.filter(c => !g[0] || (g[0] === 'rc') === (r.rolesRC || []).indexOf(c.rol) >= 0).length + '</span></button>').join('') + '</div>' +
@@ -731,14 +749,27 @@ function pintarCuentas(editando) {
     '<div class="grid2"><div class="tabla">' + (filas || '<div class="sub" style="padding:16px">Sin cuentas en este grupo.</div>') + '</div><div class="lado">' + form + '</div></div>';
   document.querySelectorAll('[data-grupo]').forEach(b => b.onclick = () => { S.ctaGrupo = b.dataset.grupo; pintarCuentas(); });
   document.querySelectorAll('[data-ed]').forEach(b => b.onclick = () => pintarCuentas(b.dataset.ed));
-  $('k_todos').onchange = e => { $('k_progs').style.display = e.target.checked ? 'none' : ''; };
+  const datosForm = () => ({ correo: $('k_correo').value, nombre: $('k_nombre').value, rol: $('k_rol').value, nivel: $('k_nivel').value,
+    programas: $('k_todos').checked ? 'todos' : [...document.querySelectorAll('.kp:checked')].map(x => x.value).join('; '),
+    activo: $('k_activo').checked ? 'SÍ' : 'NO', recibe_eventos: [...document.querySelectorAll('.ke:checked')].map(x => x.value).join(', '), notas: $('k_notas').value });
+  // La tarjeta «ve y recibe» se recalcula con las reglas del servidor cada vez que cambia el formulario (sin guardar).
+  const refrescarResumen = () => {
+    clearTimeout(refrescarResumen._t);
+    refrescarResumen._t = setTimeout(() => {
+      const d = datosForm(), marca = JSON.stringify(d);
+      refrescarResumen._marca = marca;
+      run('api_resumenCuenta', d).then(rs => { if (refrescarResumen._marca === marca && $('k_resumen')) $('k_resumen').innerHTML = tarjetaResumenCuenta(rs); }).catch(fallo);
+    }, 350);
+  };
+  $('k_todos').onchange = e => { $('k_progs').style.display = e.target.checked ? 'none' : ''; refrescarResumen(); };
+  ['k_rol', 'k_nivel', 'k_activo', 'k_correo'].forEach(id => { $(id).onchange = refrescarResumen; });
+  document.querySelectorAll('.kp, .ke').forEach(x => { x.onchange = refrescarResumen; });
+  if (nueva) refrescarResumen();
   if ($('k_nueva')) $('k_nueva').onclick = () => pintarCuentas();
   if ($('k_aviso')) $('k_aviso').onclick = () => run('api_avisarCuenta', v.correo).then(() => toast('Enlace enviado a ' + v.correo)).catch(fallo);
   $('k_guardar').onclick = () => {
-    const progs = $('k_todos').checked ? 'todos' : [...document.querySelectorAll('.kp:checked')].map(x => x.value).join('; ');
-    if (!progs) return toast('Seleccione al menos un programa o «Todos»', true);
-    const datos = { correo: $('k_correo').value, nombre: $('k_nombre').value, rol: $('k_rol').value, nivel: $('k_nivel').value, programas: progs,
-      activo: $('k_activo').checked ? 'SÍ' : 'NO', recibe_eventos: [...document.querySelectorAll('.ke:checked')].map(x => x.value).join(', '), notas: $('k_notas').value };
+    const datos = datosForm();
+    if (!datos.programas) return toast('Seleccione al menos un programa o «Todos»', true);
     run('api_guardarCuenta', datos, nueva).then(res => {
       toast(res.sinCambios ? 'Sin cambios' : nueva ? 'Cuenta creada' : 'Cuenta actualizada');
       if (nueva && confirm('¿Enviar a ' + datos.correo.trim().toLowerCase() + ' el enlace de acceso al panel?')) run('api_avisarCuenta', datos.correo.trim().toLowerCase()).then(() => toast('Enlace enviado')).catch(fallo);

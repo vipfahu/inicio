@@ -324,3 +324,45 @@ test('Registro Curricular asignado al programa: copias de las comunicaciones y a
   const r4 = L.resolverDestinatarios('Estudiante', '', { cuentas: cuentas.map(c => c.correo === 'rc.ana@usach.cl' ? { ...c, recibe_eventos: 'rechazada' } : c), programas: [], solicitud: sol, evento: 'rechazada', eventosRC: [] });
   assert.deepEqual([...r4.cc].sort(), ['rc.ana@usach.cl', 'registradora@usach.cl']);
 });
+
+test('resumenCuenta: qué ve y qué recibe cada cuenta se deriva de las reglas de envío, no de lo marcado a mano', () => {
+  const plantillas = [
+    { evento: 'nueva_solicitud', descripcion: 'Nueva solicitud', para: 'Equipo', cc: '' },
+    { evento: 'asignacion', descripcion: 'Asignación', para: 'Analista', cc: '' },
+    { evento: 'aceptada', descripcion: 'Admisible', para: 'Estudiante', cc: 'Dirección de programa' },
+    { evento: 'vb', descripcion: 'V°B°', para: 'Vicedecano/a', cc: '' },
+    { evento: 'cae_admisible', descripcion: 'CAE admisible', para: 'Estudiante', cc: '' }
+  ];
+  const programas = [
+    { programa: 'Magíster A', analista: 'ana@usach.cl', analista_rc: 'rc.ana@usach.cl', cuenta_rc: 'rc.a@usach.cl', activo: 'SÍ' },
+    { programa: 'Magíster B', analista: '', analista_rc: '', cuenta_rc: '', activo: 'SÍ' }
+  ];
+  const cuentas = [
+    { correo: 'ana@usach.cl', rol: 'Analista', nivel: 'edicion', programas: 'todos', activo: 'SÍ', recibe_eventos: '' },
+    { correo: 'rc.ana@usach.cl', rol: 'Analista de Registro Curricular', nivel: 'sin_acceso', programas: 'todos', activo: 'SÍ', recibe_eventos: 'vb' },
+    { correo: 'rc.a@usach.cl', rol: 'Cuenta de Registro Curricular del programa', nivel: 'sin_acceso', programas: 'Magíster B', activo: 'SÍ', recibe_eventos: '' },
+    { correo: 'registradora@usach.cl', rol: 'Registro Curricular', nivel: 'consulta', programas: 'todos', activo: 'NO', recibe_eventos: '' }
+  ];
+  const ctx = { programas, plantillas, eventosRC: ['aceptada', 'cae_admisible'], cuentas };
+  const ana = L.resumenCuenta(cuentas[0], ctx);
+  assert.ok(ana.programas.todos);
+  assert.deepEqual([...ana.programas.asignaciones].map(a => a.campo + ':' + a.programa), ['analista:Magíster A']);
+  assert.deepEqual([...ana.copias].map(c => c.evento), ['nueva_solicitud', 'asignacion'], 'sin nada marcado, recibe lo de su rol y nivel');
+  assert.match(ana.copias[1].origenes[0], /analista asignada/);
+  // Cuenta de RC asignada en Configuración a un programa que NO está entre los que ve: recibe igual, y se advierte.
+  const rcA = L.resumenCuenta(cuentas[2], ctx);
+  assert.deepEqual([...rcA.copias].map(c => c.evento), ['aceptada', 'cae_admisible']);
+  assert.match(rcA.copias[0].origenes[0], /Configuración a «Magíster A»/);
+  assert.deepEqual([...rcA.programas.sinVista], ['Magíster A']);
+  assert.match(rcA.acceso, /solo recibe correos/);
+  // Registro Curricular hereda lo que recibe su analista: lo asignado por programa y lo marcado en la cuenta de la analista.
+  const reg = L.resumenCuenta(cuentas[3], ctx);
+  assert.equal(reg.activa, false);
+  assert.deepEqual([...reg.copias].map(c => c.evento), ['aceptada', 'vb', 'cae_admisible']);
+  assert.match(reg.copias[1].origenes[0], /marcado en la cuenta de rc\.ana@usach\.cl/);
+  assert.match(reg.copias[0].origenes[0], /analista de Registro Curricular de «Magíster A»/);
+  // Una cuenta con programas restringidos ve solo esos, y lo marcado queda acotado a ellos.
+  const vice = L.resumenCuenta({ correo: 'v@usach.cl', rol: 'Vicedecano/a', nivel: 'administracion', programas: 'Magíster B', activo: 'SÍ', recibe_eventos: 'aceptada' }, ctx);
+  assert.deepEqual([...vice.programas.lista], ['Magíster B']);
+  assert.deepEqual([...vice.copias].map(c => c.evento + '|' + c.origenes.join('/')), ['nueva_solicitud|a todas las cuentas con acceso al panel (solo de los programas que ve)', 'aceptada|marcado en esta cuenta (solo de los programas que ve)', 'vb|por su rol «Vicedecano/a» (solo de los programas que ve)']);
+});

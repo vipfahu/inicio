@@ -38,9 +38,26 @@ function registrarCuenta_(quien, texto) {
 }
 
 /** Lista para la pantalla «Cuentas» (solo Administración). */
+/** Contexto para resumenCuenta: programas, plantillas, eventos con copia a RC y cuentas. */
+function contextoResumen_() {
+  return { programas: leer_(HOJAS.programas), plantillas: leer_(HOJAS.plantillas), eventosRC: listaRoles(parametros_().eventos_copia_rc), cuentas: leer_(HOJAS.cuentas) };
+}
+
+/** Qué vería y qué recibiría una cuenta tal como está en el formulario (antes de guardar). */
+function api_resumenCuenta(c) {
+  requiere_('administracion');
+  const cuenta = { correo: String((c || {}).correo || '').trim().toLowerCase(), rol: (c || {}).rol, nivel: (c || {}).nivel, programas: (c || {}).programas,
+    activo: esSi((c || {}).activo) ? 'SÍ' : 'NO', recibe_eventos: listaRoles((c || {}).recibe_eventos).join(', ') };
+  return serializar_(resumenCuenta(cuenta, contextoResumen_()));
+}
+
 function api_cuentas() {
   requiere_('administracion');
+  const ctx = contextoResumen_();
+  const resumenes = {};
+  ctx.cuentas.forEach(c => { resumenes[String(c.correo).trim().toLowerCase()] = resumenCuenta(c, ctx); });
   return serializar_({
+    resumenes: resumenes,
     cuentas: leer_(HOJAS.cuentas).map(c => { const o = Object.assign({}, c); delete o._fila; return o; }),
     duenia: duenia_(),
     roles: ROLES,
