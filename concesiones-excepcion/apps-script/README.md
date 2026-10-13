@@ -168,7 +168,9 @@ informe al estudiante los pasos a seguir y eventuales pagos («Registro Curricul
 que la resolución está en elaboración (correo `cae_admisible`).
 
 **Seguimiento y Panorama.** El estudiante ve todos los pasos de su ruta agrupados por fase, con la fase actual y «paso k de N». La
-pestaña «Panorama» muestra a todo nivel con acceso al panel el avance de cada caso de sus programas, con filtros por fase y programa.
+pestaña «Panorama» muestra a todo nivel con acceso al panel el avance de cada caso de sus programas, con filtros por fase y programa;
+«Todos» lista todo lo registrado (en curso primero, cerrados después) y la lista se pagina de a 25 con enlaces Anterior / Siguiente
+(la paginación es en el navegador: el servidor entrega la lista completa una sola vez).
 
 **Ingreso y cierre de sesión.** El panel abre con una página «Iniciar sesión» que muestra la cuenta de Google con que la persona está
 conectada (nombre, rol y nivel) y el botón «Ingresar como …», o «Usar otra cuenta USACH» (selector de cuentas de Google). Si la cuenta

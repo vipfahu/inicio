@@ -74,6 +74,7 @@
   .lista-item{padding:13px 18px;border-left:3px solid transparent;border-bottom:1px solid var(--fila);cursor:pointer}
   .lista-item.sel{border-left-color:var(--teal);background:var(--fcampo)}
   .pan-f{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:14px 0}
+  .pan-nav{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:10px 0;font:600 12.5px Archivo,sans-serif} .pan-nav a{color:var(--teal);text-decoration:none;padding:6px 10px;border:1px solid var(--borde);border-radius:8px;background:#fff} .pan-nav a.off{color:var(--deshab);pointer-events:none;border-color:var(--fila)}
   .chipf{border:1px solid var(--borde);background:#fff;border-radius:999px;padding:6px 12px;font:600 12px Archivo,sans-serif;color:var(--tinta)}
   .chipf.act{background:var(--tinta);color:#fff;border-color:var(--tinta)}
   .chipf span{font-family:'IBM Plex Mono',monospace;font-weight:600;opacity:.7;margin-left:4px}
@@ -735,7 +736,7 @@ function pintarIndicadores() {
 /* ── Panorama: avance de cada caso en su ruta de pasos (Vicedecanato y Registro Curricular) ── */
 function cargarPanorama() {
   $('app').innerHTML = '<div class="cargando">Cargando panorama…</div>';
-  run('api_panorama').then(r => { S.pan = r; S.panF = S.panF || { fase: '', programa: '', q: '' }; pintarPanorama(); }).catch(fallo);
+  run('api_panorama').then(r => { S.pan = r; S.panF = S.panF || { fase: '', programa: '', q: '', pagina: 1 }; pintarPanorama(); }).catch(fallo);
 }
 function pintarPanorama() {
   const r = S.pan, f = S.panF;
@@ -743,17 +744,23 @@ function pintarPanorama() {
   const programas = [...new Set(r.casos.map(c => c.programa).filter(Boolean))].sort();
   const base = r.casos.filter(c => (!f.programa || c.programa === f.programa) &&
     (!f.q || (c.folio + ' ' + c.nombre).toLowerCase().indexOf(f.q.toLowerCase()) >= 0));
-  // Sin filtro de fase se muestran los casos en curso; «Cierre» muestra los cerrados.
-  const lista = base.filter(c => f.fase ? c.fase === f.fase : !c.cerrado)
-    .sort((a, b) => r.fases.indexOf(a.fase) - r.fases.indexOf(b.fase) || (b.diasHabiles || 0) - (a.diasHabiles || 0));
-  const n = fase => base.filter(c => fase ? c.fase === fase : !c.cerrado).length;
+  // Sin filtro de fase se muestran los casos en curso; «Cierre» muestra los cerrados; «Todos» muestra todo lo registrado.
+  const enFase = (c, fase) => fase === 'todos' ? true : fase ? c.fase === fase : !c.cerrado;
+  const lista = base.filter(c => enFase(c, f.fase))
+    .sort((a, b) => (a.cerrado - b.cerrado) || r.fases.indexOf(a.fase) - r.fases.indexOf(b.fase) || (b.diasHabiles || 0) - (a.diasHabiles || 0) || String(b.fecha_recepcion).localeCompare(String(a.fecha_recepcion)));
+  const n = fase => base.filter(c => enFase(c, fase)).length;
+  // Paginación (en el navegador: la lista completa ya está cargada).
+  const POR_PAGINA = 25, paginas = Math.max(1, Math.ceil(lista.length / POR_PAGINA));
+  f.pagina = Math.min(Math.max(1, f.pagina || 1), paginas);
+  const visibles = lista.slice((f.pagina - 1) * POR_PAGINA, f.pagina * POR_PAGINA);
+  const nav = paginas > 1 ? '<div class="pan-nav"><a href="#" data-pag="' + (f.pagina - 1) + '"' + (f.pagina <= 1 ? ' class="off" aria-disabled="true"' : '') + '>‹ Anterior</a><span class="sub">Página ' + f.pagina + ' de ' + paginas + ' · ' + lista.length + ' casos · ' + ((f.pagina - 1) * POR_PAGINA + 1) + '–' + Math.min(f.pagina * POR_PAGINA, lista.length) + '</span><a href="#" data-pag="' + (f.pagina + 1) + '"' + (f.pagina >= paginas ? ' class="off" aria-disabled="true"' : '') + '>Siguiente ›</a></div>' : (lista.length ? '<div class="sub" style="margin:8px 0">' + lista.length + ' caso(s)</div>' : '');
   const chip = (val, txt) => '<button class="chipf' + (f.fase === val ? ' act' : '') + '" data-fase="' + h(val) + '">' + h(txt) + '<span>' + n(val) + '</span></button>';
   const pista = c => {
     const neg = NEG.indexOf(c.estado) >= 0;
     return '<div class="track" aria-hidden="true">' + c.ruta.map((p, k) => (k ? '<b class="' + (p.situacion !== 'pendiente' ? 'h' : '') + '"></b>' : '') +
       '<i class="' + (p.situacion === 'hecho' ? 'h' : p.situacion === 'actual' ? (neg ? 'n' : 'a') : '') + '" title="' + h(p.etiqueta) + '"></i>').join('') + '</div>';
   };
-  const filas = lista.map(c => {
+  const filas = visibles.map(c => {
     const k = c.ruta.findIndex(p => p.situacion === 'actual');
     return '<div class="prow" tabindex="0" data-f="' + h(c.folio) + '" aria-label="Abrir expediente ' + h(c.folio) + '">' +
       '<div style="min-width:0"><div class="mono" style="font-size:11.5px;color:var(--apagado)">' + h(c.folio) + '</div><div class="nom">' + h(c.nombre || '—') + '</div></div>' +
@@ -764,13 +771,14 @@ function pintarPanorama() {
         (c.analistaNombre ? '<br>Analista: ' + h(c.analistaNombre) : '') + '</div></div></div>';
   }).join('') || '<div class="sub" style="padding:20px">No hay casos con estos filtros.</div>';
   $('app').innerHTML = '<h2>Panorama de avance</h2><div class="resumen" style="margin-top:4px">Cada caso con su ruta de pasos: verde = cumplido, naranjo = paso actual, rojo = cierre desfavorable. Se muestran los programas que su cuenta puede ver; haga clic en un caso para abrir su expediente.</div>' +
-    '<div class="pan-f">' + chip('', 'En curso') + r.fases.map(x => chip(x, x)).join('') +
+    '<div class="pan-f">' + chip('', 'En curso') + r.fases.map(x => chip(x, x)).join('') + chip('todos', 'Todos') +
     '<select id="pan_prog" aria-label="Programa" style="width:auto;min-width:180px"><option value="">Todos los programas</option>' + programas.map(p => '<option' + (p === f.programa ? ' selected' : '') + '>' + h(p) + '</option>').join('') + '</select>' +
     '<input id="pan_q" placeholder="Buscar folio o nombre" value="' + h(f.q) + '" style="width:auto;min-width:200px;flex:1"></div>' +
-    '<div class="tabla">' + filas + '</div>';
-  document.querySelectorAll('[data-fase]').forEach(b => b.onclick = () => { f.fase = b.dataset.fase; pintarPanorama(); });
-  $('pan_prog').onchange = e => { f.programa = e.target.value; pintarPanorama(); };
-  $('pan_q').oninput = e => { f.q = e.target.value; const pos = e.target.selectionStart; pintarPanorama(); $('pan_q').focus(); $('pan_q').setSelectionRange(pos, pos); };
+    nav + '<div class="tabla">' + filas + '</div>' + nav;
+  document.querySelectorAll('[data-fase]').forEach(b => b.onclick = () => { f.fase = b.dataset.fase; f.pagina = 1; pintarPanorama(); });
+  document.querySelectorAll('[data-pag]').forEach(a => a.onclick = ev => { ev.preventDefault(); if (a.classList.contains('off')) return; f.pagina = Number(a.dataset.pag); pintarPanorama(); window.scrollTo(0, 0); });
+  $('pan_prog').onchange = e => { f.programa = e.target.value; f.pagina = 1; pintarPanorama(); };
+  $('pan_q').oninput = e => { f.q = e.target.value; f.pagina = 1; const pos = e.target.selectionStart; pintarPanorama(); $('pan_q').focus(); $('pan_q').setSelectionRange(pos, pos); };
   document.querySelectorAll('.prow').forEach(row => { row.onclick = () => abrir(row.dataset.f); row.onkeydown = ev => { if (ev.key === 'Enter') abrir(row.dataset.f); }; });
 }
 
