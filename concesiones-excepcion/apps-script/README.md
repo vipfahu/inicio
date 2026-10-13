@@ -121,6 +121,10 @@ límite de Apps Script). El resto se descarga. Los PDF se dibujan con pdf.js (cd
 `isEvalSupported: false`), que se carga solo al abrir el primer PDF. La conversión de Word usa el servicio avanzado de Drive
 (declarado en `appsscript.json`; el Diagnóstico avisa si no está activo).
 
+**No notificar.** En la vista previa de cualquier cambio de estado con correo se puede marcar «No enviar notificación»: el cambio
+queda hecho y registrado, sin correo ni copias; la bitácora anota quién lo decidió y, si se escribe, el motivo. Los datos obligatorios
+del paso (p. ej., el motivo de un rechazo) se siguen exigiendo. Los correos automáticos (recepción, recordatorios) no tienen esta opción.
+
 **Usuarios.** El panel es para el equipo del Vicedecanato (analistas y Vicedecano/a) y, en modo de solo lectura, para Registro
 Curricular: rol «Registro Curricular» (registradora curricular) o «Analista de Registro Curricular», con nivel «Consulta» (ven el
 Panorama y los expedientes sin fundamentación ni archivos) o «Sin acceso» (solo reciben copias); nunca Edición. «Programas que ve»

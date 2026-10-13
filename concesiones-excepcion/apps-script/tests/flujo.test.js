@@ -802,3 +802,26 @@ test('Configuración: «+ Añadir nueva…» crea la cuenta de RC del programa y
   estado.usuario = 'analista.uno@usach.cl';
   assert.throws(() => ctx.api_guardarPrograma({ ...prog, nuevo_cuenta_rc: { nombre: 'X', correo: 'x@usach.cl' } }, false), /nivel requerido/);
 });
+
+test('«No enviar notificación»: el cambio queda hecho y registrado, sin correo ni copias', () => {
+  const env = instalar(preparar());
+  const { ctx, estado } = env;
+  estado.usuario = 'analista.uno@usach.cl';
+  ctx.api_cambiarEstado('06/2026', 'revision', {});
+  const antes = estado.correos.length;
+  const r = ctx.api_cambiarEstado('06/2026', 'aceptada', { sinCorreo: true, motivoSinCorreo: 'Se informó en reunión presencial' });
+  assert.equal(r.sinCorreo, true); assert.equal(r.conCorreo, false);
+  assert.equal(estado.correos.length, antes, 'no sale ningún correo (ni copias)');
+  assert.equal(tabla(env, 'Solicitudes').find(x => x.folio === '06/2026').estado, 'aceptada');
+  const b = tabla(env, 'Bitácora').filter(x => x.folio === '06/2026' && x.tipo === 'estado').pop();
+  assert.match(b.texto, /Sin notificación por correo \(decidido por analista\.uno@usach\.cl\): Se informó en reunión presencial/);
+  assert.equal(b.asunto, '(no enviado)');
+  // Los datos obligatorios del paso se siguen exigiendo (quedan en el expediente)
+  const env2 = instalar(preparar());
+  env2.estado.usuario = 'analista.uno@usach.cl';
+  env2.ctx.api_cambiarEstado('06/2026', 'revision', {});
+  const antes2 = env2.estado.correos.length;
+  assert.throws(() => env2.ctx.api_cambiarEstado('06/2026', 'rechazada', { sinCorreo: true }), /Falta completar/);
+  env2.ctx.api_cambiarEstado('06/2026', 'rechazada', { sinCorreo: true, campos: { motivo: 'Fuera de plazo' } });
+  assert.equal(env2.estado.correos.length, antes2);
+});

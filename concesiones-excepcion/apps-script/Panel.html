@@ -535,6 +535,11 @@ function dialogo(hacia) {
       html += '<p class="resumen">Este cambio no envía correo. Quedará registrado en la bitácora del expediente.</p>';
     } else {
       const c = pv.correo;
+      html += '<div style="border:1px dashed var(--borde);border-radius:12px;padding:10px 14px;margin-bottom:12px;background:#FBFAF6">' +
+        '<label class="chk" style="font-weight:600"><input type="checkbox" id="c_sincorreo"> No enviar notificación: registrar el cambio como hecho, sin correo</label>' +
+        '<div id="c_sincorreo_caja" style="display:none;margin-top:8px"><label class="et" for="c_sincorreo_motivo">Motivo para no notificar (opcional; queda en la bitácora)</label>' +
+        '<textarea id="c_sincorreo_motivo" rows="2" placeholder="Ej.: se informó al estudiante por otro medio"></textarea></div></div>';
+      html += '<div id="c_bloque_correo">';
       html += '<div class="aviso a-amb" style="margin-bottom:12px">✉ Al confirmar se enviará este correo' + (c.replyTo ? ' (las respuestas llegarán a ' + h(c.replyTo) + ')' : '') + '.</div>';
       if ((c.omitidos || []).length) html += '<div class="aviso a-amb" style="margin-bottom:12px">Se enviará sin copia a: ' + h(c.omitidos.join('; ')) + ' (no está registrado). Puede completarlo en Configuración.</div>';
       if (c.faltantes.length) html += '<div class="aviso a-rojo" style="margin-bottom:12px">No se puede enviar: falta ' + h(c.faltantes.join('; ')) + '. Complételo en Configuración o Cuentas.</div>';
@@ -543,11 +548,19 @@ function dialogo(hacia) {
         '<label class="et" style="margin-top:10px" for="c_cuerpo">Cuerpo (puede editarlo para este envío)</label><textarea id="c_cuerpo" rows="12">' + h(c.cuerpo) + '</textarea>';
       const arch = (e.archivos || []).filter(a => a.categoria !== S.ini.categorias.antecedentes_formulario);
       if (arch.length) html += '<span class="et" style="margin-top:10px">Adjuntar</span>' + arch.map(a => '<label class="chk"><input type="checkbox" class="adj" value="' + h(a.id) + '" data-mb="' + h(a.tamano_mb) + '"> ' + h(a.nombre) + ' <span class="sub">(' + h(a.tamano_mb) + ' MB)</span></label>').join('') + '<div class="sub" id="totadj"></div>';
-      html += '</div>';
+      html += '</div></div>';
     }
     html += '<div class="acciones" style="justify-content:flex-end;margin-top:16px"><button id="cancelar">Cancelar</button><button class="prim" id="confirmar"' + (pv.conCorreo && pv.correo.faltantes.length ? ' disabled' : '') + '>' + (pv.conCorreo ? 'Confirmar y enviar correo' : 'Confirmar cambio') + '</button></div>';
     $('dlg').innerHTML = html;
     $('cancelar').onclick = cerrarDlg;
+    const textoConfirmar = () => pv.conCorreo && $('c_sincorreo') && $('c_sincorreo').checked ? 'Confirmar sin enviar correo' : pv.conCorreo ? 'Confirmar y enviar correo' : 'Confirmar cambio';
+    if ($('c_sincorreo')) $('c_sincorreo').onchange = () => {
+      const sin = $('c_sincorreo').checked;
+      $('c_sincorreo_caja').style.display = sin ? 'block' : 'none';
+      $('c_bloque_correo').style.display = sin ? 'none' : '';
+      $('confirmar').textContent = textoConfirmar();
+      $('confirmar').disabled = !sin && pv.correo.faltantes.length > 0;
+    };
     // Los campos obligatorios se reflejan en vivo en el cuerpo del correo.
     if (pv.conCorreo) req.forEach(k => { const el = $('c_' + k); el.oninput = () => reflejar(pv); });
     if (req.length && pv.conCorreo) reflejar(pv);
@@ -565,7 +578,8 @@ function dialogo(hacia) {
         if (!campos.otro_medio) return toast('Indique por qué medio y cuándo dio el V°B° el Vicedecano/a', true);
         envio.otroMedio = true;
       }
-      if (pv.conCorreo) { envio.asunto = $('c_asunto').value; envio.cuerpo = $('c_cuerpo').value; envio.adjuntos = [...document.querySelectorAll('.adj:checked')].map(x => x.value); }
+      if (pv.conCorreo && $('c_sincorreo').checked) { envio.sinCorreo = true; envio.motivoSinCorreo = $('c_sincorreo_motivo').value.trim(); }
+      else if (pv.conCorreo) { envio.asunto = $('c_asunto').value; envio.cuerpo = $('c_cuerpo').value; envio.adjuntos = [...document.querySelectorAll('.adj:checked')].map(x => x.value); }
       const archivo = conResolucion && $('c_archivo').files[0];
       if (archivo && archivo.size > S.ini.maxMb * 1048576) return toast('El archivo supera ' + S.ini.maxMb + ' MB', true);
       $('confirmar').disabled = true; $('confirmar').textContent = archivo ? 'Subiendo resolución…' : 'Enviando…';
@@ -577,13 +591,13 @@ function dialogo(hacia) {
         lector.readAsDataURL(archivo);
       }) : Promise.resolve();
       subida.then(() => run('api_cambiarEstado', e.folio, hacia, envio)).then(r => {
-        cerrarDlg(); toast(r.conCorreo ? 'Estado actualizado y correo enviado' : 'Estado actualizado');
+        cerrarDlg(); toast(r.conCorreo ? 'Estado actualizado y correo enviado' : r.sinCorreo ? 'Estado actualizado, sin enviar correo' : 'Estado actualizado');
         abrir(e.folio).then(() => {
           if (r.pdfSolicitud && r.pdfSolicitud.existente) ofrecerPdfSolicitud(r.pdfSolicitud, 'El PDF del formulario de solicitud ya había sido generado el ' + r.pdfSolicitud.fecha + ' por ' + r.pdfSolicitud.por + '; no se generó otro. Está en «Archivos del expediente».', 'PDF ya generado');
           else if (r.pdfSolicitud) ofrecerPdfSolicitud(r.pdfSolicitud, 'Se generó el PDF del formulario de solicitud antes de pasar a Informe de Registro Curricular. Quedó en «Archivos del expediente».');
           else if (conResolucion) avisoDistribucion();
         });
-      }).catch(err => { fallo(err); $('confirmar').disabled = false; $('confirmar').textContent = pv.conCorreo ? 'Confirmar y enviar correo' : 'Confirmar cambio'; });
+      }).catch(err => { fallo(err); $('confirmar').disabled = false; $('confirmar').textContent = textoConfirmar(); });
     };
   }).catch(err => { cerrarDlg(); fallo(err); });
 }

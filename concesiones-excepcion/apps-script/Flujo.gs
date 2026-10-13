@@ -205,7 +205,13 @@ function api_cambiarEstado(folio, hacia, envio) {
     if (campos.notificacion_rc) cambios.notificacion_rc = campos.notificacion_rc;
     const desdeEtiqueta = estadoPorId(s.estado).etiqueta, haciaEtiqueta = estadoPorId(hacia).etiqueta;
     let registroCorreo = {};
-    if (evento) {
+    // «No notificar»: el cambio se registra como hecho, sin enviar el correo (queda constancia en la bitácora).
+    const sinCorreo = !!(evento && envio.sinCorreo);
+    const notaSinCorreo = sinCorreo ? ' · Sin notificación por correo (decidido por ' + u.correo + ')' +
+      (String(envio.motivoSinCorreo || '').trim() ? ': ' + String(envio.motivoSinCorreo).trim() : '') : '';
+    if (sinCorreo) {
+      registroCorreo = { evento: evento, para: '', cc: '', asunto: '(no enviado)', editado: 'NO' };
+    } else if (evento) {
       const c = componer_(evento, s, campos);
       const editado = (envio.asunto && envio.asunto !== c.asunto) || (envio.cuerpo && envio.cuerpo !== c.cuerpo);
       if (envio.asunto) c.asunto = envio.asunto;
@@ -221,10 +227,10 @@ function api_cambiarEstado(folio, hacia, envio) {
       fecha: new Date(), folio: folio, tipo: 'estado', quien: u.correo,
       texto: desdeEtiqueta + ' → ' + haciaEtiqueta + (campos.motivo ? ' · Motivo: ' + campos.motivo : '') +
         (campos.observacion ? ' · Observación: ' + campos.observacion : '') + (campos.resolucion ? ' · Resolución: ' + campos.resolucion : '') + (campos.comentario ? ' · Comentario: ' + campos.comentario : '') +
-        (campos.notificacion_rc ? ' · Notificación a Registro Curricular: ' + campos.notificacion_rc : '') + notaVb,
+        (campos.notificacion_rc ? ' · Notificación a Registro Curricular: ' + campos.notificacion_rc : '') + notaVb + notaSinCorreo,
       estado_nuevo: hacia
     }, registroCorreo));
-    return { ok: true, conCorreo: !!evento, pdfSolicitud: pdfSolicitud };
+    return { ok: true, conCorreo: !!evento && !sinCorreo, sinCorreo: sinCorreo, pdfSolicitud: pdfSolicitud };
   } finally {
     lock.releaseLock();
   }

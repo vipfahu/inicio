@@ -8,4 +8,7 @@ Correo del estudiante (pedidos sucesivos de la persona): primero se pidió envia
 la definición: el campo «correo» del formulario se llena con la cuenta de sesión, es de solo lectura y el servidor la impone
 (`api_enviarSolicitud`). La resolución de destinatarios sigue uniendo `correo_verificado` y `correo` sin repetir, para casos migrados.
 
+Desde 2026-10-13 la vista previa permite «No enviar notificación» (pedido de la persona): el estado cambia sin correo y la bitácora
+registra quién lo decidió y el motivo opcional; los campos obligatorios del paso se siguen exigiendo.
+
 **Por qué importa:** Control humano sobre lo que llega a estudiantes.
