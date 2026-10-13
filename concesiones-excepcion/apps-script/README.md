@@ -103,7 +103,11 @@ lo valida). Antes del cambio se genera automáticamente el **PDF del formulario 
 requerimiento, fundamentación y lista de antecedentes), que queda en el expediente con la categoría «Formulario de solicitud (PDF)» y se
 ofrece para ver o descargar; si no se puede generar, el estado no cambia. Analistas y administración también pueden pedirlo con
 «PDF del formulario de solicitud» en «Archivos del expediente». Se genera **una sola vez** por solicitud: si ya existe, una ventana
-informa cuándo y quién lo generó y ofrece verlo o descargarlo (solo si su archivo se borró de Drive se vuelve a generar).
+informa cuándo y quién lo generó y ofrece verlo o descargarlo (solo si su archivo se borró de Drive se vuelve a generar). La
+generación a pedido toma el cerrojo del script y vuelve a comprobar, para que dos pedidos simultáneos no produzcan dos PDF. Si un
+expediente tiene más de un PDF del formulario (generados antes de esta regla), la plataforma usa siempre el **original** (el más
+antiguo) y la misma ventana ofrece «Quitar copias» (`api_quitarPdfDuplicados`: las demás van a la papelera de Drive y salen de
+«Archivos», con constancia en la bitácora); el Diagnóstico lista los folios con copias.
 
 **V°B° exclusivo del Vicedecano/a.** Las tres salidas del V°B° (CAE admisible, CAE rechazada, devolución al programa) solo las registra
 la cuenta con rol Vicedecano/a; el servidor rechaza a cualquier otra. Si el Vicedecano/a dio el V°B° por otro medio (correo, STD, en

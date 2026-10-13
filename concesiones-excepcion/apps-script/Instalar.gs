@@ -217,6 +217,10 @@ function diagnostico() {
   else if (fer.error) p.push('Feriados: falló la última consulta (' + fer.error + '); se usa la lista guardada.');
   else ok.push('Feriados: ' + fer.fechas.length + ' días (' + fer.anios.join(' y ') + '), desde ' + fer.fuente);
   accesosNoAutorizados_().forEach(a => p.push('Acceso no autorizado · ' + a));
+  const porFolioPdf = {};
+  leer_(HOJAS.archivos).filter(a => a.categoria === 'formulario_solicitud').forEach(a => { porFolioPdf[a.folio] = (porFolioPdf[a.folio] || 0) + 1; });
+  const conCopias = Object.keys(porFolioPdf).filter(f => porFolioPdf[f] > 1);
+  if (conCopias.length) p.push('Folios con más de un PDF del formulario (abrir el expediente → «PDF del formulario de solicitud» → «Quitar copias»): ' + conCopias.map(f => f + ' (' + porFolioPdf[f] + ')').join(', '));
   const pend = leer_(HOJAS.solicitudes).filter(s => esSi(s.revisar)).map(s => s.folio);
   if (pend.length) p.push('Solicitudes marcadas para revisar: ' + pend.join(', '));
   ok.push('Cuota de correo restante hoy: ' + MailApp.getRemainingDailyQuota());

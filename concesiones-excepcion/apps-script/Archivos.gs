@@ -205,21 +205,48 @@ function htmlSolicitud_(s, antecedentes, quien) {
  * Se genera una sola vez: si alguien borró el archivo, se puede volver a generar.
  */
 function pdfSolicitudExistente_(folio) {
-  const previos = archivosDe_(folio).filter(a => a.categoria === 'formulario_solicitud');
-  for (let i = 0; i < previos.length; i++) {
-    try {
-      if (!DriveApp.getFileById(previos[i].archivo_id).isTrashed()) {
-        const a = previos[i];
-        return { id: a.archivo_id, nombre: a.nombre, existente: true, fecha: fechaCorta_(a.fecha), por: nombreDe_(a.subido_por, leer_(HOJAS.cuentas)) };
-      }
-    } catch (e) { /* archivo eliminado de Drive: se ignora */ }
-  }
-  return null;
+  const v = pdfsSolicitudVigentes_(folio);
+  if (!v.length) return null;
+  const a = v[0]; // la más antigua: la versión original
+  return { id: a.archivo_id, nombre: a.nombre, existente: true, fecha: fechaCorta_(a.fecha), por: nombreDe_(a.subido_por, leer_(HOJAS.cuentas)), duplicados: v.length - 1 };
 }
-/** Genera el PDF (si no existe), lo guarda en la carpeta del caso (categoría «Formulario de solicitud (PDF)») y lo deja en la bitácora. */
-function generarPdfSolicitud_(s, u, motivo) {
+/** PDF del formulario registrados en «Archivos» que siguen en Drive (no en la papelera), del más antiguo al más nuevo. */
+function pdfsSolicitudVigentes_(folio) {
+  return archivosDe_(folio).filter(a => a.categoria === 'formulario_solicitud').filter(a => {
+    try { return !DriveApp.getFileById(a.archivo_id).isTrashed(); } catch (e) { return false; } // eliminado de Drive: se ignora
+  });
+}
+/**
+ * Si un folio tiene más de un PDF del formulario (generados antes de la regla «una sola vez», o por una carrera), conserva el
+ * original (el más antiguo) y manda las copias a la papelera de Drive; sus filas salen de «Archivos» y queda en la bitácora.
+ */
+function api_quitarPdfDuplicados(folio) {
+  const u = requiere_('edicion');
+  const s = buscarSolicitud_(folio);
+  if (!puedeVerSolicitud(u, s)) throw new Error('SIN_ACCESO: la solicitud no pertenece a sus programas.');
+  const lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+  try {
+    const v = pdfsSolicitudVigentes_(folio);
+    if (v.length < 2) return { quitados: 0, original: v[0] ? v[0].nombre : '' };
+    const sobrantes = v.slice(1);
+    sobrantes.forEach(a => { try { DriveApp.getFileById(a.archivo_id).setTrashed(true); } catch (e) { /* ya no está */ } });
+    sobrantes.map(a => a._fila).sort((a, b) => b - a).forEach(f => hoja_(HOJAS.archivos).deleteRow(f));
+    anexar_(HOJAS.bitacora, { fecha: new Date(), folio: folio, tipo: 'archivo', quien: u.correo, texto: 'PDF del formulario: se conservó el original (' + fechaCorta_(v[0].fecha) + ') y se enviaron a la papelera ' + sobrantes.length + ' copia(s) generada(s) después.' });
+    return { quitados: sobrantes.length, original: v[0].nombre };
+  } finally {
+    lock.releaseLock();
+  }
+}
+function generarPdfSolicitud_(s, u, motivo, conCerrojo) {
   const previo = pdfSolicitudExistente_(s.folio);
   if (previo) return previo;
+  if (conCerrojo) {
+    // Dos pedidos simultáneos no deben producir dos PDF: con el cerrojo tomado se vuelve a comprobar.
+    const lock = LockService.getScriptLock();
+    lock.waitLock(30000);
+    try { return generarPdfSolicitud_(s, u, motivo, false); } finally { lock.releaseLock(); }
+  }
   const antecedentes = archivosDe_(s.folio).filter(a => a.categoria === 'antecedentes_formulario').map(a => a.nombre);
   // Casos migrados: la fundamentación vive en la hoja de respuestas; no se genera el PDF si la fila ya no corresponde.
   const fund = fundamentacionDe_(s);
@@ -243,5 +270,5 @@ function api_pdfSolicitud(folio) {
   const u = requiere_('edicion');
   const s = buscarSolicitud_(folio);
   if (!puedeVerSolicitud(u, s)) throw new Error('SIN_ACCESO: la solicitud no pertenece a sus programas.');
-  return generarPdfSolicitud_(s, u, 'a pedido desde el expediente');
+  return generarPdfSolicitud_(s, u, 'a pedido desde el expediente', true);
 }

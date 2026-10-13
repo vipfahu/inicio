@@ -543,10 +543,18 @@ const ROT_CAMPO = { notificacion_rc: 'Fecha y medio de la notificación a Regist
 function cerrarDlg() { $('fondo').style.display = 'none'; }
 function ofrecerPdfSolicitud(pdf, texto, titulo) {
   $('dlg').innerHTML = '<div class="kicker" style="color:var(--apagado)">' + h(titulo || 'Formulario de solicitud') + '</div><h3 style="margin-top:6px">' + h(pdf.nombre) + '</h3>' +
-    (titulo ? '<div class="aviso a-teal" style="white-space:normal;margin-top:8px">ℹ ' + h(texto) + '</div>' : '<p class="resumen">' + h(texto) + '</p>') + '<div class="acciones" style="justify-content:flex-end;margin-top:16px">' +
+    (titulo ? '<div class="aviso a-teal" style="white-space:normal;margin-top:8px">ℹ ' + h(texto) + '</div>' : '<p class="resumen">' + h(texto) + '</p>') +
+    (pdf.duplicados ? '<div class="aviso a-amb" style="white-space:normal;margin-top:8px">Este expediente tiene ' + pdf.duplicados + ' copia(s) adicional(es) del PDF del formulario, generadas después del original. La plataforma usa siempre el original; «Quitar copias» envía las demás a la papelera de Drive.</div>' : '') +
+    '<div class="acciones" style="justify-content:flex-end;margin-top:16px">' + (pdf.duplicados ? '<button id="pdf_dup" style="margin-right:auto">Quitar ' + pdf.duplicados + ' copia(s)</button>' : '') +
     '<button id="pdf_cerrar">Cerrar</button><button id="pdf_ver">Ver</button><button class="prim" id="pdf_desc">Descargar PDF</button></div>';
   $('fondo').style.display = 'flex';
   $('pdf_cerrar').onclick = cerrarDlg;
+  if ($('pdf_dup')) $('pdf_dup').onclick = () => {
+    if (!confirm('¿Enviar a la papelera las ' + pdf.duplicados + ' copia(s) y conservar el PDF original?')) return;
+    $('pdf_dup').disabled = true;
+    run('api_quitarPdfDuplicados', S.exp.folio).then(r => { toast(r.quitados + ' copia(s) enviada(s) a la papelera; se conserva ' + r.original); cerrarDlg(); abrir(S.exp.folio); })
+      .catch(err => { fallo(err); if ($('pdf_dup')) $('pdf_dup').disabled = false; });
+  };
   $('pdf_ver').onclick = () => { cerrarDlg(); ver(pdf.id, pdf.nombre); };
   $('pdf_desc').onclick = () => { descargar(pdf.id); cerrarDlg(); };
   $('pdf_desc').focus();
