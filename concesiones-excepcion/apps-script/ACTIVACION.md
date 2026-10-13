@@ -85,8 +85,9 @@ Al terminar, **recargar el panel** (la lista de analistas para asignar se lee al
      recibe la analista llega también a la registradora.
    - **Verificar la migración** (una vez, tras instalar, y cada vez que se dude de la planilla original): Configuración → «Migración»
      → «Verificar migración». Revise la hoja «Verificación migración»: las diferencias de tipo «formulario» son errores de
-     correspondencia; las de tipo «gestión» pueden ser ediciones legítimas hechas en el panel. No ordene ni borre filas en la hoja de
-     respuestas: las solicitudes migradas apuntan a su fila por número.
+     correspondencia; las de tipo «gestión» pueden ser ediciones legítimas hechas en el panel. Si todo aparece corrido una fila, use
+     «Realinear filas» en ese mismo diálogo y vuelva a verificar. No ordene ni borre filas en la hoja de respuestas: las solicitudes
+     migradas apuntan a su fila por número.
 3. **Días hábiles y feriados (automáticos):** los plazos cuentan de lunes a viernes descontando los feriados de Chile, que la plataforma
    obtiene sola del calendario público de feriados de Chile de Google y renueva cada mes (año en curso y siguiente). No se cargan a
    mano. Configuración → «Feriados (automáticos)» muestra los próximos; *CAE → Diagnóstico* indica la fuente o si falló la consulta.

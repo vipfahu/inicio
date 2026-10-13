@@ -124,7 +124,10 @@ límite de Apps Script). El resto se descarga. Los PDF se dibujan con pdf.js (cd
 **Verificar migración.** Configuración → «Migración» → «Verificar migración» (Administración; también CAE → Verificar migración en la
 planilla) compara cada fila de la hoja de respuestas con su solicitud por `fila_respuesta`: datos del formulario (deben coincidir) y
 datos de gestión (estado migrado, analista, N° STD, comentarios, observación, resolución; pueden haberse editado después). El detalle
-queda en la hoja «Verificación migración». La fundamentación de los casos migrados se lee de su fila original y, antes de mostrarla o
+queda en la hoja «Verificación migración». Si las diferencias se repiten fila tras fila (los datos coinciden con la fila siguiente o
+anterior), en la hoja de respuestas se insertaron, borraron u ordenaron filas: «Realinear filas» (en el mismo diálogo, o CAE →
+Realinear filas migradas) vuelve a enlazar cada solicitud con su fila por correo verificado o por apellidos y nombres, solo cuando la
+coincidencia es única, y deja constancia en la bitácora; las filas sin solicitud se informan y no se importan solas. La fundamentación de los casos migrados se lee de su fila original y, antes de mostrarla o
 ponerla en el PDF, se comprueba que la fila siga siendo de la misma persona; si no, se muestra una alerta en vez del texto.
 
 **No notificar.** En la vista previa de cualquier cambio de estado con correo se puede marcar «No enviar notificación»: el cambio

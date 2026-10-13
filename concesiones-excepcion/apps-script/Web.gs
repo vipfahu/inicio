@@ -124,6 +124,14 @@ function api_verificarMigracion() {
   return serializar_({ resumen: v.resumen, diferencias: v.diferencias.slice(0, 300), hoja: HOJA_VERIFICACION });
 }
 
+/** Realineación desde el panel (Administración): corrige fila_respuesta por identidad y devuelve el resultado. */
+function api_realinearMigracion() {
+  const u = requiere_('administracion');
+  const r = realinearMigracion_(u.correo);
+  anexar_(HOJAS.bitacora, { fecha: new Date(), folio: '—', tipo: 'sistema', quien: u.correo, texto: 'Realineación de filas migradas: ' + r.realineadas.length + ' corregida(s), ' + r.pendientes.length + ' sin resolver, filas sin solicitud: ' + (r.filasSinSolicitud.join(', ') || 'ninguna') + '.' });
+  return serializar_(r);
+}
+
 /** Correo de la dirección de un programa: lo puede editar cualquier cuenta con nivel edición (analistas). */
 function api_guardarCorreoPrograma(programa, correo) {
   const u = requiere_('edicion');

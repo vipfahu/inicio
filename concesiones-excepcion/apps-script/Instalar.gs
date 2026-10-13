@@ -14,6 +14,7 @@ function onOpen() {
     .addItem('Abrir panel', 'abrirPanel')
     .addItem('Diagnóstico', 'diagnostico')
     .addItem('Verificar migración (planilla original ↔ Solicitudes)', 'verificarMigracion')
+    .addItem('Realinear filas migradas (tras insertar u ordenar filas)', 'realinearMigracion')
     .addItem('Actualizar (tras subir código nuevo)', 'actualizarInstalacion')
     .addSeparator()
     .addItem('Instalación · paso 1 (estructura)', 'instalarPaso1')
@@ -465,7 +466,10 @@ function verificarMigracion_() {
     cmp(fila, F, 'resolucion', [val(r, J.res), val(r, J.cae)].filter(x => String(x || '').trim()).join(' · '), s.resolucion, 'gestión', 'Editable en el panel.');
     const comentarios = [val(r, J.com), val(r, J.ext)].join(' ');
     const m = estadoMigrado(val(r, J.pres), val(r, J.est), val(r, J.act), comentarios);
-    const migrado = (bit.find(b => String(b.folio) === String(F) && b.quien === 'migración' && b.tipo === 'estado') || {}).estado_nuevo || 'recibida';
+    const deFolio = bit.filter(b => String(b.folio) === String(F) && b.tipo === 'estado' && b.estado_nuevo);
+    const entradaMig = deFolio.find(b => /migra/i.test(String(b.quien)) || /migrad/i.test(String(b.texto)));
+    // Sin entrada de migración: si el caso no se ha movido desde entonces, su estado actual es el migrado.
+    const migrado = entradaMig ? entradaMig.estado_nuevo : (deFolio.every(b => b.estado_nuevo === 'recibida') ? s.estado : 'recibida');
     const crudo = [val(r, J.act), val(r, J.est), val(r, J.pres)].map(x => String(x || '').trim()).find(x => x) || '(vacío)';
     cmp(fila, F, 'estado migrado', m.estado, migrado, 'gestión', 'Original: «' + crudo + '». Estado actual en el sistema: ' + s.estado + '.');
   });
@@ -507,4 +511,60 @@ function verificarMigracion() {
   const r = v.resumen;
   avisar_('Verificación de la migración', r.filas + ' filas con datos en la hoja de respuestas · ' + r.migradas + ' con solicitud · ' + r.nuevas + ' solicitudes del formulario web.\n' +
     r.diferencias + ' diferencia(s): ' + r.formulario + ' en datos del formulario, ' + r.gestion + ' en datos de gestión (pueden haberse editado en el panel).\nDetalle en la hoja «' + HOJA_VERIFICACION + '».');
+}
+
+/**
+ * Realinea `fila_respuesta` cuando en la hoja de respuestas se insertaron, borraron u ordenaron filas después de la migración.
+ * Para cada solicitud migrada busca su fila por identidad (correo verificado; si no, apellidos + nombres); solo cambia cuando la
+ * coincidencia es única. No crea ni borra solicitudes: las filas sin solicitud se informan.
+ */
+function realinearMigracion_(u) {
+  const resp = hojaRespuestas_();
+  const enc = resp.getRange(1, 1, 1, resp.getLastColumn()).getValues()[0].map(String);
+  const n = resp.getLastRow() - 1;
+  const datos = n > 0 ? resp.getRange(2, 1, n, enc.length).getValues() : [];
+  const jCorreo = columnaPorPrefijo_(enc, RESPUESTA.correoVerificado), jA1 = columnaPorPrefijo_(enc, RESPUESTA.apellido1),
+    jA2 = columnaPorPrefijo_(enc, RESPUESTA.apellido2), jN = columnaPorPrefijo_(enc, RESPUESTA.nombres);
+  const norm = x => String(x === null || x === undefined ? '' : x).trim().toLowerCase().replace(/\s+/g, ' ');
+  const porCorreo = {}, porNombre = {};
+  datos.forEach((r, i) => {
+    if (r.every(x => x === '' || x === null)) return;
+    const fila = i + 2;
+    const c = norm(r[jCorreo]); if (c) (porCorreo[c] = porCorreo[c] || []).push(fila);
+    const k = norm(r[jA1]) + '|' + norm(r[jA2]) + '|' + norm(r[jN]); if (k !== '||') (porNombre[k] = porNombre[k] || []).push(fila);
+  });
+  const coincide = (fila, s) => {
+    const r = datos[fila - 2]; if (!r) return false;
+    return (norm(r[jCorreo]) && norm(r[jCorreo]) === norm(s.correo_verificado)) || (norm(r[jA1]) === norm(s.apellido1) && norm(r[jN]) === norm(s.nombres));
+  };
+  const sols = leer_(HOJAS.solicitudes).filter(s => Number(s.fila_respuesta));
+  const cambios = [], pendientes = [];
+  let sinCambio = 0;
+  const ocupadas = {};
+  sols.forEach(s => { if (coincide(Number(s.fila_respuesta), s)) ocupadas[Number(s.fila_respuesta)] = s.folio; });
+  sols.forEach(s => {
+    const actual = Number(s.fila_respuesta);
+    if (coincide(actual, s)) { sinCambio++; return; }
+    let cand = porCorreo[norm(s.correo_verificado)] || [];
+    if (cand.length !== 1) cand = porNombre[norm(s.apellido1) + '|' + norm(s.apellido2) + '|' + norm(s.nombres)] || [];
+    cand = cand.filter(f => !ocupadas[f]);
+    if (cand.length !== 1) { pendientes.push({ folio: s.folio, fila: actual, motivo: cand.length ? 'más de una fila coincide' : 'ninguna fila coincide por correo ni por nombre' }); return; }
+    actualizar_(HOJAS.solicitudes, s._fila, { fila_respuesta: cand[0], actualizado: new Date() });
+    ocupadas[cand[0]] = s.folio;
+    cambios.push({ folio: s.folio, de: actual, a: cand[0] });
+    anexar_(HOJAS.bitacora, { fecha: new Date(), folio: s.folio, tipo: 'sistema', quien: u, texto: 'Fila de origen realineada: ' + actual + ' → ' + cand[0] + ' (la hoja de respuestas cambió de orden).' });
+  });
+  const asignadas = {}; leer_(HOJAS.solicitudes).forEach(s => { if (Number(s.fila_respuesta)) asignadas[Number(s.fila_respuesta)] = true; });
+  const sinSolicitud = [];
+  datos.forEach((r, i) => { if (!r.every(x => x === '' || x === null) && !asignadas[i + 2]) sinSolicitud.push(i + 2); });
+  return { realineadas: cambios, sinCambio: sinCambio, pendientes: pendientes, filasSinSolicitud: sinSolicitud };
+}
+
+/** Menú CAE (cuenta dueña). */
+function realinearMigracion() {
+  soloDuenia_();
+  const r = realinearMigracion_(duenia_());
+  avisar_('Realineación de filas migradas', r.realineadas.length + ' solicitud(es) realineada(s) · ' + r.sinCambio + ' ya correctas · ' + r.pendientes.length + ' sin resolver' +
+    (r.pendientes.length ? ' (' + r.pendientes.map(p => p.folio + ': ' + p.motivo).join('; ') + ')' : '') +
+    '\nFilas de la hoja de respuestas sin solicitud en el sistema: ' + (r.filasSinSolicitud.join(', ') || 'ninguna') + '.\nEjecute «Verificar migración» para comprobar.');
 }

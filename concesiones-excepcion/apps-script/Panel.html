@@ -818,8 +818,17 @@ function pintarConfig() {
       $('dlg').innerHTML = '<div class="kicker" style="color:var(--apagado)">Verificación de la migración</div><h3 style="margin-top:6px">' + r.filas + ' filas con datos · ' + r.migradas + ' con solicitud · ' + r.nuevas + ' del formulario web</h3>' +
         '<div class="aviso ' + (r.formulario ? 'a-amb' : 'a-teal') + '" style="white-space:normal;margin:10px 0">' + (r.diferencias ? r.diferencias + ' diferencia(s): <b>' + r.formulario + '</b> en datos del formulario y ' + r.gestion + ' en datos de gestión (estado, analista, N° STD, comentarios, resolución), que pueden haberse editado después en el panel.' : 'Sin diferencias: la planilla original y el sistema coinciden.') + ' El detalle quedó en la hoja «' + h(v.hoja) + '» de la planilla.</div>' +
         (filas ? '<div style="max-height:50vh;overflow:auto"><table style="width:100%;border-collapse:collapse;font:400 12px Archivo,sans-serif"><thead><tr style="text-align:left"><th>Fila</th><th>Folio</th><th>Campo</th><th>Planilla original</th><th>Sistema</th><th>Tipo · nota</th></tr></thead><tbody>' + filas + '</tbody></table></div>' : '') +
-        '<div class="acciones" style="justify-content:flex-end;margin-top:14px"><button class="prim" id="mig_cerrar">Cerrar</button></div>';
+        (r.formulario ? '<div class="aviso a-teal" style="white-space:normal;margin-top:10px">Si las diferencias se repiten fila tras fila (los datos del sistema coinciden con la fila siguiente o anterior), en la hoja de respuestas se insertaron, borraron u ordenaron filas después de la migración. «Realinear filas» vuelve a enlazar cada solicitud con su fila por correo verificado o nombre, sin tocar los datos.</div>' : '') +
+        '<div class="acciones" style="justify-content:flex-end;margin-top:14px">' + (r.formulario ? '<button id="mig_realinear">Realinear filas</button>' : '') + '<button class="prim" id="mig_cerrar">Cerrar</button></div>';
       $('fondo').style.display = 'flex'; $('mig_cerrar').onclick = cerrarDlg;
+      if ($('mig_realinear')) $('mig_realinear').onclick = () => {
+        $('mig_realinear').disabled = true; $('mig_realinear').textContent = 'Realineando…';
+        run('api_realinearMigracion').then(x => {
+          toast(x.realineadas.length + ' solicitud(es) realineada(s)' + (x.pendientes.length ? ' · ' + x.pendientes.length + ' sin resolver' : ''));
+          if (x.filasSinSolicitud.length) toast('Filas sin solicitud en el sistema: ' + x.filasSinSolicitud.join(', '), true);
+          cerrarDlg(); $('mig_ok').click();
+        }).catch(err => { fallo(err); $('mig_realinear').disabled = false; $('mig_realinear').textContent = 'Realinear filas'; });
+      };
     }).catch(err => { fallo(err); $('mig_ok').disabled = false; $('mig_ok').textContent = 'Verificar migración'; });
   };
   document.querySelectorAll('select[data-rc]').forEach(sel => sel.onchange = () => {

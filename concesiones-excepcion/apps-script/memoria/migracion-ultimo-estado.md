@@ -15,5 +15,10 @@ Revisión de correspondencia (2026-10-13, pedido de la persona): lo que la migra
 - Ambigüedad que la herramienta no resuelve: «Rechazado» legado → `rechazada` (rechazo de admisibilidad) y «Aprobado» → `aceptada`;
   si en la planilla original significaban rechazo/aprobación de la CAE tras el Comité, hay que corregirlos a mano.
 
+Hallazgo real (2026-10-13): la verificación mostró todos los campos corridos una fila desde la fila 3: en la hoja de respuestas se
+insertó (o quedó por orden de fecha) una fila nueva después de la migración. Ningún dato se perdió; `fila_respuesta` quedó desfasado
+y una fila quedó sin solicitud. Respuesta: `realinearMigracion_` (por correo verificado o nombre, solo coincidencia única). Lección:
+nunca pedir a la persona que corrija números de fila a mano; y el «estado migrado» se busca en la bitácora por texto, no por `quien`.
+
 **Por qué importa:** La planilla original tenía tres columnas de estado contradictorias, y la fundamentación migrada depende del
 número de fila: la verificación y la alerta son las salvaguardas.

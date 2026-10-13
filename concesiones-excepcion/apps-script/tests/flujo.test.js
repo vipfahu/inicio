@@ -867,3 +867,31 @@ test('verificación de la migración: sin diferencias tras instalar; detecta cel
   estado.usuario = 'consulta@usach.cl';
   assert.throws(() => ctx.api_verificarMigracion(), /nivel requerido/);
 });
+
+test('realinear filas migradas: una fila insertada en la hoja de respuestas desplaza todo; se corrige por identidad', () => {
+  const env = instalar(preparar());
+  const { ctx, estado, hoja } = env;
+  // Se inserta una fila nueva en la posición 3 (como al pegar un caso antiguo u ordenar por fecha)
+  const nueva = hoja.datos[1].slice(); nueva[0] = '09/2025'; nueva[2] = 'est9@usach.cl'; nueva[3] = 'Apellido9'; nueva[5] = 'Nombre9'; nueva[7] = 'est9@usach.cl';
+  hoja.datos.splice(2, 0, nueva);
+  estado.usuario = 'vice@usach.cl';
+  const v1 = ctx.api_verificarMigracion();
+  assert.ok(v1.resumen.formulario > 20, 'todo lo de la fila 3 en adelante aparece desplazado');
+  estado.usuario = 'analista.uno@usach.cl';
+  assert.match(ctx.api_expediente('02/2026').alertaFundamentacion || '', /ya no corresponde/);
+  estado.usuario = 'vice@usach.cl';
+  const r = ctx.api_realinearMigracion();
+  assert.equal(r.realineadas.length, 5, 'las cinco solicitudes bajo la fila insertada');
+  assert.equal(r.sinCambio, 1);
+  assert.deepEqual([...r.pendientes], []);
+  assert.deepEqual([...r.filasSinSolicitud], [3], 'la fila insertada no tiene solicitud en el sistema');
+  const v2 = ctx.api_verificarMigracion();
+  assert.equal(v2.resumen.formulario, 1);
+  assert.equal(v2.diferencias[0].campo, 'solicitud'); assert.equal(v2.diferencias[0].fila, 3);
+  assert.equal(v2.resumen.gestion, 0);
+  estado.usuario = 'analista.uno@usach.cl';
+  const e = ctx.api_expediente('02/2026');
+  assert.equal(e.alertaFundamentacion, undefined);
+  assert.equal(e.fundamentacion, 'Fundamentación confidencial 2');
+  assert.ok(tabla(env, 'Bitácora').some(b => b.folio === '02/2026' && /realineada: 3 → 4/.test(b.texto)));
+});
