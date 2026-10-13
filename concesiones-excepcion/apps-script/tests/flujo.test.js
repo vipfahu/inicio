@@ -888,7 +888,16 @@ test('realinear filas migradas: una fila insertada en la hoja de respuestas desp
   const v2 = ctx.api_verificarMigracion();
   assert.equal(v2.resumen.formulario, 1);
   assert.equal(v2.diferencias[0].campo, 'solicitud'); assert.equal(v2.diferencias[0].fila, 3);
+  assert.match(v2.diferencias[0].nota, /Ningún folio coincide/, 'estudiante desconocido: llegó después o nunca se importó');
   assert.equal(v2.resumen.gestion, 0);
+  // Una fila huérfana del mismo estudiante que un folio existente se explica como posible envío repetido
+  const repetida = hoja.datos[3].slice(); repetida[0] = '';
+  hoja.datos.push(repetida);
+  estado.usuario = 'vice@usach.cl';
+  const v3 = ctx.api_verificarMigracion();
+  const huerfanas = v3.diferencias.filter(d => d.campo === 'solicitud');
+  assert.equal(huerfanas.length, 2);
+  assert.match(huerfanas[1].nota, /Mismo estudiante que 02\/2026 \(fila 4, [a-z_]+\)/);
   estado.usuario = 'analista.uno@usach.cl';
   const e = ctx.api_expediente('02/2026');
   assert.equal(e.alertaFundamentacion, undefined);

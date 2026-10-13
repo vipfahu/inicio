@@ -437,7 +437,7 @@ function verificarMigracion_() {
     const s = porFila[fila];
     const o = {};
     Object.keys(RESPUESTA).forEach(k => { const j = columnaPorPrefijo_(enc, RESPUESTA[k]); o[k] = j >= 0 ? r[j] : ''; });
-    if (!s) { anota(fila, normalizarFolio(r[0]), 'solicitud', 'fila con datos', 'sin solicitud asociada', 'formulario', 'Ninguna solicitud apunta a esta fila.'); return; }
+    if (!s) { anota(fila, normalizarFolio(r[0]), 'solicitud', 'fila con datos', 'sin solicitud asociada', 'formulario', explicarHuerfana_(o, sols, norm, fechaTxt)); return; }
     migradas++;
     const F = s.folio;
     cmp(fila, F, 'folio', normalizarFolio(r[0]), s.folio, 'formulario', r[0] instanceof Date ? 'En la planilla original el folio quedó guardado como fecha.' : '');
@@ -485,6 +485,20 @@ function verificarMigracion_() {
       diferencias: dif.length, formulario: formulario, gestion: dif.length - formulario, fecha: new Date() },
     diferencias: dif
   };
+}
+
+/**
+ * Explica una fila de la hoja de respuestas que no tiene solicitud: cuándo se envió y si coincide con alguna solicitud
+ * (mismo correo verificado o mismos apellidos y nombres), para distinguir un envío repetido del mismo estudiante de una
+ * respuesta que llegó después de la migración o de una fila que nunca se importó.
+ */
+function explicarHuerfana_(o, sols, norm, fechaTxt) {
+  const correo = norm(o.correoVerificado), nombre = norm(o.apellido1) + '|' + norm(o.nombres);
+  const parecidas = sols.filter(s => (correo && norm(s.correo_verificado) === correo) || (nombre !== '|' && norm(s.apellido1) + '|' + norm(s.nombres) === nombre));
+  const envio = o.marca instanceof Date && !isNaN(o.marca) ? 'Enviada el ' + fechaTxt(o.marca) + '. ' : 'Marca temporal no válida. ';
+  if (!parecidas.length) return envio + 'Ningún folio coincide por correo ni por nombre: ¿llegó después de la migración o nunca se importó?';
+  return envio + 'Mismo estudiante que ' + parecidas.map(s => s.folio + (Number(s.fila_respuesta) ? ' (fila ' + s.fila_respuesta : ' (formulario web') + ', ' + s.estado + ')').join(', ') +
+    ': ¿envío repetido o solicitud distinta (otro año, semestre o tipo)?';
 }
 
 const HOJA_VERIFICACION = 'Verificación migración';

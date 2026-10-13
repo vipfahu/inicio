@@ -19,6 +19,9 @@ Hallazgo real (2026-10-13): la verificación mostró todos los campos corridos u
 insertó (o quedó por orden de fecha) una fila nueva después de la migración. Ningún dato se perdió; `fila_respuesta` quedó desfasado
 y una fila quedó sin solicitud. Respuesta: `realinearMigracion_` (por correo verificado o nombre, solo coincidencia única). Lección:
 nunca pedir a la persona que corrija números de fila a mano; y el «estado migrado» se busca en la bitácora por texto, no por `quien`.
+Tras realinear quedaron cinco filas sin solicitud (no una): el diagnóstico de «una fila insertada» era incompleto. Lección: cuando una
+herramienta deja filas huérfanas, debe explicarlas por sí misma (`explicarHuerfana_`: fecha de envío y si coinciden con un folio por
+correo o nombre), porque la persona no debe pegar datos personales en el chat para que se interpreten.
 
 **Por qué importa:** La planilla original tenía tres columnas de estado contradictorias, y la fundamentación migrada depende del
 número de fila: la verificación y la alerta son las salvaguardas.
