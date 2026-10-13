@@ -73,7 +73,7 @@ const PARAMETROS_INICIALES = [
   ['max_mb_archivo', '20', 'Tamaño máximo por archivo subido desde el panel (MB). Gmail admite 25 MB por correo en total.'],
   ['max_mb_antecedente', '10', 'Formulario web: tamaño máximo por archivo de antecedentes (MB); hasta 3 archivos y 20 MB en total.'],
   ['max_solicitudes_dia', '3', 'Formulario web: máximo de solicitudes por cuenta en 24 horas.'],
-  ['eventos_copia_rc', 'aceptada, rechazada, no_procede, cae_admisible, cae_rechazada', 'Correos (eventos, separados por coma) que llegan con copia a la analista y a la cuenta de Registro Curricular asignadas al programa en Configuración.'],
+  ['eventos_copia_rc', 'aceptada, rechazada, no_procede, cae_admisible, cae_rechazada, recordatorio', 'Correos (eventos, separados por coma) que llegan con copia a la analista y a la cuenta de Registro Curricular asignadas al programa en Configuración.'],
   ['enlace_rc', 'COMPLETAR', 'Enlace a la plataforma de Registro Curricular FAHU ({enlace_rc}).'],
   ['compartido_permitido', '', 'Correos (separados por coma) que pueden tener acceso directo a la planilla. Vacío = solo la cuenta dueña.'],
   ['carpeta_raiz_id', '', 'Lo completa la instalación. Carpeta «Plataforma CAE · NO COMPARTIR».']

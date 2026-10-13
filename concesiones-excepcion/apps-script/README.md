@@ -159,7 +159,9 @@ Panorama y los expedientes sin fundamentación ni archivos) o «Sin acceso» (so
 define también de qué programas recibe copias una cuenta. Un tercer tipo, «Cuenta de Registro Curricular del programa», es el correo de
 RC propio de un programa. En Configuración cada programa tiene asignadas una **analista de Registro Curricular** y una **cuenta de
 Registro Curricular del programa** (se eligen entre las existentes o se crean ahí mismo con «+ Añadir nueva…», nivel Sin acceso), que reciben copia de las comunicaciones de sus casos (parámetro `eventos_copia_rc`; por defecto
-admisible para análisis, rechazada, no procede, CAE admisible y CAE rechazada). Toda copia que recibe una analista de Registro Curricular
+admisible para análisis, rechazada, no procede, CAE admisible, CAE rechazada y el recordatorio a la dirección de programa, tanto el
+automático como el manual; la actualización automática agrega «recordatorio» a una planilla que no lo tenga, sin tocar el resto del
+valor). Toda copia que recibe una analista de Registro Curricular
 llega también a Registro Curricular (registradora). Las direcciones de programa no entran: solo reciben correos.
 
 **CAE admisible → Registro Curricular → estudiante.** Tras el V°B° «CAE admisible», el caso pasa a «CAE admisible · notificar a

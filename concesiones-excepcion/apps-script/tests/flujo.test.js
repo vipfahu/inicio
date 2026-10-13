@@ -1296,3 +1296,28 @@ test('correos que aluden a un envío por STD incluyen el número cuando está re
   // El número escrito en el mismo diálogo (campos) tiene prioridad sobre el guardado
   assert.match(ctx.componer_('cae_admisible', s, { n_std: '9999' }).cuerpo, /STD N° 9999/);
 });
+
+test('recordatorio al programa: copia a la analista de RC y la cuenta de RC del programa (y a Registro Curricular por la analista); la actualización agrega el evento al parámetro', () => {
+  const env = instalar(preparar());
+  const { ctx, estado, libro } = env;
+  estado.usuario = 'vice@usach.cl';
+  ctx.api_guardarPrograma({ programa: 'Magíster en Prueba A', correo_direccion: 'dir@usach.cl', analista: 'analista.uno@usach.cl', activo: 'SÍ',
+    nuevo_analista_rc: { nombre: 'Ana RC', correo: 'rc.ana@usach.cl' }, nuevo_cuenta_rc: { nombre: 'RC Magíster A', correo: 'rc.magister@usach.cl' } }, false);
+  // Planilla instalada con el valor antiguo del parámetro (sin «recordatorio»): la actualización lo agrega.
+  const par = libro.getSheetByName('Parámetros');
+  for (let f = 2; f <= par.getLastRow(); f++) if (par.datos[f - 1][0] === 'eventos_copia_rc') par.set(f, 2, 'aceptada, cae_admisible');
+  const cambios = ctx.aplicarActualizacion_();
+  assert.ok(cambios.some(c => /eventos_copia_rc: se agregó «recordatorio»/.test(c)));
+  assert.equal(ctx.parametros_().eventos_copia_rc, 'aceptada, cae_admisible, recordatorio', 'conserva lo editado y suma el evento');
+  assert.ok(!ctx.aplicarActualizacion_().some(c => /eventos_copia_rc/.test(c)), 'idempotente');
+  // El recordatorio (manual o automático) lleva copia a ambas cuentas de RC del programa y a la registradora
+  estado.usuario = 'analista.uno@usach.cl';
+  const pv = ctx.api_previsualizarRecordatorio('05/2026');
+  assert.equal(pv.evento, 'recordatorio');
+  assert.deepEqual([...pv.correo.para], ['dir@usach.cl']);
+  ['analista.uno@usach.cl', 'rc.ana@usach.cl', 'rc.magister@usach.cl', 'rc@usach.cl'].forEach(c => assert.ok(pv.correo.cc.indexOf(c) >= 0, 'cc ' + c + ' en ' + pv.correo.cc));
+  // Lo mismo se refleja en «Lo que esta cuenta ve y recibe»
+  estado.usuario = 'vice@usach.cl';
+  const rs = ctx.api_cuentas().resumenes['rc.magister@usach.cl'];
+  assert.ok(rs.copias.some(c => c.evento === 'recordatorio' && /Configuración/.test(c.origenes[0])));
+});

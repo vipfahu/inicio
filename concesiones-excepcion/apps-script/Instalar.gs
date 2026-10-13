@@ -263,7 +263,7 @@ function actualizarInstalacion() {
  */
 function huellaEstructura_() {
   // El último elemento es una marca de versión de lo que la actualización hace además de columnas, parámetros y plantillas.
-  const txt = JSON.stringify([COLUMNAS, PARAMETROS_INICIALES.map(p => p[0]), PLANTILLAS_INICIALES, ROLES, NIVELES, 'proteccion-respuestas-1', 'folio-texto-1', 'validaciones-1']);
+  const txt = JSON.stringify([COLUMNAS, PARAMETROS_INICIALES.map(p => p[0]), PLANTILLAS_INICIALES, ROLES, NIVELES, 'proteccion-respuestas-1', 'folio-texto-1', 'validaciones-1', 'copia-rc-recordatorio-1']);
   let h = 2166136261;
   for (let i = 0; i < txt.length; i++) { h ^= txt.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; }
   return h.toString(16) + '-' + txt.length;
@@ -356,6 +356,15 @@ function aplicarActualizacion_() {
   })));
   if (nuevas.length) anexar_(HOJAS.bitacora, { fecha: new Date(), folio: '—', tipo: 'sistema', quien: duenia_(), texto: 'Actualización: plantillas agregadas ' + nuevas.map(t => t[0]).join(', ') });
   if (nuevas.length) cambios.push('Plantillas: ' + nuevas.map(t => t[0]).join(', '));
+  // Recordatorio al programa con copia a la analista y la cuenta de RC del programa (pedido 2026-10-13): se agrega al parámetro
+  // si la planilla aún no lo tiene. Un valor editado por el equipo se respeta en lo demás; solo se suma este evento.
+  if (libro_().getSheetByName(HOJAS.parametros)) {
+    const fila = leer_(HOJAS.parametros).find(p => p.clave === 'eventos_copia_rc');
+    if (fila && listaRoles(fila.valor).indexOf('recordatorio') < 0) {
+      actualizar_(HOJAS.parametros, fila._fila, { valor: listaRoles(fila.valor).concat(['recordatorio']).join(', ') });
+      cambios.push('Parámetro eventos_copia_rc: se agregó «recordatorio» (copia a Registro Curricular del programa en el recordatorio al programa)');
+    }
+  }
   // Listas desplegables al día con los roles y niveles vigentes (la validación de la celda no se actualiza sola).
   if (libro_().getSheetByName(HOJAS.cuentas)) { try { validacionesListas_(); } catch (e) { cambios.push('No se pudieron renovar las listas desplegables: ' + e.message); } }
   // Folios que Sheets guardó como fecha (p. ej. «03/2025» → marzo de 2025): vuelven a texto normalizado.
