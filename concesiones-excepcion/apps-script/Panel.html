@@ -320,7 +320,7 @@ function pintarExp() {
   const nombre = [e.nombres, e.apellido1, e.apellido2].filter(Boolean).join(' ');
   // Orden de registro (cronológico); las notas migradas sin fecha quedan junto a su caso.
   const bit = e.bitacora.map(b => {
-    const color = b.tipo === 'estado' ? '#EF7A00' : b.tipo === 'nota' ? '#C9C2B0' : b.tipo === 'archivo' ? '#2F6B4F' : '#00A0A0';
+    const color = b.tipo === 'estado' ? '#EF7A00' : b.tipo === 'nota' ? '#C9C2B0' : b.tipo === 'archivo' ? '#2F6B4F' : b.tipo === 'gestion' ? '#7A6BB5' : '#00A0A0';
     return '<div class="it" style="--c:' + color + '"><div class="meta">' + h(fechaHora(b.fecha)) + ' · ' + h(b.quien) + '</div><div class="tx">' + h(b.texto) + '</div>' +
       (b.evento && b.para ? '<span class="chip">✉ ' + h(b.asunto || b.evento) + ' → ' + h(b.para) + (b.cc ? ' · cc ' + h(b.cc) : '') + (b.editado === 'SÍ' ? ' · texto editado' : '') + '</span>' : '') + '</div>';
   }).join('');

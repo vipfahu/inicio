@@ -195,6 +195,21 @@ function encargoDe(nombre) {
   return 'de ' + nombre;
 }
 
+/** Rótulos de los campos de gestión para la bitácora. */
+const ROTULOS_GESTION = { comentarios_analista: 'Comentarios analista', obs_vicedecano: 'Observación Vicedecano/a', propuesta_comite: 'Propuesta del Comité', resolucion: 'Resolución', n_std: 'N° STD' };
+/**
+ * Describe en una línea el cambio de un campo de texto para la bitácora: si solo se agregó al final, registra lo agregado;
+ * si se reescribió, antes y después; si se vació, lo que había.
+ */
+function describirCambioTexto(campo, antes, despues) {
+  const rot = ROTULOS_GESTION[campo] || campo.replace(/_/g, ' ');
+  const a = String(antes === null || antes === undefined ? '' : antes).trim(), d = String(despues === null || despues === undefined ? '' : despues).trim();
+  if (!a) return rot + ': «' + d + '»';
+  if (!d) return rot + ': vaciado (antes: «' + a + '»)';
+  if (d.indexOf(a) === 0) return rot + ' · agregado: «' + d.slice(a.length).trim() + '»';
+  return rot + ': «' + a + '» → «' + d + '»';
+}
+
 /** Variables que pueden valer «» sin bloquear el envío: frases accesorias que simplemente no aparecen (p. ej., la referencia al STD). */
 const VARIABLES_OPCIONALES = { std_frase: true };
 function rellenar(texto, vars) {
@@ -538,6 +553,6 @@ if (typeof module !== 'undefined') {
   module.exports = { rutaProceso, RUTA_PRINCIPAL, esRolRC, ROLES_RC, tipoVista, mimePorNombre, entradaZipUtil, encargoDe, requiereVicedecano, normalizarRun, normalizarPasaporte, feriadosDesdeEventos, OCULTOS_AL_ESTUDIANTE, sumarDiasHabiles, recordatorioPendiente, RECORDATORIOS, camposRequeridos,
     ESTADOS, CAMPOS_REQUERIDOS, TIPOS_CATALOGO, NIVELES, ROLES, estadoPorId, esCierre, transicionValida, eventoTransicion,
     normalizarFolio, siguienteFolio, estadoMigrado, separarTipos, rellenar, variablesSinResolver, resolverDestinatarios,
-    diasHabilesEntre, necesitaRecordatorio, nivelSuficiente, puedeVerSolicitud, validarCuenta, esSi, listaRoles, validarSolicitud, resumenCuenta, RECORDATORIO_MANUAL, recordatorioManual, VARIABLES_OPCIONALES
+    diasHabilesEntre, necesitaRecordatorio, nivelSuficiente, puedeVerSolicitud, validarCuenta, esSi, listaRoles, validarSolicitud, resumenCuenta, RECORDATORIO_MANUAL, recordatorioManual, VARIABLES_OPCIONALES, describirCambioTexto, ROTULOS_GESTION
   };
 }

@@ -383,3 +383,11 @@ test('rellenar: una variable vacía bloquea, salvo las opcionales (frases acceso
   assert.equal(L.rellenar('a{std_frase} b', { std_frase: ' (trámite STD N° 1)' }), 'a (trámite STD N° 1) b');
   assert.deepEqual([...L.variablesSinResolver(L.rellenar('{folio}{std_frase}', { folio: '', std_frase: '' }))], ['folio']);
 });
+
+test('describirCambioTexto: agregado al final, reescritura, vaciado y primer contenido', () => {
+  assert.equal(L.describirCambioTexto('comentarios_analista', '', 'Enviado a RC'), 'Comentarios analista: «Enviado a RC»');
+  assert.equal(L.describirCambioTexto('comentarios_analista', 'Enviado a RC', 'Enviado a RC // 14.10 respuesta recibida'), 'Comentarios analista · agregado: «// 14.10 respuesta recibida»');
+  assert.equal(L.describirCambioTexto('obs_vicedecano', 'De acuerdo.', 'Revisar atingencia.'), 'Observación Vicedecano/a: «De acuerdo.» → «Revisar atingencia.»');
+  assert.equal(L.describirCambioTexto('propuesta_comite', 'Aprobar', ''), 'Propuesta del Comité: vaciado (antes: «Aprobar»)');
+  assert.equal(L.describirCambioTexto('n_std', '', '4521'), 'N° STD: «4521»');
+});

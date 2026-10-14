@@ -208,6 +208,12 @@ Un envío manual cuenta como recordatorio: suma a `recordatorios`, fija `ultimo_
 `recordatorio_cada_dias` desde ahí) y respeta `recordatorios_max` solo para los automáticos; el manual siempre se puede enviar.
 Queda en la bitácora con quién lo envió y si editó el texto. En los demás pasos no hay botón: nadie debe nada.
 
+**Bitácora de la gestión.** Al guardar cambios en la ficha, cada campo de texto modificado (comentarios de la analista, observación
+del Vicedecano/a, propuesta del Comité, resolución, N° STD) genera su propia entrada de tipo `gestion`, con fecha, autor y contenido
+(`describirCambioTexto` en Logica.gs): si solo se agregó al final, registra lo agregado; si se reescribió, «antes» → «después»; si se
+vació, lo que había. Analista y «revisar» siguen en la línea resumen «Actualizado: …». El estudiante no ve estas entradas: su
+seguimiento solo recibe las de tipo `estado`.
+
 **Volver a un paso anterior.** En la ficha (Gestión del trámite → «Volver a un paso anterior») se puede devolver la solicitud a
 cualquier paso por el que ya pasó (`api_retroceder(folio, hacia, motivo)`): exige motivo, no envía correo, conserva STD, comentarios,
 observación y resolución, y queda en la bitácora como «Retroceso: A → B · Motivo». Si la solicitud ya tenía V°B° (pasó por «CAE

@@ -402,9 +402,14 @@ function api_guardarGestion(folio, campos) {
       if (s.estado === 'recibida') { cambios.recordatorios = 0; cambios.ultimo_recordatorio = ''; }
     }
     if (!texto.length) return { ok: true, sinCambios: true };
-    cambios.actualizado = new Date();
+    const ahora = new Date();
+    cambios.actualizado = ahora;
     actualizar_(HOJAS.solicitudes, s._fila, cambios);
-    anexar_(HOJAS.bitacora, { fecha: new Date(), folio: folio, tipo: 'sistema', quien: u.correo, texto: 'Actualizado: ' + texto.join(', ') + (reasignada ? ' (→ ' + nombreDe_(cambios.analista) + ')' : '') });
+    // Campos de texto: una entrada por campo con el contenido (lo agregado, o antes → después). Lo demás, en una línea resumen.
+    const detallados = Object.keys(ROTULOS_GESTION).filter(k => cambios[k] !== undefined);
+    detallados.forEach(k => anexar_(HOJAS.bitacora, { fecha: ahora, folio: folio, tipo: 'gestion', quien: u.correo, texto: describirCambioTexto(k, s[k], cambios[k]) }));
+    const resto = texto.filter(t => detallados.indexOf(t.replace(/ /g, '_')) < 0);
+    if (resto.length) anexar_(HOJAS.bitacora, { fecha: ahora, folio: folio, tipo: 'sistema', quien: u.correo, texto: 'Actualizado: ' + resto.join(', ') + (reasignada ? ' (→ ' + nombreDe_(cambios.analista) + ')' : '') });
     s = buscarSolicitud_(folio);
   } finally {
     lock.releaseLock();

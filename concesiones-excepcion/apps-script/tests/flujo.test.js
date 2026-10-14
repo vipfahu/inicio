@@ -1321,3 +1321,31 @@ test('recordatorio al programa: copia a la analista de RC y la cuenta de RC del 
   const rs = ctx.api_cuentas().resumenes['rc.magister@usach.cl'];
   assert.ok(rs.copias.some(c => c.evento === 'recordatorio' && /Configuración/.test(c.origenes[0])));
 });
+
+test('bitácora: cada cambio en comentarios, observación, propuesta, resolución o STD queda con fecha, autor y contenido', () => {
+  const env = instalar(preparar());
+  const { ctx, estado } = env;
+  estado.usuario = 'analista.uno@usach.cl';
+  const bitDe = () => ctx.api_expediente('03/2026').bitacora.filter(b => b.tipo === 'gestion');
+  ctx.api_guardarGestion('03/2026', { comentarios_analista: 'Enviado a RC', n_std: '4521' });
+  let b = bitDe();
+  assert.equal(b.length, 2);
+  assert.ok(b.every(x => x.fecha && x.quien === 'analista.uno@usach.cl'));
+  assert.ok(b.some(x => x.texto === 'Comentarios analista: «Enviado a RC»'));
+  assert.ok(b.some(x => x.texto === 'N° STD: «4521»'));
+  // Agregar al final: solo lo agregado
+  ctx.api_guardarGestion('03/2026', { comentarios_analista: 'Enviado a RC // 14.10 respuesta recibida' });
+  assert.ok(bitDe().some(x => x.texto === 'Comentarios analista · agregado: «// 14.10 respuesta recibida»'));
+  // Reescritura: antes → después; sin cambios: nada
+  estado.usuario = 'vice@usach.cl';
+  ctx.api_guardarGestion('03/2026', { obs_vicedecano: 'De acuerdo.', propuesta_comite: 'Aprobar' });
+  ctx.api_guardarGestion('03/2026', { obs_vicedecano: 'Revisar atingencia.' });
+  const n = bitDe().length;
+  assert.ok(bitDe().some(x => x.texto === 'Observación Vicedecano/a: «De acuerdo.» → «Revisar atingencia.»' && x.quien === 'vice@usach.cl'));
+  assert.equal(ctx.api_guardarGestion('03/2026', { obs_vicedecano: 'Revisar atingencia.' }).sinCambios, true);
+  assert.equal(bitDe().length, n);
+  // Analista y revisar siguen en la línea resumen, sin contenido
+  ctx.api_guardarGestion('03/2026', { revisar: '' });
+  const res = ctx.api_expediente('03/2026').bitacora.filter(x => /^Actualizado: /.test(x.texto));
+  assert.ok(res.some(x => x.texto === 'Actualizado: revisar'));
+});
