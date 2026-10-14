@@ -33,6 +33,10 @@ function variables_(sol, campos, cuentas) {
     vicedecano: vice,
     encargo_vicedecano: encargoDe(vice),
     motivo: campos.motivo || sol.motivo || '',
+    // Aviso a la analista al registrar el V°B° (plantilla «vb_dado»)
+    decision_vb: campos.decision_vb || '',
+    paso_siguiente: campos.paso_siguiente || '',
+    observacion_frase: (campos.observacion || sol.obs_vicedecano) ? 'Observación del Vicedecanato: ' + (campos.observacion || sol.obs_vicedecano) + '\n' : '',
     observacion: campos.observacion || sol.obs_vicedecano || '',
     propuesta_comite: campos.propuesta_comite || sol.propuesta_comite || '',
     resolucion: campos.resolucion || sol.resolucion || '',
@@ -102,9 +106,9 @@ function enviar_(c, adjuntos) {
 }
 
 /** Envío automático (recepción, asignación, recordatorio): un fallo se anota en la bitácora en vez de detener el flujo. */
-function enviarAutomatico_(evento, sol) {
+function enviarAutomatico_(evento, sol, campos) {
   try {
-    const c = componer_(evento, sol, {});
+    const c = componer_(evento, sol, campos || {});
     enviar_(c, []);
     anexar_(HOJAS.bitacora, {
       fecha: new Date(), folio: sol.folio, tipo: 'correo', quien: 'Sistema', texto: c.descripcion,

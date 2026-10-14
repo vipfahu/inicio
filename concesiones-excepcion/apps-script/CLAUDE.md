@@ -25,5 +25,5 @@ nuevo (una corrección o un enfoque confirmado), agregar o actualizar la nota co
 ## Flujo vigente (resumen)
 Recibida → revisión de admisibilidad → admisible para análisis (id `aceptada`) / rechazada / no procede → informe RC → programa (solicitado vía STD; solo se registra,
 sin correo) → V°B° a la respuesta del Comité (exclusivo del Vicedecano/a, o analista con «aprueba por otro medio»): CAE admisible (→ notificar a Registro Curricular → RC notificado → correo al estudiante) / CAE rechazada (ambas a Registro Curricular vía STD, que elabora y distribuye la
-resolución; correo al estudiante con el estado) / devolución vía STD → resuelto / negado (sin correo). Una versión con autorización de inicio
+resolución; correo al estudiante con el estado) / devolución vía STD → resolución recibida de RC (N° y fecha obligatorios; ids `res_recibida` / `res_rechazo_recibida`) → resuelto / negado (sin correo). Cada V°B° avisa por correo automático (`vb_dado`) a la analista del caso. Una versión con autorización de inicio
 del Vicedecano/a se probó y se revirtió a pedido; la exclusividad en el V°B° volvió el 2026-10-09 con la válvula «otro medio» (ver `memoria/vb-exclusivo-con-otro-medio.md`).

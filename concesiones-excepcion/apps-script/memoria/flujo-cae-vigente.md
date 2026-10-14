@@ -1,4 +1,4 @@
-Flujo vigente: recibida → revisión de admisibilidad → admisible para análisis (id `aceptada`) / rechazada / no procede → informe RC → programa (vía STD, solo registro) → V°B° Comité: CAE admisible / CAE rechazada (ambas a Registro Curricular vía STD; correo al estudiante con el estado) / devolución vía STD → resuelto / negado.
+Flujo vigente: recibida → revisión de admisibilidad → admisible para análisis (id `aceptada`) / rechazada / no procede → informe RC → programa (vía STD, solo registro) → V°B° Comité: CAE admisible / CAE rechazada (ambas a Registro Curricular vía STD; correo al estudiante con el estado) / devolución vía STD → resolución recibida de RC (N° y fecha, 2026-10-14) → resuelto / negado. Cada V°B° avisa a la analista (`vb_dado`).
 
 Tipo: corrección
 
@@ -24,3 +24,10 @@ CAE admisible (2026-10-13): V°B° → `aviso_rc` (notificar a Registro Curricul
 estudiante pasos a seguir y pagos) → `resolucion` (recién ahí el correo `cae_admisible`). CAE rechazada no cambió.
 
 **Por qué importa:** no reintroducir la autorización de inicio (la exclusividad en el V°B° del Comité sí está vigente), ni correos al programa, sin que la persona lo pida.
+
+Cambio 2026-10-14 (pedido de la persona): (a) al registrar el V°B° en cualquiera de sus salidas, correo automático `vb_dado` a la
+analista del caso con decisión, propuesta, observación y paso siguiente (no si ella misma lo registró por «otro medio»); (b) antes de
+Resuelto / Negado se registra la resolución que vuelve de Registro Curricular con su número y fecha (`res_recibida` tras CAE admisible,
+`res_rechazo_recibida` tras CAE rechazada), con archivo opcional. El recordatorio «envíe la resolución a RC» del cierre se reemplazó
+por «verifique que RC la distribuyó»: Registro Curricular numera y distribuye; el Vicedecanato registra el retorno y cierra. El
+flujograma publicado anterior a esta fecha no incluye el paso nuevo.

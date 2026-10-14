@@ -139,12 +139,19 @@ test('tramitación: vista previa, campos obligatorios, envío y orden seguro', (
   assert.deepEqual([...pvDev.requeridos], ['observacion']);
   assert.throws(() => ctx.api_cambiarEstado('05/2026', 'programa', { campos: {} }), /observacion/);
   const enviados = estado.correos.length;
-  assert.equal(ctx.api_cambiarEstado('05/2026', 'programa', { campos: { observacion: 'Precisar condiciones' } }).conCorreo, false);
-  assert.equal(estado.correos.length, enviados, 'la devolución va por STD: no sale correo');
+  const rDev = ctx.api_cambiarEstado('05/2026', 'programa', { campos: { observacion: 'Precisar condiciones' } });
+  assert.equal(rDev.conCorreo, false, 'la devolución va por STD: sin correo al programa ni al estudiante');
+  assert.equal(rDev.avisoAnalista, true);
+  assert.equal(estado.correos.length, enviados + 1, 'pero la analista del caso recibe el aviso automático del V°B°');
+  const avDev = estado.correos[estado.correos.length - 1];
+  assert.equal(avDev.to, 'analista.uno@usach.cl');
+  assert.match(avDev.subject, /V°B° registrado · Solicitud CAE 05\/2026 · Devolución al programa con observación/);
+  assert.match(avDev.body, /Propuesta del Comité: Acoger con condiciones[\s\S]*Observación del Vicedecanato: Precisar condiciones[\s\S]*Paso siguiente: registrar la nueva solicitud/);
+  assert.ok(tabla(env, 'Bitácora').some(b => b.folio === '05/2026' && b.evento === 'vb_dado' && b.quien === 'Sistema'));
   const s2 = tabla(env, 'Solicitudes').find(x => x.folio === '05/2026');
   assert.equal(s2.estado, 'programa');
   assert.equal(s2.obs_vicedecano, 'Precisar condiciones');
-  assert.match(tabla(env, 'Bitácora').pop().texto, /Observación: Precisar condiciones/);
+  assert.match(tabla(env, 'Bitácora').filter(b => b.folio === '05/2026' && b.tipo === 'estado').pop().texto, /Observación: Precisar condiciones/);
 });
 
 test('informe → programa: la analista registra la solicitud vía STD, sin correo, y el estudiante la ve', () => {
@@ -187,8 +194,11 @@ test('resolución: CAE admisible y CAE rechazada notifican al estudiante; el cie
     estado.usuario = 'vice@usach.cl';
     if (hacia === 'resolucion') {
       // V°B° CAE admisible: primero se registra la notificación a Registro Curricular, sin correo al estudiante.
-      const previo0 = estado.correos.length;
+      const antesVb = estado.correos.length;
       ctx.api_cambiarEstado(folio, 'aviso_rc', {});
+      assert.equal(estado.correos.length, antesVb + 1, 'el V°B° avisa a la analista; al estudiante todavía no');
+      assert.equal(estado.correos[estado.correos.length - 1].to, 'analista.uno@usach.cl');
+      const previo0 = estado.correos.length;
       estado.usuario = 'analista.uno@usach.cl';
       assert.throws(() => ctx.api_cambiarEstado(folio, 'resolucion', {}), /cambió de estado|no permitida/, 'no se avisa al estudiante antes de notificar a RC');
       assert.throws(() => ctx.api_cambiarEstado(folio, 'rc_notificado', {}), /Falta completar/);
@@ -204,7 +214,14 @@ test('resolución: CAE admisible y CAE rechazada notifican al estudiante; el cie
     assert.match(pv.haciaEtiqueta, /resolución en tramitación/);
     const previo = estado.correos.length;
     ctx.api_cambiarEstado(folio, hacia, {});
-    const enviados = estado.correos.slice(previo);
+    let enviados = estado.correos.slice(previo);
+    if (hacia === 'rechazo_vb') {
+      // El rechazo lo registra el Vicedecano/a: además del correo al estudiante, aviso automático a la analista (no a Registro Curricular)
+      assert.equal(enviados.length, 2);
+      const av = enviados.find(m => m.to === 'analista.uno@usach.cl');
+      assert.ok(av && /CAE rechazada/.test(av.subject) && /registrar la resolución cuando vuelva de Registro Curricular/.test(av.body));
+      enviados = enviados.filter(m => m !== av);
+    }
     assert.equal(enviados.length, 1, 'un correo, solo al estudiante (no a Registro Curricular)');
     assert.equal(enviados[0].to, 'est4@usach.cl');
     assert.match(enviados[0].subject, etiqueta);
@@ -219,8 +236,21 @@ test('resolución: CAE admisible y CAE rechazada notifican al estudiante; el cie
     // Ve todos los pasos de su ruta, con el actual marcado
     assert.equal(mis.ruta.filter(p => p.situacion === 'actual').map(p => p.id)[0], hacia);
     assert.equal(mis.ruta[mis.ruta.length - 1].id, hacia === 'resolucion' ? 'resuelto' : 'negado');
-    // Cierre: sin correo y sin campos obligatorios; comentario opcional que queda en la bitácora
+    const recibida = hacia === 'resolucion' ? 'res_recibida' : 'res_rechazo_recibida';
+    assert.ok(mis.ruta.some(p => p.id === recibida && /Resolución emitida/.test(p.estudiante)), 'el estudiante ve el paso de resolución recibida');
+    // Antes de cerrar: registrar la resolución que vuelve de Registro Curricular (número y fecha obligatorios), sin correo
     estado.usuario = 'analista.uno@usach.cl';
+    assert.throws(() => ctx.api_cambiarEstado(folio, 'negado', {}), /cambió de estado|no permitida/, 'no se cierra sin registrar la resolución recibida');
+    const pvr = ctx.api_previsualizar(folio, recibida, {});
+    assert.equal(pvr.conCorreo, false);
+    assert.deepEqual([...pvr.requeridos], ['resolucion']);
+    assert.throws(() => ctx.api_cambiarEstado(folio, recibida, { campos: {} }), /resolucion/);
+    const antesRes = estado.correos.length;
+    ctx.api_cambiarEstado(folio, recibida, { campos: { resolucion: 'Res. N° 502 del 22-06-2026' } });
+    assert.equal(estado.correos.length, antesRes, 'registrar la resolución recibida no envía correo');
+    assert.equal(tabla(env, 'Solicitudes').find(x => x.folio === folio).resolucion, 'Res. N° 502 del 22-06-2026');
+    assert.ok(tabla(env, 'Bitácora').some(b => b.folio === folio && b.estado_nuevo === recibida && /Resolución: Res\. N° 502/.test(b.texto)));
+    // Cierre: sin correo y sin campos obligatorios; comentario opcional que queda en la bitácora
     const pvc = ctx.api_previsualizar(folio, 'negado', {});
     assert.equal(pvc.conCorreo, false);
     assert.deepEqual([...pvc.requeridos], []);

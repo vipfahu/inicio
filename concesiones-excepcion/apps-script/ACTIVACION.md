@@ -133,7 +133,9 @@ Flujo: **Recibida** → **En revisión de admisibilidad** → **Admisible para a
 Registro Curricular** → **Pronunciamiento del programa (solicitado vía STD)** → **V°B° a respuesta del Comité** (o devolución al
 programa vía STD) → decisión: **CAE admisible** o **CAE rechazada** (en ambos casos el trámite sigue a Registro Curricular por el STD;
 Registro Curricular elabora y distribuye la resolución; el estudiante recibe un correo con el estado y el aviso de que la resolución está
-en elaboración) → **Resuelto / Negado** (se anota la resolución emitida y se puede cargar su archivo; sin correo). La solicitud al programa y la devolución se tramitan en el STD:
+en elaboración) → **Resolución recibida de Registro Curricular** (cuando Registro Curricular devuelve la resolución con su número y
+fecha, se registran aquí, con el archivo opcional; sin correo) → **Resuelto / Negado** (comentario opcional; sin correo). Cada V°B°
+avisa por correo automático a la analista del caso con la decisión y el paso siguiente. La solicitud al programa y la devolución se tramitan en el STD:
 la plataforma solo registra el estado (sin correo) y el estudiante lo ve en su seguimiento. El diagrama completo está en el flujograma publicado.
 
 Todos salen desde la cuenta institucional; las respuestas llegan a la analista del caso.
@@ -154,7 +156,9 @@ Todos salen desde la cuenta institucional; las respuestas llegan a la analista d
 | Registro de la notificación a Registro Curricular (pide fecha y medio; pasos a seguir y pagos) | *(sin correo)* | — | — |
 | Notificar al estudiante: resolución en elaboración | CAE admisible · resolución en tramitación | Estudiante | Cuentas que lo marquen en «Recibe copia» (filtradas por programa) |
 | V°B° · CAE rechazada (sigue a Registro Curricular vía STD) | CAE rechazada · resolución en tramitación | Estudiante | — |
-| Resuelto / Negado (comentario opcional para el registro; permite cargar el archivo de la resolución) | *(sin correo; el estudiante ve el estado)* | — | — |
+| V°B° registrado (cualquiera de sus tres salidas) | V°B° registrado (automático) | Analista del caso (o quien pueda asignarla) | — |
+| Resolución recibida de Registro Curricular (pide N° y fecha; permite cargar el archivo de la resolución) | *(sin correo; el estudiante ve «Resolución emitida · en distribución»)* | — | — |
+| Resuelto / Negado (comentario opcional para el registro) | *(sin correo; el estudiante ve el estado)* | — | — |
 | Caso que sigue «Recibida»: primer aviso al día hábil siguiente a la recepción (`primer_aviso_admisibilidad_dias` = 1), luego cada 2 días hábiles, hasta 3 (automático; indica el vencimiento del plazo de `plazo_admisibilidad_dias` = 2) | Recordatorio de admisibilidad | Analista asignada; si no hay, cuentas con nivel Edición o Administración | — |
 | Pronunciamiento del programa sin respuesta tras `plazo_programa_dias` (2) días hábiles desde que se registró la solicitud por STD (automático; luego cada 2 días hábiles, hasta 3) | Recordatorio de pronunciamiento (pide responder por el STD) | Dirección de programa | Analista del caso |
 | Caso en V°B° sin respuesta tras `plazo_vb_dias` (2) días hábiles desde que entró al V°B° (automático; luego cada 2 días hábiles, hasta 3) | Recordatorio de V°B° pendiente | Vicedecano/a | Analista del caso |

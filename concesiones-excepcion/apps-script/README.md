@@ -94,9 +94,12 @@ marca) y lo anota en la bitácora. La cuenta institucional es administradora fij
 → Pronunciamiento del programa (solicitado vía STD; la plataforma solo registra el estado, sin correo) → V°B° a la respuesta del Comité
 (o devolución al programa vía STD, con observación) → decisión del V°B°: CAE admisible o CAE rechazada (ambas siguen a Registro
 Curricular por STD, que elabora y distribuye la resolución; correo al estudiante con el estado y el aviso de que la resolución está en
-elaboración) → Resuelto / Negado (sin correo). Al cerrar (Resuelto / Negado) se puede escribir un «Comentario para su registro» (opcional; queda en la bitácora) y cargar
-su archivo, que queda en el expediente con la categoría «Resolución». Al registrar Resuelto / Negado, el panel recuerda **en negrita**
-que la resolución debe enviarse inmediatamente a la Unidad de Registro Curricular para su distribución.
+elaboración) → **Resolución recibida de Registro Curricular** (Registro Curricular asigna número y fecha y la devuelve: se registran
+como obligatorios en este paso, con el archivo opcional en la categoría «Resolución»; sin correo; ids `res_recibida` tras CAE admisible y
+`res_rechazo_recibida` tras CAE rechazada) → Resuelto / Negado (sin correo; «Comentario para su registro» opcional). Al registrar el
+V°B° en cualquiera de sus tres salidas, la analista del caso (o quien pueda asignarla) recibe el correo automático `vb_dado` con la
+decisión, la propuesta del Comité, la observación si la hay y el paso siguiente; no se envía si quien registra el V°B° es la propia
+analista («aprueba por otro medio»).
 
 **Paso a Informe de Registro Curricular.** Exige el N° STD ya registrado (el botón queda bloqueado hasta guardarlo; el servidor también
 lo valida). Antes del cambio se genera automáticamente el **PDF del formulario de solicitud** (lo que el estudiante envió: datos, programa,

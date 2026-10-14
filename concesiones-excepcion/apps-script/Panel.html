@@ -160,7 +160,7 @@ function clase(id) {
   if (id === 'resuelto') return 't-ok';
   if (['rechazada', 'no_procede', 'negado'].indexOf(id) >= 0) return 't-no';
   if (id === 'vb') return 't-vb';
-  if (id === 'rechazo_vb') return 't-no';
+  if (id === 'rechazo_vb' || id === 'res_rechazo_recibida') return 't-no';
   if (id === 'recibida' || id === 'revision') return 't-adm';
   return 't-tra';
 }
@@ -453,7 +453,8 @@ function panelGestion(e, edita) {
       : s.id === 'rc_notificado' ? 'Registrar notificación a Registro Curricular (pasos a seguir y pagos)'
       : e.estado === 'rc_notificado' && s.id === 'resolucion' ? 'Notificar al estudiante: resolución en elaboración'
       : e.estado === 'vb' && s.id === 'rechazo_vb' ? 'V°B° · CAE rechazada: sigue a Registro Curricular (STD)'
-      : s.id === 'resuelto' || s.id === 'negado' ? 'Registrar resolución a Registro Curricular → ' + s.etiqueta
+      : s.id === 'res_recibida' || s.id === 'res_rechazo_recibida' ? 'Registrar resolución recibida de Registro Curricular (N° y fecha)'
+      : s.id === 'resuelto' || s.id === 'negado' ? 'Cerrar el trámite → ' + s.etiqueta
       : s.etiqueta;
     const sinStd = s.id === 'informe_rc' && !String(e.n_std || '').trim();
     return (sinStd ? '<div class="aviso a-amb" style="margin-bottom:6px;white-space:normal">Para pasar a Informe de Registro Curricular, registre el <b>N° STD</b> (más abajo) y presione «Guardar cambios».</div>' : '') +
@@ -592,7 +593,7 @@ async function pintarDocumento(r, n) {
 }
 
 /* ── Diálogo de cambio de estado ── */
-const ROT_CAMPO = { notificacion_rc: 'Fecha y medio de la notificación a Registro Curricular (p. ej., STD N° o correo del dd-mm-aaaa)', motivo: 'Motivo (se incluye en el correo)', observacion: 'Observación del Vicedecanato (se incluye en el correo)', propuesta_comite: 'Propuesta del Comité', resolucion: 'Resolución (N° y fecha)' };
+const ROT_CAMPO = { notificacion_rc: 'Fecha y medio de la notificación a Registro Curricular (p. ej., STD N° o correo del dd-mm-aaaa)', motivo: 'Motivo (se incluye en el correo)', observacion: 'Observación del Vicedecanato (se incluye en el correo)', propuesta_comite: 'Propuesta del Comité', resolucion: 'Resolución recibida de Registro Curricular (N° y fecha)' };
 function cerrarDlg() { $('fondo').style.display = 'none'; }
 function ofrecerPdfSolicitud(pdf, texto, titulo) {
   $('dlg').innerHTML = '<div class="kicker" style="color:var(--apagado)">' + h(titulo || 'Formulario de solicitud') + '</div><h3 style="margin-top:6px">' + h(pdf.nombre) + '</h3>' +
@@ -614,7 +615,7 @@ function ofrecerPdfSolicitud(pdf, texto, titulo) {
 }
 function avisoDistribucion() {
   $('dlg').innerHTML = '<div class="kicker" style="color:var(--apagado)">Resolución registrada</div>' +
-    '<div class="aviso a-amb" style="margin:10px 0;white-space:normal"><b>Envíe inmediatamente la resolución a la Unidad de Registro Curricular para su distribución.</b></div>' +
+    '<div class="aviso a-amb" style="margin:10px 0;white-space:normal"><b>Trámite cerrado. Verifique que Registro Curricular distribuyó la resolución al estudiante.</b></div>' +
     '<div class="acciones" style="justify-content:flex-end"><button class="prim" id="dist_ok">Entendido</button></div>';
   $('fondo').style.display = 'flex';
   $('dist_ok').onclick = cerrarDlg; $('dist_ok').focus();
@@ -633,9 +634,12 @@ function dialogo(hacia) {
       '<label class="et" for="c_otro_medio">¿Por qué medio y cuándo dio el V°B° el Vicedecano/a? *</label><textarea id="c_otro_medio" rows="2" style="margin-bottom:10px" placeholder="Ej.: correo del 10-10-2026; reunión de equipo del 09-10-2026"></textarea>';
     // Al cerrar (Resuelto / Negado) se puede cargar la resolución emitida por Registro Curricular.
     const conResolucion = hacia === 'resuelto' || hacia === 'negado';
-    if (conResolucion) html += '<div class="aviso a-amb" style="margin-bottom:12px;white-space:normal"><b>Recuerde: esta resolución debe enviarse inmediatamente a la Unidad de Registro Curricular para su distribución.</b></div>';
+    const recibeResolucion = hacia === 'res_recibida' || hacia === 'res_rechazo_recibida';
+    if (recibeResolucion) html += '<div class="aviso a-teal" style="margin-bottom:12px;white-space:normal">Registro Curricular devolvió la resolución con su número y fecha. Regístrelos y, si la tiene, adjunte el archivo; el cierre (Resuelto / Negado) es el paso siguiente.</div>';
+    if (conResolucion) html += '<div class="aviso a-amb" style="margin-bottom:12px;white-space:normal"><b>Cierra el trámite.</b> La resolución registrada: ' + h(e.resolucion || '—') + '.</div>';
     if (conResolucion) html += '<label class="et" for="c_comentario">Comentario para su registro</label><textarea id="c_comentario" rows="2" style="margin-bottom:10px" placeholder="Opcional: queda en la bitácora del expediente"></textarea>';
-    if (conResolucion) html += '<label class="et" for="c_archivo">Archivo de la resolución (opcional, máx. ' + h(S.ini.maxMb) + ' MB)</label><input type="file" id="c_archivo" accept=".pdf,application/pdf,image/*,.doc,.docx" style="margin-bottom:10px">';
+    if (recibeResolucion) html += '<label class="et" for="c_archivo">Archivo de la resolución (opcional, máx. ' + h(S.ini.maxMb) + ' MB)</label><input type="file" id="c_archivo" accept=".pdf,application/pdf,image/*,.doc,.docx" style="margin-bottom:10px">';
+    if (pv.requiereVicedecano) html += '<div class="aviso a-teal" style="margin-bottom:12px;white-space:normal">Al registrar el V°B° se avisará por correo a la analista del caso con la decisión y el paso siguiente.</div>';
     if (!pv.conCorreo) {
       html += '<p class="resumen">Este cambio no envía correo. Quedará registrado en la bitácora del expediente.</p>';
     } else {
@@ -685,9 +689,9 @@ function dialogo(hacia) {
       }
       if (pv.conCorreo && $('c_sincorreo').checked) { envio.sinCorreo = true; envio.motivoSinCorreo = $('c_sincorreo_motivo').value.trim(); }
       else if (pv.conCorreo) { envio.asunto = $('c_asunto').value; envio.cuerpo = $('c_cuerpo').value; envio.adjuntos = [...document.querySelectorAll('.adj:checked')].map(x => x.value); }
-      const archivo = conResolucion && $('c_archivo').files[0];
+      const archivo = recibeResolucion && $('c_archivo').files[0];
       if (archivo && archivo.size > S.ini.maxMb * 1048576) return toast('El archivo supera ' + S.ini.maxMb + ' MB', true);
-      $('confirmar').disabled = true; $('confirmar').textContent = archivo ? 'Subiendo resolución…' : 'Enviando…';
+      $('confirmar').disabled = true; $('confirmar').textContent = archivo ? 'Subiendo resolución…' : 'Guardando…';
       // Primero se guarda el archivo (categoría «Resolución») y luego se cambia el estado.
       const subida = archivo ? new Promise((ok, mal) => {
         const lector = new FileReader();
@@ -740,7 +744,7 @@ function cargarPanorama() {
 }
 function pintarPanorama() {
   const r = S.pan, f = S.panF;
-  const NEG = ['rechazada', 'no_procede', 'negado', 'rechazo_vb'];
+  const NEG = ['rechazada', 'no_procede', 'negado', 'rechazo_vb', 'res_rechazo_recibida'];
   const programas = [...new Set(r.casos.map(c => c.programa).filter(Boolean))].sort();
   const base = r.casos.filter(c => (!f.programa || c.programa === f.programa) &&
     (!f.q || (c.folio + ' ' + c.nombre).toLowerCase().indexOf(f.q.toLowerCase()) >= 0));

@@ -312,6 +312,7 @@ function api_cambiarEstado(folio, hacia, envio) {
   const u = requiere_('edicion');
   envio = envio || {};
   const campos = envio.campos || {};
+  let avisoVb = null;
   const lock = LockService.getScriptLock();
   lock.waitLock(30000);
   try {
@@ -372,9 +373,17 @@ function api_cambiarEstado(folio, hacia, envio) {
         (campos.notificacion_rc ? ' · Notificación a Registro Curricular: ' + campos.notificacion_rc : '') + notaVb + notaSinCorreo,
       estado_nuevo: hacia
     }, registroCorreo));
-    return { ok: true, conCorreo: !!evento && !sinCorreo, sinCorreo: sinCorreo, pdfSolicitud: pdfSolicitud };
+    // V°B° registrado: aviso automático a la analista del caso (o a quien pueda asignarla), salvo que ella misma lo haya registrado.
+    if (requiereVicedecano(s.estado) && u.correo !== String(s.analista || '').toLowerCase()) {
+      avisoVb = { sol: buscarSolicitud_(folio), campos: {
+        decision_vb: hacia === 'aviso_rc' ? 'CAE admisible' : hacia === 'rechazo_vb' ? 'CAE rechazada' : 'Devolución al programa con observación',
+        paso_siguiente: hacia === 'aviso_rc' ? 'notificar a Registro Curricular (pasos a seguir y pagos) y luego informar al estudiante' : hacia === 'rechazo_vb' ? 'registrar la resolución cuando vuelva de Registro Curricular' : 'registrar la nueva solicitud de pronunciamiento al programa vía STD',
+        observacion: campos.observacion || '' } };
+    }
+    return { ok: true, conCorreo: !!evento && !sinCorreo, sinCorreo: sinCorreo, pdfSolicitud: pdfSolicitud, avisoAnalista: !!avisoVb };
   } finally {
     lock.releaseLock();
+    if (avisoVb) enviarAutomatico_('vb_dado', avisoVb.sol, avisoVb.campos);
   }
 }
 

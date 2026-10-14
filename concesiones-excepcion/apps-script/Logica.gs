@@ -21,8 +21,13 @@ const ESTADOS = [
     estudiante: 'CAE admisible · coordinación con Registro Curricular' },
   { id: 'rc_notificado', etiqueta: 'CAE admisible · Registro Curricular notificado', fase: 'Resolución', correo: '',          siguientes: ['resolucion'],
     estudiante: 'Registro Curricular le informará los pasos a seguir' },
-  { id: 'resolucion', etiqueta: 'CAE admisible · resolución en tramitación', fase: 'Resolución', correo: 'cae_admisible', siguientes: ['resuelto', 'negado'] },
-  { id: 'rechazo_vb', etiqueta: 'CAE rechazada · resolución en tramitación', fase: 'Resolución', correo: 'cae_rechazada', siguientes: ['negado'] },
+  { id: 'resolucion', etiqueta: 'CAE admisible · resolución en tramitación', fase: 'Resolución', correo: 'cae_admisible', siguientes: ['res_recibida'] },
+  { id: 'rechazo_vb', etiqueta: 'CAE rechazada · resolución en tramitación', fase: 'Resolución', correo: 'cae_rechazada', siguientes: ['res_rechazo_recibida'] },
+  // Registro Curricular asigna número y fecha a la resolución y la devuelve: se registra antes de cerrar (sin correo).
+  { id: 'res_recibida', etiqueta: 'Resolución recibida de Registro Curricular', fase: 'Resolución', correo: '', siguientes: ['resuelto', 'negado'],
+    estudiante: 'Resolución emitida · en distribución por Registro Curricular' },
+  { id: 'res_rechazo_recibida', etiqueta: 'CAE rechazada · resolución recibida de Registro Curricular', fase: 'Resolución', correo: '', siguientes: ['negado'],
+    estudiante: 'Resolución emitida · en distribución por Registro Curricular' },
   { id: 'resuelto',   etiqueta: 'Resuelto',                                  fase: 'Cierre',        correo: '',           siguientes: [] },
   { id: 'rechazada',  etiqueta: 'Presentación rechazada',                    fase: 'Cierre',        correo: 'rechazada',  siguientes: [] },
   { id: 'no_procede', etiqueta: 'No procede · vía Registro Curricular',      fase: 'Cierre',        correo: 'no_procede', siguientes: [] },
@@ -34,7 +39,10 @@ const CAMPOS_REQUERIDOS = {
   rechazada: ['motivo'],
   'vb>programa': ['observacion'],
   vb: ['propuesta_comite'],
-  'aviso_rc>rc_notificado': ['notificacion_rc']
+  'aviso_rc>rc_notificado': ['notificacion_rc'],
+  // La resolución vuelve de Registro Curricular con su número y fecha: se exige al registrarla, antes del cierre.
+  'resolucion>res_recibida': ['resolucion'],
+  'rechazo_vb>res_rechazo_recibida': ['resolucion']
   // Cierre (Resuelto / Negado): sin campos obligatorios; admite un comentario opcional para el registro (bitácora).
 };
 
@@ -51,13 +59,13 @@ const ROLES_RC = ['Registro Curricular', 'Analista de Registro Curricular', 'Cue
 function esRolRC(rol) { return ROLES_RC.indexOf(rol) >= 0; }
 
 /** Ruta del trámite tal como la ve quien consulta: camino principal o la variante de cierre que corresponda. */
-const RUTA_PRINCIPAL = ['recibida', 'revision', 'aceptada', 'informe_rc', 'programa', 'vb', 'aviso_rc', 'rc_notificado', 'resolucion', 'resuelto'];
+const RUTA_PRINCIPAL = ['recibida', 'revision', 'aceptada', 'informe_rc', 'programa', 'vb', 'aviso_rc', 'rc_notificado', 'resolucion', 'res_recibida', 'resuelto'];
 function rutaProceso(estado, visitados) {
   const hasta = id => RUTA_PRINCIPAL.slice(0, RUTA_PRINCIPAL.indexOf(id) + 1);
   let ruta;
   if (estado === 'rechazada' || estado === 'no_procede') ruta = hasta('revision').concat([estado]);
-  else if (estado === 'rechazo_vb' || (estado === 'negado' && (visitados || []).indexOf('rechazo_vb') >= 0)) ruta = hasta('vb').concat(['rechazo_vb', 'negado']);
-  else if (estado === 'negado') ruta = hasta('resolucion').concat(['negado']);
+  else if (estado === 'rechazo_vb' || estado === 'res_rechazo_recibida' || (estado === 'negado' && (visitados || []).indexOf('rechazo_vb') >= 0)) ruta = hasta('vb').concat(['rechazo_vb', 'res_rechazo_recibida', 'negado']);
+  else if (estado === 'negado') ruta = hasta('res_recibida').concat(['negado']);
   else ruta = RUTA_PRINCIPAL.slice();
   const i = ruta.indexOf(estado);
   return ruta.map((id, k) => {
@@ -211,7 +219,7 @@ function describirCambioTexto(campo, antes, despues) {
 }
 
 /** Variables que pueden valer «» sin bloquear el envío: frases accesorias que simplemente no aparecen (p. ej., la referencia al STD). */
-const VARIABLES_OPCIONALES = { std_frase: true };
+const VARIABLES_OPCIONALES = { std_frase: true, observacion_frase: true };
 function rellenar(texto, vars) {
   return String(texto || '').replace(/\{(\w+)\}/g, (m, k) => (vars[k] !== undefined && vars[k] !== null && (vars[k] !== '' || VARIABLES_OPCIONALES[k])) ? String(vars[k]) : m);
 }

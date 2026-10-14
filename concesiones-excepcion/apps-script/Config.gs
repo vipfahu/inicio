@@ -113,5 +113,7 @@ const PLANTILLAS_INICIALES = [
   ['recordatorio_informe_rc', 'Recordatorio a Registro Curricular (manual): informe pendiente', 'Registro Curricular', 'Analista', 'Recordatorio · Solicitud CAE {folio} · informe de Registro Curricular pendiente',
     'Estimada/o:\n\nJunto con saludar cordialmente, le recordamos que desde el {fecha_estado} se encuentra pendiente el informe de Registro Curricular sobre la solicitud CAE {folio} de {nombre} ({programa}), tramitada por {std_ref}.\n\nAgradeceremos remitirlo {destino_respuesta}.' + FIRMA],
   ['recordatorio_resolucion', 'Recordatorio a Registro Curricular (manual): resolución pendiente', 'Registro Curricular', 'Analista', 'Recordatorio · Solicitud CAE {folio} · resolución pendiente',
-    'Estimada/o:\n\nJunto con saludar cordialmente, le recordamos que desde el {fecha_estado} se encuentra en elaboración la resolución de la solicitud CAE {folio} de {nombre} ({programa}), {std_ref}.\n\nAgradeceremos informar su estado {destino_respuesta}.' + FIRMA]
+    'Estimada/o:\n\nJunto con saludar cordialmente, le recordamos que desde el {fecha_estado} se encuentra en elaboración la resolución de la solicitud CAE {folio} de {nombre} ({programa}), {std_ref}.\n\nAgradeceremos informar su estado {destino_respuesta}.' + FIRMA],
+  ['vb_dado', 'V°B° registrado (automático): aviso a la analista del caso', 'Analista o equipo', '', 'V°B° registrado · Solicitud CAE {folio} · {decision_vb}',
+    'El Vicedecano/a registró su V°B° a la respuesta del Comité en la solicitud CAE {folio} de {nombre} ({programa}).\n\nDecisión: {decision_vb}.\nPropuesta del Comité: {propuesta_comite}\n{observacion_frase}Paso siguiente: {paso_siguiente}.\n\nExpediente: {enlace_panel}']
 ];
