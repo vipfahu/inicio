@@ -338,7 +338,8 @@ function pintarExp() {
       '<div class="tarjeta"><h3>II. Requerimiento</h3>' + (e.tipo_catalogo ? '<span class="tag t-tra">' + h(e.tipo_catalogo) + '</span> ' : '') + (e.tipo_texto_libre ? '<span class="tag t-adm">Otro: ' + h(e.tipo_texto_libre) + '</span>' : '') +
       (e.verDetalle ? (e.alertaFundamentacion ? '<div class="aviso a-rojo" style="white-space:normal;margin-top:10px">' + h(e.alertaFundamentacion) + '</div>' : '') + '<p style="font:400 14px/1.65 Spectral,serif;white-space:pre-line">' + h(e.fundamentacion) + '</p>' : '<p class="sub" style="margin-top:12px">La fundamentación y los archivos son visibles solo con nivel Edición.</p>') + '</div>' +
       (e.verDetalle ? '<div class="tarjeta"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px"><h3 style="margin:0">Archivos del expediente</h3>' +
-        (edita ? '<button id="pdf_solicitud" title="Genera un PDF con lo que el estudiante envió en el formulario">PDF del formulario de solicitud</button>' : '') + '</div>' + archivos +
+        (edita ? '<div style="display:flex;gap:6px;flex-wrap:wrap"><button id="pdf_solicitud" title="Genera un PDF con lo que el estudiante envió en el formulario">PDF del formulario de solicitud</button>' +
+          (nivel('administracion') ? '<button id="rest_ante" title="Vuelve a registrar los antecedentes del Formulario que falten en el expediente (por ejemplo, tras un «Eliminar» por error). No borra ni mueve nada.">Restaurar antecedentes</button>' : '') + '</div>' : '') + '</div>' + archivos +
         (edita ? '<div style="margin-top:14px;border:1px dashed #D8D3C5;background:#FBFAF6;border-radius:12px;padding:14px"><span class="et">Agregar archivo (máx. ' + S.ini.maxMb + ' MB)</span>' +
           '<div style="display:grid;grid-template-columns:1fr 1fr auto;gap:8px"><select id="cat">' + cats.map(k => '<option value="' + k + '">' + h(S.ini.categorias[k]) + '</option>').join('') + '</select><input type="file" id="archivo"><button class="prim" id="subir">Subir</button></div></div>' : '') + '</div>' : '') +
       '<div class="tarjeta"><div style="display:flex;justify-content:space-between;gap:10px"><h3>Bitácora</h3><span class="sub" style="font-style:italic">Cada cambio de estado y correo queda registrado</span></div><div class="bit">' + bit + '</div>' +
@@ -375,6 +376,11 @@ function pintarExp() {
       ? ofrecerPdfSolicitud(r, 'El PDF del formulario de solicitud ya fue generado el ' + r.fecha + ' por ' + r.por + ', y no se vuelve a generar. Está en «Archivos del expediente».', 'PDF ya generado')
       : ofrecerPdfSolicitud(r, 'PDF del formulario de solicitud generado. Quedó en «Archivos del expediente».')))
       .catch(err => { fallo(err); if ($('pdf_solicitud')) { $('pdf_solicitud').disabled = false; $('pdf_solicitud').textContent = 'PDF del formulario de solicitud'; } });
+  };
+  if ($('rest_ante')) $('rest_ante').onclick = () => {
+    $('rest_ante').disabled = true;
+    run('api_restaurarAntecedentes', e.folio).then(r => { toast(r.restaurados.length ? 'Restaurado: ' + r.restaurados.join(', ') : 'No faltaba ningún antecedente del Formulario'); abrir(e.folio); })
+      .catch(err => { fallo(err); if ($('rest_ante')) $('rest_ante').disabled = false; });
   };
   if ($('anotar')) $('anotar').onclick = () => {
     const t = $('nota').value.trim(); if (!t) return;

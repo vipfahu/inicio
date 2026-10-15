@@ -298,6 +298,62 @@ function api_eliminarArchivo(folio, archivoId, motivo) {
   }
 }
 
+/**
+ * Deshace un «Eliminar» sobre antecedentes del Formulario: vuelve a registrar en «Archivos» los que falten. No borra ni mueve nada.
+ * Los del formulario web siguen en la carpeta del caso (se reconocen por su descripción); los del Formulario de Google siguen en la
+ * carpeta de Google Forms y, si su acceso directo fue a la papelera, se crea otro. Idempotente: si no falta nada, no cambia nada.
+ * Solo administración; cada archivo recuperado queda en la bitácora.
+ */
+function api_restaurarAntecedentes(folio) {
+  const u = requiere_('administracion');
+  const sol = buscarSolicitud_(folio);
+  if (!puedeVerSolicitud(u, sol)) throw new Error('SIN_ACCESO: la solicitud no pertenece a sus programas.');
+  const lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+  try {
+    const registrados = {};
+    archivosDe_(folio).forEach(a => { registrados[String(a.archivo_id)] = true; });
+    const carpeta = carpetaCaso_(sol);
+    const restaurados = [];
+    const registrar = (f, id, subidoPor, como) => {
+      anexar_(HOJAS.archivos, {
+        fecha: new Date(), folio: sol.folio, archivo_id: id, nombre: f.getName(), categoria: 'antecedentes_formulario',
+        tamano_mb: Math.round(f.getSize() / 10485.76) / 100, subido_por: subidoPor
+      });
+      registrados[id] = true;
+      restaurados.push(f.getName());
+      anexar_(HOJAS.bitacora, { fecha: new Date(), folio: sol.folio, tipo: 'archivo', quien: u.correo, texto: 'Antecedente del Formulario restaurado por administración: «' + f.getName() + '» · ' + como + '.' });
+    };
+    // 1) Lo que sigue en la carpeta del caso: archivos del formulario web y accesos directos que no fueron a la papelera.
+    const it = carpeta.getFiles();
+    while (it.hasNext()) {
+      const f = it.next();
+      const destino = f.getTargetId ? f.getTargetId() : null;
+      if (destino) {
+        if (!registrados[destino]) { try { registrar(DriveApp.getFileById(destino), destino, 'Formulario', 'el acceso directo seguía en la carpeta del caso'); } catch (e) { /* destino inaccesible */ } }
+      } else if (!registrados[f.getId()] && /^Antecedente · solicitud /.test(String(f.getDescription() || ''))) {
+        registrar(f, f.getId(), String(sol.correo_verificado || sol.correo || 'Formulario'), 'el archivo seguía en la carpeta del caso');
+      }
+    }
+    // 2) Adjuntos de la hoja de respuestas (Formulario de Google) cuyo acceso directo ya no está: se crea otro.
+    if (sol.fila_respuesta) {
+      idsDeAdjuntos_(leerRespuesta_(Number(sol.fila_respuesta)).adjunto).forEach(id => {
+        if (registrados[id]) return;
+        try {
+          const f = DriveApp.getFileById(id);
+          carpeta.createShortcut(id);
+          registrar(f, id, 'Formulario', 'se creó un nuevo acceso directo en la carpeta del caso');
+        } catch (e) {
+          anexar_(HOJAS.bitacora, { fecha: new Date(), folio: sol.folio, tipo: 'sistema', quien: 'Sistema', texto: 'ERROR · no se pudo restaurar el adjunto ' + id + ': ' + e.message });
+        }
+      });
+    }
+    return { restaurados: restaurados, total: archivosDe_(folio).filter(a => a.categoria === 'antecedentes_formulario').length };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
 /** A pedido, desde el expediente (analistas y administración). */
 function api_pdfSolicitud(folio) {
   const u = requiere_('edicion');

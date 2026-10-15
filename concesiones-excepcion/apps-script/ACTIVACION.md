@@ -107,7 +107,10 @@ Al terminar, **recargar el panel** (la lista de analistas para asignar se lee al
    - **Eliminar** (solo nivel Administración, siempre con motivo y constancia en la bitácora): una solicitud (tarjeta
      «Administración» al final de la ficha; pide escribir el folio para confirmar; la carpeta del expediente va a la papelera de
      Drive y la fila de la hoja de respuestas queda sin solicitud), un archivo del expediente (botón «Eliminar» junto a cada
-     archivo) o las copias del PDF del formulario. Las cuentas de nivel Edición no ven esos controles.
+     archivo) o las copias del PDF del formulario. Las cuentas de nivel Edición no ven esos controles. Si se eliminó por error
+     un antecedente del Formulario, «Restaurar antecedentes» (junto a «PDF del formulario de solicitud», solo Administración)
+     lo vuelve a registrar: el archivo del estudiante nunca se borró. Los archivos del equipo eliminados se recuperan desde la
+     papelera de Drive de la cuenta institucional (30 días) y se vuelven a subir a la ficha.
    - **Enviar recordatorio** (en la ficha, bajo «Pasar a», solo cuando el paso espera respuesta de alguien: admisibilidad
      pendiente, pronunciamiento del programa, V°B°, informe o resolución de Registro Curricular): muestra el correo antes de
      enviarlo, se puede editar, y queda en la bitácora. Cuenta como recordatorio para la tarea diaria.

@@ -91,6 +91,33 @@ test('envío completo: folio, antecedentes en el expediente, correos, fundamenta
   assert.deepEqual([...ctx.api_misSolicitudes().solicitudes.map(x => x.folio)], ['07/2026']);
 });
 
+test('eliminar un antecedente del formulario web no toca el archivo, y «Restaurar antecedentes» lo vuelve a registrar', () => {
+  const env = instalar(preparar());
+  const { ctx, estado } = env;
+  estado.usuario = 'ana.perez@usach.cl';
+  const a1 = ctx.api_subirAntecedente('carta.pdf', 'application/pdf', b64(1));
+  const a2 = ctx.api_subirAntecedente('certificado.pdf', 'application/pdf', b64(2));
+  const folio = ctx.api_enviarSolicitud(base(), [a1.id, a2.id]).folio;
+  const carpeta = estado.carpetas[tabla(env, 'Solicitudes').pop().carpeta_id];
+  estado.usuario = 'vice@usach.cl';
+  ctx.api_eliminarArchivo(folio, a1.id, 'Error en registro de archivos');
+  assert.ok(!env.DriveApp.getFileById(a1.id).isTrashed() && carpeta.archivosIn.some(f => f.id === a1.id), 'el archivo sigue en la carpeta del caso');
+  assert.equal(ctx.api_expediente(folio).archivos.length, 1);
+  const r = ctx.api_restaurarAntecedentes(folio);
+  assert.deepEqual([...r.restaurados], ['carta.pdf']);
+  assert.equal(r.total, 2);
+  const filas = tabla(env, 'Archivos').filter(a => a.folio === folio);
+  assert.deepEqual(filas.map(a => a.archivo_id).sort(), [a1.id, a2.id].sort());
+  assert.equal(filas.find(a => a.archivo_id === a1.id).subido_por, 'ana.perez@usach.cl');
+  assert.ok(ctx.api_expediente(folio).bitacora.some(b => /restaurado por administración: «carta\.pdf» · el archivo seguía en la carpeta del caso/.test(b.texto)));
+  // Idempotente y sin efecto sobre archivos del equipo eliminados a propósito
+  ctx.api_subirArchivo(folio, 'informe.pdf', 'application/pdf', Buffer.from('%PDF-1.4').toString('base64'), 'informe_academico');
+  const inf = ctx.api_expediente(folio).archivos.find(a => a.nombre === 'informe.pdf');
+  ctx.api_eliminarArchivo(folio, inf.id, 'Subido por error');
+  assert.equal(ctx.api_restaurarAntecedentes(folio).restaurados.length, 0);
+  assert.equal(ctx.api_expediente(folio).archivos.length, 2);
+});
+
 test('sin cuenta: no se puede subir ni enviar', () => {
   const env = instalar(preparar());
   env.estado.usuario = '';

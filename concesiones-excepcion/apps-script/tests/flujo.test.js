@@ -1201,6 +1201,16 @@ test('eliminar registros: solo administración, con motivo y constancia (solicit
   ctx.api_eliminarArchivo('01/2026', ante.id, 'Duplicado');
   assert.ok(!env.DriveApp.getFileById(ante.id).isTrashed(), 'el original del estudiante sigue');
   assert.ok(ctx.api_expediente('01/2026').bitacora.some(b => /no se tocó/.test(b.texto)));
+  assert.ok(!ctx.api_expediente('01/2026').archivos.some(a => a.id === ante.id));
+  // Deshacer: se crea otro acceso directo desde la hoja de respuestas y vuelve el registro (solo administración, idempotente)
+  estado.usuario = 'analista.uno@usach.cl';
+  assert.throws(() => ctx.api_restaurarAntecedentes('01/2026'), /nivel requerido/);
+  estado.usuario = 'vice@usach.cl';
+  const r1 = ctx.api_restaurarAntecedentes('01/2026');
+  assert.deepEqual([...r1.restaurados], [ante.nombre]);
+  assert.ok(ctx.api_expediente('01/2026').archivos.some(a => a.id === ante.id), 'el antecedente vuelve al expediente');
+  assert.ok(ctx.api_expediente('01/2026').bitacora.some(b => /restaurado por administración.*nuevo acceso directo/.test(b.texto)));
+  assert.equal(ctx.api_restaurarAntecedentes('01/2026').restaurados.length, 0, 'sin faltantes no cambia nada');
   // Solicitud
   assert.throws(() => ctx.api_eliminarSolicitud('03/2026', ''), /motivo/);
   const antes = ctx.api_bandeja().length;

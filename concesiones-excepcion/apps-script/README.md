@@ -197,8 +197,10 @@ el resumen y el filtro «Pendiente V°B°» a mano.
 (`api_eliminarSolicitud`: borra la ficha y sus registros de archivos, manda la carpeta del expediente a la papelera de Drive y
 conserva la bitácora del folio con una entrada final que resume lo eliminado; la fila de la hoja de respuestas no se toca y se
 puede volver a importar), archivos de un expediente (`api_eliminarArchivo`: los del equipo y los PDF generados van a la papelera;
-de los antecedentes del Formulario solo se quita el acceso directo y el registro, el archivo del estudiante no se toca), copias del
-PDF del formulario (`api_quitarPdfDuplicados`) y la reparación de importaciones. Todas exigen motivo y quedan en la bitácora; la
+de los antecedentes del Formulario solo se quita el acceso directo y el registro, el archivo del estudiante no se toca; ese borrado
+se deshace con «Restaurar antecedentes», `api_restaurarAntecedentes`, que vuelve a registrar los que falten a partir de la carpeta
+del caso o de la hoja de respuestas, sin borrar ni mover nada), copias del PDF del formulario (`api_quitarPdfDuplicados`) y la
+reparación de importaciones. Todas exigen motivo y quedan en la bitácora; la
 eliminación de una solicitud pide además escribir el folio para confirmar. Edición no ve esos controles y el servidor los rechaza.
 
 **Recordatorio manual.** En los pasos en que se espera una respuesta ajena, la ficha ofrece «Enviar recordatorio» con vista
