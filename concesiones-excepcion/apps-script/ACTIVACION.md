@@ -10,8 +10,8 @@ Administración · `URL` = dirección del panel (termina en `/exec`).
 
 ## Fase A · Subir la versión nueva del código (5 min) [Inst.]
 
-1. Obtener el código (la primera vez `git clone https://github.com/vipfahu/inicio.git` y `git checkout claude/github-claude-app-setup-hztxq1`;
-   después, `git pull`). Abrir una terminal en `concesiones-excepcion/apps-script`.
+1. Obtener el código (la primera vez `git clone https://github.com/vipfahu/inicio.git`; después, `git pull`). Todo está en la rama
+   `main`. Abrir una terminal en `concesiones-excepcion/apps-script`.
 2. Solo la primera vez en cada computador:
    ```
    node configurar-clasp.js <ID del script>
