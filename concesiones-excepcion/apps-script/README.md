@@ -20,7 +20,7 @@ Este directorio no contiene datos personales y no se publica en el sitio (ver `n
 |---|---|
 | `Logica.gs` | Reglas puras: estados, transiciones, folios, migración, destinatarios, días hábiles, validación de cuentas |
 | `Config.gs` | Pestañas, columnas, parámetros y textos iniciales de los 15 correos |
-| `Datos.gs` | Lectura/escritura de pestañas como tablas |
+| `Datos.gs` | Lectura/escritura de pestañas como tablas; caché de lecturas por ejecución, borrado de filas y cerrojo (`conCerrojo_`) |
 | `Cuentas.gs` | Identidad, niveles y pantalla «Cuentas» |
 | `Correo.gs` | Plantillas, variables y envío |
 | `Archivos.gs` | Carpetas por expediente, subida y descarga |
@@ -267,6 +267,12 @@ un acceso directo; si superan el máximo de descarga por el panel, se concede ac
   se cuenta de lunes a viernes. Requiere el permiso `calendar.readonly` (autorización única de la cuenta institucional).
 - **La planilla sigue siendo editable por la cuenta institucional.** Quien la abra directamente puede alterar datos sin pasar por las
   reglas del panel; el historial de versiones de Google Sheets es el respaldo.
+- **Escrituras por número de fila.** Todo cambio apunta a la fila leída en la misma ejecución. Dos salvaguardas: toda escritura que
+  borre filas o asigne folios toma el cerrojo del script (incluidas las herramientas de migración), y al escribir en «Solicitudes»
+  se comprueba que la fila siga siendo la del folio esperado; si no, se rechaza sin escribir («la hoja cambió mientras tanto»).
+- **Caché de lecturas.** `leer_` guarda cada hoja durante una ejecución (una llamada del panel o un activador) y la invalida en cada
+  escritura. No sobrevive entre ejecuciones ni se comparte entre personas, así que un cambio de nivel o una desactivación rigen en
+  la siguiente llamada, como antes. Lo que escriba quien abra la planilla a mano se ve en la llamada siguiente.
 
 ## Pruebas
 

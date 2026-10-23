@@ -41,7 +41,7 @@ function crearZip(entradas) {
 }
 
 function crearEntorno() {
-  const estado = { usuario: '', duenia: 'institucional@usach.cl', correos: [], triggers: [], props: {}, archivos: {}, carpetas: {}, exportados: [], convertidos: [], pdfs: [], borrados: [], n: 0, url: 'https://script.google.com/a/macros/usach.cl/s/PRUEBA/exec' };
+  const estado = { usuario: '', duenia: 'institucional@usach.cl', correos: [], triggers: [], props: {}, archivos: {}, carpetas: {}, exportados: [], convertidos: [], pdfs: [], borrados: [], lecturas: {}, cerrojos: 0, n: 0, url: 'https://script.google.com/a/macros/usach.cl/s/PRUEBA/exec' };
   const nid = p => p + (++estado.n);
 
   // ── Sheets ──
@@ -80,18 +80,22 @@ function crearEntorno() {
       const regla = this.validaciones[f + ',' + c];
       if (regla && regla.lista && v !== '' && regla.lista.indexOf(v) < 0) throw new Error('Exception: Los datos que ingresaste en la celda ' + String.fromCharCode(64 + c) + f + ' infringen las reglas de validación de datos establecidas. Ingresa uno de los siguientes valores: ' + regla.lista.join(', ') + '.');
     }
+    // Toda escritura (incluidas las que hacen las pruebas directamente sobre la hoja) invalida la caché de lecturas del script,
+    // como ocurre en Apps Script, donde cada ejecución empieza con la caché vacía.
+    tocar() { if (typeof ctx.invalidarLecturas_ === 'function') ctx.invalidarLecturas_(this.nombre); }
     set(f, c, v) {
       this.validar(f, c, v);
       while (this.datos.length < f) this.datos.push([]); const fila = this.datos[f - 1]; while (fila.length < c) fila.push(''); fila[c - 1] = v;
+      this.tocar();
     }
     getLastRow() { for (let i = this.datos.length; i > 0; i--) if (this.datos[i - 1].some(x => x !== '' && x !== undefined)) return i; return 0; }
     getLastColumn() { return this.datos.reduce((m, f) => Math.max(m, f.length), 0); }
-    getDataRange() { return new Rango(this, 1, 1, Math.max(this.getLastRow(), 1), Math.max(this.getLastColumn(), 1)); }
+    getDataRange() { estado.lecturas[this.nombre] = (estado.lecturas[this.nombre] || 0) + 1; return new Rango(this, 1, 1, Math.max(this.getLastRow(), 1), Math.max(this.getLastColumn(), 1)); }
     getRange(a, b, c, d) { if (typeof a === 'string') return new Rango(this, 1, 1, 1, 1); return new Rango(this, a, b, c, d); }
     appendRow(v) { const f = this.getLastRow() + 1; v.forEach((x, j) => this.set(f, j + 1, x)); }
     setFrozenRows() {}
     hideColumns(c, n) { for (let i = 0; i < n; i++) this.ocultas.push(c + i); }
-    deleteRow(f) { this.datos.splice(f - 1, 1); }
+    deleteRow(f) { this.datos.splice(f - 1, 1); this.tocar(); }
     // Protección de hoja: quien la crea (la cuenta dueña) queda como editor; el dominio edita por defecto.
     protect() { const p = new Proteccion(this); this.protecciones.push(p); return p; }
     getProtections() { return this.protecciones.slice(); }
@@ -113,8 +117,8 @@ function crearEntorno() {
     getId() { return this.id; }
     getSheets() { return this.hojas; }
     getSheetByName(n) { return this.hojas.find(h => h.nombre === n) || null; }
-    insertSheet(n) { const h = new Hoja(n, this); this.hojas.push(h); return h; }
-    deleteSheet(h) { this.hojas = this.hojas.filter(x => x !== h); }
+    insertSheet(n) { const h = new Hoja(n, this); this.hojas.push(h); h.tocar(); return h; }
+    deleteSheet(h) { this.hojas = this.hojas.filter(x => x !== h); h.tocar(); }
   }
   const libros = {};
   const SpreadsheetApp = {
@@ -185,7 +189,7 @@ function crearEntorno() {
       getEffectiveUser: () => ({ getEmail: () => estado.duenia }),
       getScriptTimeZone: () => 'America/Santiago'
     },
-    LockService: { getScriptLock: () => ({ waitLock() {}, releaseLock() {} }) },
+    LockService: { getScriptLock: () => ({ waitLock() { estado.cerrojos++; }, releaseLock() {} }) },
     PropertiesService: { getScriptProperties: () => ({ getProperty: k => estado.props[k] || null, setProperty: (k, v) => { estado.props[k] = v; } }) },
     Utilities: {
       formatDate: (d, tz, f) => d.toISOString().slice(0, 10) + (f.indexOf('HH') >= 0 ? ' 00:00' : ''),
@@ -231,7 +235,16 @@ function crearEntorno() {
   libro.hojas[0].formUrl = 'https://docs.google.com/forms/d/PRUEBA';
   estado.archivos[libro.id].editors = ['editor.antiguo@usach.cl'];
 
-  return { ctx, estado, libro, hoja: libro.hojas[0], archivo, DriveApp };
+  // Cada llamada de una prueba al script es una «ejecución» nueva: como en Apps Script, empieza con la caché de lecturas vacía.
+  // Las llamadas internas del script usan el contexto real, así que dentro de una ejecución la caché sí actúa.
+  const ejecucion = new Proxy(ctx, {
+    get(t, k) {
+      const v = t[k];
+      if (typeof v !== 'function' || k === 'invalidarLecturas_') return v;
+      return function () { t.invalidarLecturas_(); return v.apply(t, arguments); };
+    }
+  });
+  return { ctx: ejecucion, estado, libro, hoja: libro.hojas[0], archivo, DriveApp };
 }
 
 module.exports = { crearEntorno, crearZip };

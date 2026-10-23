@@ -304,7 +304,7 @@ function aplicarActualizacion_() {
       actualizar_(HOJAS.solicitudes, x._fila, {
         estado: nuevo, revisar: 'SÍ',
         nota_migracion: [x.nota_migracion, 'Estado «' + x.estado + '» no existe en el flujo vigente; se llevó a «' + nuevo + '».'].filter(Boolean).join(' ')
-      });
+      }, x.folio);
     });
     if (huerfanos.length) cambios.push('Casos llevados a un estado vigente y marcados por revisar: ' + huerfanos.map(x => x.folio).join(', '));
   }
@@ -314,6 +314,7 @@ function aplicarActualizacion_() {
     const faltan = COLUMNAS[n].filter(c => enc.indexOf(c) < 0);
     if (faltan.length) {
       h.getRange(1, h.getLastColumn() + 1, 1, faltan.length).setValues([faltan]).setFontWeight('bold').setBackground('#3A4450').setFontColor('#FFFFFF');
+      invalidarLecturas_(n);
       cambios.push(n + ': columnas ' + faltan.join(', '));
     }
   });
@@ -330,12 +331,12 @@ function aplicarActualizacion_() {
       cambios.push('Nombre del Vicedecano/a copiado del parámetro a su cuenta');
     }
   });
-  retirados.map(p => p._fila).sort((a, b) => b - a).forEach(f => hoja_(HOJAS.parametros).deleteRow(f));
+  borrarFilas_(HOJAS.parametros, retirados.map(p => p._fila));
   if (retirados.length) cambios.push('Parámetros retirados: ' + retirados.map(p => p.clave).join(', '));
   // Plantillas de eventos que ya no existen en el flujo (p. ej., correos al programa, que ahora va por STD).
   const vigentes = PLANTILLAS_INICIALES.map(t => t[0]);
   const obsoletas = leer_(HOJAS.plantillas).filter(t => vigentes.indexOf(t.evento) < 0);
-  obsoletas.map(t => t._fila).sort((a, b) => b - a).forEach(f => hoja_(HOJAS.plantillas).deleteRow(f));
+  borrarFilas_(HOJAS.plantillas, obsoletas.map(t => t._fila));
   if (obsoletas.length) cambios.push('Plantillas retiradas (ya no se usan): ' + obsoletas.map(t => t.evento).join(', '));
   // Plantillas que el equipo no ha editado: se actualizan al texto de esta versión.
   const actualizadas = [], conservadas = [];
@@ -571,11 +572,10 @@ function repararImportacion_(u) {
   });
   // Borrado por hoja, de abajo hacia arriba, para que las filas no se corran.
   const folios = deshechas.map(d => String(d.solicitud.folio));
-  const quitar = (nombre, filasHoja) => filasHoja.sort((a, b) => b - a).forEach(f => hoja_(nombre).deleteRow(f));
-  quitar(HOJAS.bitacora, bit.filter(b => folios.indexOf(String(b.folio)) >= 0).map(b => b._fila));
-  quitar(HOJAS.archivos, arch.filter(a => folios.indexOf(String(a.folio)) >= 0).map(a => a._fila));
+  borrarFilas_(HOJAS.bitacora, bit.filter(b => folios.indexOf(String(b.folio)) >= 0).map(b => b._fila));
+  borrarFilas_(HOJAS.archivos, arch.filter(a => folios.indexOf(String(a.folio)) >= 0).map(a => a._fila));
   deshechas.forEach(d => { if (d.solicitud.carpeta_id) { try { DriveApp.getFolderById(d.solicitud.carpeta_id).setTrashed(true); } catch (e) { /* ya no está */ } } });
-  quitar(HOJAS.solicitudes, deshechas.map(d => d.solicitud._fila));
+  borrarFilas_(HOJAS.solicitudes, deshechas.map(d => d.solicitud._fila));
   const resp = hojaRespuestas_();
   deshechas.forEach(d => resp.getRange(Number(d.solicitud.fila_respuesta), 1).setNumberFormat('@').setValue(d.folioPlanilla));
   if (deshechas.length) anexar_(HOJAS.bitacora, { fecha: new Date(), folio: '—', tipo: 'sistema', quien: u, texto: 'Reparación de importación: eliminadas ' + deshechas.map(d => d.solicitud.folio + ' (fila ' + d.solicitud.fila_respuesta + ', duplicaba a ' + d.duplicaA + ')').join(', ') + '.' });
@@ -720,6 +720,7 @@ function escribirVerificacion_(v) {
   h.getRange(1, 1, filas.length, enc.length).setValues(filas);
   h.getRange(1, 1, 1, enc.length).setFontWeight('bold').setBackground('#3A4450').setFontColor('#FFFFFF');
   h.setFrozenRows(1);
+  invalidarLecturas_(HOJA_VERIFICACION);
   return h;
 }
 
@@ -786,7 +787,7 @@ function realinearMigracion_(u) {
       return;
     }
     if (nueva === actual) { sinCambio++; return; }
-    actualizar_(HOJAS.solicitudes, s._fila, { fila_respuesta: nueva, actualizado: new Date() });
+    actualizar_(HOJAS.solicitudes, s._fila, { fila_respuesta: nueva, actualizado: new Date() }, s.folio);
     cambios.push({ folio: s.folio, de: actual, a: nueva });
     anexar_(HOJAS.bitacora, { fecha: new Date(), folio: s.folio, tipo: 'sistema', quien: u, texto: 'Fila de origen realineada: ' + actual + ' → ' + nueva + ' (la hoja de respuestas cambió de orden).' });
   });

@@ -26,12 +26,30 @@ function asegurarHoja_(nombre) {
     const cols = COLUMNAS[nombre];
     h.getRange(1, 1, 1, cols.length).setValues([cols]).setFontWeight('bold').setBackground('#3A4450').setFontColor('#FFFFFF');
     h.setFrozenRows(1);
+    invalidarLecturas_(nombre);
   }
   return h;
 }
 
-/** Devuelve las filas como objetos { encabezado: valor, _fila: n }. */
+/**
+ * Caché de lecturas de una misma ejecución. Apps Script no conserva variables globales entre ejecuciones: cada llamada del
+ * navegador o de un activador empieza con la caché vacía, así que nadie puede ver datos de otra persona ni de otro momento.
+ * Toda escritura hecha por este archivo invalida la hoja tocada; las escrituras directas a una hoja (instalación, verificación)
+ * deben llamar a invalidarLecturas_().
+ */
+const LECTURAS_ = {};
+function invalidarLecturas_(nombre) {
+  if (nombre) delete LECTURAS_[nombre];
+  else Object.keys(LECTURAS_).forEach(k => { delete LECTURAS_[k]; });
+}
+
+/** Devuelve las filas como objetos { encabezado: valor, _fila: n }. Cada llamada entrega copias: modificar una fila no altera la caché. */
 function leer_(nombre) {
+  if (!LECTURAS_[nombre]) LECTURAS_[nombre] = leerHoja_(nombre);
+  return LECTURAS_[nombre].map(o => Object.assign({}, o));
+}
+
+function leerHoja_(nombre) {
   const h = hoja_(nombre);
   const v = h.getDataRange().getValues();
   if (v.length < 2) return [];
@@ -64,11 +82,20 @@ function anexarVarias_(nombre, objs) {
   const jFolio = nombre === HOJAS.solicitudes ? enc.indexOf('folio') : -1;
   if (jFolio >= 0) h.getRange(desde, jFolio + 1, objs.length, 1).setNumberFormat('@');
   h.getRange(desde, 1, objs.length, enc.length).setValues(objs.map(o => enc.map(k => o[k] === undefined ? '' : o[k])));
+  invalidarLecturas_(nombre);
 }
 
-function actualizar_(nombre, fila, cambios) {
+/**
+ * Escribe columnas de una fila. En «Solicitudes», `folioEsperado` comprueba que la fila siga siendo la de ese folio antes de
+ * escribir: si otra ejecución borró filas entre la lectura y la escritura, el número de fila ya apunta a otra solicitud.
+ */
+function actualizar_(nombre, fila, cambios, folioEsperado) {
   const enc = encabezados_(nombre);
   const h = hoja_(nombre);
+  if (nombre === HOJAS.solicitudes && folioEsperado !== undefined) {
+    const actual = h.getRange(fila, enc.indexOf('folio') + 1).getValue();
+    if (String(actual) !== String(folioEsperado)) throw new Error('La fila ' + fila + ' de «Solicitudes» ya no corresponde a ' + folioEsperado + ' (la hoja cambió mientras tanto). Recargue e intente de nuevo; no se escribió nada.');
+  }
   Object.keys(cambios).forEach(k => {
     const j = enc.indexOf(k);
     if (j < 0) throw new Error('Columna desconocida «' + k + '» en ' + nombre);
@@ -76,6 +103,21 @@ function actualizar_(nombre, fila, cambios) {
     if (k === 'folio' && nombre === HOJAS.solicitudes) celda.setNumberFormat('@');
     celda.setValue(cambios[k]);
   });
+  invalidarLecturas_(nombre);
+}
+
+/** Borra filas por número (de abajo hacia arriba, para que no se corran) e invalida la caché de la hoja. */
+function borrarFilas_(nombre, filas) {
+  const h = hoja_(nombre);
+  filas.map(Number).filter(Boolean).sort((a, b) => b - a).forEach(f => h.deleteRow(f));
+  invalidarLecturas_(nombre);
+}
+
+/** Ejecuta `fn` con el cerrojo del script tomado (toda escritura que dependa de números de fila o de folios correlativos). */
+function conCerrojo_(fn, ms) {
+  const lock = LockService.getScriptLock();
+  lock.waitLock(ms || 30000);
+  try { return fn(); } finally { lock.releaseLock(); }
 }
 
 function buscarSolicitud_(folio) {

@@ -36,7 +36,7 @@ function carpetaCaso_(sol) {
   const anio = String(sol.folio).split('/')[1] || String(new Date().getFullYear());
   const exp = subcarpeta_(carpetaRaiz_(), 'Expedientes');
   const c = subcarpeta_(subcarpeta_(exp, anio), String(sol.folio).replace('/', '-'));
-  actualizar_(HOJAS.solicitudes, sol._fila, { carpeta_id: c.getId() });
+  actualizar_(HOJAS.solicitudes, sol._fila, { carpeta_id: c.getId() }, sol.folio);
   sol.carpeta_id = c.getId();
   return c;
 }
@@ -231,7 +231,7 @@ function api_quitarPdfDuplicados(folio) {
     if (v.length < 2) return { quitados: 0, original: v[0] ? v[0].nombre : '' };
     const sobrantes = v.slice(1);
     sobrantes.forEach(a => { try { DriveApp.getFileById(a.archivo_id).setTrashed(true); } catch (e) { /* ya no está */ } });
-    sobrantes.map(a => a._fila).sort((a, b) => b - a).forEach(f => hoja_(HOJAS.archivos).deleteRow(f));
+    borrarFilas_(HOJAS.archivos, sobrantes.map(a => a._fila));
     anexar_(HOJAS.bitacora, { fecha: new Date(), folio: folio, tipo: 'archivo', quien: u.correo, texto: 'PDF del formulario: se conservó el original (' + fechaCorta_(v[0].fecha) + ') y se enviaron a la papelera ' + sobrantes.length + ' copia(s) generada(s) después.' });
     return { quitados: sobrantes.length, original: v[0].nombre };
   } finally {
@@ -290,7 +290,7 @@ function api_eliminarArchivo(folio, archivoId, motivo) {
     } else {
       try { DriveApp.getFileById(a.archivo_id).setTrashed(true); } catch (e) { /* ya no estaba en Drive */ }
     }
-    hoja_(HOJAS.archivos).deleteRow(a._fila);
+    borrarFilas_(HOJAS.archivos, [a._fila]);
     anexar_(HOJAS.bitacora, { fecha: new Date(), folio: folio, tipo: 'archivo', quien: u.correo, texto: 'Archivo eliminado por administración: «' + a.nombre + '» (' + (CATEGORIAS_ARCHIVO[a.categoria] || a.categoria) + ', subido por ' + a.subido_por + ' el ' + fechaCorta_(a.fecha) + ') · Motivo: ' + motivo + (a.categoria === 'antecedentes_formulario' ? ' · El archivo original del estudiante no se tocó.' : ' · En la papelera de Drive.') });
     return { ok: true };
   } finally {

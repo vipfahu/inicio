@@ -16,6 +16,10 @@ nuevo (una corrección o un enfoque confirmado), agregar o actualizar la nota co
   La rama `claude/github-claude-app-setup-hztxq1` quedó solo como historial.
 - Funciones terminadas en `_` son privadas; toda `api_*` debe empezar con `requiere_(nivel)`, `soloSistema_()` o `soloDuenia_()`.
 - Un `.gs` y un `.html` no pueden compartir nombre (lo verifica una prueba).
+- Acceso a la planilla solo por `Datos.gs`: `leer_` cachea cada hoja durante la ejecución; `anexar_`, `actualizar_` y `borrarFilas_`
+  invalidan. Nunca `deleteRow` ni `setValue` directos sobre una pestaña de `HOJAS` (si no hay alternativa, llamar
+  `invalidarLecturas_(hoja)` después). Al escribir en «Solicitudes» pasar el folio esperado como cuarto argumento de `actualizar_`.
+  Toda escritura que dependa de números de fila o de folios correlativos va dentro de `conCerrojo_` o de un cerrojo propio.
 
 ## Comandos
 - Pruebas: `node --test tests/*.test.js` (lógica pura + simulador de Apps Script).

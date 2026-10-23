@@ -206,7 +206,7 @@ function api_retroceder(folio, hacia, motivo) {
     const deshaceVb = vbDado && !despuesDelVb;
     if (deshaceVb && u.rol !== 'Vicedecano/a' && u.nivel !== 'administracion') throw new Error('Volver a un paso anterior al V°B° deshace el V°B° ya dado: solo puede hacerlo el Vicedecano/a o una cuenta de administración.');
     const ahora = new Date();
-    actualizar_(HOJAS.solicitudes, s._fila, { estado: hacia, estado_desde: ahora, recordatorios: 0, ultimo_recordatorio: '', actualizado: ahora });
+    actualizar_(HOJAS.solicitudes, s._fila, { estado: hacia, estado_desde: ahora, recordatorios: 0, ultimo_recordatorio: '', actualizado: ahora }, s.folio);
     anexar_(HOJAS.bitacora, {
       fecha: ahora, folio: folio, tipo: 'estado', quien: u.correo,
       texto: 'Retroceso: ' + estadoPorId(s.estado).etiqueta + ' → ' + estadoPorId(hacia).etiqueta + ' · Motivo: ' + motivo + (deshaceVb ? ' · Deshace el V°B° registrado' : '') + ' · Sin correo.',
@@ -234,9 +234,9 @@ function api_eliminarSolicitud(folio, motivo) {
     const s = buscarSolicitud_(folio);
     if (!puedeVerSolicitud(u, s)) throw new Error('SIN_ACCESO: la solicitud no pertenece a sus programas.');
     const archivos = archivosDe_(folio);
-    archivos.map(a => a._fila).sort((a, b) => b - a).forEach(f => hoja_(HOJAS.archivos).deleteRow(f));
+    borrarFilas_(HOJAS.archivos, archivos.map(a => a._fila));
     if (s.carpeta_id) { try { DriveApp.getFolderById(s.carpeta_id).setTrashed(true); } catch (e) { /* ya no estaba */ } }
-    hoja_(HOJAS.solicitudes).deleteRow(s._fila);
+    borrarFilas_(HOJAS.solicitudes, [s._fila]);
     anexar_(HOJAS.bitacora, {
       fecha: new Date(), folio: folio, tipo: 'sistema', quien: u.correo,
       texto: 'SOLICITUD ELIMINADA por administración · Motivo: ' + motivo + ' · Era: ' + [s.nombres, s.apellido1, s.apellido2].filter(Boolean).join(' ') + ' · ' + s.programa + ' · estado ' + s.estado +
@@ -279,7 +279,7 @@ function api_enviarRecordatorio(folio, envio) {
     if (envio.cuerpo) c.cuerpo = envio.cuerpo;
     enviar_(c, []);
     const ahora = new Date();
-    actualizar_(HOJAS.solicitudes, s._fila, { recordatorios: Number(s.recordatorios || 0) + 1, ultimo_recordatorio: ahora, actualizado: ahora });
+    actualizar_(HOJAS.solicitudes, s._fila, { recordatorios: Number(s.recordatorios || 0) + 1, ultimo_recordatorio: ahora, actualizado: ahora }, s.folio);
     anexar_(HOJAS.bitacora, { fecha: ahora, folio: folio, tipo: 'correo', quien: u.correo, texto: 'Recordatorio enviado a mano: ' + c.descripcion,
       evento: evento, para: c.para.join(', '), cc: c.cc.join(', '), asunto: c.asunto, editado: editado ? 'SÍ' : 'NO' });
     return { ok: true, para: c.para, cc: c.cc };
@@ -365,7 +365,7 @@ function api_cambiarEstado(folio, hacia, envio) {
       registroCorreo = { evento: evento, para: c.para.join(', '), cc: c.cc.join(', '), asunto: c.asunto, editado: editado ? 'SÍ' : 'NO' };
       if (adj.length) registroCorreo.asunto += ' · ' + adj.length + ' adjunto(s)';
     }
-    actualizar_(HOJAS.solicitudes, s._fila, cambios);
+    actualizar_(HOJAS.solicitudes, s._fila, cambios, s.folio);
     anexar_(HOJAS.bitacora, Object.assign({
       fecha: new Date(), folio: folio, tipo: 'estado', quien: u.correo,
       texto: desdeEtiqueta + ' → ' + haciaEtiqueta + (campos.motivo ? ' · Motivo: ' + campos.motivo : '') +
@@ -413,7 +413,7 @@ function api_guardarGestion(folio, campos) {
     if (!texto.length) return { ok: true, sinCambios: true };
     const ahora = new Date();
     cambios.actualizado = ahora;
-    actualizar_(HOJAS.solicitudes, s._fila, cambios);
+    actualizar_(HOJAS.solicitudes, s._fila, cambios, s.folio);
     // Campos de texto: una entrada por campo con el contenido (lo agregado, o antes → después). Lo demás, en una línea resumen.
     const detallados = Object.keys(ROTULOS_GESTION).filter(k => cambios[k] !== undefined);
     detallados.forEach(k => anexar_(HOJAS.bitacora, { fecha: ahora, folio: folio, tipo: 'gestion', quien: u.correo, texto: describirCambioTexto(k, s[k], cambios[k]) }));

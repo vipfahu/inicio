@@ -23,7 +23,7 @@ function enviarRecordatorios_() {
     const evento = recordatorioPendiente(s, hoy, p, fer);
     if (!evento) return;
     if (enviarAutomatico_(evento, s)) {
-      actualizar_(HOJAS.solicitudes, s._fila, { recordatorios: Number(s.recordatorios || 0) + 1, ultimo_recordatorio: hoy });
+      actualizar_(HOJAS.solicitudes, s._fila, { recordatorios: Number(s.recordatorios || 0) + 1, ultimo_recordatorio: hoy }, s.folio);
     }
   });
 }

@@ -1389,3 +1389,44 @@ test('bitácora: cada cambio en comentarios, observación, propuesta, resolució
   const res = ctx.api_expediente('03/2026').bitacora.filter(x => /^Actualizado: /.test(x.texto));
   assert.ok(res.some(x => x.texto === 'Actualizado: revisar'));
 });
+
+test('caché por ejecución: cada hoja se lee una vez por llamada y toda escritura la invalida', () => {
+  const env = instalar(preparar());
+  const { ctx, estado } = env;
+  estado.usuario = 'analista.uno@usach.cl';
+  estado.lecturas = {};
+  ctx.api_expediente('03/2026');
+  assert.equal(estado.lecturas['Cuentas'], 1, 'Cuentas se leía dos veces por expediente; ahora una');
+  assert.equal(estado.lecturas['Solicitudes'], 1);
+  assert.equal(estado.lecturas['Bitácora'], 1);
+  // Dentro de la misma ejecución, lo escrito se vuelve a leer (el cambio de estado relee la solicitud tras escribirla)
+  estado.usuario = 'vice@usach.cl';
+  ctx.api_cambiarEstado('05/2026', 'vb', { campos: { propuesta_comite: 'Acoger' } });
+  assert.equal(ctx.api_expediente('05/2026').estado, 'vb');
+});
+
+test('escribir en «Solicitudes» comprueba que la fila siga siendo la del folio (filas borradas entre lectura y escritura)', () => {
+  const env = instalar(preparar());
+  const { ctx, estado } = env;
+  estado.usuario = 'vice@usach.cl';
+  const s = ctx.buscarSolicitud_('03/2026');
+  // Otra ejecución borra una fila anterior: el número de fila de «s» pasa a apuntar a otra solicitud.
+  const h = env.libro.getSheetByName('Solicitudes');
+  const f = h.datos.findIndex(r => r[0] === '01/2026');
+  h.deleteRow(f + 1);
+  assert.throws(() => ctx.actualizar_('Solicitudes', s._fila, { n_std: '999' }, s.folio), /ya no corresponde a 03\/2026/);
+  assert.ok(!tabla(env, 'Solicitudes').some(x => x.n_std === '999'), 'no se escribió en la fila equivocada');
+  assert.equal(ctx.api_guardarGestion('03/2026', { n_std: '999' }).ok, true, 'releyendo, la escritura va a la fila correcta');
+  assert.equal(ctx.buscarSolicitud_('03/2026').n_std, '999');
+});
+
+test('las herramientas de migración toman el cerrojo del script', () => {
+  const env = instalar(preparar());
+  const { ctx, estado } = env;
+  estado.usuario = 'vice@usach.cl';
+  [['api_realinearMigracion'], ['api_importarFilasSinSolicitud'], ['api_repararImportacion']].forEach(([fn]) => {
+    const antes = estado.cerrojos;
+    ctx[fn]();
+    assert.ok(estado.cerrojos > antes, fn + ' sin cerrojo');
+  });
+});

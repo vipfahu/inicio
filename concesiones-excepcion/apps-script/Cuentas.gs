@@ -131,7 +131,7 @@ function api_eliminarCuenta(correo, fila) {
     const restantes = cuentas.filter(x => x !== c);
     if (!restantes.some(x => x.nivel === 'administracion' && esSi(x.activo) && String(x.correo).toLowerCase() !== duenia_()))
       throw new Error('Debe quedar al menos una cuenta activa con nivel Administración.');
-    hoja_(HOJAS.cuentas).deleteRow(fila);
+    borrarFilas_(HOJAS.cuentas, [fila]);
     registrarCuenta_(u.correo, 'Cuenta eliminada: ' + correo + ' · ' + c.nombre + ' · ' + c.rol + ' · ' + c.nivel + ' · programas «' + c.programas + '» · copias «' + (c.recibe_eventos || '') + '»' +
       (restantes.some(x => String(x.correo).trim().toLowerCase() === correo) ? ' (quedan otros registros con el mismo correo)' : ''));
     return { ok: true, quedan: restantes.filter(x => String(x.correo).trim().toLowerCase() === correo).length };
