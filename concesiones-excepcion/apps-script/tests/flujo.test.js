@@ -264,6 +264,22 @@ test('resolución: CAE admisible y CAE rechazada notifican al estudiante; el cie
     assert.equal(mis.ruta[mis.ruta.length - 1].id, hacia === 'resolucion' ? 'resuelto' : 'negado');
     const recibida = hacia === 'resolucion' ? 'res_recibida' : 'res_rechazo_recibida';
     assert.ok(mis.ruta.some(p => p.id === recibida && /Resolución emitida/.test(p.estudiante)), 'el estudiante ve el paso de resolución recibida');
+    // Antes de registrar la resolución: el Vicedecanato despacha el proyecto de resolución a Decanato para firma (vía STD), sin correo
+    estado.usuario = 'analista.uno@usach.cl';
+    const firma = hacia === 'resolucion' ? 'firma_decanato' : 'rechazo_firma_decanato';
+    assert.throws(() => ctx.api_cambiarEstado(folio, recibida, { campos: { resolucion: 'x' } }), /cambió de estado|no permitida/, 'la resolución recibida viene después del envío a firma');
+    const pvf = ctx.api_previsualizar(folio, firma, {});
+    assert.equal(pvf.conCorreo, false);
+    assert.deepEqual([...pvf.requeridos], ['envio_decanato']);
+    assert.throws(() => ctx.api_cambiarEstado(folio, firma, { campos: {} }), /envio decanato/);
+    const antesFirma = estado.correos.length;
+    ctx.api_cambiarEstado(folio, firma, { campos: { envio_decanato: 'STD N° 777 del 20-06-2026' } });
+    assert.equal(estado.correos.length, antesFirma, 'el envío a firma no manda correo');
+    assert.equal(tabla(env, 'Solicitudes').find(x => x.folio === folio).envio_decanato, 'STD N° 777 del 20-06-2026');
+    assert.ok(tabla(env, 'Bitácora').some(b => b.folio === folio && b.estado_nuevo === firma && /Proyecto de resolución a Decanato para firma: STD N° 777/.test(b.texto)));
+    assert.equal(ctx.api_expediente(folio).recordatorio.evento, 'recordatorio_resolucion', 'se puede recordar a Registro Curricular mientras se espera la resolución');
+    estado.usuario = 'est4@usach.cl';
+    assert.ok(ctx.api_misSolicitudes().solicitudes.find(x => x.folio === folio).ruta.some(p => p.id === firma && /trámite de firma/.test(p.estudiante)), 'el estudiante ve «Resolución en trámite de firma»');
     // Antes de cerrar: registrar la resolución que vuelve de Registro Curricular (número y fecha obligatorios), sin correo
     estado.usuario = 'analista.uno@usach.cl';
     assert.throws(() => ctx.api_cambiarEstado(folio, 'negado', {}), /cambió de estado|no permitida/, 'no se cierra sin registrar la resolución recibida');

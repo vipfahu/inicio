@@ -1,4 +1,4 @@
-Flujo vigente: recibida → revisión de admisibilidad → admisible para análisis (id `aceptada`) / rechazada / no procede → informe RC → programa (vía STD, solo registro; rechazada y no procede también desde estos tres pasos, 2026-10-27) → V°B° Comité: CAE admisible / CAE rechazada (ambas a Registro Curricular vía STD; correo al estudiante con el estado) / devolución vía STD → resolución recibida de RC (N° y fecha, 2026-10-14) → resuelto / negado. Cada V°B° avisa a la analista (`vb_dado`).
+Flujo vigente: recibida → revisión de admisibilidad → admisible para análisis (id `aceptada`) / rechazada / no procede → informe RC → programa (vía STD, solo registro; rechazada y no procede también desde estos tres pasos, 2026-10-27) → V°B° Comité: CAE admisible / CAE rechazada (ambas a Registro Curricular vía STD; correo al estudiante con el estado) / devolución vía STD → proyecto de resolución enviado a Decanato para firma (fecha y N° STD, 2026-10-27) → resolución recibida de RC (N° y fecha, 2026-10-14) → resuelto / negado. Cada V°B° avisa a la analista (`vb_dado`).
 
 Tipo: corrección
 
@@ -36,3 +36,9 @@ Cambio 2026-10-27 (tras el reporte de una analista que tuvo que retroceder paso 
 rechazada» y «No procede» (motivo obligatorio en ambas desde estos pasos) se ofrecen también desde Admisible para análisis, Informe RC y Pronunciamiento del
 programa. Después del V°B° la salida negativa sigue siendo solo la del Comité (`rechazo_vb`). El Panorama muestra la ruta hasta el
 último paso recorrido antes del cierre negativo.
+
+Cambio 2026-10-27 (pedido de una analista): entre la notificación al estudiante y la resolución recibida existe el paso «Proyecto de
+resolución enviado a Decanato (firma)», en ambas ramas (`firma_decanato`, `rechazo_firma_decanato`): el Vicedecanato redacta el
+proyecto y lo despacha por STD a Decanato para la firma de la Decana; se registran fecha y N° STD (columna `envio_decanato`), sin
+correo; el recordatorio manual a Registro Curricular sigue disponible en ese paso. Corrige la premisa anterior de que Registro
+Curricular «elaboraba» la resolución: Registro Curricular numera, devuelve y distribuye.

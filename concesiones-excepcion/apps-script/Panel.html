@@ -160,7 +160,7 @@ function clase(id) {
   if (id === 'resuelto') return 't-ok';
   if (['rechazada', 'no_procede', 'negado'].indexOf(id) >= 0) return 't-no';
   if (id === 'vb') return 't-vb';
-  if (id === 'rechazo_vb' || id === 'res_rechazo_recibida') return 't-no';
+  if (id === 'rechazo_vb' || id === 'rechazo_firma_decanato' || id === 'res_rechazo_recibida') return 't-no';
   if (id === 'recibida' || id === 'revision') return 't-adm';
   return 't-tra';
 }
@@ -459,6 +459,7 @@ function panelGestion(e, edita) {
       : s.id === 'rc_notificado' ? 'Registrar notificación a Registro Curricular (pasos a seguir y pagos)'
       : e.estado === 'rc_notificado' && s.id === 'resolucion' ? 'Notificar al estudiante: resolución en elaboración'
       : e.estado === 'vb' && s.id === 'rechazo_vb' ? 'V°B° · CAE rechazada: sigue a Registro Curricular (STD)'
+      : s.id === 'firma_decanato' || s.id === 'rechazo_firma_decanato' ? 'Registrar envío del proyecto de resolución a Decanato para firma (vía STD)'
       : s.id === 'res_recibida' || s.id === 'res_rechazo_recibida' ? 'Registrar resolución recibida de Registro Curricular (N° y fecha)'
       : s.id === 'resuelto' || s.id === 'negado' ? 'Cerrar el trámite → ' + s.etiqueta
       : s.etiqueta;
@@ -599,7 +600,7 @@ async function pintarDocumento(r, n) {
 }
 
 /* ── Diálogo de cambio de estado ── */
-const ROT_CAMPO = { notificacion_rc: 'Fecha y medio de la notificación a Registro Curricular (p. ej., STD N° o correo del dd-mm-aaaa)', motivo: 'Motivo (se incluye en el correo)', observacion: 'Observación del Vicedecanato (se incluye en el correo)', propuesta_comite: 'Propuesta del Comité', resolucion: 'Resolución recibida de Registro Curricular (N° y fecha)' };
+const ROT_CAMPO = { notificacion_rc: 'Fecha y medio de la notificación a Registro Curricular (p. ej., STD N° o correo del dd-mm-aaaa)', envio_decanato: 'Fecha y N° STD del despacho del proyecto de resolución a Decanato para firma (p. ej., STD N° 1234 del dd-mm-aaaa)', motivo: 'Motivo (se incluye en el correo)', observacion: 'Observación del Vicedecanato (se incluye en el correo)', propuesta_comite: 'Propuesta del Comité', resolucion: 'Resolución recibida de Registro Curricular (N° y fecha)' };
 function cerrarDlg() { $('fondo').style.display = 'none'; }
 function ofrecerPdfSolicitud(pdf, texto, titulo) {
   $('dlg').innerHTML = '<div class="kicker" style="color:var(--apagado)">' + h(titulo || 'Formulario de solicitud') + '</div><h3 style="margin-top:6px">' + h(pdf.nombre) + '</h3>' +
@@ -758,7 +759,7 @@ function cargarPanorama() {
 }
 function pintarPanorama() {
   const r = S.pan, f = S.panF;
-  const NEG = ['rechazada', 'no_procede', 'negado', 'rechazo_vb', 'res_rechazo_recibida'];
+  const NEG = ['rechazada', 'no_procede', 'negado', 'rechazo_vb', 'rechazo_firma_decanato', 'res_rechazo_recibida'];
   const programas = [...new Set(r.casos.map(c => c.programa).filter(Boolean))].sort();
   const base = r.casos.filter(c => (!f.programa || c.programa === f.programa) &&
     (!f.q || (c.folio + ' ' + c.nombre).toLowerCase().indexOf(f.q.toLowerCase()) >= 0));

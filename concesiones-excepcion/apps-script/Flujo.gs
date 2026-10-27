@@ -202,7 +202,7 @@ function api_retroceder(folio, hacia, motivo) {
     const visitados = estadosVisitados_(bit);
     if (visitados.indexOf(hacia) < 0) throw new Error('Solo se puede volver a un paso por el que esta solicitud ya pasó.');
     const vbDado = visitados.indexOf('aviso_rc') >= 0 || visitados.indexOf('rechazo_vb') >= 0;
-    const despuesDelVb = RUTA_PRINCIPAL.indexOf(hacia) > RUTA_PRINCIPAL.indexOf('vb') || hacia === 'rechazo_vb';
+    const despuesDelVb = RUTA_PRINCIPAL.indexOf(hacia) > RUTA_PRINCIPAL.indexOf('vb') || RAMA_RECHAZO.indexOf(hacia) >= 0;
     const deshaceVb = vbDado && !despuesDelVb;
     if (deshaceVb && u.rol !== 'Vicedecano/a' && u.nivel !== 'administracion') throw new Error('Volver a un paso anterior al V°B° deshace el V°B° ya dado: solo puede hacerlo el Vicedecano/a o una cuenta de administración.');
     const ahora = new Date();
@@ -346,6 +346,7 @@ function api_cambiarEstado(folio, hacia, envio) {
     if (campos.propuesta_comite) cambios.propuesta_comite = campos.propuesta_comite;
     if (campos.resolucion) cambios.resolucion = campos.resolucion;
     if (campos.notificacion_rc) cambios.notificacion_rc = campos.notificacion_rc;
+    if (campos.envio_decanato) cambios.envio_decanato = campos.envio_decanato;
     const desdeEtiqueta = estadoPorId(s.estado).etiqueta, haciaEtiqueta = estadoPorId(hacia).etiqueta;
     let registroCorreo = {};
     // «No notificar»: el cambio se registra como hecho, sin enviar el correo (queda constancia en la bitácora).
@@ -374,7 +375,8 @@ function api_cambiarEstado(folio, hacia, envio) {
       fecha: new Date(), folio: folio, tipo: 'estado', quien: u.correo,
       texto: desdeEtiqueta + ' → ' + haciaEtiqueta + (campos.motivo ? ' · Motivo: ' + campos.motivo : '') +
         (campos.observacion ? ' · Observación: ' + campos.observacion : '') + (campos.resolucion ? ' · Resolución: ' + campos.resolucion : '') + (campos.comentario ? ' · Comentario: ' + campos.comentario : '') +
-        (campos.notificacion_rc ? ' · Notificación a Registro Curricular: ' + campos.notificacion_rc : '') + notaVb + notaSinCorreo,
+        (campos.notificacion_rc ? ' · Notificación a Registro Curricular: ' + campos.notificacion_rc : '') +
+        (campos.envio_decanato ? ' · Proyecto de resolución a Decanato para firma: ' + campos.envio_decanato : '') + notaVb + notaSinCorreo,
       estado_nuevo: hacia
     }, registroCorreo));
     // V°B° registrado: aviso automático a la analista del caso (o a quien pueda asignarla), salvo que ella misma lo haya registrado.

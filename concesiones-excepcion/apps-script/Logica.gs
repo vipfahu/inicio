@@ -24,8 +24,14 @@ const ESTADOS = [
     estudiante: 'CAE admisible · coordinación con Registro Curricular' },
   { id: 'rc_notificado', etiqueta: 'CAE admisible · Registro Curricular notificado', fase: 'Resolución', correo: '',          siguientes: ['resolucion'],
     estudiante: 'Registro Curricular le informará los pasos a seguir' },
-  { id: 'resolucion', etiqueta: 'CAE admisible · resolución en tramitación', fase: 'Resolución', correo: 'cae_admisible', siguientes: ['res_recibida'] },
-  { id: 'rechazo_vb', etiqueta: 'CAE rechazada · resolución en tramitación', fase: 'Resolución', correo: 'cae_rechazada', siguientes: ['res_rechazo_recibida'] },
+  { id: 'resolucion', etiqueta: 'CAE admisible · resolución en tramitación', fase: 'Resolución', correo: 'cae_admisible', siguientes: ['firma_decanato'] },
+  { id: 'rechazo_vb', etiqueta: 'CAE rechazada · resolución en tramitación', fase: 'Resolución', correo: 'cae_rechazada', siguientes: ['rechazo_firma_decanato'] },
+  // El Vicedecanato redacta el proyecto de resolución y lo despacha por STD a Decanato para la firma de la Decana (2026-10-27,
+  // pedido de una analista): se registra fecha y N° STD del despacho, sin correo. Luego Registro Curricular numera y devuelve.
+  { id: 'firma_decanato', etiqueta: 'CAE admisible · proyecto de resolución enviado a Decanato (firma)', fase: 'Resolución', correo: '', siguientes: ['res_recibida'],
+    estudiante: 'Resolución en trámite de firma' },
+  { id: 'rechazo_firma_decanato', etiqueta: 'CAE rechazada · proyecto de resolución enviado a Decanato (firma)', fase: 'Resolución', correo: '', siguientes: ['res_rechazo_recibida'],
+    estudiante: 'Resolución en trámite de firma' },
   // Registro Curricular asigna número y fecha a la resolución y la devuelve: se registra antes de cerrar (sin correo).
   { id: 'res_recibida', etiqueta: 'Resolución recibida de Registro Curricular', fase: 'Resolución', correo: '', siguientes: ['resuelto', 'negado'],
     estudiante: 'Resolución emitida · en distribución por Registro Curricular' },
@@ -48,9 +54,12 @@ const CAMPOS_REQUERIDOS = {
   'vb>programa': ['observacion'],
   vb: ['propuesta_comite'],
   'aviso_rc>rc_notificado': ['notificacion_rc'],
+  // Despacho del proyecto de resolución a Decanato para firma (vía STD): fecha y N° STD obligatorios.
+  'resolucion>firma_decanato': ['envio_decanato'],
+  'rechazo_vb>rechazo_firma_decanato': ['envio_decanato'],
   // La resolución vuelve de Registro Curricular con su número y fecha: se exige al registrarla, antes del cierre.
-  'resolucion>res_recibida': ['resolucion'],
-  'rechazo_vb>res_rechazo_recibida': ['resolucion']
+  'firma_decanato>res_recibida': ['resolucion'],
+  'rechazo_firma_decanato>res_rechazo_recibida': ['resolucion']
   // Cierre (Resuelto / Negado): sin campos obligatorios; admite un comentario opcional para el registro (bitácora).
 };
 
@@ -67,7 +76,9 @@ const ROLES_RC = ['Registro Curricular', 'Analista de Registro Curricular', 'Cue
 function esRolRC(rol) { return ROLES_RC.indexOf(rol) >= 0; }
 
 /** Ruta del trámite tal como la ve quien consulta: camino principal o la variante de cierre que corresponda. */
-const RUTA_PRINCIPAL = ['recibida', 'revision', 'aceptada', 'informe_rc', 'programa', 'vb', 'aviso_rc', 'rc_notificado', 'resolucion', 'res_recibida', 'resuelto'];
+const RUTA_PRINCIPAL = ['recibida', 'revision', 'aceptada', 'informe_rc', 'programa', 'vb', 'aviso_rc', 'rc_notificado', 'resolucion', 'firma_decanato', 'res_recibida', 'resuelto'];
+/** Rama de la CAE rechazada tras el V°B°, en orden. */
+const RAMA_RECHAZO = ['rechazo_vb', 'rechazo_firma_decanato', 'res_rechazo_recibida', 'negado'];
 function rutaProceso(estado, visitados) {
   const hasta = id => RUTA_PRINCIPAL.slice(0, RUTA_PRINCIPAL.indexOf(id) + 1);
   let ruta;
@@ -78,7 +89,7 @@ function rutaProceso(estado, visitados) {
     if (ruta.indexOf('revision') < 0) ruta = hasta('revision');
     ruta = ruta.concat([estado]);
   }
-  else if (estado === 'rechazo_vb' || estado === 'res_rechazo_recibida' || (estado === 'negado' && (visitados || []).indexOf('rechazo_vb') >= 0)) ruta = hasta('vb').concat(['rechazo_vb', 'res_rechazo_recibida', 'negado']);
+  else if ((RAMA_RECHAZO.indexOf(estado) >= 0 && estado !== 'negado') || (estado === 'negado' && (visitados || []).indexOf('rechazo_vb') >= 0)) ruta = hasta('vb').concat(RAMA_RECHAZO);
   else if (estado === 'negado') ruta = hasta('res_recibida').concat(['negado']);
   else ruta = RUTA_PRINCIPAL.slice();
   const i = ruta.indexOf(estado);
@@ -448,7 +459,8 @@ const RECORDATORIOS = {
 };
 
 /** Pasos en que se espera una respuesta ajena y el equipo puede enviar un recordatorio a mano (misma plantilla que el automático, si existe). */
-const RECORDATORIO_MANUAL = { recibida: 'recordatorio_admisibilidad', programa: 'recordatorio', vb: 'recordatorio_vb', informe_rc: 'recordatorio_informe_rc', resolucion: 'recordatorio_resolucion' };
+const RECORDATORIO_MANUAL = { recibida: 'recordatorio_admisibilidad', programa: 'recordatorio', vb: 'recordatorio_vb', informe_rc: 'recordatorio_informe_rc',
+  resolucion: 'recordatorio_resolucion', firma_decanato: 'recordatorio_resolucion', rechazo_firma_decanato: 'recordatorio_resolucion' };
 function recordatorioManual(estado) { return RECORDATORIO_MANUAL[estado] || ''; }
 
 /** Las salidas del V°B° (admisible, rechazada, devolución) las registra solo el Vicedecano/a, salvo V°B° dado por otro medio. */

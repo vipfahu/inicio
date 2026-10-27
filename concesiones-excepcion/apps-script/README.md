@@ -96,8 +96,11 @@ Las salidas negativas de la admisibilidad (Rechazada y No procede, ambas con mot
 Informe de Registro Curricular y Pronunciamiento del programa (desistimiento, antecedentes que invalidan la presentación, trámite que
 corresponde a otra vía), con el mismo correo al estudiante; después del V°B° la salida negativa es la del Comité (CAE rechazada)
 (o devolución al programa vía STD, con observación) → decisión del V°B°: CAE admisible o CAE rechazada (ambas siguen a Registro
-Curricular por STD, que elabora y distribuye la resolución; correo al estudiante con el estado y el aviso de que la resolución está en
-elaboración) → **Resolución recibida de Registro Curricular** (Registro Curricular asigna número y fecha y la devuelve: se registran
+Curricular por STD, que numera y distribuye la resolución; correo al estudiante con el estado y el aviso de que la resolución está en
+elaboración) → **Proyecto de resolución enviado a Decanato (firma)** (el Vicedecanato redacta el proyecto de resolución y lo despacha
+por STD a Decanato para la firma de la Decana: se registran fecha y N° STD del despacho, obligatorios; sin correo; ids `firma_decanato`
+tras CAE admisible y `rechazo_firma_decanato` tras CAE rechazada; el estudiante ve «Resolución en trámite de firma») → **Resolución
+recibida de Registro Curricular** (Registro Curricular asigna número y fecha y la devuelve: se registran
 como obligatorios en este paso, con el archivo opcional en la categoría «Resolución»; sin correo; ids `res_recibida` tras CAE admisible y
 `res_rechazo_recibida` tras CAE rechazada) → Resuelto / Negado (sin correo; «Comentario para su registro» opcional). Al registrar el
 V°B° en cualquiera de sus tres salidas, la analista del caso (o quien pueda asignarla) recibe el correo automático `vb_dado` con la

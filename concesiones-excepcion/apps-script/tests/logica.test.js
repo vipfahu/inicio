@@ -261,7 +261,7 @@ test('ruta del proceso: camino principal, variantes de cierre y paso actual', ()
   const ids = r => [...r].map(p => p.id);
   const actual = r => r.find(p => p.situacion === 'actual').id;
   const r1 = L.rutaProceso('programa', []);
-  assert.deepEqual(ids(r1), ['recibida', 'revision', 'aceptada', 'informe_rc', 'programa', 'vb', 'aviso_rc', 'rc_notificado', 'resolucion', 'res_recibida', 'resuelto']);
+  assert.deepEqual(ids(r1), ['recibida', 'revision', 'aceptada', 'informe_rc', 'programa', 'vb', 'aviso_rc', 'rc_notificado', 'resolucion', 'firma_decanato', 'res_recibida', 'resuelto']);
   assert.equal(actual(r1), 'programa');
   assert.deepEqual([...r1].slice(0, 4).map(p => p.situacion), ['hecho', 'hecho', 'hecho', 'hecho']);
   assert.equal(r1[5].situacion, 'pendiente');
@@ -277,13 +277,21 @@ test('ruta del proceso: camino principal, variantes de cierre y paso actual', ()
   assert.deepEqual([...L.camposRequeridos('aceptada', 'no_procede')], ['motivo'], 'no procede tras la admisibilidad exige motivo');
   assert.deepEqual([...L.camposRequeridos('revision', 'no_procede')], [], 'en la revisión de admisibilidad sigue sin motivo');
   assert.equal(L.eventoTransicion('programa', 'rechazada'), 'rechazada');
-  assert.deepEqual(ids(L.rutaProceso('rechazo_vb', [])).slice(-4), ['vb', 'rechazo_vb', 'res_rechazo_recibida', 'negado']);
+  assert.deepEqual(ids(L.rutaProceso('rechazo_vb', [])).slice(-5), ['vb', 'rechazo_vb', 'rechazo_firma_decanato', 'res_rechazo_recibida', 'negado']);
+  assert.deepEqual(ids(L.rutaProceso('rechazo_firma_decanato', [])).slice(-3), ['rechazo_firma_decanato', 'res_rechazo_recibida', 'negado']);
   assert.deepEqual(ids(L.rutaProceso('res_rechazo_recibida', [])).slice(-2), ['res_rechazo_recibida', 'negado']);
-  assert.deepEqual(ids(L.rutaProceso('negado', ['vb', 'rechazo_vb', 'res_rechazo_recibida', 'negado'])).slice(-3), ['rechazo_vb', 'res_rechazo_recibida', 'negado']);
-  assert.deepEqual(ids(L.rutaProceso('negado', ['vb', 'aviso_rc', 'rc_notificado', 'resolucion', 'res_recibida', 'negado'])).slice(-3), ['resolucion', 'res_recibida', 'negado']);
-  assert.ok(L.transicionValida('resolucion', 'res_recibida') && !L.transicionValida('resolucion', 'resuelto') && !L.transicionValida('resolucion', 'negado'));
-  assert.ok(L.transicionValida('rechazo_vb', 'res_rechazo_recibida') && !L.transicionValida('rechazo_vb', 'negado'));
-  assert.deepEqual([...L.camposRequeridos('resolucion', 'res_recibida')], ['resolucion']);
+  assert.deepEqual(ids(L.rutaProceso('negado', ['vb', 'rechazo_vb', 'rechazo_firma_decanato', 'res_rechazo_recibida', 'negado'])).slice(-4), ['rechazo_vb', 'rechazo_firma_decanato', 'res_rechazo_recibida', 'negado']);
+  assert.deepEqual(ids(L.rutaProceso('negado', ['vb', 'aviso_rc', 'rc_notificado', 'resolucion', 'firma_decanato', 'res_recibida', 'negado'])).slice(-4), ['resolucion', 'firma_decanato', 'res_recibida', 'negado']);
+  // Proyecto de resolución a Decanato para firma: paso obligatorio entre la notificación al estudiante y la resolución recibida
+  assert.ok(L.transicionValida('resolucion', 'firma_decanato') && !L.transicionValida('resolucion', 'res_recibida') && !L.transicionValida('resolucion', 'resuelto'));
+  assert.ok(L.transicionValida('firma_decanato', 'res_recibida') && L.transicionValida('rechazo_vb', 'rechazo_firma_decanato') && L.transicionValida('rechazo_firma_decanato', 'res_rechazo_recibida'));
+  assert.deepEqual([...L.camposRequeridos('resolucion', 'firma_decanato')], ['envio_decanato']);
+  assert.deepEqual([...L.camposRequeridos('rechazo_vb', 'rechazo_firma_decanato')], ['envio_decanato']);
+  assert.equal(L.eventoTransicion('resolucion', 'firma_decanato'), '', 'sin correo');
+  assert.equal(L.recordatorioManual('firma_decanato'), 'recordatorio_resolucion');
+  assert.ok(!L.transicionValida('rechazo_vb', 'res_rechazo_recibida') && !L.transicionValida('rechazo_vb', 'negado'), 'la rama rechazada pasa por la firma antes de recibir la resolución');
+  assert.deepEqual([...L.camposRequeridos('firma_decanato', 'res_recibida')], ['resolucion']);
+  assert.deepEqual([...L.camposRequeridos('rechazo_firma_decanato', 'res_rechazo_recibida')], ['resolucion']);
   assert.deepEqual([...L.camposRequeridos('res_recibida', 'resuelto')], []);
   // Transiciones nuevas
   assert.ok(L.transicionValida('vb', 'aviso_rc'));
