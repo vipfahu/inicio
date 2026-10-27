@@ -183,7 +183,8 @@ function crearEntorno() {
     Drive,
     console, Date, Logger: { log() {} },
     SpreadsheetApp, DriveApp,
-    FormApp: { openByUrl: () => { throw new Error('Formulario no simulado'); }, ItemType: { LIST: 'LIST', MULTIPLE_CHOICE: 'MC' } },
+    // El Formulario de Google antiguo: solo se simula si acepta respuestas (estado.formularioAbierto); lo demás no está simulado.
+    FormApp: { openByUrl: () => { if (estado.formularioAbierto === undefined) throw new Error('Formulario no simulado'); return { isAcceptingResponses: () => !!estado.formularioAbierto, getItems: () => [] }; }, ItemType: { LIST: 'LIST', MULTIPLE_CHOICE: 'MC' } },
     MailApp: { sendEmail: m => { const f = estado.fallaCorreo; if (f === true || (typeof f === 'function' && f(m))) throw new Error('Fallo simulado de envío'); estado.correos.push(m); }, getRemainingDailyQuota: () => 1500 },
     Session: {
       getActiveUser: () => ({ getEmail: () => estado.usuario }),

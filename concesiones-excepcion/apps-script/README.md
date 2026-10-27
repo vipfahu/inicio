@@ -275,6 +275,10 @@ un acceso directo; si superan el máximo de descarga por el panel, se concede ac
 - **Identidad en la aplicación web.** El diseño depende de que Google entregue el correo de quien usa el panel cuando la aplicación se
   ejecuta como la cuenta institucional. La documentación de Google indica que esto ocurre cuando ambas cuentas son del mismo dominio de
   Workspace, pero no lo garantiza para todas las configuraciones: por eso el paso 7. Si falla, el panel no muestra datos (falla cerrado).
+- **Formulario de Google antiguo.** Debe permanecer cerrado («No aceptar respuestas»): si se reabriera, las respuestas entrarían por el
+  activador antiguo. *CAE → Diagnóstico* comprueba su estado (`estadoFormulario_`) y la tarea diaria avisa una vez a la cuenta
+  institucional y a la administración si lo encuentra abierto (`controlarFormulario_`). No conviene eliminarlo: la hoja de respuestas se
+  localiza por su vínculo (con respaldo por nombre) y los antecedentes migrados viven en la carpeta que creó Forms.
 - **Cuotas de Gmail para Apps Script** (Workspace, según la documentación vigente al escribir esto): 1.500 destinatarios/día, 25 MB por
   correo. *CAE → Diagnóstico* muestra la cuota restante.
 - **Feriados automáticos.** Vienen del calendario público de feriados de Chile de Google (`Feriados.gs`): si Google no publica un

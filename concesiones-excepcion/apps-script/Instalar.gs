@@ -218,6 +218,11 @@ function diagnostico() {
   });
   try { if (!hojaRespuestasProtegida_()) p.push('La hoja de respuestas no está protegida (CAE → Proteger hoja de respuestas): ordenar o borrar filas rompe la fundamentación de los casos migrados.'); else ok.push('Hoja de respuestas protegida: solo la cuenta dueña la edita.'); } catch (e) { p.push('Hoja de respuestas: ' + e.message); }
   if (typeof Drive === 'undefined') p.push('Servicio avanzado de Drive no activo: el panel no podrá mostrar documentos Word (ver ACTIVACION.md).');
+  const form = estadoFormulario_();
+  if (form.abierto) p.push('El Formulario de Google antiguo ACEPTA RESPUESTAS: ciérrelo (Formulario → Respuestas → desactivar «Aceptar respuestas»); las solicitudes deben entrar solo por el formulario web.');
+  else if (form.vinculado && !form.error) ok.push('Formulario de Google antiguo: cerrado (no acepta respuestas).');
+  else if (form.vinculado) p.push('No se pudo comprobar si el Formulario de Google acepta respuestas: ' + form.error);
+  else ok.push('Formulario de Google antiguo: la hoja de respuestas ya no está vinculada a ningún formulario.');
   const par = parametros_();
   if (!par.enlace_rc || par.enlace_rc === 'COMPLETAR') p.push('Falta «enlace_rc» en Parámetros (lo usa el correo «No procede»).');
   const hs = ScriptApp.getProjectTriggers().map(t => t.getHandlerFunction());

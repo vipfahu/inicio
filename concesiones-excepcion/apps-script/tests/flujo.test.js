@@ -1517,3 +1517,31 @@ test('folios: un número con rastros (prueba eliminada) no se reutiliza; «Busca
   ctx.api_purgarRastros('40/2026', 'Carpeta de prueba');
   assert.equal(ctx.api_rastrosFolios().rastros.length, 0);
 });
+
+test('Formulario de Google antiguo: la tarea diaria avisa una sola vez si vuelve a aceptar respuestas', () => {
+  const env = instalar(preparar());
+  const { ctx, estado } = env;
+  estado.usuario = '';
+  // Cerrado: nada
+  estado.formularioAbierto = false;
+  let n = estado.correos.length;
+  ctx.tareaDiaria();
+  assert.ok(!estado.correos.slice(n).some(m => /Formulario de Google antiguo acepta respuestas/.test(m.subject)));
+  // Abierto: aviso a la cuenta dueña y a la administración, una sola vez
+  estado.formularioAbierto = true;
+  n = estado.correos.length;
+  ctx.tareaDiaria();
+  const aviso = estado.correos.slice(n).filter(m => /Formulario de Google antiguo acepta respuestas/.test(m.subject));
+  assert.equal(aviso.length, 1);
+  assert.match(aviso[0].to, /institucional@usach\.cl/);
+  assert.match(aviso[0].to, /vice@usach\.cl/);
+  assert.match(aviso[0].body, /\?v=solicitud/);
+  assert.ok(tabla(env, 'Bitácora').some(b => /Formulario de Google antiguo acepta respuestas/.test(b.texto)));
+  n = estado.correos.length;
+  ctx.tareaDiaria();
+  assert.ok(!estado.correos.slice(n).some(m => /Formulario de Google antiguo/.test(m.subject)), 'no repite el aviso');
+  // Cerrado otra vez y reabierto: vuelve a avisar
+  estado.formularioAbierto = false; ctx.tareaDiaria();
+  estado.formularioAbierto = true; n = estado.correos.length; ctx.tareaDiaria();
+  assert.equal(estado.correos.slice(n).filter(m => /Formulario de Google antiguo/.test(m.subject)).length, 1);
+});

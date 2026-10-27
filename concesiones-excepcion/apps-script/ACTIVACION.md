@@ -207,7 +207,8 @@ Si algún correo no llega: revisar la Bitácora (las filas «ERROR · no se envi
 
 ## Fase F · Puesta en marcha (15 min)
 
-1. **Formulario de Google anterior** [Inst.]: *Respuestas → desactivar «Aceptar respuestas»* y, en el mensaje para quienes lo abran,
+1. **Formulario de Google anterior** [Inst.]: *Respuestas → desactivar «Aceptar respuestas»* (*CAE → Diagnóstico* confirma si quedó
+   cerrado, y la tarea diaria avisa por correo si vuelve a abrirse) y, en el mensaje para quienes lo abran,
    indicar la nueva dirección `URL?v=solicitud`.
 2. **Difundir** a estudiantes: `URL?v=solicitud` (presentar) y `URL?v=seguimiento` (seguir). Opcional: actualizar la tarjeta 05 del
    portal VIP con ambos enlaces.
