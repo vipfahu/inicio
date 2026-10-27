@@ -174,7 +174,8 @@ con rol Vicedecano/a; para un relevo, se activa la cuenta nueva con ese rol y se
 más de una cuenta activa con ese rol o si no tiene nombre.
 
 Además, cada cuenta recibe copia de los eventos marcados en «Recibe copia de estos correos». Todo correo que no es automático se
-muestra antes de enviarse, se puede editar y no sale si falta el destinatario principal o un dato. Si falta uno en copia (por ejemplo, el correo de dirección del programa), sale igual y la vista previa lo advierte.
+muestra antes de enviarse, se puede editar (el texto conserva marcas como `{motivo}`, que se completan con lo escrito en el mismo
+diálogo; «Así se enviará» muestra el resultado) y no sale si falta el destinatario principal o un dato. Si falta uno en copia (por ejemplo, el correo de dirección del programa), sale igual y la vista previa lo advierte.
 
 ---
 

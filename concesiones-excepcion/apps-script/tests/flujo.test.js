@@ -128,6 +128,32 @@ test('tramitación: vista previa, campos obligatorios, envío y orden seguro', (
   const ultima = tabla(env, 'Bitácora').pop();
   assert.equal(ultima.estado_nuevo, 'rechazada');
   assert.equal(ultima.editado, 'SÍ');
+  // El panel envía el cuerpo editado con las marcas de los campos sin completar: el servidor las rellena con lo escrito en el
+  // diálogo, así una edición del cuerpo no se pierde aunque el motivo se escriba después (caso reportado por una analista).
+  estado.usuario = 'vice@usach.cl';
+  ctx.api_retroceder('06/2026', 'revision', 'prueba');
+  estado.usuario = 'analista.uno@usach.cl';
+  const conMarcas = ctx.api_previsualizar('06/2026', 'rechazada', { motivo: '{motivo}' }).correo;
+  assert.match(conMarcas.cuerpo, /\{motivo\}/, 'la vista previa conserva la marca');
+  ctx.api_cambiarEstado('06/2026', 'rechazada', { campos: { motivo: 'Antecedentes incompletos' }, asunto: conMarcas.asunto, cuerpo: conMarcas.cuerpo.replace('Ante cualquier duda', 'Puede volver a presentar la solicitud con los documentos faltantes.\n\nAnte cualquier duda') });
+  const m2 = estado.correos.pop();
+  assert.match(m2.body, /Motivo: Antecedentes incompletos/);
+  assert.match(m2.body, /volver a presentar la solicitud/);
+  assert.ok(!/\{motivo\}/.test(m2.body), 'ninguna marca queda sin completar');
+  assert.equal(tabla(env, 'Bitácora').pop().editado, 'SÍ');
+  // Sin edición real, con marcas o sin ellas, no se marca como editado
+  estado.usuario = 'vice@usach.cl';
+  ctx.api_retroceder('06/2026', 'revision', 'prueba');
+  estado.usuario = 'analista.uno@usach.cl';
+  ctx.api_cambiarEstado('06/2026', 'rechazada', { campos: { motivo: 'Fuera de plazo' }, asunto: conMarcas.asunto, cuerpo: conMarcas.cuerpo });
+  assert.equal(tabla(env, 'Bitácora').pop().editado, 'NO');
+  estado.correos.pop();
+  // Se deja el caso como estaba para el resto de la prueba
+  estado.usuario = 'vice@usach.cl';
+  ctx.api_retroceder('06/2026', 'revision', 'prueba');
+  estado.usuario = 'analista.uno@usach.cl';
+  ctx.api_cambiarEstado('06/2026', 'rechazada', { campos: { motivo: 'Fuera de plazo' } });
+  estado.correos.pop();
   // devolver al programa (vía STD) desde el V°B°: sin correo, pero exige y guarda la observación
   const s = tabla(env, 'Solicitudes').find(x => x.folio === '05/2026');
   assert.equal(s.estado, 'programa');

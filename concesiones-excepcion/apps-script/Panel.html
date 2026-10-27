@@ -660,7 +660,8 @@ function dialogo(hacia) {
       if (c.faltantes.length) html += '<div class="aviso a-rojo" style="margin-bottom:12px">No se puede enviar: falta ' + h(c.faltantes.join('; ')) + '. Complételo en Configuración o Cuentas.</div>';
       html += '<div style="border:1px solid var(--borde);border-radius:12px;padding:14px 16px"><div class="sub" style="white-space:normal">Para: <b>' + h(c.para.join(', ') || '—') + '</b>' + (c.cc.length ? '<br>CC: ' + h(c.cc.join(', ')) : '') + '</div>' +
         '<label class="et" style="margin-top:10px" for="c_asunto">Asunto</label><input id="c_asunto" value="' + h(c.asunto) + '">' +
-        '<label class="et" style="margin-top:10px" for="c_cuerpo">Cuerpo (puede editarlo para este envío)</label><textarea id="c_cuerpo" rows="12">' + h(c.cuerpo) + '</textarea>';
+        '<label class="et" style="margin-top:10px" for="c_cuerpo">Cuerpo (puede editarlo para este envío' + (req.length ? '; las marcas como {' + h(req[0]) + '} se completan con lo escrito arriba' : '') + ')</label><textarea id="c_cuerpo" rows="12">' + h(c.cuerpo) + '</textarea>' +
+        (req.length ? '<label class="et" style="margin-top:10px">Así se enviará</label><div id="c_vista" class="sub" style="white-space:pre-wrap;border:1px solid var(--borde);border-radius:8px;padding:10px 12px;max-height:220px;overflow:auto;color:var(--tinta)"></div>' : '');
       const arch = (e.archivos || []).filter(a => a.categoria !== S.ini.categorias.antecedentes_formulario);
       if (arch.length) html += '<span class="et" style="margin-top:10px">Adjuntar</span>' + arch.map(a => '<label class="chk"><input type="checkbox" class="adj" value="' + h(a.id) + '" data-mb="' + h(a.tamano_mb) + '"> ' + h(a.nombre) + ' <span class="sub">(' + h(a.tamano_mb) + ' MB)</span></label>').join('') + '<div class="sub" id="totadj"></div>';
       html += '</div></div>';
@@ -676,9 +677,13 @@ function dialogo(hacia) {
       $('confirmar').textContent = textoConfirmar();
       $('confirmar').disabled = !sin && pv.correo.faltantes.length > 0;
     };
-    // Los campos obligatorios se reflejan en vivo en el cuerpo del correo.
-    if (pv.conCorreo) req.forEach(k => { const el = $('c_' + k); el.oninput = () => reflejar(pv); });
-    if (req.length && pv.conCorreo) reflejar(pv);
+    // Los campos obligatorios se reflejan en vivo en la vista «Así se enviará»; el cuerpo editable conserva las marcas, de modo
+    // que lo que la persona escriba en él no se pierde aunque cambie el motivo después (el servidor completa las marcas al enviar).
+    if (pv.conCorreo && req.length) {
+      req.forEach(k => { $('c_' + k).oninput = vistaEnvio; });
+      $('c_cuerpo').oninput = vistaEnvio; $('c_asunto').oninput = vistaEnvio;
+      vistaEnvio();
+    }
     document.querySelectorAll('.adj').forEach(x => x.onchange = () => {
       const mb = [...document.querySelectorAll('.adj:checked')].reduce((s, y) => s + Number(y.dataset.mb || 0), 0);
       $('totadj').textContent = mb ? 'Total adjuntos: ' + mb.toFixed(1) + ' MB (máx. 24)' : '';
@@ -716,14 +721,15 @@ function dialogo(hacia) {
     };
   }).catch(err => { cerrarDlg(); fallo(err); });
 }
-function reflejar(pv) {
-  const vars = { motivo: 'motivo', observacion: 'observacion', propuesta_comite: 'propuesta_comite', resolucion: 'resolucion' };
-  let cuerpo = pv.correo.cuerpo, asunto = pv.correo.asunto;
-  Object.keys(vars).forEach(k => {
+/** Vista «Así se enviará»: el texto editable con las marcas de los campos reemplazadas por lo escrito en el diálogo. */
+function vistaEnvio() {
+  if (!$('c_vista')) return;
+  let cuerpo = $('c_cuerpo').value, asunto = $('c_asunto').value;
+  ['motivo', 'observacion', 'propuesta_comite', 'resolucion'].forEach(k => {
     const el = $('c_' + k); if (!el || !el.value.trim()) return;
     cuerpo = cuerpo.split('{' + k + '}').join(el.value.trim()); asunto = asunto.split('{' + k + '}').join(el.value.trim());
   });
-  $('c_cuerpo').value = cuerpo; $('c_asunto').value = asunto;
+  $('c_vista').textContent = 'Asunto: ' + asunto + '\n\n' + cuerpo;
 }
 
 /* ── Indicadores ── */

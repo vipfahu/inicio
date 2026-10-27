@@ -356,9 +356,13 @@ function api_cambiarEstado(folio, hacia, envio) {
       registroCorreo = { evento: evento, para: '', cc: '', asunto: '(no enviado)', editado: 'NO' };
     } else if (evento) {
       const c = componer_(evento, s, campos);
-      const editado = (envio.asunto && envio.asunto !== c.asunto) || (envio.cuerpo && envio.cuerpo !== c.cuerpo);
-      if (envio.asunto) c.asunto = envio.asunto;
-      if (envio.cuerpo) c.cuerpo = envio.cuerpo;
+      // El texto editado en el panel conserva las marcas de los campos del diálogo ({motivo}, {observacion}…): se completan aquí,
+      // para que una edición del cuerpo nunca se pierda por escribir el motivo antes o después.
+      const asuntoEnviado = envio.asunto ? rellenar(envio.asunto, campos) : c.asunto;
+      const cuerpoEnviado = envio.cuerpo ? rellenar(envio.cuerpo, campos) : c.cuerpo;
+      const editado = asuntoEnviado !== c.asunto || cuerpoEnviado !== c.cuerpo;
+      c.asunto = asuntoEnviado;
+      c.cuerpo = cuerpoEnviado;
       const validos = archivosDe_(folio).map(a => a.archivo_id);
       const adj = (envio.adjuntos || []).filter(id => validos.indexOf(id) >= 0);
       enviar_(c, adj); // si falla, lanza y no se toca el estado

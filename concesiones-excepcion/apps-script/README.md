@@ -232,7 +232,9 @@ cuenta de administración. Los pasos siguientes vuelven a ser los del estado al 
 por correo a la analista del caso, a la administración y a la cuenta institucional (además de quedar en la bitácora).
 Todo correo dirigido al estudiante (recepción, admisible para análisis, rechazada, no procede, CAE admisible, CAE rechazada) lleva el enlace de seguimiento
 `URL?v=seguimiento`; el estudiante ve sus casos ingresando con la cuenta USACH con que envió el formulario. Todo otro correo sale al cambiar de estado
-en el panel, tras una vista previa editable; si falta el destinatario principal o una variable (por ejemplo `{std}`), no se envía
+en el panel, tras una vista previa editable (el cuerpo editable conserva las marcas de los campos del diálogo, como `{motivo}`, y una vista
+«Así se enviará» muestra el resultado; el servidor completa las marcas al enviar, así una edición del cuerpo no se pierde aunque el
+motivo se escriba después); si falta el destinatario principal o una variable (por ejemplo `{std}`), no se envía
 (excepción: las variables listadas en `VARIABLES_OPCIONALES`, como `{std_frase}`, pueden quedar vacías y desaparecen). Todo correo que
 alude a un envío por STD integra el número si está registrado: `{std_ref}` vale «STD N° 1234» o, sin número, «STD» (recordatorios al
 programa y a Registro Curricular); `{std_frase}` vale « (trámite STD N° 1234)» o nada (admisible para análisis, CAE admisible, CAE

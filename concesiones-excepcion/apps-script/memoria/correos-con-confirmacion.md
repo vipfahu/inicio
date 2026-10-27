@@ -11,4 +11,9 @@ la definición: el campo «correo» del formulario se llena con la cuenta de ses
 Desde 2026-10-13 la vista previa permite «No enviar notificación» (pedido de la persona): el estado cambia sin correo y la bitácora
 registra quién lo decidió y el motivo opcional; los campos obligatorios del paso se siguen exigiendo.
 
+2026-10-27, defecto reportado por una analista: editó el cuerpo y luego escribió el motivo, y el correo salió sin su edición. Causa: el
+panel reconstruía el cuerpo desde la plantilla con cada tecla en «Motivo». Ahora el cuerpo editable conserva las marcas (`{motivo}`),
+hay una vista «Así se enviará» y el servidor rellena las marcas al enviar (`rellenar(envio.cuerpo, campos)`). Regla: nunca sobrescribir
+un campo que la persona puede haber editado; reflejar en una vista aparte.
+
 **Por qué importa:** Control humano sobre lo que llega a estudiantes.
