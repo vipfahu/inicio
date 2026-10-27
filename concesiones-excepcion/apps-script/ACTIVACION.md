@@ -197,8 +197,9 @@ diálogo; «Así se enviará» muestra el resultado) y no sale si falta el desti
 3. En el panel (cuenta de analista): abrir el expediente → ver la fundamentación y el PDF → pasar a «En revisión» → pasar a
    «No procede» → revisar la vista previa → confirmar. Debe llegar el correo al estudiante y quedar todo en la Bitácora.
 4. Con una cuenta de nivel Consulta: el expediente se ve **sin** fundamentación ni archivos.
-5. Limpiar la prueba [Inst.]: borrar su fila en «Solicitudes», sus filas en «Bitácora» y «Archivos», y la carpeta
-   `Plataforma CAE · NO COMPARTIR / Expedientes / 2026 / NN-2026`. El folio queda libre para el siguiente caso real.
+5. Limpiar la prueba [Panel, Administración]: en la ficha, tarjeta «Administración» → «Eliminar solicitud» (con motivo); luego
+   Configuración → Migración → «Buscar rastros» → «Purgar» el folio de la prueba (borra su bitácora y archivos y manda la carpeta
+   del expediente a la papelera). Sin la purga, el número no se reutiliza: el siguiente caso real tomaría el folio siguiente.
 
 Si algún correo no llega: revisar la Bitácora (las filas «ERROR · no se envió…» dicen el motivo) y *CAE → Diagnóstico*.
 

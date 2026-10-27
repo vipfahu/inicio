@@ -927,6 +927,28 @@ function verificarMigracionPanel() {
   run('api_verificarMigracion').then(v => { botonMig('Verificar migración', false); mostrarVerificacion(v); })
     .catch(err => { fallo(err); botonMig('Verificar migración', false); });
 }
+/* Rastros de folios sin solicitud (pruebas eliminadas): bitácora, archivos o carpeta cuyo folio ya no existe en «Solicitudes». */
+function buscarRastros() {
+  const b = $('ras_ok'); if (b) { b.disabled = true; b.textContent = 'Buscando…'; }
+  run('api_rastrosFolios').then(r => {
+    if (b) { b.disabled = false; b.textContent = 'Buscar rastros'; }
+    const caja = $('ras_lista'); if (!caja) return;
+    if (!r.rastros.length) { caja.innerHTML = '<div class="aviso a-teal" style="white-space:normal;margin-top:8px">Sin rastros: todo folio con bitácora, archivos o carpeta tiene su solicitud. Próximo folio: <b>' + h(r.proximoFolio) + '</b>.</div>'; return; }
+    caja.innerHTML = '<div class="aviso a-amb" style="white-space:normal;margin-top:8px">' + r.rastros.length + ' folio(s) con rastros y sin solicitud. Mientras existan, esos números no se vuelven a asignar (próximo folio: <b>' + h(r.proximoFolio) + '</b>). Purgue solo los que eran pruebas.</div>' +
+      r.rastros.map(x => '<div style="display:flex;justify-content:space-between;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--fila)"><div style="min-width:0"><div class="mono" style="font-weight:600">' + h(x.folio) + '</div><div class="sub" style="white-space:normal">' + x.bitacora + ' fila(s) de bitácora · ' + x.archivos + ' de archivos' + (x.carpeta_id ? ' · carpeta en Drive' : '') + (x.ultimo ? '<br>Última entrada' + (x.fecha ? ' (' + h(fecha(x.fecha)) + ')' : '') + ': ' + h(x.ultimo) : '') + '</div></div>' +
+        '<button data-purga="' + h(x.folio) + '" style="color:#8A3D2E;flex-shrink:0">Purgar</button></div>').join('');
+    caja.querySelectorAll('[data-purga]').forEach(bt => bt.onclick = () => {
+      const f = bt.dataset.purga;
+      const motivo = prompt('Purgar los rastros del folio ' + f + ' (bitácora, archivos y carpeta). Solo para pruebas o residuos sin caso real. Indique el motivo:');
+      if (motivo === null) return;
+      if (!motivo.trim()) return toast('Indique el motivo', true);
+      if (!confirm('¿Purgar definitivamente los rastros de ' + f + '? La carpeta va a la papelera de Drive; las filas de bitácora y archivos se borran.')) return;
+      bt.disabled = true;
+      run('api_purgarRastros', f, motivo.trim()).then(x => { toast('Rastros de ' + f + ' purgados (' + x.bitacora + ' bitácora, ' + x.archivos + ' archivos' + (x.carpeta ? ', carpeta' : '') + ')'); buscarRastros(); })
+        .catch(err => { fallo(err); bt.disabled = false; });
+    });
+  }).catch(err => { fallo(err); if (b) { b.disabled = false; b.textContent = 'Buscar rastros'; } });
+}
 function mostrarVerificacion(v) {
   const r = v.resumen;
   const huerfanas = v.diferencias.filter(d => d.campo === 'solicitud').length;
@@ -1025,7 +1047,8 @@ function pintarConfig() {
     (adm ? '<div class="tarjeta"><h3>Agregar programa</h3><div style="display:grid;grid-template-columns:1.5fr 1fr auto;gap:8px"><input id="np_nombre" placeholder="Nombre exacto, como aparece en el Formulario"><input id="np_correo" class="mono" placeholder="dirección@usach.cl"><button class="prim" id="np_ok">Agregar</button></div><div class="sub" style="white-space:normal;margin-top:6px">Si agrega un programa aquí, agréguelo también como opción en el Formulario de Google.</div></div>' : '') +
     '</div><div class="lado pila"><div class="tarjeta"><h3>Parámetros</h3>' + pars + (adm ? '<button class="prim" id="par_ok" style="width:100%">Guardar parámetros</button>' : '') + '</div>' +
     tarjetaVicedecano(r.vicedecano) +
-    (adm ? '<div class="tarjeta" id="mig_tarjeta"><h3>Migración</h3><div class="sub" style="white-space:normal;margin-bottom:10px">Compara cada fila de la planilla original (hoja de respuestas) con su solicitud en el sistema: datos del formulario y datos de gestión.</div><button id="mig_ok" style="width:100%">Verificar migración</button></div>' : '') +
+    (adm ? '<div class="tarjeta" id="mig_tarjeta"><h3>Migración</h3><div class="sub" style="white-space:normal;margin-bottom:10px">Compara cada fila de la planilla original (hoja de respuestas) con su solicitud en el sistema: datos del formulario y datos de gestión.</div><button id="mig_ok" style="width:100%">Verificar migración</button>' +
+      '<div style="margin-top:14px;border-top:1px solid var(--fila);padding-top:12px"><span class="et">Folios sin solicitud</span><div class="sub" style="white-space:normal;margin-bottom:8px">Rastros de pruebas o eliminaciones a medias: bitácora, archivos o carpeta de un folio que ya no tiene solicitud. Esos números no se reutilizan mientras existan.</div><button id="ras_ok" style="width:100%">Buscar rastros</button><div id="ras_lista"></div></div></div>' : '') +
     tarjetaFeriados(r.feriados) + '</div></div>';
   document.querySelectorAll('[data-gc]').forEach(b => b.onclick = () => {
     const i = b.dataset.gc, el = document.querySelector('[data-i="' + i + '"][data-k="correo_direccion"]');
@@ -1033,6 +1056,7 @@ function pintarConfig() {
   });
   if (!adm) return;
   $('mig_ok').onclick = verificarMigracionPanel;
+  $('ras_ok').onclick = buscarRastros;
   document.querySelectorAll('select[data-rc]').forEach(sel => sel.onchange = () => {
     const caja = document.querySelector('[data-nueva="' + sel.dataset.i + '-' + sel.dataset.k + '"]');
     const nueva = sel.value === '__nueva';

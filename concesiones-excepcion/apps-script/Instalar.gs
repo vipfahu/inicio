@@ -234,8 +234,65 @@ function diagnostico() {
   if (conCopias.length) p.push('Folios con más de un PDF del formulario (abrir el expediente → «PDF del formulario de solicitud» → «Quitar copias»): ' + conCopias.map(f => f + ' (' + porFolioPdf[f] + ')').join(', '));
   const pend = leer_(HOJAS.solicitudes).filter(s => esSi(s.revisar)).map(s => s.folio);
   if (pend.length) p.push('Solicitudes marcadas para revisar: ' + pend.join(', '));
+  const rastros = rastrosFolios_();
+  if (rastros.length) p.push('Folios con rastros sin solicitud (bitácora, archivos o carpeta; su número no se reutiliza; Configuración → Migración → «Buscar rastros» para purgarlos si eran pruebas): ' + rastros.map(r => r.folio).join(', '));
   ok.push('Cuota de correo restante hoy: ' + MailApp.getRemainingDailyQuota());
   avisar_('Diagnóstico CAE', (p.length ? 'Pendiente:\n- ' + p.join('\n- ') : 'Sin pendientes.') + '\n\n' + ok.join('\n'));
+}
+
+/**
+ * Rastros de folios sin solicitud: filas de «Bitácora» o «Archivos» y carpetas de expediente cuyo folio no existe en «Solicitudes»
+ * (pruebas eliminadas, limpiezas a medias). Esos números no se vuelven a asignar mientras tengan rastros.
+ */
+function rastrosFolios_() {
+  const sol = {};
+  leer_(HOJAS.solicitudes).forEach(s => { sol[String(s.folio)] = true; });
+  const por = {};
+  const de = f => { f = String(f || '').trim(); if (!/^\d+\/\d{4}$/.test(f) || sol[f]) return null; return por[f] || (por[f] = { folio: f, bitacora: 0, archivos: 0, carpeta_id: '', ultimo: '', fecha: '' }); };
+  leer_(HOJAS.bitacora).forEach(b => { const r = de(b.folio); if (!r) return; r.bitacora++; r.ultimo = String(b.texto || '').slice(0, 160); r.fecha = b.fecha; });
+  leer_(HOJAS.archivos).forEach(a => { const r = de(a.folio); if (r) r.archivos++; });
+  try {
+    const exp = carpetaRaiz_().getFoldersByName('Expedientes');
+    if (exp.hasNext()) {
+      const anios = exp.next().getFolders();
+      while (anios.hasNext()) {
+        const cs = anios.next().getFolders();
+        while (cs.hasNext()) { const c = cs.next(); const r = de(c.getName().replace('-', '/')); if (r) r.carpeta_id = c.getId(); }
+      }
+    }
+  } catch (e) { /* sin carpeta raíz aún */ }
+  const num = f => { const m = /^(\d+)\/(\d{4})$/.exec(f); return Number(m[2]) * 1000 + Number(m[1]); };
+  return Object.keys(por).map(k => por[k]).sort((a, b) => num(a.folio) - num(b.folio));
+}
+
+/** Lista de rastros para el panel (Administración), con el próximo folio que se asignaría este año. */
+function api_rastrosFolios() {
+  requiere_('administracion');
+  const anio = new Date().getFullYear();
+  return serializar_({ rastros: rastrosFolios_(), proximoFolio: siguienteFolio(foliosOcupados_(), anio) });
+}
+
+/**
+ * Purga los rastros de un folio que no tiene solicitud (solo administración, con motivo): borra sus filas de «Bitácora» y «Archivos» y
+ * manda su carpeta de expediente a la papelera. Pensado para pruebas eliminadas; deja una constancia en la bitácora general. Tras la
+ * purga el número vuelve a estar disponible para el correlativo.
+ */
+function api_purgarRastros(folio, motivo) {
+  const u = requiere_('administracion');
+  folio = String(folio || '').trim();
+  motivo = String(motivo || '').trim();
+  if (!motivo) throw new Error('Indique el motivo de la purga.');
+  return conCerrojo_(() => {
+    if (leer_(HOJAS.solicitudes).some(s => String(s.folio) === folio)) throw new Error('El folio ' + folio + ' tiene una solicitud: no se purga. Para eliminarla use «Eliminar solicitud» en su ficha.');
+    const r = rastrosFolios_().find(x => x.folio === folio);
+    if (!r) throw new Error('El folio ' + folio + ' no tiene rastros.');
+    borrarFilas_(HOJAS.bitacora, leer_(HOJAS.bitacora).filter(b => String(b.folio) === folio).map(b => b._fila));
+    borrarFilas_(HOJAS.archivos, leer_(HOJAS.archivos).filter(a => String(a.folio) === folio).map(a => a._fila));
+    let carpeta = false;
+    if (r.carpeta_id) { try { DriveApp.getFolderById(r.carpeta_id).setTrashed(true); carpeta = true; } catch (e) { /* ya no está */ } }
+    anexar_(HOJAS.bitacora, { fecha: new Date(), folio: '—', tipo: 'sistema', quien: u.correo, texto: 'Rastros del folio ' + folio + ' purgados por administración · Motivo: ' + motivo + ' · ' + r.bitacora + ' fila(s) de bitácora, ' + r.archivos + ' de archivos' + (carpeta ? ', carpeta del expediente a la papelera' : '') + '. El número queda disponible para el correlativo.' });
+    return { ok: true, bitacora: r.bitacora, archivos: r.archivos, carpeta: carpeta };
+  });
 }
 
 function abrirPanel() {
@@ -507,7 +564,7 @@ function importarFilasSinSolicitud_(u, opciones) {
   const asignadas = {}, repetidas = [];
   sols.forEach(s => { const f = Number(s.fila_respuesta); if (!f) return; if (asignadas[f]) repetidas.push(f); asignadas[f] = true; });
   if (repetidas.length) throw new Error('No se importó nada: más de una solicitud apunta a la(s) fila(s) ' + repetidas.join(', ') + '. Use «Reparar importación».');
-  const folios = sols.map(s => s.folio);
+  const folios = foliosOcupados_(); // también los folios con rastros sin solicitud: no se reutilizan
   const norm = x => String(x === null || x === undefined ? '' : x).trim().toLowerCase().replace(/\s+/g, ' ');
   const ahora = new Date();
   const hoy = Utilities.formatDate(ahora, Session.getScriptTimeZone(), 'dd-MM-yyyy');

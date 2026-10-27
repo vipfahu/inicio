@@ -151,7 +151,8 @@ function crearEntorno() {
   function carpeta(nombre, padre) {
     const c = Object.assign(archivo(nid('fold'), nombre), {
       padre, hijos: [], archivosIn: [], atajos: [],
-      getFoldersByName(n) { const l = this.hijos.filter(h => h.nombre === n); let i = 0; return { hasNext: () => i < l.length, next: () => l[i++] }; },
+      getFoldersByName(n) { const l = this.hijos.filter(h => h.nombre === n && !h.papelera); let i = 0; return { hasNext: () => i < l.length, next: () => l[i++] }; },
+      getFolders() { const l = this.hijos.filter(h => !h.papelera); let i = 0; return { hasNext: () => i < l.length, next: () => l[i++] }; },
       createFolder(n) { const h = carpeta(n, this); this.hijos.push(h); return h; },
       createFile(blob) { const a = archivo(nid('file'), blob.getName(), blob.getBytes().length, blob.getContentType()); if (Buffer.isBuffer(blob.getBytes())) a.contenido = blob.getBytes(); a.padres = [this]; estado.archivos[a.id] = a; this.archivosIn.push(a); return a; },
       getFiles() { const l = this.archivosIn.slice(); let i = 0; return { hasNext: () => i < l.length, next: () => l[i++] }; },

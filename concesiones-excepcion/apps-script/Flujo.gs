@@ -42,9 +42,17 @@ function alRecibirFormulario(e) {
  * Registra una solicitud nueva (formulario web o de Google). Debe llamarse con el bloqueo tomado.
  * Asigna folio correlativo y, si el programa tiene analista con cuenta activa, la asigna.
  */
+/**
+ * Folios que no se pueden volver a asignar: los de «Solicitudes» y también los que aparecen en «Bitácora» o «Archivos» sin solicitud
+ * (una solicitud eliminada conserva su bitácora; si su número se reutilizara, el caso nuevo heredaría ese historial).
+ */
+function foliosOcupados_() {
+  return leer_(HOJAS.solicitudes).map(s => s.folio).concat(leer_(HOJAS.bitacora).map(b => b.folio), leer_(HOJAS.archivos).map(a => a.folio));
+}
+
 function crearSolicitud_(campos) {
   const marca = campos.fecha_recepcion || new Date();
-  const folio = siguienteFolio(leer_(HOJAS.solicitudes).map(s => s.folio), marca.getFullYear());
+  const folio = siguienteFolio(foliosOcupados_(), marca.getFullYear());
   const prog = leer_(HOJAS.programas).find(p => p.programa === campos.programa);
   const sol = Object.assign({}, campos, {
     folio: folio, fecha_recepcion: marca, estado: 'recibida', estado_desde: marca,

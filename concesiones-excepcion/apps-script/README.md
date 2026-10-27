@@ -209,6 +209,13 @@ del caso o de la hoja de respuestas, sin borrar ni mover nada), copias del PDF d
 reparación de importaciones. Todas exigen motivo y quedan en la bitácora; la
 eliminación de una solicitud pide además escribir el folio para confirmar. Edición no ve esos controles y el servidor los rechaza.
 
+**Folios y rastros.** El correlativo (`siguienteFolio`) se calcula sobre los folios de «Solicitudes» **y** sobre los que aparecen en
+«Bitácora» o «Archivos» sin solicitud (`foliosOcupados_`): un número con historial nunca se vuelve a asignar, para que un caso nuevo no
+herede la bitácora de una prueba eliminada. Configuración → Migración → «Buscar rastros» (`api_rastrosFolios`, Administración) lista
+los folios con bitácora, archivos o carpeta de expediente en Drive y sin solicitud, con su última entrada; «Purgar» (`api_purgarRastros`,
+con motivo) borra esas filas, manda la carpeta a la papelera y deja constancia en la bitácora general; el número vuelve a estar
+disponible. El Diagnóstico también los lista. Pensado para residuos de pruebas; un caso real eliminado conserva su bitácora a propósito.
+
 **Recordatorio manual.** En los pasos en que se espera una respuesta ajena, la ficha ofrece «Enviar recordatorio» con vista
 previa editable (`api_previsualizarRecordatorio` / `api_enviarRecordatorio`, nivel Edición). Usa la misma plantilla y los mismos
 destinatarios que el recordatorio automático del paso (`RECORDATORIO_MANUAL` en Logica.gs): «Recibida» → recordatorio interno de

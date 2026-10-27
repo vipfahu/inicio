@@ -1472,3 +1472,48 @@ test('las herramientas de migración toman el cerrojo del script', () => {
     assert.ok(estado.cerrojos > antes, fn + ' sin cerrojo');
   });
 });
+
+test('folios: un número con rastros (prueba eliminada) no se reutiliza; «Buscar rastros» los lista y la purga los libera', () => {
+  const env = instalar(preparar());
+  const { ctx, estado, hoja } = env;
+  // Una solicitud de prueba llega, se elimina y conserva su bitácora
+  hoja.appendRow(fila('', new Date(2026, 9, 7), 7, ['', '', ''], { programa: 'Magíster en Prueba A', analista: '' }).slice(0, 15));
+  estado.usuario = '';
+  ctx.alRecibirFormulario({ range: hoja.getRange(hoja.getLastRow(), 1) });
+  estado.usuario = 'vice@usach.cl';
+  const carpetaPrueba = tabla(env, 'Solicitudes').find(s => s.folio === '07/2026').carpeta_id;
+  ctx.api_eliminarSolicitud('07/2026', 'Era una prueba');
+  assert.ok(tabla(env, 'Bitácora').some(b => b.folio === '07/2026'), 'la bitácora de la prueba sigue');
+  // Un caso real nuevo no hereda el 07: recibe el 08
+  hoja.appendRow(fila('', new Date(2026, 9, 8), 8, ['', '', ''], { programa: 'Magíster en Prueba A', analista: '' }).slice(0, 15));
+  estado.usuario = '';
+  ctx.alRecibirFormulario({ range: hoja.getRange(hoja.getLastRow(), 1) });
+  const real = tabla(env, 'Solicitudes').pop();
+  assert.equal(real.folio, '08/2026', 'el número con historial no se reutiliza');
+  // Rastros: solo administración; lista el 07 con su bitácora y su carpeta (en la papelera no cuenta)
+  estado.usuario = 'analista.uno@usach.cl';
+  assert.throws(() => ctx.api_rastrosFolios(), /nivel requerido/);
+  estado.usuario = 'vice@usach.cl';
+  const r = ctx.api_rastrosFolios();
+  assert.deepEqual([...r.rastros.map(x => x.folio)], ['07/2026']);
+  assert.ok(r.rastros[0].bitacora >= 3 && /SOLICITUD ELIMINADA/.test(r.rastros[0].ultimo));
+  assert.equal(r.rastros[0].carpeta_id, '', 'la carpeta ya fue a la papelera al eliminar');
+  assert.equal(r.proximoFolio, '09/2026');
+  // No se purga un folio con solicitud; sí uno con rastros, con motivo
+  assert.throws(() => ctx.api_purgarRastros('08/2026', 'x'), /tiene una solicitud/);
+  assert.throws(() => ctx.api_purgarRastros('07/2026', ''), /motivo/);
+  const p = ctx.api_purgarRastros('07/2026', 'Prueba de la Fase E');
+  assert.ok(p.bitacora >= 3);
+  assert.ok(!tabla(env, 'Bitácora').some(b => b.folio === '07/2026'));
+  assert.match(tabla(env, 'Bitácora').pop().texto, /Rastros del folio 07\/2026 purgados por administración · Motivo: Prueba de la Fase E/);
+  assert.equal(ctx.api_rastrosFolios().rastros.length, 0);
+  assert.equal(ctx.api_rastrosFolios().proximoFolio, '09/2026', 'el 08 real sigue ocupando; el 07 purgado queda libre pero el correlativo sigue del máximo');
+  // Una carpeta de expediente huérfana (limpieza a medias) también aparece como rastro
+  const exp = env.DriveApp.getFolderById(carpetaPrueba).padre;
+  exp.createFolder('40-2026');
+  const r2 = ctx.api_rastrosFolios();
+  assert.deepEqual([...r2.rastros.map(x => x.folio)], ['40/2026']);
+  assert.ok(r2.rastros[0].carpeta_id);
+  ctx.api_purgarRastros('40/2026', 'Carpeta de prueba');
+  assert.equal(ctx.api_rastrosFolios().rastros.length, 0);
+});
