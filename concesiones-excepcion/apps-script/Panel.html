@@ -460,7 +460,7 @@ function panelGestion(e, edita) {
       : e.estado === 'rc_notificado' && s.id === 'resolucion' ? 'Notificar al estudiante: resolución en elaboración'
       : e.estado === 'vb' && s.id === 'rechazo_vb' ? 'V°B° · CAE rechazada: sigue a Registro Curricular (STD)'
       : s.id === 'firma_decanato' || s.id === 'rechazo_firma_decanato' ? 'Registrar envío del proyecto de resolución a Decanato para firma (vía STD)'
-      : s.id === 'res_recibida' || s.id === 'res_rechazo_recibida' ? 'Registrar resolución recibida de Registro Curricular (N° y fecha)'
+      : s.id === 'res_recibida' || s.id === 'res_rechazo_recibida' ? 'Registrar resolución numerada y despachada por Registro Curricular (N° y fecha)'
       : s.id === 'resuelto' || s.id === 'negado' ? 'Cerrar el trámite → ' + s.etiqueta
       : s.etiqueta;
     const sinStd = s.id === 'informe_rc' && !String(e.n_std || '').trim();
@@ -622,7 +622,7 @@ function ofrecerPdfSolicitud(pdf, texto, titulo) {
 }
 function avisoDistribucion() {
   $('dlg').innerHTML = '<div class="kicker" style="color:var(--apagado)">Resolución registrada</div>' +
-    '<div class="aviso a-amb" style="margin:10px 0;white-space:normal"><b>Trámite cerrado. Verifique que Registro Curricular distribuyó la resolución al estudiante.</b></div>' +
+    '<div class="aviso a-amb" style="margin:10px 0;white-space:normal"><b>Trámite cerrado. Verifique que Registro Curricular despachó la resolución al estudiante y finalizó el STD.</b></div>' +
     '<div class="acciones" style="justify-content:flex-end"><button class="prim" id="dist_ok">Entendido</button></div>';
   $('fondo').style.display = 'flex';
   $('dist_ok').onclick = cerrarDlg; $('dist_ok').focus();
@@ -644,7 +644,7 @@ function dialogo(hacia) {
     // Al cerrar (Resuelto / Negado) se puede cargar la resolución emitida por Registro Curricular.
     const conResolucion = hacia === 'resuelto' || hacia === 'negado';
     const recibeResolucion = hacia === 'res_recibida' || hacia === 'res_rechazo_recibida';
-    if (recibeResolucion) html += '<div class="aviso a-teal" style="margin-bottom:12px;white-space:normal">Registro Curricular devolvió la resolución con su número y fecha. Regístrelos y, si la tiene, adjunte el archivo; el cierre (Resuelto / Negado) es el paso siguiente.</div>';
+    if (recibeResolucion) html += '<div class="aviso a-teal" style="margin-bottom:12px;white-space:normal">Firmada por la Decana, Registro Curricular puso número y fecha a la resolución, la despachó al estudiante por correo y finalizó el STD. Registre el número y la fecha y, si lo tiene, adjunte el archivo; el cierre (Resuelto / Negado) es el paso siguiente.</div>';
     if (conResolucion) html += '<div class="aviso a-amb" style="margin-bottom:12px;white-space:normal"><b>Cierra el trámite.</b> La resolución registrada: ' + h(e.resolucion || '—') + '.</div>';
     if (conResolucion) html += '<label class="et" for="c_comentario">Comentario para su registro</label><textarea id="c_comentario" rows="2" style="margin-bottom:10px" placeholder="Opcional: queda en la bitácora del expediente"></textarea>';
     if (recibeResolucion) html += '<label class="et" for="c_archivo">Archivo de la resolución (opcional, máx. ' + h(S.ini.maxMb) + ' MB)</label><input type="file" id="c_archivo" accept=".pdf,application/pdf,image/*,.doc,.docx" style="margin-bottom:10px">';

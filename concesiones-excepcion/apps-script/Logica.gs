@@ -32,11 +32,12 @@ const ESTADOS = [
     estudiante: 'Resolución en trámite de firma' },
   { id: 'rechazo_firma_decanato', etiqueta: 'CAE rechazada · proyecto de resolución enviado a Decanato (firma)', fase: 'Resolución', correo: '', siguientes: ['res_rechazo_recibida'],
     estudiante: 'Resolución en trámite de firma' },
-  // Registro Curricular asigna número y fecha a la resolución y la devuelve: se registra antes de cerrar (sin correo).
-  { id: 'res_recibida', etiqueta: 'Resolución recibida de Registro Curricular', fase: 'Resolución', correo: '', siguientes: ['resuelto', 'negado'],
-    estudiante: 'Resolución emitida · en distribución por Registro Curricular' },
-  { id: 'res_rechazo_recibida', etiqueta: 'CAE rechazada · resolución recibida de Registro Curricular', fase: 'Resolución', correo: '', siguientes: ['negado'],
-    estudiante: 'Resolución emitida · en distribución por Registro Curricular' },
+  // Firmada por la Decana, la resolución va a Registro Curricular, que le pone número y fecha, la despacha al estudiante por correo y
+  // finaliza el STD: aquí se registran ese número y fecha (sin correo) antes de cerrar.
+  { id: 'res_recibida', etiqueta: 'Resolución numerada y despachada por Registro Curricular', fase: 'Resolución', correo: '', siguientes: ['resuelto', 'negado'],
+    estudiante: 'Resolución emitida · despachada por Registro Curricular a su correo' },
+  { id: 'res_rechazo_recibida', etiqueta: 'CAE rechazada · resolución numerada y despachada por Registro Curricular', fase: 'Resolución', correo: '', siguientes: ['negado'],
+    estudiante: 'Resolución emitida · despachada por Registro Curricular a su correo' },
   { id: 'resuelto',   etiqueta: 'Resuelto',                                  fase: 'Cierre',        correo: '',           siguientes: [] },
   { id: 'rechazada',  etiqueta: 'Presentación rechazada',                    fase: 'Cierre',        correo: 'rechazada',  siguientes: [] },
   { id: 'no_procede', etiqueta: 'No procede · vía Registro Curricular',      fase: 'Cierre',        correo: 'no_procede', siguientes: [] },

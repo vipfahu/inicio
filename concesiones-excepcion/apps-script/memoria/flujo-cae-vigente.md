@@ -42,3 +42,7 @@ resolución enviado a Decanato (firma)», en ambas ramas (`firma_decanato`, `rec
 proyecto y lo despacha por STD a Decanato para la firma de la Decana; se registran fecha y N° STD (columna `envio_decanato`), sin
 correo; el recordatorio manual a Registro Curricular sigue disponible en ese paso. Corrige la premisa anterior de que Registro
 Curricular «elaboraba» la resolución: Registro Curricular numera, devuelve y distribuye.
+
+Precisión 2026-10-27 (la analista): «primero confeccionamos, enviamos a Decana, Decana firma y envía a Registro, Registro pone folio,
+fecha y despacha por mail y finaliza STD». La resolución no «vuelve» al Vicedecanato: el paso `res_recibida` se llama «Resolución
+numerada y despachada por Registro Curricular» y registra número y fecha; el cierre pide verificar despacho y STD finalizado.

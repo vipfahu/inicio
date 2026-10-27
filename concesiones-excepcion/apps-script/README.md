@@ -100,8 +100,8 @@ Curricular por STD, que numera y distribuye la resolución; correo al estudiante
 elaboración) → **Proyecto de resolución enviado a Decanato (firma)** (el Vicedecanato redacta el proyecto de resolución y lo despacha
 por STD a Decanato para la firma de la Decana: se registran fecha y N° STD del despacho, obligatorios; sin correo; ids `firma_decanato`
 tras CAE admisible y `rechazo_firma_decanato` tras CAE rechazada; el estudiante ve «Resolución en trámite de firma») → **Resolución
-recibida de Registro Curricular** (Registro Curricular asigna número y fecha y la devuelve: se registran
-como obligatorios en este paso, con el archivo opcional en la categoría «Resolución»; sin correo; ids `res_recibida` tras CAE admisible y
+numerada y despachada por Registro Curricular** (firmada por la Decana, Registro Curricular le pone número y fecha, la despacha al
+estudiante por correo y finaliza el STD: número y fecha se registran como obligatorios en este paso, con el archivo opcional en la categoría «Resolución»; sin correo; ids `res_recibida` tras CAE admisible y
 `res_rechazo_recibida` tras CAE rechazada) → Resuelto / Negado (sin correo; «Comentario para su registro» opcional). Al registrar el
 V°B° en cualquiera de sus tres salidas, la analista del caso (o quien pueda asignarla) recibe el correo automático `vb_dado` con la
 decisión, la propuesta del Comité, la observación si la hay y el paso siguiente; no se envía si quien registra el V°B° es la propia
