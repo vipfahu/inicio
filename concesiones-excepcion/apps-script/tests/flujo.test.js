@@ -1545,3 +1545,22 @@ test('Formulario de Google antiguo: la tarea diaria avisa una sola vez si vuelve
   estado.formularioAbierto = true; n = estado.correos.length; ctx.tareaDiaria();
   assert.equal(estado.correos.slice(n).filter(m => /Formulario de Google antiguo/.test(m.subject)).length, 1);
 });
+
+test('la hoja de respuestas se recuerda por identificador: sobrevive a desvincular el Formulario y a renombrar la pestaña', () => {
+  const env = instalar(preparar());
+  const { ctx, estado, hoja } = env;
+  assert.equal(estado.props.HOJA_RESPUESTAS_ID, String(hoja.getSheetId()), 'quedó guardado al instalar');
+  estado.usuario = 'analista.uno@usach.cl';
+  assert.match(ctx.api_expediente('01/2026').fundamentacion, /confidencial/);
+  // Se elimina el Formulario (la pestaña pierde el vínculo) y alguien renombra la pestaña
+  hoja.formUrl = null;
+  hoja.setName('Respuestas antiguas (archivo)');
+  assert.match(ctx.api_expediente('01/2026').fundamentacion, /confidencial/, 'la fundamentación migrada sigue leyéndose');
+  assert.equal(ctx.estadoFormulario_().vinculado, false);
+  // Sin identificador guardado ni vínculo ni nombre conocido: error claro
+  delete estado.props.HOJA_RESPUESTAS_ID;
+  assert.throws(() => ctx.hojaRespuestas_(), /No se encontró la hoja de respuestas/);
+  hoja.setName('Respuestas de formulario 1');
+  assert.equal(ctx.hojaRespuestas_().getSheetId(), hoja.getSheetId(), 'por nombre vuelve a encontrarla y la recuerda');
+  assert.equal(estado.props.HOJA_RESPUESTAS_ID, String(hoja.getSheetId()));
+});

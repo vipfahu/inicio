@@ -73,8 +73,10 @@ function crearEntorno() {
     setDataValidation(regla) { for (let f = this.f; f < this.f + this.nf; f++) for (let c = this.c; c < this.c + this.nc; c++) this.h.validaciones[f + ',' + c] = regla; return this; }
   }
   class Hoja {
-    constructor(nombre, libro) { this.nombre = nombre; this.libro = libro; this.datos = []; this.ocultas = []; this.notas = {}; this.formUrl = null; this.protecciones = []; this.validaciones = {}; }
+    constructor(nombre, libro) { this.nombre = nombre; this.libro = libro; this.datos = []; this.ocultas = []; this.notas = {}; this.formUrl = null; this.protecciones = []; this.validaciones = {}; this.sheetId = ++estado.n; }
     getName() { return this.nombre; }
+    getSheetId() { return this.sheetId; }
+    setName(n) { this.nombre = n; return this; }
     getFormUrl() { return this.formUrl; }
     validar(f, c, v) {
       const regla = this.validaciones[f + ',' + c];

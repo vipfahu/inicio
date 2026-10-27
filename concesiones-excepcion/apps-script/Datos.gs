@@ -154,12 +154,21 @@ function columnaPorPrefijo_(enc, prefijo, exacto) {
 }
 
 /** Hoja conectada al Formulario. */
+/**
+ * Hoja conectada al Formulario. Se recuerda por su identificador interno (propiedad HOJA_RESPUESTAS_ID) la primera vez que se
+ * localiza, para seguir encontrándola aunque el Formulario se elimine o desvincule y aunque alguien renombre la pestaña.
+ * Orden: identificador guardado → pestaña vinculada a un Formulario → pestaña «Respuestas de formulario 1».
+ */
 function hojaRespuestas_() {
-  const h = libro_().getSheets().find(s => s.getFormUrl());
-  if (h) return h;
-  const alt = libro_().getSheetByName('Respuestas de formulario 1');
-  if (!alt) throw new Error('No se encontró la hoja de respuestas del Formulario.');
-  return alt;
+  const libro = libro_();
+  const props = PropertiesService.getScriptProperties();
+  const id = Number(props.getProperty('HOJA_RESPUESTAS_ID'));
+  const porId = id ? libro.getSheets().find(s => s.getSheetId() === id) : null;
+  if (porId) return porId;
+  const h = libro.getSheets().find(s => s.getFormUrl()) || libro.getSheetByName('Respuestas de formulario 1');
+  if (!h) throw new Error('No se encontró la hoja de respuestas del Formulario (ni por identificador guardado, ni vinculada a un Formulario, ni con el nombre «Respuestas de formulario 1»).');
+  props.setProperty('HOJA_RESPUESTAS_ID', String(h.getSheetId()));
+  return h;
 }
 
 /** Lee una fila de respuestas como objeto con las claves de RESPUESTA. */
