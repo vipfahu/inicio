@@ -413,3 +413,19 @@ test('describirCambioTexto: agregado al final, reescritura, vaciado y primer con
   assert.equal(L.describirCambioTexto('propuesta_comite', 'Aprobar', ''), 'Propuesta del Comité: vaciado (antes: «Aprobar»)');
   assert.equal(L.describirCambioTexto('n_std', '', '4521'), 'N° STD: «4521»');
 });
+
+test('nombres y apellidos con solo la primera letra en mayúscula', () => {
+  assert.equal(L.capitalizarNombre('MARÍA JOSÉ'), 'María José');
+  assert.equal(L.capitalizarNombre('  pérez   soto '), 'Pérez Soto');
+  assert.equal(L.capitalizarNombre('de la fuente'), 'De la Fuente');
+  assert.equal(L.capitalizarNombre('DEL RÍO'), 'Del Río');
+  assert.equal(L.capitalizarNombre('ortiz y pino'), 'Ortiz y Pino');
+  assert.equal(L.capitalizarNombre('ana-maría'), 'Ana-María');
+  assert.equal(L.capitalizarNombre("o'higgins"), "O'Higgins");
+  assert.equal(L.capitalizarNombre('ñuñez'), 'Ñuñez');
+  assert.equal(L.capitalizarNombre(''), '');
+  assert.equal(L.capitalizarNombre(null), '');
+  const d = L.validarSolicitud({ apellido1: 'PÉREZ', apellido2: 'de la fuente', nombres: 'ana MARÍA', run: '12.345.678-5', telefono: '+56 9 1234 5678', correo: 'ana.perez@usach.cl',
+    programa: 'Magíster en Prueba A', anio: 2026, semestre: 'Semestre II', tipos: ['Renuncia'], otro: '', fundamentacion: 'Fundamentación suficientemente extensa para el trámite.' }, { programas: ['Magíster en Prueba A'], anio: 2026 }).datos;
+  assert.deepEqual([d.apellido1, d.apellido2, d.nombres], ['Pérez', 'De la Fuente', 'Ana María']);
+});

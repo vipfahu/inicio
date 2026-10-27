@@ -25,7 +25,7 @@ function alRecibirFormulario(e) {
     const tipos = separarTipos(r.tipos);
     sol = crearSolicitud_({
       fila_respuesta: fila, fecha_recepcion: r.marca instanceof Date ? r.marca : new Date(), correo_verificado: String(r.correoVerificado || '').toLowerCase(),
-      apellido1: r.apellido1, apellido2: r.apellido2, nombres: r.nombres, run: String(r.run || ''), correo: r.correo || r.correoVerificado,
+      apellido1: capitalizarNombre(r.apellido1), apellido2: capitalizarNombre(r.apellido2), nombres: capitalizarNombre(r.nombres), run: String(r.run || ''), correo: r.correo || r.correoVerificado,
       telefono: String(r.telefono || ''), programa: r.programa, anio: r.anio, semestre: r.semestre,
       tipo_catalogo: tipos.catalogo, tipo_texto_libre: tipos.libre, origen: 'Formulario de Google'
     });

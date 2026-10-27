@@ -549,11 +549,27 @@ function normalizarPasaporte(v) {
   return /^[A-Z0-9]{5,20}$/.test(s) ? s : '';
 }
 
+/** Partículas que van en minúscula dentro de un nombre o apellido (no al inicio): «De la Fuente», «Del Río», «Ortiz y Pino». */
+const PARTICULAS_NOMBRE = ['de', 'del', 'la', 'las', 'los', 'y', 'e', 'da', 'das', 'do', 'dos', 'di', 'van', 'von', 'der', 'den', 'le', 'du'];
+
+/**
+ * Nombres y apellidos con solo la primera letra de cada palabra en mayúscula (2026-10-27, pedido de la persona): «MARÍA JOSÉ» →
+ * «María José», «de la fuente» → «De la Fuente», «ana-maría» → «Ana-María», «o'higgins» → «O'Higgins». Conserva acentos y eñes;
+ * deja los espacios simples. Texto vacío → ''.
+ */
+function capitalizarNombre(texto) {
+  const palabras = String(texto === null || texto === undefined ? '' : texto).trim().replace(/\s+/g, ' ').toLowerCase().split(' ');
+  return palabras.map((p, i) => {
+    if (i > 0 && PARTICULAS_NOMBRE.indexOf(p) >= 0) return p;
+    return p.split(/([-'’])/).map(t => t.length && !/[-'’]/.test(t) ? t.charAt(0).toUpperCase() + t.slice(1) : t).join('');
+  }).join(' ');
+}
+
 function validarSolicitud(d, ctx) {
   d = d || {};
   const t = (k, max) => String(d[k] === undefined || d[k] === null ? '' : d[k]).trim().slice(0, max || 200);
   const datos = {
-    apellido1: t('apellido1', 80), apellido2: t('apellido2', 80), nombres: t('nombres', 120), run: t('run', 30),
+    apellido1: capitalizarNombre(t('apellido1', 80)), apellido2: capitalizarNombre(t('apellido2', 80)), nombres: capitalizarNombre(t('nombres', 120)), run: t('run', 30),
     telefono: t('telefono', 30), correo: t('correo', 120).toLowerCase(), programa: t('programa', 200),
     anio: Number(d.anio), semestre: t('semestre', 20), otro: t('otro', 300), fundamentacion: t('fundamentacion', 8000)
   };
@@ -585,7 +601,7 @@ function validarSolicitud(d, ctx) {
 }
 
 if (typeof module !== 'undefined') {
-  module.exports = { rutaProceso, RUTA_PRINCIPAL, esRolRC, ROLES_RC, tipoVista, mimePorNombre, entradaZipUtil, encargoDe, requiereVicedecano, normalizarRun, normalizarPasaporte, feriadosDesdeEventos, OCULTOS_AL_ESTUDIANTE, sumarDiasHabiles, recordatorioPendiente, RECORDATORIOS, camposRequeridos,
+  module.exports = { capitalizarNombre, rutaProceso, RUTA_PRINCIPAL, esRolRC, ROLES_RC, tipoVista, mimePorNombre, entradaZipUtil, encargoDe, requiereVicedecano, normalizarRun, normalizarPasaporte, feriadosDesdeEventos, OCULTOS_AL_ESTUDIANTE, sumarDiasHabiles, recordatorioPendiente, RECORDATORIOS, camposRequeridos,
     ESTADOS, CAMPOS_REQUERIDOS, TIPOS_CATALOGO, NIVELES, ROLES, estadoPorId, esCierre, transicionValida, eventoTransicion,
     normalizarFolio, siguienteFolio, estadoMigrado, separarTipos, rellenar, variablesSinResolver, resolverDestinatarios,
     diasHabilesEntre, necesitaRecordatorio, nivelSuficiente, puedeVerSolicitud, validarCuenta, esSi, listaRoles, validarSolicitud, resumenCuenta, RECORDATORIO_MANUAL, recordatorioManual, VARIABLES_OPCIONALES, describirCambioTexto, ROTULOS_GESTION

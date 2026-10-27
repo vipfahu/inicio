@@ -325,7 +325,7 @@ function actualizarInstalacion() {
  */
 function huellaEstructura_() {
   // El último elemento es una marca de versión de lo que la actualización hace además de columnas, parámetros y plantillas.
-  const txt = JSON.stringify([COLUMNAS, PARAMETROS_INICIALES.map(p => p[0]), PLANTILLAS_INICIALES, ROLES, NIVELES, 'proteccion-respuestas-1', 'folio-texto-1', 'validaciones-1', 'copia-rc-recordatorio-1']);
+  const txt = JSON.stringify([COLUMNAS, PARAMETROS_INICIALES.map(p => p[0]), PLANTILLAS_INICIALES, ROLES, NIVELES, 'proteccion-respuestas-1', 'folio-texto-1', 'validaciones-1', 'copia-rc-recordatorio-1', 'nombres-capitalizados-1']);
   let h = 2166136261;
   for (let i = 0; i < txt.length; i++) { h ^= txt.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; }
   return h.toString(16) + '-' + txt.length;
@@ -435,6 +435,14 @@ function aplicarActualizacion_() {
     const comoFecha = leer_(HOJAS.solicitudes).filter(s => Object.prototype.toString.call(s.folio) === '[object Date]');
     comoFecha.forEach(s => actualizar_(HOJAS.solicitudes, s._fila, { folio: normalizarFolio(s.folio) }));
     if (comoFecha.length) cambios.push('Folios guardados como fecha corregidos: ' + comoFecha.map(s => normalizarFolio(s.folio)).join(', '));
+    // Nombres y apellidos con solo la primera letra en mayúscula (los casos nuevos ya llegan así; los existentes se corrigen una vez).
+    let renombrados = 0;
+    leer_(HOJAS.solicitudes).forEach(s => {
+      const c = {};
+      ['apellido1', 'apellido2', 'nombres'].forEach(k => { const v = String(s[k] === null || s[k] === undefined ? '' : s[k]); const n = capitalizarNombre(v); if (v !== n) c[k] = n; });
+      if (Object.keys(c).length) { actualizar_(HOJAS.solicitudes, s._fila, c, s.folio); renombrados++; }
+    });
+    if (renombrados) cambios.push('Nombres y apellidos con primera letra en mayúscula: ' + renombrados + ' solicitud(es)');
     const h = hoja_(HOJAS.solicitudes), jF = encabezados_(HOJAS.solicitudes).indexOf('folio');
     if (jF >= 0 && h.getLastRow() > 1) h.getRange(2, jF + 1, h.getLastRow() - 1, 1).setNumberFormat('@');
   }
@@ -530,7 +538,7 @@ function solicitudDesdeFila_(c, r, fila, ahora) {
   const marca = o.marca instanceof Date ? o.marca : ahora;
   return {
     folio: folio, fila_respuesta: fila, fecha_recepcion: marca, correo_verificado: String(o.correoVerificado || '').toLowerCase(),
-    apellido1: o.apellido1, apellido2: o.apellido2, nombres: o.nombres, run: String(o.run || ''), correo: o.correo || o.correoVerificado,
+    apellido1: capitalizarNombre(o.apellido1), apellido2: capitalizarNombre(o.apellido2), nombres: capitalizarNombre(o.nombres), run: String(o.run || ''), correo: o.correo || o.correoVerificado,
     telefono: String(o.telefono || ''), programa: o.programa, anio: o.anio, semestre: semN,
     tipo_catalogo: tipos.catalogo, tipo_texto_libre: tipos.libre, estado: m.estado, estado_desde: ahora,
     analista: correoAn, n_std: std === '0' || std === '-' ? '' : std.split('/')[0].trim(),

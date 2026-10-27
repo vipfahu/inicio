@@ -190,6 +190,12 @@ la cuenta de Google sigue abierta) o *Cerrar sesión de Google en este equipo* (
 recomendado en equipos compartidos). La identidad la da siempre Google (`Session.getActiveUser()`); la página de ingreso no agrega
 contraseñas ni seguridad adicional: es un paso explícito de entrada y salida. El ingreso se recuerda solo en esa pestaña.
 
+**Nombres y apellidos.** Se guardan con solo la primera letra de cada palabra en mayúscula (`capitalizarNombre` en Logica.gs:
+«María José», «De la Fuente», «Del Río», «Ana-María», «O'Higgins»; las partículas «de, del, la, y…» van en minúscula salvo al inicio),
+en los tres puntos de entrada: formulario web (`validarSolicitud`), Formulario de Google (`alRecibirFormulario`) e importación o
+migración (`solicitudDesdeFila_`). Los casos existentes se corrigieron una vez en la actualización automática (marca
+`nombres-capitalizados-1`). La verificación de la migración compara sin distinguir mayúsculas, así que no lo reporta como diferencia.
+
 **Documento de identidad.** El formulario pide elegir RUN o pasaporte. El RUN se valida con su dígito verificador (módulo 11) en el
 navegador y otra vez en el servidor, y se guarda como «12.345.678-5»; el pasaporte acepta letras y números (5 a 20). La columna
 `tipo_documento` de «Solicitudes» indica cuál es. Las solicitudes del Formulario de Google antiguo no se validan.

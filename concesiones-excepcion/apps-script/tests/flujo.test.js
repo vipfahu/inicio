@@ -1564,3 +1564,30 @@ test('la hoja de respuestas se recuerda por identificador: sobrevive a desvincul
   assert.equal(ctx.hojaRespuestas_().getSheetId(), hoja.getSheetId(), 'por nombre vuelve a encontrarla y la recuerda');
   assert.equal(estado.props.HOJA_RESPUESTAS_ID, String(hoja.getSheetId()));
 });
+
+test('nombres: los casos nuevos llegan capitalizados y los existentes se corrigen una vez en la actualización automática', () => {
+  const env = instalar(preparar());
+  const { ctx, estado, hoja, libro } = env;
+  // Caso existente escrito en mayúsculas (como venía de la planilla antigua)
+  const sh = libro.getSheetByName('Solicitudes');
+  const enc = sh.datos[0];
+  const i = sh.datos.findIndex(r => r[0] === '01/2026');
+  sh.datos[i][enc.indexOf('nombres')] = 'NOMBRE1 SEGUNDO';
+  sh.datos[i][enc.indexOf('apellido1')] = 'apellido1';
+  delete estado.props.huella_estructura;
+  const cambios = ctx.aplicarActualizacion_();
+  assert.ok(cambios.some(c => /primera letra en mayúscula: 1 solicitud/.test(c)), cambios.join(' | '));
+  const s = tabla(env, 'Solicitudes').find(x => x.folio === '01/2026');
+  assert.equal(s.nombres, 'Nombre1 Segundo');
+  assert.equal(s.apellido1, 'Apellido1');
+  // Segunda pasada: nada que corregir
+  assert.ok(!ctx.aplicarActualizacion_().some(c => /primera letra en mayúscula/.test(c)));
+  // Desde el Formulario de Google llega en mayúsculas y se guarda capitalizado
+  const f = fila('', new Date(2026, 9, 7), 7, ['', '', ''], { programa: 'Magíster en Prueba A', analista: '' }).slice(0, 15);
+  const jn = hoja.datos[0].findIndex(x => /^Nombres/.test(String(x)));
+  f[jn] = 'JUAN PABLO';
+  hoja.appendRow(f);
+  estado.usuario = '';
+  ctx.alRecibirFormulario({ range: hoja.getRange(hoja.getLastRow(), 1) });
+  assert.equal(tabla(env, 'Solicitudes').pop().nombres, 'Juan Pablo');
+});
