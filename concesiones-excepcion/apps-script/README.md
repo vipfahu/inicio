@@ -92,7 +92,7 @@ marca) y lo anota en la bitácora. La cuenta institucional es administradora fij
 
 **Flujo.** Recibida → En revisión de admisibilidad → Admisible para análisis / Rechazada / No procede → Informe de Registro Curricular
 → Pronunciamiento del programa (solicitado vía STD; la plataforma solo registra el estado, sin correo) → V°B° a la respuesta del Comité.
-Las salidas negativas de la admisibilidad (Rechazada, con motivo; No procede) siguen disponibles desde Admisible para análisis,
+Las salidas negativas de la admisibilidad (Rechazada y No procede, ambas con motivo obligatorio desde estos pasos) siguen disponibles desde Admisible para análisis,
 Informe de Registro Curricular y Pronunciamiento del programa (desistimiento, antecedentes que invalidan la presentación, trámite que
 corresponde a otra vía), con el mismo correo al estudiante; después del V°B° la salida negativa es la del Comité (CAE rechazada)
 (o devolución al programa vía STD, con observación) → decisión del V°B°: CAE admisible o CAE rechazada (ambas siguen a Registro

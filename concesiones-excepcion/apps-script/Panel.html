@@ -633,7 +633,9 @@ function dialogo(hacia) {
   run('api_previsualizar', e.folio, hacia, { motivo: '{motivo}', observacion: '{observacion}', propuesta_comite: '{propuesta_comite}', resolucion: '{resolucion}' }).then(pv => {
     const req = pv.requeridos || [];
     let html = '<div class="kicker" style="color:var(--apagado)">Cambio de estado</div><div style="font:800 18px Archivo,sans-serif;margin:6px 0 14px">' + h(pv.desdeEtiqueta) + ' <span style="color:var(--naranja)">→</span> ' + h(pv.haciaEtiqueta) + '</div>';
-    const rot = k => (ROT_CAMPO[k] || k).replace('(se incluye en el correo)', pv.conCorreo ? '(se incluye en el correo)' : '(queda en el expediente y la bitácora)');
+    // «Se incluye en el correo» solo si el texto del correo lleva la marca del campo; si no, queda en el expediente y la bitácora.
+    const enCorreo = k => pv.conCorreo && (pv.correo.cuerpo + ' ' + pv.correo.asunto).indexOf('{' + k + '}') >= 0;
+    const rot = k => (ROT_CAMPO[k] || k).replace('(se incluye en el correo)', enCorreo(k) ? '(se incluye en el correo)' : '(queda en el expediente y la bitácora)');
     html += req.map(k => '<label class="et" for="c_' + k + '">' + h(rot(k)) + ' *</label><textarea id="c_' + k + '" rows="2" style="margin-bottom:10px">' + h(k === 'propuesta_comite' ? e.propuesta_comite : k === 'resolucion' ? e.resolucion : '') + '</textarea>').join('');
     const porOtroMedio = pv.requiereVicedecano && !pv.esVicedecano;
     if (porOtroMedio) html += '<div class="aviso a-amb" style="margin-bottom:10px">Registra el V°B° en nombre del Vicedecano/a, que lo dio por otro medio. Quedará registrado quién lo ingresó.</div>' +
@@ -690,7 +692,7 @@ function dialogo(hacia) {
     });
     $('confirmar').onclick = () => {
       const campos = {};
-      for (const k of req) { campos[k] = $('c_' + k).value.trim(); if (!campos[k]) return toast('Complete «' + (ROT_CAMPO[k] || k) + '»', true); }
+      for (const k of req) { campos[k] = $('c_' + k).value.trim(); if (!campos[k]) return toast('Complete «' + rot(k) + '»', true); }
       const envio = { campos };
       if (conResolucion && $('c_comentario').value.trim()) campos.comentario = $('c_comentario').value.trim();
       if (porOtroMedio) {

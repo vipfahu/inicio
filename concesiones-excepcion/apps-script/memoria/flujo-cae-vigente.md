@@ -33,6 +33,6 @@ por «verifique que RC la distribuyó»: Registro Curricular numera y distribuye
 flujograma publicado anterior a esta fecha no incluye el paso nuevo.
 
 Cambio 2026-10-27 (tras el reporte de una analista que tuvo que retroceder paso a paso para rechazar un caso ya admisible): «Presentación
-rechazada» (motivo obligatorio) y «No procede» se ofrecen también desde Admisible para análisis, Informe RC y Pronunciamiento del
+rechazada» y «No procede» (motivo obligatorio en ambas desde estos pasos) se ofrecen también desde Admisible para análisis, Informe RC y Pronunciamiento del
 programa. Después del V°B° la salida negativa sigue siendo solo la del Comité (`rechazo_vb`). El Panorama muestra la ruta hasta el
 último paso recorrido antes del cierre negativo.

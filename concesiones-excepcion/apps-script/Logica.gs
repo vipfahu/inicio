@@ -40,6 +40,11 @@ const ESTADOS = [
 /** Datos que la persona debe escribir en el diálogo: por correo (evento) o por transición sin correo ('desde>hacia'). */
 const CAMPOS_REQUERIDOS = {
   rechazada: ['motivo'],
+  // «No procede» después de la admisibilidad: el motivo es obligatorio (queda en el expediente y la bitácora; el correo al
+  // estudiante es el mismo de siempre, que explica la vía de Registro Curricular).
+  'aceptada>no_procede': ['motivo'],
+  'informe_rc>no_procede': ['motivo'],
+  'programa>no_procede': ['motivo'],
   'vb>programa': ['observacion'],
   vb: ['propuesta_comite'],
   'aviso_rc>rc_notificado': ['notificacion_rc'],
