@@ -1,4 +1,4 @@
-Flujo vigente: recibida → revisión de admisibilidad → admisible para análisis (id `aceptada`) / rechazada / no procede → informe RC → programa (vía STD, solo registro) → V°B° Comité: CAE admisible / CAE rechazada (ambas a Registro Curricular vía STD; correo al estudiante con el estado) / devolución vía STD → resolución recibida de RC (N° y fecha, 2026-10-14) → resuelto / negado. Cada V°B° avisa a la analista (`vb_dado`).
+Flujo vigente: recibida → revisión de admisibilidad → admisible para análisis (id `aceptada`) / rechazada / no procede → informe RC → programa (vía STD, solo registro; rechazada y no procede también desde estos tres pasos, 2026-10-27) → V°B° Comité: CAE admisible / CAE rechazada (ambas a Registro Curricular vía STD; correo al estudiante con el estado) / devolución vía STD → resolución recibida de RC (N° y fecha, 2026-10-14) → resuelto / negado. Cada V°B° avisa a la analista (`vb_dado`).
 
 Tipo: corrección
 
@@ -31,3 +31,8 @@ Resuelto / Negado se registra la resolución que vuelve de Registro Curricular c
 `res_rechazo_recibida` tras CAE rechazada), con archivo opcional. El recordatorio «envíe la resolución a RC» del cierre se reemplazó
 por «verifique que RC la distribuyó»: Registro Curricular numera y distribuye; el Vicedecanato registra el retorno y cierra. El
 flujograma publicado anterior a esta fecha no incluye el paso nuevo.
+
+Cambio 2026-10-27 (tras el reporte de una analista que tuvo que retroceder paso a paso para rechazar un caso ya admisible): «Presentación
+rechazada» (motivo obligatorio) y «No procede» se ofrecen también desde Admisible para análisis, Informe RC y Pronunciamiento del
+programa. Después del V°B° la salida negativa sigue siendo solo la del Comité (`rechazo_vb`). El Panorama muestra la ruta hasta el
+último paso recorrido antes del cierre negativo.

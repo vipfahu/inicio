@@ -91,7 +91,10 @@ cuenta se desactiva; «Eliminar» borra su fila (`api_eliminarCuenta(correo, fil
 marca) y lo anota en la bitácora. La cuenta institucional es administradora fija y no se puede dejar el sistema sin otra administración activa.
 
 **Flujo.** Recibida → En revisión de admisibilidad → Admisible para análisis / Rechazada / No procede → Informe de Registro Curricular
-→ Pronunciamiento del programa (solicitado vía STD; la plataforma solo registra el estado, sin correo) → V°B° a la respuesta del Comité
+→ Pronunciamiento del programa (solicitado vía STD; la plataforma solo registra el estado, sin correo) → V°B° a la respuesta del Comité.
+Las salidas negativas de la admisibilidad (Rechazada, con motivo; No procede) siguen disponibles desde Admisible para análisis,
+Informe de Registro Curricular y Pronunciamiento del programa (desistimiento, antecedentes que invalidan la presentación, trámite que
+corresponde a otra vía), con el mismo correo al estudiante; después del V°B° la salida negativa es la del Comité (CAE rechazada)
 (o devolución al programa vía STD, con observación) → decisión del V°B°: CAE admisible o CAE rechazada (ambas siguen a Registro
 Curricular por STD, que elabora y distribuye la resolución; correo al estudiante con el estado y el aviso de que la resolución está en
 elaboración) → **Resolución recibida de Registro Curricular** (Registro Curricular asigna número y fecha y la devuelve: se registran

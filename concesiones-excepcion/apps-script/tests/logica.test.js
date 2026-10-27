@@ -268,6 +268,13 @@ test('ruta del proceso: camino principal, variantes de cierre y paso actual', ()
   assert.equal(r1.find(p => p.id === 'aviso_rc').estudiante, 'CAE admisible · coordinación con Registro Curricular');
   assert.deepEqual(ids(L.rutaProceso('rechazada', [])), ['recibida', 'revision', 'rechazada']);
   assert.deepEqual(ids(L.rutaProceso('no_procede', [])), ['recibida', 'revision', 'no_procede']);
+  // Cierre negativo después de la admisibilidad: la ruta muestra hasta el último paso recorrido
+  assert.deepEqual(ids(L.rutaProceso('rechazada', ['recibida', 'revision', 'aceptada', 'informe_rc', 'programa', 'rechazada'])), ['recibida', 'revision', 'aceptada', 'informe_rc', 'programa', 'rechazada']);
+  assert.deepEqual(ids(L.rutaProceso('no_procede', ['recibida', 'revision', 'aceptada', 'no_procede'])), ['recibida', 'revision', 'aceptada', 'no_procede']);
+  assert.ok(L.transicionValida('aceptada', 'rechazada') && L.transicionValida('informe_rc', 'no_procede') && L.transicionValida('programa', 'rechazada'));
+  assert.ok(!L.transicionValida('vb', 'rechazada') && !L.transicionValida('vb', 'no_procede'), 'después del V°B° la salida negativa es la del Comité');
+  assert.deepEqual([...L.camposRequeridos('programa', 'rechazada')], ['motivo']);
+  assert.equal(L.eventoTransicion('programa', 'rechazada'), 'rechazada');
   assert.deepEqual(ids(L.rutaProceso('rechazo_vb', [])).slice(-4), ['vb', 'rechazo_vb', 'res_rechazo_recibida', 'negado']);
   assert.deepEqual(ids(L.rutaProceso('res_rechazo_recibida', [])).slice(-2), ['res_rechazo_recibida', 'negado']);
   assert.deepEqual(ids(L.rutaProceso('negado', ['vb', 'rechazo_vb', 'res_rechazo_recibida', 'negado'])).slice(-3), ['rechazo_vb', 'res_rechazo_recibida', 'negado']);

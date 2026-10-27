@@ -9,10 +9,13 @@ const ESTADOS = [
   { id: 'recibida',   etiqueta: 'Recibida',                                  fase: 'Admisibilidad', correo: 'recepcion',  siguientes: ['revision'] },
   { id: 'revision',   etiqueta: 'En revisión de admisibilidad',              fase: 'Admisibilidad', correo: '',           siguientes: ['aceptada', 'rechazada', 'no_procede'] },
   // El id se conserva («aceptada») para no alterar los datos guardados; lo visible es «Admisible para análisis».
-  { id: 'aceptada',   etiqueta: 'Admisible para análisis',                   fase: 'Tramitación',   correo: 'aceptada',   siguientes: ['informe_rc'] },
-  { id: 'informe_rc', etiqueta: 'Informe de Registro Curricular',            fase: 'Tramitación',   correo: '',           siguientes: ['programa'] },
+  // Las salidas negativas de la admisibilidad (rechazada, no procede) siguen disponibles en los tres pasos de tramitación previos al
+  // V°B° (2026-10-27: desistimiento, antecedentes que invalidan la presentación, trámite que corresponde a otra vía). Después del V°B°
+  // la decisión negativa es la del Comité (rechazo_vb).
+  { id: 'aceptada',   etiqueta: 'Admisible para análisis',                   fase: 'Tramitación',   correo: 'aceptada',   siguientes: ['informe_rc', 'rechazada', 'no_procede'] },
+  { id: 'informe_rc', etiqueta: 'Informe de Registro Curricular',            fase: 'Tramitación',   correo: '',           siguientes: ['programa', 'rechazada', 'no_procede'] },
   // El pronunciamiento se solicita al programa por STD (Sistema de Trazabilidad Documental): aquí solo se registra, sin correo.
-  { id: 'programa',   etiqueta: 'Pronunciamiento del programa (solicitado vía STD)', fase: 'Tramitación', correo: '',     siguientes: ['vb'] },
+  { id: 'programa',   etiqueta: 'Pronunciamiento del programa (solicitado vía STD)', fase: 'Tramitación', correo: '',     siguientes: ['vb', 'rechazada', 'no_procede'] },
   // Decisión del V°B°: CAE admisible o CAE rechazada (ambas siguen a Registro Curricular por STD, que elabora y distribuye la
   // resolución) con correo al estudiante que informa el estado; o devolución al programa. El cierre no envía correo.
   { id: 'vb',         etiqueta: 'V°B° Vicedecano/a a respuesta del Comité',  fase: 'Tramitación',   correo: 'vb',         siguientes: ['aviso_rc', 'rechazo_vb', 'programa'] },
@@ -63,7 +66,13 @@ const RUTA_PRINCIPAL = ['recibida', 'revision', 'aceptada', 'informe_rc', 'progr
 function rutaProceso(estado, visitados) {
   const hasta = id => RUTA_PRINCIPAL.slice(0, RUTA_PRINCIPAL.indexOf(id) + 1);
   let ruta;
-  if (estado === 'rechazada' || estado === 'no_procede') ruta = hasta('revision').concat([estado]);
+  if (estado === 'rechazada' || estado === 'no_procede') {
+    // Cierre negativo: la ruta llega hasta el último paso principal recorrido (como mínimo, la revisión de admisibilidad).
+    const recorridos = RUTA_PRINCIPAL.filter(id => (visitados || []).indexOf(id) >= 0 && RUTA_PRINCIPAL.indexOf(id) <= RUTA_PRINCIPAL.indexOf('programa'));
+    ruta = hasta(recorridos.length ? recorridos[recorridos.length - 1] : 'revision');
+    if (ruta.indexOf('revision') < 0) ruta = hasta('revision');
+    ruta = ruta.concat([estado]);
+  }
   else if (estado === 'rechazo_vb' || estado === 'res_rechazo_recibida' || (estado === 'negado' && (visitados || []).indexOf('rechazo_vb') >= 0)) ruta = hasta('vb').concat(['rechazo_vb', 'res_rechazo_recibida', 'negado']);
   else if (estado === 'negado') ruta = hasta('res_recibida').concat(['negado']);
   else ruta = RUTA_PRINCIPAL.slice();
