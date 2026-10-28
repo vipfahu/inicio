@@ -52,6 +52,19 @@
   status = 404
   force = true
 
+# Skills de agentes (.claude/) y su lockfile: viven en el repo, no se publican en el sitio
+[[redirects]]
+  from = "/.claude/*"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/skills-lock.json"
+  to = "/404.html"
+  status = 404
+  force = true
+
 # Rutas cortas por subsistema
 [[redirects]]
   from = "/normativa"
