@@ -64,6 +64,9 @@
   @media (max-width:760px){ .g2,.tipos{grid-template-columns:1fr} input,select,button{min-height:44px} .marca img{height:48px} }
   input.fijo,input[readonly]{background:#EFECE4;color:var(--tinta2,#5A6470);cursor:not-allowed;border-style:dashed}
   input[aria-invalid="true"]{border-color:#B0483A;background:#FBF1EE}
+  /* Movimiento: hover suave; sin transiciones con «reducir movimiento». */
+  button,a,.boton,.toggle button{transition:background-color .12s ease-out,border-color .12s ease-out,color .12s ease-out}
+  @media (prefers-reduced-motion:reduce){button,a,.boton,.toggle button{transition:none}}
 </style>
 </head>
 <body>

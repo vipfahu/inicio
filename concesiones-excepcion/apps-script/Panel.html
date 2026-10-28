@@ -109,6 +109,29 @@
     .lado{position:static}
     button,select,input{min-height:44px}
   }
+  /* ── Movimiento ── Corto y con propósito: entrada de diálogos y avisos, suavizado de hover y resaltado de lo que cambió tras una
+     acción. Con «reducir movimiento» en el sistema no hay desplazamientos: solo fundidos de opacidad y el resaltado de color. */
+  button,nav button,.fila,.prow,.lista-item,.chipf,.pan-nav a{transition:background-color .12s ease-out,border-color .12s ease-out,color .12s ease-out}
+  @keyframes entrarFondo{from{opacity:0}to{opacity:1}}
+  @keyframes entrarCaja{from{opacity:0;transform:translateY(8px) scale(.99)}to{opacity:1;transform:none}}
+  @keyframes entrarAviso{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  @keyframes salirAviso{from{opacity:1;transform:none}to{opacity:0;transform:translateY(6px)}}
+  @keyframes soloEntrar{from{opacity:0}to{opacity:1}}
+  @keyframes soloSalir{from{opacity:1}to{opacity:0}}
+  @keyframes resalte{0%,25%{background-color:#FCEBD9}100%{background-color:transparent}}
+  @keyframes anillo{0%,30%{box-shadow:0 0 0 4px rgba(239,122,0,.45)}100%{box-shadow:0 0 0 4px rgba(239,122,0,0)}}
+  #fondo{animation:entrarFondo .16s ease-out}
+  #dlg{animation:entrarCaja .2s cubic-bezier(.2,.8,.2,1)}
+  #visor.abierto{animation:entrarFondo .16s ease-out} #visor.abierto .vmarco{animation:entrarCaja .22s cubic-bezier(.2,.8,.2,1)}
+  #toast{animation:entrarAviso .2s cubic-bezier(.2,.8,.2,1)} #toast.saliendo{animation:salirAviso .16s ease-in forwards}
+  #toast{display:none;align-items:flex-start;gap:12px} #toast .cerrar{all:unset;cursor:pointer;opacity:.7;font:600 15px/1 Archivo,sans-serif;padding:0 2px} #toast .cerrar:hover,#toast .cerrar:focus-visible{opacity:1;outline:1px solid rgba(255,255,255,.6);border-radius:4px}
+  .resaltado{animation:resalte 1.8s ease-out;border-radius:6px}
+  .resaltado-tag .tag{animation:anillo 1.8s ease-out}
+  #app[aria-busy="true"] .pila,#app[aria-busy="true"] .lado{opacity:.6;transition:opacity .15s ease-out}
+  @media (prefers-reduced-motion:reduce){
+    #dlg,#visor.abierto .vmarco,#toast{animation-name:soloEntrar} #toast.saliendo{animation-name:soloSalir}
+    button,nav button,.fila,.prow,.lista-item,.chipf,.pan-nav a,#app[aria-busy="true"] .pila,#app[aria-busy="true"] .lado{transition:none}
+  }
 </style>
 </head>
 <body>
@@ -147,8 +170,18 @@ function run(fn) {
   return new Promise((ok, mal) => google.script.run.withSuccessHandler(ok).withFailureHandler(mal)[fn].apply(null, args));
 }
 function toast(msg, err) {
-  const t = $('toast'); t.textContent = msg; t.className = err ? 'err' : ''; t.style.display = 'block';
-  clearTimeout(toast._t); toast._t = setTimeout(() => { t.style.display = 'none'; }, err ? 7000 : 4200);
+  const t = $('toast');
+  clearTimeout(toast._t); clearTimeout(toast._s);
+  t.innerHTML = '<span>' + h(msg) + '</span><button class="cerrar" type="button" aria-label="Cerrar aviso">×</button>';
+  t.className = err ? 'err' : '';
+  t.style.display = 'none'; void t.offsetWidth; t.style.display = 'flex'; // reinicia la animación de entrada si ya estaba visible
+  t.querySelector('.cerrar').onclick = cerrarToast;
+  toast._t = setTimeout(cerrarToast, err ? 7000 : 4200);
+}
+function cerrarToast() {
+  const t = $('toast'); if (t.style.display === 'none') return;
+  clearTimeout(toast._t); t.classList.add('saliendo');
+  toast._s = setTimeout(() => { t.style.display = 'none'; t.classList.remove('saliendo'); }, 170);
 }
 function fallo(e) { toast(String(e && e.message || e).replace(/^Error:\s*/, '').replace(/^(SIN_ACCESO|SIN_IDENTIDAD):\s*/, ''), true); }
 const fecha = iso => { if (!iso) return '—'; const d = new Date(iso); return isNaN(d) ? String(iso) : ('0' + d.getDate()).slice(-2) + '.' + ('0' + (d.getMonth() + 1)).slice(-2) + '.' + d.getFullYear(); };
@@ -311,9 +344,25 @@ function pintarFilas() {
 
 /* ── Expediente ── */
 function abrir(folio) {
+  // Si la ficha ya está en pantalla (se vuelve a abrir tras una acción), se redibuja en su lugar: sin pantalla intermedia, en la misma
+  // posición de lectura, y se resalta lo que cambió (estado, entradas nuevas de la bitácora, archivos nuevos).
+  const enSitio = S.vista === 'exp' && S.exp && S.exp.folio === folio && !!$('volver');
+  const previo = enSitio ? { y: window.scrollY, estado: S.exp.estado, nbit: (S.exp.bitacora || []).length, narch: (S.exp.archivos || []).length } : null;
   S.vista = 'exp'; pintarNav();
-  $('app').innerHTML = '<div class="cargando">Abriendo expediente ' + h(folio) + '…</div>';
-  return run('api_expediente', folio).then(e => { S.exp = e; pintarExp(); window.scrollTo(0, 0); }).catch(e => { fallo(e); ir('bandeja'); });
+  if (enSitio) $('app').setAttribute('aria-busy', 'true');
+  else $('app').innerHTML = '<div class="cargando">Abriendo expediente ' + h(folio) + '…</div>';
+  return run('api_expediente', folio).then(e => {
+    S.exp = e; pintarExp(); $('app').removeAttribute('aria-busy');
+    if (enSitio) { window.scrollTo(0, previo.y); resaltarCambios(previo); } else window.scrollTo(0, 0);
+  }).catch(e => { $('app').removeAttribute('aria-busy'); fallo(e); if (!enSitio) ir('bandeja'); });
+}
+function resaltarCambios(previo) {
+  const marcar = el => { if (!el) return; el.classList.remove('resaltado'); void el.offsetWidth; el.classList.add('resaltado'); };
+  if (S.exp.estado !== previo.estado && $('exp_estado')) { $('exp_estado').classList.add('resaltado-tag'); }
+  const its = document.querySelectorAll('.bit .it');
+  for (let i = previo.nbit; i < its.length; i++) marcar(its[i]);
+  const arch = document.querySelectorAll('.arch-fila');
+  for (let i = previo.narch; i < arch.length; i++) marcar(arch[i]);
 }
 function pintarExp() {
   const e = S.exp, edita = nivel('edicion');
@@ -324,13 +373,13 @@ function pintarExp() {
     return '<div class="it" style="--c:' + color + '"><div class="meta">' + h(fechaHora(b.fecha)) + ' · ' + h(b.quien) + '</div><div class="tx">' + h(b.texto) + '</div>' +
       (b.evento && b.para ? '<span class="chip">✉ ' + h(b.asunto || b.evento) + ' → ' + h(b.para) + (b.cc ? ' · cc ' + h(b.cc) : '') + (b.editado === 'SÍ' ? ' · texto editado' : '') + '</span>' : '') + '</div>';
   }).join('');
-  const archivos = (e.archivos || []).map(a => '<div style="display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid var(--fila)"><div><div style="font:600 13px Archivo,sans-serif">' + h(a.nombre) + '</div><div class="sub">' + h(a.categoria) + ' · ' + h(a.tamano_mb) + ' MB · ' + fecha(a.fecha) + '</div></div><div style="display:flex;gap:6px;flex-shrink:0">' + (a.vista ? '<button class="prim" data-ver="' + h(a.id) + '" data-nombre="' + h(a.nombre) + '">' + (a.vista === 'zip' ? 'Ver contenido' : 'Ver') + '</button>' : '') + '<button data-arch="' + h(a.id) + '">Descargar</button>' + (nivel('administracion') ? '<button data-elim="' + h(a.id) + '" data-nombre="' + h(a.nombre) + '" title="Eliminar (solo administración)" style="color:#8A3D2E">Eliminar</button>' : '') + '</div></div>').join('') || '<div class="sub">Sin archivos.</div>';
+  const archivos = (e.archivos || []).map(a => '<div class="arch-fila" style="display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid var(--fila)"><div><div style="font:600 13px Archivo,sans-serif">' + h(a.nombre) + '</div><div class="sub">' + h(a.categoria) + ' · ' + h(a.tamano_mb) + ' MB · ' + fecha(a.fecha) + '</div></div><div style="display:flex;gap:6px;flex-shrink:0">' + (a.vista ? '<button class="prim" data-ver="' + h(a.id) + '" data-nombre="' + h(a.nombre) + '">' + (a.vista === 'zip' ? 'Ver contenido' : 'Ver') + '</button>' : '') + '<button data-arch="' + h(a.id) + '">Descargar</button>' + (nivel('administracion') ? '<button data-elim="' + h(a.id) + '" data-nombre="' + h(a.nombre) + '" title="Eliminar (solo administración)" style="color:#8A3D2E">Eliminar</button>' : '') + '</div></div>').join('') || '<div class="sub">Sin archivos.</div>';
   const cats = Object.keys(S.ini.categorias).filter(k => k !== 'antecedentes_formulario' && k !== 'formulario_solicitud');
   $('app').innerHTML =
     '<a href="#" id="volver" style="font:600 12px Archivo,sans-serif">← Volver a la bandeja</a>' +
     '<div style="display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:12px 0 20px"><div><div class="kicker">Folio ' + h(e.folio) + '</div>' +
     '<h1 style="font:800 clamp(22px,3vw,28px) Archivo,sans-serif;margin:4px 0">' + h(nombre) + '</h1><div class="resumen">' + h(e.programa) + ' · ' + h(e.semestre) + ' ' + h(e.anio) + '</div></div>' +
-    '<div style="text-align:right">' + tag(e.estado, true) + '<div class="mono" style="font-size:11.5px;color:var(--apagado);margin-top:8px">Recibida ' + fecha(e.fecha_recepcion) + (cierre(e.estado) ? '' : ' · ' + dias(e.estado_desde) + ' días en este estado') + '</div></div></div>' +
+    '<div style="text-align:right"><span id="exp_estado">' + tag(e.estado, true) + '</span><div class="mono" style="font-size:11.5px;color:var(--apagado);margin-top:8px">Recibida ' + fecha(e.fecha_recepcion) + (cierre(e.estado) ? '' : ' · ' + dias(e.estado_desde) + ' días en este estado') + '</div></div></div>' +
     (e.revisar === 'SÍ' ? '<div class="aviso a-amb" style="margin-bottom:16px">Revisar (migración): ' + h(e.nota_migracion) + '</div>' : '') +
     '<div class="grid2"><div class="pila">' +
       '<div class="tarjeta"><h3>I. Persona solicitante</h3><div class="dl"><div><span class="et">RUN o pasaporte</span><div class="mono">' + h(e.run || '—') + '</div></div>' +

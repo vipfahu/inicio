@@ -206,6 +206,13 @@ en los tres puntos de entrada: formulario web (`validarSolicitud`), Formulario d
 migración (`solicitudDesdeFila_`). Los casos existentes se corrigieron una vez en la actualización automática (marca
 `nombres-capitalizados-1`). La verificación de la migración compara sin distinguir mayúsculas, así que no lo reporta como diferencia.
 
+**Movimiento de la interfaz.** Tras una acción en la ficha (guardar, anotar, subir, cambiar de estado), la ficha se redibuja en su
+lugar: sin pantalla intermedia y en la misma posición de lectura (`abrir` detecta que ya está abierta), y se resaltan por 1,8 s el
+estado si cambió y las entradas nuevas de la bitácora y de archivos (`resaltarCambios`). Diálogos, visor y avisos entran con un fundido
+breve (150–220 ms); el aviso tiene botón para cerrarlo; los cambios de color al pasar el cursor duran 120 ms. Con «reducir movimiento»
+en el sistema no hay desplazamientos: solo fundidos de opacidad y el resaltado de color. No hay animaciones entre pantallas: Apps
+Script ya tarda 1–2 s por respuesta y una animación que espera datos alarga la sensación de demora.
+
 **Documento de identidad.** El formulario pide elegir RUN o pasaporte. El RUN se valida con su dígito verificador (módulo 11) en el
 navegador y otra vez en el servidor, y se guarda como «12.345.678-5»; el pasaporte acepta letras y números (5 a 20). La columna
 `tipo_documento` de «Solicitudes» indica cuál es. Las solicitudes del Formulario de Google antiguo no se validan.

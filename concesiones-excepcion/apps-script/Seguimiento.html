@@ -26,6 +26,9 @@
   .paso:not(:last-child)::after{content:'';position:absolute;left:7px;top:18px;bottom:0;width:2px;background:#F0EDE4}
   .paso b{font:700 13.5px Archivo,sans-serif;display:block} .paso span{font:400 13px Spectral,serif;color:#5A6470}
   footer{border-top:1px solid #E8E4DA;padding:18px clamp(16px,5vw,60px);font:400 12px Archivo,sans-serif;color:#8A8272}
+  /* Movimiento: hover suave; sin transiciones con «reducir movimiento». */
+  button,a,.boton,.toggle button{transition:background-color .12s ease-out,border-color .12s ease-out,color .12s ease-out}
+  @media (prefers-reduced-motion:reduce){button,a,.boton,.toggle button{transition:none}}
 </style>
 </head>
 <body>
