@@ -334,7 +334,7 @@ function pintarExp() {
     (e.revisar === 'SÍ' ? '<div class="aviso a-amb" style="margin-bottom:16px">Revisar (migración): ' + h(e.nota_migracion) + '</div>' : '') +
     '<div class="grid2"><div class="pila">' +
       '<div class="tarjeta"><h3>I. Persona solicitante</h3><div class="dl"><div><span class="et">RUN o pasaporte</span><div class="mono">' + h(e.run || '—') + '</div></div>' +
-      '<div><span class="et">Correo</span><a href="mailto:' + h(e.correo) + '">' + h(e.correo) + '</a></div><div><span class="et">Teléfono</span><div class="mono">' + h(e.telefono || '—') + '</div></div></div></div>' +
+      '<div><span class="et">Correo</span><a href="mailto:' + h(e.correo) + '">' + h(e.correo) + '</a>' + (nivel('administracion') ? ' <button id="cambiar_correo" title="Cambiar el correo del estudiante (solo administración); el estudiante recibe en la dirección nueva el aviso de su registro" style="padding:3px 8px;margin-left:4px">Cambiar</button>' : '') + '</div><div><span class="et">Teléfono</span><div class="mono">' + h(e.telefono || '—') + '</div></div></div></div>' +
       '<div class="tarjeta"><h3>II. Requerimiento</h3>' + (e.tipo_catalogo ? '<span class="tag t-tra">' + h(e.tipo_catalogo) + '</span> ' : '') + (e.tipo_texto_libre ? '<span class="tag t-adm">Otro: ' + h(e.tipo_texto_libre) + '</span>' : '') +
       (e.verDetalle ? (e.alertaFundamentacion ? '<div class="aviso a-rojo" style="white-space:normal;margin-top:10px">' + h(e.alertaFundamentacion) + '</div>' : '') + '<p style="font:400 14px/1.65 Spectral,serif;white-space:pre-line">' + h(e.fundamentacion) + '</p>' : '<p class="sub" style="margin-top:12px">La fundamentación y los archivos son visibles solo con nivel Edición.</p>') + '</div>' +
       (e.verDetalle ? '<div class="tarjeta"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px"><h3 style="margin:0">Archivos del expediente</h3>' +
@@ -376,6 +376,16 @@ function pintarExp() {
       ? ofrecerPdfSolicitud(r, 'El PDF del formulario de solicitud ya fue generado el ' + r.fecha + ' por ' + r.por + ', y no se vuelve a generar. Está en «Archivos del expediente».', 'PDF ya generado')
       : ofrecerPdfSolicitud(r, 'PDF del formulario de solicitud generado. Quedó en «Archivos del expediente».')))
       .catch(err => { fallo(err); if ($('pdf_solicitud')) { $('pdf_solicitud').disabled = false; $('pdf_solicitud').textContent = 'PDF del formulario de solicitud'; } });
+  };
+  if ($('cambiar_correo')) $('cambiar_correo').onclick = () => {
+    const nuevo = prompt('Nuevo correo del estudiante para la solicitud ' + e.folio + '.\nSe usará para todas las comunicaciones y para ingresar al seguimiento; el estudiante recibirá en esa dirección el aviso de su registro en la plataforma.', e.correo || '');
+    if (nuevo === null) return;
+    const c = nuevo.trim().toLowerCase();
+    if (!c) return toast('Indique el correo', true);
+    if (!/@usach\.cl$/.test(c) && !confirm('«' + c + '» no es una cuenta @usach.cl: el estudiante recibirá los correos, pero no podrá ingresar al seguimiento. ¿Continuar?')) return;
+    $('cambiar_correo').disabled = true;
+    run('api_cambiarCorreoEstudiante', e.folio, c).then(r => { toast('Correo actualizado' + (r.notificado ? ' · aviso de registro enviado a ' + c : ' · no se pudo enviar el aviso (ver bitácora)'), !r.notificado); abrir(e.folio); })
+      .catch(err => { fallo(err); if ($('cambiar_correo')) $('cambiar_correo').disabled = false; });
   };
   if ($('rest_ante')) $('rest_ante').onclick = () => {
     $('rest_ante').disabled = true;
@@ -912,8 +922,7 @@ function pintarCuentas(editando) {
     const b = $('k_guardar'); if (b.disabled) return;
     b.disabled = true; b.textContent = nueva ? 'Creando…' : 'Guardando…';
     run('api_guardarCuenta', datos, nueva).then(res => {
-      toast(res.sinCambios ? 'Sin cambios' : nueva ? 'Cuenta creada' : 'Cuenta actualizada');
-      if (nueva && confirm('¿Enviar a ' + datos.correo.trim().toLowerCase() + ' el enlace de acceso al panel?')) run('api_avisarCuenta', datos.correo.trim().toLowerCase()).then(() => toast('Enlace enviado')).catch(fallo);
+      toast(res.sinCambios ? 'Sin cambios' : (nueva ? 'Cuenta creada' : 'Cuenta actualizada') + (res.notificada ? ' · aviso enviado a ' + datos.correo.trim().toLowerCase() : ''));
       cargarCuentas();
     }).catch(err => { fallo(err); b.disabled = false; b.textContent = nueva ? 'Crear cuenta' : 'Guardar'; });
   };

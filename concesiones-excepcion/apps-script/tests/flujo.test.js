@@ -348,8 +348,9 @@ test('cuentas: crear, editar, desactivar con efecto inmediato y salvaguardas', (
   ctx.api_guardarCuenta({ correo: 'nueva@usach.cl', nombre: 'Nueva Analista', rol: 'Analista', nivel: 'edicion', programas: 'todos', activo: 'NO' }, false);
   estado.usuario = 'nueva@usach.cl';
   assert.throws(() => ctx.api_bandeja(), /SIN_ACCESO/);
-  const reg = tabla(env, 'Bitácora').filter(b => b.tipo === 'cuenta');
+  const reg = tabla(env, 'Bitácora').filter(b => b.tipo === 'cuenta' && !/^Aviso de perfil/.test(b.texto));
   assert.equal(reg.length, 3);
+  assert.equal(tabla(env, 'Bitácora').filter(b => /^Aviso de perfil enviado a nueva@usach\.cl/.test(b.texto)).length, 3, 'creación, cambio de programas y desactivación se avisan');
   assert.match(reg[1].texto, /programas: «Magíster en Prueba A» → «Otro programa»/);
 });
 
@@ -1590,4 +1591,88 @@ test('nombres: los casos nuevos llegan capitalizados y los existentes se corrige
   estado.usuario = '';
   ctx.alRecibirFormulario({ range: hoja.getRange(hoja.getLastRow(), 1) });
   assert.equal(tabla(env, 'Solicitudes').pop().nombres, 'Juan Pablo');
+});
+
+test('correo del estudiante: solo administración lo cambia; el estudiante recibe en la dirección nueva el aviso de su registro', () => {
+  const env = instalar(preparar());
+  const { ctx, estado } = env;
+  estado.usuario = 'analista.uno@usach.cl';
+  assert.throws(() => ctx.api_cambiarCorreoEstudiante('03/2026', 'nueva.direccion@usach.cl'), /nivel requerido/);
+  estado.usuario = 'vice@usach.cl';
+  assert.throws(() => ctx.api_cambiarCorreoEstudiante('03/2026', 'no-es-correo'), /no es válido/);
+  const n = estado.correos.length;
+  const r = ctx.api_cambiarCorreoEstudiante('03/2026', ' Nueva.Direccion@usach.cl ');
+  assert.equal(r.notificado, true);
+  assert.equal(r.usach, true);
+  const s = tabla(env, 'Solicitudes').find(x => x.folio === '03/2026');
+  assert.equal(s.correo, 'nueva.direccion@usach.cl');
+  assert.equal(s.correo_verificado, 'nueva.direccion@usach.cl');
+  const m = estado.correos.slice(n);
+  assert.equal(m.length, 1, 'un solo aviso, a la dirección nueva');
+  assert.equal(m[0].to, 'nueva.direccion@usach.cl');
+  assert.match(m[0].subject, /Solicitud CAE 03\/2026 · registrada en la plataforma/);
+  assert.match(m[0].body, /desde ahora las comunicaciones de este trámite se enviarán a esta dirección/);
+  assert.match(m[0].body, /Estado actual: Admisible para análisis\./);
+  assert.match(m[0].body, /\?v=seguimiento/);
+  assert.doesNotMatch(m[0].body, /\{\w+\}/);
+  const b = ctx.api_expediente('03/2026').bitacora;
+  assert.ok(b.some(x => x.tipo === 'gestion' && /Correo del estudiante cambiado por administración: est3@usach\.cl → nueva\.direccion@usach\.cl/.test(x.texto)));
+  assert.ok(b.some(x => x.evento === 'registro_estudiante' && x.para === 'nueva.direccion@usach.cl'));
+  // El estudiante con la cuenta nueva ve su caso en el seguimiento; la cuenta anterior ya no
+  estado.usuario = 'nueva.direccion@usach.cl';
+  assert.ok(ctx.api_misSolicitudes().solicitudes.some(x => x.folio === '03/2026'));
+  estado.usuario = 'est3@usach.cl';
+  assert.ok(!ctx.api_misSolicitudes().solicitudes.some(x => x.folio === '03/2026'));
+  // Mismo correo: no hace nada
+  estado.usuario = 'vice@usach.cl';
+  assert.throws(() => ctx.api_cambiarCorreoEstudiante('03/2026', 'nueva.direccion@usach.cl'), /ya tiene ese correo/);
+  // Dirección fuera de USACH: se acepta e informa que no podrá ingresar al seguimiento
+  assert.equal(ctx.api_cambiarCorreoEstudiante('03/2026', 'personal@gmail.com').usach, false);
+});
+
+test('cuentas: asignar un perfil o cambiarlo avisa por correo a la persona; nombre y notas no', () => {
+  const env = instalar(preparar());
+  const { ctx, estado } = env;
+  estado.usuario = 'vice@usach.cl';
+  const enviados = () => estado.correos.filter(m => /^Plataforma CAE · (perfil asignado|cambio en su perfil|cuenta desactivada)/.test(m.subject));
+  // Creación
+  const r1 = ctx.api_guardarCuenta({ correo: 'nueva.analista@usach.cl', nombre: 'Nueva Analista', rol: 'Analista', nivel: 'edicion', programas: 'todos', activo: 'SÍ', recibe_eventos: '' }, true);
+  assert.equal(r1.notificada, true);
+  let m = enviados().pop();
+  assert.equal(m.to, 'nueva.analista@usach.cl');
+  assert.match(m.subject, /perfil asignado/);
+  assert.match(m.body, /Rol: Analista[\s\S]*Nivel: Edición \(tramita solicitudes\)[\s\S]*Programas: Todos[\s\S]*Ingrese con su cuenta USACH en: https:/);
+  assert.equal(m.replyTo, 'vice@usach.cl');
+  // Ascender a Administración (caso de una analista existente)
+  const r2 = ctx.api_guardarCuenta({ correo: 'analista.uno@usach.cl', nombre: 'Analista Uno', rol: 'Analista', nivel: 'administracion', programas: 'todos', activo: 'SÍ' }, false);
+  assert.equal(r2.notificada, true);
+  m = enviados().pop();
+  assert.equal(m.to, 'analista.uno@usach.cl');
+  assert.match(m.subject, /cambio en su perfil/);
+  assert.match(m.body, /Cambios:\n- Nivel: Edición → Administración/);
+  assert.match(m.body, /Nivel: Administración \(tramita y además gestiona cuentas, programas y parámetros\)/);
+  // Cambiar solo el nombre: no se avisa
+  const antes = enviados().length;
+  const r3 = ctx.api_guardarCuenta({ correo: 'analista.uno@usach.cl', nombre: 'Analista Uno Corregido', rol: 'Analista', nivel: 'administracion', programas: 'todos', activo: 'SÍ' }, false);
+  assert.equal(r3.notificada, false);
+  assert.equal(enviados().length, antes);
+  // Desactivar: aviso de cuenta desactivada, sin enlace al panel
+  ctx.api_guardarCuenta({ correo: 'nueva.analista@usach.cl', nombre: 'Nueva Analista', rol: 'Analista', nivel: 'edicion', programas: 'todos', activo: 'NO', recibe_eventos: '' }, false);
+  m = enviados().pop();
+  assert.match(m.subject, /cuenta desactivada/);
+  assert.match(m.body, /Cuenta activa: Sí → No/);
+  assert.doesNotMatch(m.body, /Ingrese con su cuenta/);
+  // Queda en la bitácora; si el correo falla, la cuenta se guarda igual y el error queda registrado
+  assert.ok(tabla(env, 'Bitácora').some(b => b.tipo === 'cuenta' && /Aviso de perfil enviado a analista\.uno@usach\.cl \(cambio en su perfil\)/.test(b.texto)));
+  estado.fallaCorreo = true;
+  const r4 = ctx.api_guardarCuenta({ correo: 'otra@usach.cl', nombre: 'Otra', rol: 'Consulta', nivel: 'consulta', programas: 'todos', activo: 'SÍ' }, true);
+  estado.fallaCorreo = false;
+  assert.equal(r4.ok, true);
+  assert.equal(r4.notificada, false);
+  assert.ok(tabla(env, 'Cuentas').some(c => c.correo === 'otra@usach.cl'));
+  assert.ok(tabla(env, 'Bitácora').some(b => /ERROR · no se envió el aviso de perfil a otra@usach\.cl/.test(b.texto)));
+  // Reenvío manual desde «Editar cuenta»
+  const n = enviados().length;
+  ctx.api_avisarCuenta('otra@usach.cl');
+  assert.equal(enviados().length, n + 1);
 });

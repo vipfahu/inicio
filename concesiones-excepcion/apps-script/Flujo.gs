@@ -441,6 +441,29 @@ function api_guardarGestion(folio, campos) {
   return { ok: true };
 }
 
+/**
+ * Cambia el correo del estudiante (solo administración). Actualiza el correo de contacto y la cuenta con que se identifica en el
+ * seguimiento, deja constancia en la bitácora (anterior → nuevo) y envía al estudiante, en la dirección nueva, el aviso de que su
+ * solicitud está registrada en la plataforma (plantilla `registro_estudiante`). El seguimiento exige una cuenta @usach.cl: con otra
+ * dirección el estudiante recibe los correos pero no puede ingresar a ver su caso.
+ */
+function api_cambiarCorreoEstudiante(folio, correo) {
+  const u = requiere_('administracion');
+  correo = String(correo || '').trim().toLowerCase();
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(correo)) throw new Error('El correo no es válido.');
+  const antes = conCerrojo_(() => {
+    const s = buscarSolicitud_(folio);
+    if (!puedeVerSolicitud(u, s)) throw new Error('SIN_ACCESO: la solicitud no pertenece a sus programas.');
+    const previo = unicos([s.correo_verificado, s.correo].map(x => String(x || '').trim().toLowerCase()).filter(Boolean));
+    if (previo.length === 1 && previo[0] === correo) throw new Error('La solicitud ya tiene ese correo.');
+    actualizar_(HOJAS.solicitudes, s._fila, { correo: correo, correo_verificado: correo, actualizado: new Date() }, s.folio);
+    anexar_(HOJAS.bitacora, { fecha: new Date(), folio: folio, tipo: 'gestion', quien: u.correo, texto: 'Correo del estudiante cambiado por administración: ' + (previo.join(', ') || '(vacío)') + ' → ' + correo + '.' });
+    return previo;
+  });
+  const notificado = enviarAutomatico_('registro_estudiante', buscarSolicitud_(folio));
+  return { ok: true, notificado: notificado, anterior: antes, usach: /@usach\.cl$/.test(correo) };
+}
+
 function api_anotar(folio, texto) {
   const u = requiere_('edicion');
   const s = buscarSolicitud_(folio);

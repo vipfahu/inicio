@@ -77,6 +77,7 @@ function api_guardarCuenta(c, esNueva) {
   const u = requiere_('administracion');
   const lock = LockService.getScriptLock();
   lock.waitLock(20000);
+  let aviso = null;
   try {
     const cuentas = leer_(HOJAS.cuentas);
     const limpia = {
@@ -96,6 +97,7 @@ function api_guardarCuenta(c, esNueva) {
       limpia.creada_en = new Date();
       anexar_(HOJAS.cuentas, limpia);
       registrarCuenta_(u.correo, 'Cuenta creada: ' + limpia.correo + ' · ' + limpia.rol + ' · ' + limpia.nivel);
+      aviso = { cuenta: limpia, cambios: [] };
     } else {
       const antes = cuentas.find(x => String(x.correo).toLowerCase() === limpia.correo);
       const cambios = ['nombre', 'rol', 'nivel', 'programas', 'activo', 'recibe_eventos', 'notas']
@@ -106,10 +108,76 @@ function api_guardarCuenta(c, esNueva) {
       ['nombre', 'rol', 'nivel', 'programas', 'activo', 'recibe_eventos', 'notas'].forEach(k => { fila[k] = limpia[k]; });
       actualizar_(HOJAS.cuentas, antes._fila, fila);
       registrarCuenta_(u.correo, 'Cuenta editada: ' + limpia.correo + ' · ' + cambios.join(' · '));
+      // Cambio de perfil (rol, nivel, programas, estado o copias): se avisa a la persona. Nombre y notas no cambian el perfil.
+      const perfil = CAMPOS_PERFIL.filter(k => String(antes[k] === null ? '' : antes[k]) !== String(limpia[k]));
+      if (perfil.length) aviso = { cuenta: limpia, cambios: perfil.map(k => ({ campo: k, antes: antes[k], despues: limpia[k] })) };
     }
-    return { ok: true };
   } finally {
     lock.releaseLock();
+  }
+  // El aviso sale después de soltar el cerrojo; si falla, la cuenta queda guardada igual y el error queda en la bitácora.
+  const notificada = aviso ? notificarCuenta_(aviso.cuenta, aviso.cambios, u) : false;
+  return { ok: true, notificada: notificada };
+}
+
+/** Campos que definen el perfil de una cuenta: un cambio en cualquiera de ellos se notifica a la persona. */
+const CAMPOS_PERFIL = ['rol', 'nivel', 'programas', 'activo', 'recibe_eventos'];
+const ROTULO_NIVEL = {
+  sin_acceso: 'Sin acceso al panel (solo recibe copias de correos)',
+  consulta: 'Consulta (solo lectura: bandeja, panorama e indicadores, sin datos sensibles)',
+  edicion: 'Edición (tramita solicitudes)',
+  administracion: 'Administración (tramita y además gestiona cuentas, programas y parámetros)'
+};
+const ROTULO_CAMPO_PERFIL = { rol: 'Rol', nivel: 'Nivel', programas: 'Programas', activo: 'Cuenta activa', recibe_eventos: 'Copias de correos' };
+
+/** Texto del aviso de perfil: perfil vigente y, si los hay, los cambios (antes → ahora). */
+function mensajeCuenta_(c, cambios) {
+  const activa = esSi(c.activo);
+  const url = urlPanel_();
+  const nuevo = !cambios || !cambios.length;
+  const lineas = [
+    'Estimado/a ' + (String(c.nombre || '').trim() || c.correo) + ':', '',
+    nuevo ? 'Se le asignó un perfil en la plataforma de Concesiones Académicas de Excepción (CAE) del Vicedecanato de Investigación y Postgrado.'
+      : (activa ? 'Se modificó su perfil en la plataforma de Concesiones Académicas de Excepción (CAE) del Vicedecanato de Investigación y Postgrado.'
+        : 'Se desactivó su cuenta en la plataforma de Concesiones Académicas de Excepción (CAE) del Vicedecanato de Investigación y Postgrado.'), ''
+  ];
+  if (!nuevo) {
+    lineas.push('Cambios:');
+    cambios.forEach(x => lineas.push('- ' + (ROTULO_CAMPO_PERFIL[x.campo] || x.campo) + ': ' + valorPerfil_(x.campo, x.antes) + ' → ' + valorPerfil_(x.campo, x.despues)));
+    lineas.push('');
+  }
+  if (activa) {
+    lineas.push('Perfil vigente:', '- Rol: ' + c.rol, '- Nivel: ' + (ROTULO_NIVEL[c.nivel] || c.nivel), '- Programas: ' + valorPerfil_('programas', c.programas));
+    if (String(c.recibe_eventos || '').trim()) lineas.push('- Copias de correos: ' + c.recibe_eventos);
+    lineas.push('');
+    if (c.nivel !== 'sin_acceso' && url) lineas.push('Ingrese con su cuenta USACH en: ' + url, '');
+  } else {
+    lineas.push('Desde ahora no podrá ingresar al panel ni recibirá copias de correos de la plataforma. Si cree que se trata de un error, responda a este mensaje.', '');
+  }
+  lineas.push(parametros_().remitente_nombre || 'Vicedecanato de Investigación y Postgrado · FAHU');
+  return lineas.join('\n');
+}
+function valorPerfil_(campo, v) {
+  v = String(v === null || v === undefined ? '' : v).trim();
+  if (campo === 'nivel') return ROTULO_NIVEL[v] ? ROTULO_NIVEL[v].replace(/ \(.*$/, '') : v;
+  if (campo === 'programas') return !v || v.toLowerCase() === 'todos' ? 'Todos' : v.split(';').map(x => x.trim()).join(', ');
+  if (campo === 'activo') return esSi(v) ? 'Sí' : 'No';
+  return v || '—';
+}
+
+/** Envía el aviso de perfil a la persona de la cuenta. Devuelve true si salió. Nunca lanza: el fallo queda en la bitácora. */
+function notificarCuenta_(c, cambios, u) {
+  const correo = String(c.correo || '').trim().toLowerCase();
+  if (!correo || correo === duenia_()) return false;
+  const nuevo = !cambios || !cambios.length;
+  const asunto = 'Plataforma CAE · ' + (nuevo ? 'perfil asignado' : esSi(c.activo) ? 'cambio en su perfil' : 'cuenta desactivada');
+  try {
+    MailApp.sendEmail({ to: correo, subject: asunto, body: mensajeCuenta_(c, cambios), name: parametros_().remitente_nombre, replyTo: u.correo });
+    registrarCuenta_(u.correo, 'Aviso de perfil enviado a ' + correo + ' (' + asunto.replace('Plataforma CAE · ', '') + ')');
+    return true;
+  } catch (e) {
+    registrarCuenta_(u.correo, 'ERROR · no se envió el aviso de perfil a ' + correo + ': ' + e.message);
+    return false;
   }
 }
 
@@ -145,15 +213,7 @@ function api_avisarCuenta(correo) {
   const u = requiere_('administracion');
   const c = leer_(HOJAS.cuentas).find(x => String(x.correo).toLowerCase() === String(correo).toLowerCase());
   if (!c || !esSi(c.activo)) throw new Error('La cuenta no existe o está inactiva.');
-  const p = parametros_();
-  MailApp.sendEmail({
-    to: c.correo,
-    subject: 'Acceso a la plataforma CAE · Vicedecanato de Investigación y Postgrado',
-    body: 'Estimado/a ' + c.nombre + ':\n\nSe le ha habilitado el acceso a la plataforma de Concesiones Académicas de Excepción (nivel: ' + c.nivel + ').\n\nIngrese con su cuenta USACH en: ' + ScriptApp.getService().getUrl() + '\n\n' + p.remitente_nombre,
-    name: p.remitente_nombre,
-    replyTo: u.correo
-  });
-  registrarCuenta_(u.correo, 'Aviso de acceso enviado a ' + c.correo);
+  if (!notificarCuenta_(c, [], u)) throw new Error('No se pudo enviar el aviso (ver la bitácora).');
   return { ok: true };
 }
 

@@ -89,6 +89,16 @@ se ingresa con Google. Niveles: `sin_acceso` (solo recibe correos) · `consulta`
 Cada llamada del panel vuelve a leer la matriz, así que un cambio rige en la siguiente acción de esa persona. Para suspender una
 cuenta se desactiva; «Eliminar» borra su fila (`api_eliminarCuenta(correo, fila)`, pensado para registros duplicados, que la lista
 marca) y lo anota en la bitácora. La cuenta institucional es administradora fija y no se puede dejar el sistema sin otra administración activa.
+**Aviso de perfil.** Crear una cuenta o cambiar su perfil (rol, nivel, programas, activo o copias: `CAMPOS_PERFIL` en Cuentas.gs) envía
+automáticamente a esa persona un correo con el perfil vigente y, si es un cambio, el detalle «antes → ahora» (`notificarCuenta_`);
+desactivarla le avisa que ya no tiene acceso. Cambiar solo nombre o notas no avisa. El aviso sale después de guardar: si falla, la
+cuenta queda guardada y el error se anota en la bitácora; «Enviar enlace» en «Editar cuenta» lo reenvía (`api_avisarCuenta`).
+
+**Correo del estudiante.** Administración puede cambiarlo desde la ficha (botón «Cambiar» junto al correo;
+`api_cambiarCorreoEstudiante`): se actualizan el correo de contacto y la cuenta con que el estudiante ingresa al seguimiento, la
+bitácora registra «anterior → nuevo» y el estudiante recibe en la dirección nueva el aviso automático de que su solicitud está
+registrada en la plataforma (plantilla `registro_estudiante`, con el estado actual y el enlace de seguimiento). Con una dirección que
+no sea @usach.cl recibe los correos, pero no puede ingresar al seguimiento; el panel lo advierte antes de confirmar.
 
 **Flujo.** Recibida → En revisión de admisibilidad → Admisible para análisis / Rechazada / No procede → Informe de Registro Curricular
 → Pronunciamiento del programa (solicitado vía STD; la plataforma solo registra el estado, sin correo) → V°B° a la respuesta del Comité.
