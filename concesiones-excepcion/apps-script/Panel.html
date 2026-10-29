@@ -513,7 +513,7 @@ function panelGestion(e, edita) {
     const prim = esVice && s.id === 'aviso_rc';
     const amb = esVice && (s.id === 'programa' || s.id === 'rechazo_vb');
     // El programa se consulta por STD: aquí solo se registra que se solicitó (o que se devolvió con observación).
-    const txt = s.id === 'programa' ? (e.estado === 'vb' ? 'Registrar devolución al programa (vía STD) con observación' : 'Registrar solicitud de pronunciamiento al programa (vía STD)')
+    const txt = s.id === 'programa' ? (e.estado === 'vb' ? 'Registrar devolución al programa (vía STD) con observación' : e.esRenuncia ? 'Registrar solicitud de toma de conocimiento al programa (vía STD)' : 'Registrar solicitud de pronunciamiento al programa (vía STD)')
       : e.estado === 'vb' && s.id === 'aviso_rc' ? 'V°B° · CAE admisible: notificar a Registro Curricular'
       : s.id === 'rc_notificado' ? 'Registrar notificación a Registro Curricular (pasos a seguir y pagos)'
       : e.estado === 'rc_notificado' && s.id === 'resolucion' ? 'Notificar al estudiante: resolución en elaboración'
@@ -533,7 +533,8 @@ function panelGestion(e, edita) {
     (e.resolucion ? ' · Resolución ' + h(e.resolucion) : '') + '.</div>';
   const campo = (k, rot, tipo) => '<div style="margin-top:12px"><label class="et" for="g_' + k + '">' + rot + '</label>' +
     (tipo === 'area' ? '<textarea id="g_' + k + '" rows="3">' + h(e[k]) + '</textarea>' : '<input id="g_' + k + '" value="' + h(e[k]) + '"' + (k === 'n_std' ? ' class="mono"' : '') + '>') + '</div>';
-  return '<div class="tarjeta"><h3>' + (esVice ? 'Visto bueno' : 'Gestión del trámite') + '</h3><span class="et">Estado actual</span><div style="font:700 14px Archivo,sans-serif;margin-bottom:12px">' + h(e.estadoEtiqueta) + '</div>' +
+  const avisoRenuncia = e.esRenuncia && ['aceptada', 'informe_rc', 'programa'].indexOf(e.estado) >= 0 ? '<div class="aviso a-amb" style="margin-bottom:10px;white-space:normal"><b>Renuncia.</b> El STD al programa debe solicitar la <b>toma de conocimiento y el registro de la situación</b>, con devolución del STD para continuar la tramitación; no se pide pronunciamiento del Comité.</div>' : '';
+  return '<div class="tarjeta"><h3>' + (esVice ? 'Visto bueno' : 'Gestión del trámite') + '</h3>' + avisoRenuncia + '<span class="et">Estado actual</span><div style="font:700 14px Archivo,sans-serif;margin-bottom:12px">' + h(e.estadoEtiqueta) + '</div>' +
     (e.propuesta_comite ? '<div style="background:var(--fcampo);border-radius:10px;padding:10px 12px;margin-bottom:12px;font:400 13px/1.5 Spectral,serif"><span class="et">Propuesta del Comité</span>' + h(e.propuesta_comite) + '</div>' : '') +
     (e.siguientes.length ? '<span class="et">Pasar a</span>' + botones : cierre) + recordatorioManualHtml(e) + retroceso(e) + '<hr style="border:0;border-top:1px solid var(--fila);margin:16px 0">' +
     '<label class="et" for="g_analista">Analista a cargo</label><select id="g_analista"><option value="">Sin asignar</option>' + S.ini.analistas.map(a => '<option value="' + h(a.correo) + '"' + (a.correo === e.analista ? ' selected' : '') + '>' + h(a.nombre) + '</option>').join('') + '</select>' +
@@ -703,6 +704,7 @@ function dialogo(hacia) {
     // Al cerrar (Resuelto / Negado) se puede cargar la resolución emitida por Registro Curricular.
     const conResolucion = hacia === 'resuelto' || hacia === 'negado';
     const recibeResolucion = hacia === 'res_recibida' || hacia === 'res_rechazo_recibida';
+    if (e.esRenuncia && hacia === 'programa' && e.estado !== 'vb') html += '<div class="aviso a-amb" style="margin-bottom:10px;white-space:normal"><b>Renuncia.</b> El STD al programa debe solicitar la <b>toma de conocimiento y el registro de la situación</b>, con devolución del STD para continuar la tramitación; no se pide pronunciamiento del Comité.</div>';
     if (recibeResolucion) html += '<div class="aviso a-teal" style="margin-bottom:12px;white-space:normal">Firmada por la Decana, Registro Curricular puso número y fecha a la resolución, la despachó al estudiante por correo y finalizó el STD. Registre el número y la fecha y, si lo tiene, adjunte el archivo; el cierre (Resuelto / Negado) es el paso siguiente.</div>';
     if (conResolucion) html += '<div class="aviso a-amb" style="margin-bottom:12px;white-space:normal"><b>Cierra el trámite.</b> La resolución registrada: ' + h(e.resolucion || '—') + '.</div>';
     if (conResolucion) html += '<label class="et" for="c_comentario">Comentario para su registro</label><textarea id="c_comentario" rows="2" style="margin-bottom:10px" placeholder="Opcional: queda en la bitácora del expediente"></textarea>';

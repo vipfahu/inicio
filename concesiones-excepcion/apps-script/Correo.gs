@@ -15,6 +15,8 @@ function variables_(sol, campos, cuentas) {
   campos = campos || {};
   const tipo = [sol.tipo_catalogo, sol.tipo_texto_libre].filter(Boolean).join(', ');
   const analista = sol.analista ? nombreDe_(sol.analista, cuentas) : '';
+  const stdRef = (campos.n_std || sol.n_std) ? 'STD N° ' + String(campos.n_std || sol.n_std).trim() : 'STD';
+  const renuncia = esRenuncia(sol);
   return {
     nombre: [sol.nombres, sol.apellido1, sol.apellido2].filter(Boolean).join(' '),
     folio: sol.folio,
@@ -28,7 +30,12 @@ function variables_(sol, campos, cuentas) {
     analista_asignada: analista || 'sin asignar (asígnela desde el expediente)',
     std: campos.n_std || sol.n_std || '',
     // Referencia al envío por STD: con número si está registrado, sin él si no (las plantillas no dejan «N° » vacío).
-    std_ref: (campos.n_std || sol.n_std) ? 'STD N° ' + String(campos.n_std || sol.n_std).trim() : 'STD',
+    std_ref: stdRef,
+    // Renuncia: al programa se le pide toma de conocimiento y devolución del STD, no pronunciamiento del Comité.
+    objeto_programa: renuncia ? 'la toma de conocimiento y el registro de la renuncia por parte del programa' : 'el pronunciamiento del programa',
+    peticion_programa: renuncia ? textoRenunciaPrograma(stdRef) : 'Agradecemos enviar el pronunciamiento del Comité del programa a la brevedad, a través del mismo trámite en el STD.',
+    pendiente_programa: renuncia ? 'toma de conocimiento de renuncia pendiente' : 'pronunciamiento del programa pendiente',
+    nota_renuncia_programa: renuncia ? '\n\nNota para la Dirección de Programa: por tratarse de una renuncia, la solicitud que se remitirá al programa por STD no requiere pronunciamiento del Comité: se solicita la toma de conocimiento y el registro de la situación, devolviendo el STD para continuar la tramitación.' : '',
     std_frase: (campos.n_std || sol.n_std) ? ' (trámite STD N° ' + String(campos.n_std || sol.n_std).trim() + ')' : '',
     vicedecano: vice,
     encargo_vicedecano: encargoDe(vice),
@@ -84,7 +91,7 @@ function componer_(evento, sol, campos) {
     faltantes: dest.faltantes,
     omitidos: dest.omitidos || [],
     asunto: rellenar(t.asunto, v),
-    cuerpo: rellenar(t.cuerpo, v),
+    cuerpo: asegurarIndicacionRenuncia(evento, rellenar(t.cuerpo, v), sol, v.std_ref),
     replyTo: sol.analista || ''
   };
 }

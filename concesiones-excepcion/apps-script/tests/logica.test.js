@@ -429,3 +429,20 @@ test('nombres y apellidos con solo la primera letra en mayúscula', () => {
     programa: 'Magíster en Prueba A', anio: 2026, semestre: 'Semestre II', tipos: ['Renuncia'], otro: '', fundamentacion: 'Fundamentación suficientemente extensa para el trámite.' }, { programas: ['Magíster en Prueba A'], anio: 2026 }).datos;
   assert.deepEqual([d.apellido1, d.apellido2, d.nombres], ['Pérez', 'De la Fuente', 'Ana María']);
 });
+
+test('renuncia: detección e indicación para el programa', () => {
+  assert.ok(L.esRenuncia({ tipo_catalogo: 'Renuncia' }));
+  assert.ok(L.esRenuncia({ tipo_catalogo: 'Prórroga de Periodo Lectivo, Renuncia' }));
+  assert.ok(L.esRenuncia({ tipo_texto_libre: 'renuncia al programa' }));
+  assert.ok(!L.esRenuncia({ tipo_catalogo: 'Prórroga de Periodo Lectivo' }));
+  assert.ok(!L.esRenuncia({ tipo_texto_libre: 'renunciamiento' }), 'solo la palabra «renuncia»');
+  assert.match(L.textoRenunciaPrograma('STD N° 77'), /toma de conocimiento y el registro de la situación .* devolviendo el STD N° 77 para continuar la tramitación/);
+  const editado = 'Estimado/a:\n\nTexto editado por el equipo.\n\nAtentamente,\nEquipo';
+  const r = L.asegurarIndicacionRenuncia('recordatorio', editado, { tipo_catalogo: 'Renuncia' }, 'STD N° 77');
+  assert.match(r, /Texto editado por el equipo\.\n\nPor tratarse de una renuncia[^]*STD N° 77[^]*\n\nAtentamente/);
+  assert.match(L.asegurarIndicacionRenuncia('aceptada', editado, { tipo_catalogo: 'Renuncia' }, 'STD'), /Nota para la Dirección de Programa: por tratarse de una renuncia/);
+  assert.equal(L.asegurarIndicacionRenuncia('recordatorio', editado, { tipo_catalogo: 'Prórroga de Periodo Lectivo' }, 'STD'), editado, 'sin renuncia no cambia');
+  assert.equal(L.asegurarIndicacionRenuncia('rechazada', editado, { tipo_catalogo: 'Renuncia' }, 'STD'), editado, 'el rechazo cierra el caso: no pide nada al programa');
+  const ya = editado + ' toma de conocimiento';
+  assert.equal(L.asegurarIndicacionRenuncia('recordatorio', ya, { tipo_catalogo: 'Renuncia' }, 'STD'), ya, 'no se duplica');
+});

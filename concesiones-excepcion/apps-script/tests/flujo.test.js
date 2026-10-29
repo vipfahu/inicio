@@ -1676,3 +1676,39 @@ test('cuentas: asignar un perfil o cambiarlo avisa por correo a la persona; nomb
   ctx.api_avisarCuenta('otra@usach.cl');
   assert.equal(enviados().length, n + 1);
 });
+
+test('renuncia: los correos al programa piden toma de conocimiento y devolución del STD; los demás casos no cambian', () => {
+  const env = instalar(preparar());
+  const { ctx, estado } = env;
+  const sol = f => tabla(env, 'Solicitudes').find(x => x.folio === f);
+  const renuncia = Object.assign({}, sol('05/2026'), { tipo_catalogo: 'Renuncia', tipo_texto_libre: '', n_std: '2026-321', estado: 'programa', estado_desde: new Date(2026, 9, 1) });
+  const prorroga = Object.assign({}, renuncia, { tipo_catalogo: 'Prórroga de Periodo Lectivo' });
+  const r = ctx.componer_('recordatorio', renuncia);
+  assert.match(r.asunto, /toma de conocimiento de renuncia pendiente/);
+  assert.match(r.cuerpo, /se solicitó, a través del Sistema de Trazabilidad Documental \(STD N° 2026-321\), la toma de conocimiento y el registro de la renuncia por parte del programa/);
+  assert.match(r.cuerpo, /no se requiere pronunciamiento del Comité del programa: se solicita la toma de conocimiento y el registro de la situación por parte del programa, devolviendo el STD N° 2026-321 para continuar la tramitación\./);
+  assert.doesNotMatch(r.cuerpo, /Agradecemos enviar el pronunciamiento/);
+  const p = ctx.componer_('recordatorio', prorroga);
+  assert.match(p.asunto, /pronunciamiento del programa pendiente/);
+  assert.match(p.cuerpo, /Agradecemos enviar el pronunciamiento del Comité/);
+  assert.doesNotMatch(p.cuerpo, /toma de conocimiento/);
+  // «Admisible para análisis» (al estudiante, con copia al programa): nota para la dirección solo si es renuncia
+  assert.match(ctx.componer_('aceptada', renuncia).cuerpo, /Nota para la Dirección de Programa: por tratarse de una renuncia, la solicitud que se remitirá al programa por STD no requiere pronunciamiento del Comité: se solicita la toma de conocimiento/);
+  assert.doesNotMatch(ctx.componer_('aceptada', prorroga).cuerpo, /Nota para la Dirección de Programa/);
+  [r.cuerpo, ctx.componer_('aceptada', renuncia).cuerpo, ctx.componer_('aceptada', prorroga).cuerpo].forEach(c => assert.doesNotMatch(c, /\{\w+\}/));
+  // Plantilla editada por el equipo sin la variable: la indicación se agrega igual
+  const h = env.libro.getSheetByName('Plantillas');
+  const i = h.datos.findIndex(x => x[0] === 'recordatorio');
+  h.datos[i][5] = 'Estimado/a Director/a:\n\nTexto propio del equipo sobre {folio}.\n\nAtentamente,\nVicedecanato';
+  assert.match(ctx.componer_('recordatorio', renuncia).cuerpo, /Texto propio del equipo sobre 05\/2026\.\n\nPor tratarse de una renuncia[^]*devolviendo el STD N° 2026-321/);
+  // En el expediente: marca de renuncia y constancia en la bitácora al registrar el envío al programa
+  estado.usuario = 'analista.uno@usach.cl';
+  const sh = env.libro.getSheetByName('Solicitudes');
+  const enc = sh.datos[0], j = sh.datos.findIndex(x => x[0] === '03/2026');
+  sh.datos[j][enc.indexOf('tipo_catalogo')] = 'Renuncia'; sh.datos[j][enc.indexOf('tipo_texto_libre')] = '';
+  assert.equal(ctx.api_expediente('03/2026').esRenuncia, true);
+  ctx.api_guardarGestion('03/2026', { n_std: '2026-500' });
+  ctx.api_cambiarEstado('03/2026', 'informe_rc', {});
+  ctx.api_cambiarEstado('03/2026', 'programa', {});
+  assert.match(tabla(env, 'Bitácora').filter(b => b.folio === '03/2026' && b.estado_nuevo === 'programa').pop().texto, /Renuncia: se solicitó al programa la toma de conocimiento y el registro de la situación, con devolución del STD/);
+});

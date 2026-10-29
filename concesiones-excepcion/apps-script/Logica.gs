@@ -245,7 +245,33 @@ function describirCambioTexto(campo, antes, despues) {
 }
 
 /** Variables que pueden valer «» sin bloquear el envío: frases accesorias que simplemente no aparecen (p. ej., la referencia al STD). */
-const VARIABLES_OPCIONALES = { std_frase: true, observacion_frase: true };
+const VARIABLES_OPCIONALES = { std_frase: true, observacion_frase: true, nota_renuncia_programa: true };
+
+/**
+ * Renuncia (2026-10-29, pedido de la persona): el STD al programa no pide pronunciamiento del Comité, sino que el programa tome
+ * conocimiento, registre la situación y devuelva el STD para continuar la tramitación. Se detecta por el tipo del catálogo
+ * («Renuncia») o por el texto libre.
+ */
+function esRenuncia(sol) {
+  return /(^|[^a-záéíóúñ])renuncia([^a-záéíóúñ]|$)/i.test([(sol || {}).tipo_catalogo, (sol || {}).tipo_texto_libre].join(' '));
+}
+function textoRenunciaPrograma(stdRef) {
+  return 'Por tratarse de una renuncia, no se requiere pronunciamiento del Comité del programa: se solicita la toma de conocimiento y el registro de la situación por parte del programa, devolviendo el ' + (stdRef || 'STD') + ' para continuar la tramitación.';
+}
+/** Correos que llegan al programa mientras se espera su respuesta: «Admisible para análisis» (en copia) y el recordatorio. */
+const EVENTOS_PROGRAMA_RENUNCIA = ['aceptada', 'recordatorio'];
+/**
+ * Garantiza la indicación de renuncia en esos correos aunque el equipo haya editado la plantilla y no tenga la variable: si el texto
+ * no la menciona, se inserta antes de «Atentamente» (o al final).
+ */
+function asegurarIndicacionRenuncia(evento, cuerpo, sol, stdRef) {
+  cuerpo = String(cuerpo || '');
+  if (!esRenuncia(sol) || EVENTOS_PROGRAMA_RENUNCIA.indexOf(evento) < 0 || /toma de conocimiento/i.test(cuerpo)) return cuerpo;
+  let nota = textoRenunciaPrograma(stdRef);
+  if (evento === 'aceptada') nota = 'Nota para la Dirección de Programa: ' + nota.charAt(0).toLowerCase() + nota.slice(1);
+  const i = cuerpo.lastIndexOf('\n\nAtentamente');
+  return i >= 0 ? cuerpo.slice(0, i) + '\n\n' + nota + cuerpo.slice(i) : cuerpo + '\n\n' + nota;
+}
 function rellenar(texto, vars) {
   return String(texto || '').replace(/\{(\w+)\}/g, (m, k) => (vars[k] !== undefined && vars[k] !== null && (vars[k] !== '' || VARIABLES_OPCIONALES[k])) ? String(vars[k]) : m);
 }
@@ -601,7 +627,7 @@ function validarSolicitud(d, ctx) {
 }
 
 if (typeof module !== 'undefined') {
-  module.exports = { capitalizarNombre, rutaProceso, RUTA_PRINCIPAL, esRolRC, ROLES_RC, tipoVista, mimePorNombre, entradaZipUtil, encargoDe, requiereVicedecano, normalizarRun, normalizarPasaporte, feriadosDesdeEventos, OCULTOS_AL_ESTUDIANTE, sumarDiasHabiles, recordatorioPendiente, RECORDATORIOS, camposRequeridos,
+  module.exports = { esRenuncia, textoRenunciaPrograma, asegurarIndicacionRenuncia, capitalizarNombre, rutaProceso, RUTA_PRINCIPAL, esRolRC, ROLES_RC, tipoVista, mimePorNombre, entradaZipUtil, encargoDe, requiereVicedecano, normalizarRun, normalizarPasaporte, feriadosDesdeEventos, OCULTOS_AL_ESTUDIANTE, sumarDiasHabiles, recordatorioPendiente, RECORDATORIOS, camposRequeridos,
     ESTADOS, CAMPOS_REQUERIDOS, TIPOS_CATALOGO, NIVELES, ROLES, estadoPorId, esCierre, transicionValida, eventoTransicion,
     normalizarFolio, siguienteFolio, estadoMigrado, separarTipos, rellenar, variablesSinResolver, resolverDestinatarios,
     diasHabilesEntre, necesitaRecordatorio, nivelSuficiente, puedeVerSolicitud, validarCuenta, esSi, listaRoles, validarSolicitud, resumenCuenta, RECORDATORIO_MANUAL, recordatorioManual, VARIABLES_OPCIONALES, describirCambioTexto, ROTULOS_GESTION

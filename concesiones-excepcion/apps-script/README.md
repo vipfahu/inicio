@@ -206,6 +206,15 @@ en los tres puntos de entrada: formulario web (`validarSolicitud`), Formulario d
 migración (`solicitudDesdeFila_`). Los casos existentes se corrigieron una vez en la actualización automática (marca
 `nombres-capitalizados-1`). La verificación de la migración compara sin distinguir mayúsculas, así que no lo reporta como diferencia.
 
+**Renuncia.** Si el tipo de la solicitud es «Renuncia» (catálogo o texto libre; `esRenuncia` en Logica.gs), al programa no se le
+pide pronunciamiento del Comité, sino la toma de conocimiento y el registro de la situación, con devolución del STD para continuar la
+tramitación. El panel lo indica en «Gestión del trámite» (Admisible, Informe RC y Pronunciamiento del programa) y en el diálogo del
+envío al programa; el botón dice «Registrar solicitud de toma de conocimiento al programa (vía STD)» y la bitácora lo deja anotado.
+Los correos que llegan al programa mientras se espera su respuesta lo explican: «Admisible para análisis» (en copia) con una «Nota
+para la Dirección de Programa» (`{nota_renuncia_programa}`), y el recordatorio, automático o manual, cambia su asunto y su petición
+(`{pendiente_programa}`, `{objeto_programa}`, `{peticion_programa}`). Si el equipo editó esas plantillas y no tienen las variables,
+`asegurarIndicacionRenuncia` inserta la indicación antes de «Atentamente».
+
 **Movimiento de la interfaz.** Tras una acción en la ficha (guardar, anotar, subir, cambiar de estado), la ficha se redibuja en su
 lugar: sin pantalla intermedia y en la misma posición de lectura (`abrir` detecta que ya está abierta), y se resaltan por 1,8 s el
 estado si cambió y las entradas nuevas de la bitácora y de archivos (`resaltarCambios`). Diálogos, visor y avisos entran con un fundido

@@ -161,6 +161,7 @@ function api_expediente(folio) {
   delete out._fila;
   out.analistaNombre = s.analista ? nombreDe_(s.analista, cuentas) : '';
   out.estadoEtiqueta = (estadoPorId(s.estado) || {}).etiqueta || s.estado;
+  out.esRenuncia = esRenuncia(s);
   out.siguientes = ((estadoPorId(s.estado) || {}).siguientes || []).map(id => ({
     id: id, etiqueta: estadoPorId(id).etiqueta, evento: eventoTransicion(s.estado, id)
   }));
@@ -391,7 +392,8 @@ function api_cambiarEstado(folio, hacia, envio) {
       texto: desdeEtiqueta + ' → ' + haciaEtiqueta + (campos.motivo ? ' · Motivo: ' + campos.motivo : '') +
         (campos.observacion ? ' · Observación: ' + campos.observacion : '') + (campos.resolucion ? ' · Resolución: ' + campos.resolucion : '') + (campos.comentario ? ' · Comentario: ' + campos.comentario : '') +
         (campos.notificacion_rc ? ' · Notificación a Registro Curricular: ' + campos.notificacion_rc : '') +
-        (campos.envio_decanato ? ' · Proyecto de resolución a Decanato para firma: ' + campos.envio_decanato : '') + notaVb + notaSinCorreo,
+        (campos.envio_decanato ? ' · Proyecto de resolución a Decanato para firma: ' + campos.envio_decanato : '') +
+        (hacia === 'programa' && s.estado !== 'vb' && esRenuncia(s) ? ' · Renuncia: se solicitó al programa la toma de conocimiento y el registro de la situación, con devolución del STD para continuar la tramitación' : '') + notaVb + notaSinCorreo,
       estado_nuevo: hacia
     }, registroCorreo));
     // V°B° registrado: aviso automático a la analista del caso (o a quien pueda asignarla), salvo que ella misma lo haya registrado.
