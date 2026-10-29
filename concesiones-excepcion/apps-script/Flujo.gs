@@ -34,8 +34,15 @@ function alRecibirFormulario(e) {
   } finally {
     lock.releaseLock();
   }
-  vincularAntecedentes_(sol, leerRespuesta_(sol.fila_respuesta).adjunto);
+  try { vincularAntecedentes_(sol, leerRespuesta_(sol.fila_respuesta).adjunto); }
+  catch (e) { errorTrasRegistro_(sol, 'no se pudieron vincular los antecedentes del Formulario', e); }
   avisosNuevaSolicitud_(sol);
+}
+
+/** Error ocurrido después de registrar una solicitud: queda en su bitácora y no detiene los avisos. */
+function errorTrasRegistro_(sol, que, e) {
+  try { anexar_(HOJAS.bitacora, { fecha: new Date(), folio: sol.folio, tipo: 'sistema', quien: 'Sistema', texto: 'ERROR · ' + que + ': ' + (e && e.message || e) }); }
+  catch (e2) { console.error('No se pudo anotar el error de ' + sol.folio + ': ' + (e2 && e2.message)); }
 }
 
 /**

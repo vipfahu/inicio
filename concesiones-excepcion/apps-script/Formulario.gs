@@ -95,20 +95,37 @@ function api_enviarSolicitud(d, ids) {
     lock.releaseLock();
   }
 
-  const carpeta = carpetaCaso_(sol);
-  archivos.forEach(f => {
-    f.moveTo(carpeta);
-    f.setDescription('Antecedente · solicitud ' + sol.folio);
-    anexar_(HOJAS.archivos, {
-      fecha: new Date(), folio: sol.folio, archivo_id: f.getId(), nombre: f.getName(), categoria: 'antecedentes_formulario',
-      tamano_mb: Math.round(f.getSize() / 10485.76) / 100, subido_por: correo
+  // La solicitud ya está registrada: un fallo al guardar los adjuntos no debe impedir los avisos ni mostrarle un error al estudiante
+  // (lo haría volver a enviarla). Cada fallo queda en la bitácora para que el equipo pida el archivo.
+  let guardados = 0;
+  try {
+    const carpeta = carpetaCaso_(sol);
+    archivos.forEach(f => {
+      try {
+        f.moveTo(carpeta);
+        f.setDescription('Antecedente · solicitud ' + sol.folio);
+        anexar_(HOJAS.archivos, {
+          fecha: new Date(), folio: sol.folio, archivo_id: f.getId(), nombre: f.getName(), categoria: 'antecedentes_formulario',
+          tamano_mb: Math.round(f.getSize() / 10485.76) / 100, subido_por: correo
+        });
+        guardados++;
+      } catch (e) {
+        // Se marca para que la limpieza diaria de la carpeta Temporal no lo borre.
+        try { f.setDescription(PENDIENTE_EXPEDIENTE + sol.folio); } catch (e2) { /* sin acceso al archivo */ }
+        errorTrasRegistro_(sol, 'no se pudo guardar el antecedente «' + f.getName() + '» en el expediente (quedó en la carpeta Temporal, marcado para no borrarse; súbalo a la ficha y luego elimínelo de Temporal)', e);
+      }
     });
-  });
+  } catch (e) {
+    errorTrasRegistro_(sol, 'no se pudo preparar la carpeta del expediente', e);
+  }
   avisosNuevaSolicitud_(sol);
-  return { folio: sol.folio, correo: sol.correo, archivos: archivos.length };
+  return { folio: sol.folio, correo: sol.correo, archivos: guardados };
 }
 
 /** Borra los antecedentes temporales que nadie usó (más de 2 días). */
+/** Marca de un antecedente que quedó en Temporal porque no se pudo mover al expediente de una solicitud ya registrada. */
+const PENDIENTE_EXPEDIENTE = 'Antecedente pendiente de mover · solicitud ';
+
 function limpiarTemporales_() {
   let carpeta;
   try { carpeta = carpetaTemporal_(); } catch (e) { return; }
@@ -116,6 +133,8 @@ function limpiarTemporales_() {
   const it = carpeta.getFiles();
   while (it.hasNext()) {
     const f = it.next();
+    // Los antecedentes de una solicitud registrada que no pudieron moverse a su expediente no se borran.
+    if (String(f.getDescription() || '').indexOf(PENDIENTE_EXPEDIENTE) === 0) continue;
     if (f.getDateCreated().getTime() < limite) f.setTrashed(true);
   }
 }

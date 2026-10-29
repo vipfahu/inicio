@@ -180,3 +180,28 @@ test('limpieza de temporales y actualización de una instalación anterior', () 
   assert.ok(h.datos[0].includes('origen') && h.datos[0].includes('fundamentacion'));
   assert.ok(p.datos.some(f => f[0] === 'max_mb_antecedente'));
 });
+
+test('si falla guardar un antecedente tras registrar la solicitud: sin error al estudiante, avisos enviados, error en la bitácora y el archivo no se limpia', () => {
+  const env = instalar(preparar());
+  const { ctx, estado } = env;
+  estado.usuario = 'ana.perez@usach.cl';
+  const a1 = ctx.api_subirAntecedente('carta.pdf', 'application/pdf', b64(0.1));
+  const a2 = ctx.api_subirAntecedente('certificado.pdf', 'application/pdf', b64(0.1));
+  estado.archivos[a1.id].moveTo = () => { throw new Error('Servicio de Drive no disponible'); };
+  const n = estado.correos.length;
+  const r = ctx.api_enviarSolicitud(base(), [a1.id, a2.id]);
+  assert.equal(r.folio, '07/2026');
+  assert.equal(r.archivos, 1, 'se guardó el que sí se pudo');
+  const asuntos = estado.correos.slice(n).map(m => m.subject);
+  assert.equal(asuntos.length, 3, 'recepción, aviso al equipo y asignación salen igual');
+  assert.ok(asuntos.some(s => /Nueva solicitud CAE · 07\/2026/.test(s)));
+  assert.ok(tabla(env, 'Bitácora').some(b => b.folio === '07/2026' && /ERROR · no se pudo guardar el antecedente «carta\.pdf».*Servicio de Drive no disponible/.test(b.texto)));
+  // La limpieza diaria no borra el antecedente pendiente aunque tenga más de 2 días; sí los temporales comunes
+  estado.archivos[a1.id].creado = new Date(Date.now() - 5 * 86400000);
+  const huerfano = ctx.api_subirAntecedente('olvidado.pdf', 'application/pdf', b64(0.1)).id;
+  estado.archivos[huerfano].creado = new Date(Date.now() - 5 * 86400000);
+  estado.usuario = '';
+  ctx.tareaDiaria();
+  assert.equal(estado.archivos[a1.id].papelera, false, 'el antecedente pendiente se conserva');
+  assert.equal(estado.archivos[huerfano].papelera, true);
+});
