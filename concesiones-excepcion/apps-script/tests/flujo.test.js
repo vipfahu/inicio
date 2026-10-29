@@ -1712,3 +1712,11 @@ test('renuncia: los correos al programa piden toma de conocimiento y devolución
   ctx.api_cambiarEstado('03/2026', 'programa', {});
   assert.match(tabla(env, 'Bitácora').filter(b => b.folio === '03/2026' && b.estado_nuevo === 'programa').pop().texto, /Renuncia: se solicitó al programa la toma de conocimiento y el registro de la situación, con devolución del STD/);
 });
+
+test('«Admisible para análisis» atribuye la resolución al Vicedecanato y su número y envío a Registro Curricular', () => {
+  const env = instalar(preparar());
+  const sol = tabla(env, 'Solicitudes').find(x => x.folio === '06/2026');
+  const c = env.ctx.componer_('aceptada', sol).cuerpo;
+  assert.match(c, /será elaborada por el Vicedecanato y, una vez firmada, la Unidad de Registro Curricular le asignará número y se la enviará\./);
+  assert.doesNotMatch(c, /elaborada y enviada por la Unidad de Registro Curricular/);
+});

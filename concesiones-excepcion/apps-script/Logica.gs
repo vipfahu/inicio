@@ -16,8 +16,8 @@ const ESTADOS = [
   { id: 'informe_rc', etiqueta: 'Informe de Registro Curricular',            fase: 'Tramitación',   correo: '',           siguientes: ['programa', 'rechazada', 'no_procede'] },
   // El pronunciamiento se solicita al programa por STD (Sistema de Trazabilidad Documental): aquí solo se registra, sin correo.
   { id: 'programa',   etiqueta: 'Pronunciamiento del programa (solicitado vía STD)', fase: 'Tramitación', correo: '',     siguientes: ['vb', 'rechazada', 'no_procede'] },
-  // Decisión del V°B°: CAE admisible o CAE rechazada (ambas siguen a Registro Curricular por STD, que elabora y distribuye la
-  // resolución) con correo al estudiante que informa el estado; o devolución al programa. El cierre no envía correo.
+  // Decisión del V°B°: CAE admisible o CAE rechazada (el Vicedecanato elabora la resolución, la Decana la firma y Registro Curricular la numera y
+  // distribuye) con correo al estudiante que informa el estado; o devolución al programa. El cierre no envía correo.
   { id: 'vb',         etiqueta: 'V°B° Vicedecano/a a respuesta del Comité',  fase: 'Tramitación',   correo: 'vb',         siguientes: ['aviso_rc', 'rechazo_vb', 'programa'] },
   // CAE admisible: antes de avisar al estudiante, se registra la notificación a Registro Curricular (pasos a seguir y pagos).
   { id: 'aviso_rc',   etiqueta: 'CAE admisible · notificar a Registro Curricular', fase: 'Resolución', correo: '',            siguientes: ['rc_notificado'],
