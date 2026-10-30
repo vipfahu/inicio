@@ -206,6 +206,10 @@ en los tres puntos de entrada: formulario web (`validarSolicitud`), Formulario d
 migración (`solicitudDesdeFila_`). Los casos existentes se corrigieron una vez en la actualización automática (marca
 `nombres-capitalizados-1`). La verificación de la migración compara sin distinguir mayúsculas, así que no lo reporta como diferencia.
 
+**CAE rechazada tras el Comité.** El correo al estudiante (`cae_rechazada`) lo firma el Vicedecano/a (`{firmante_vicedecano}`: nombre de su
+cuenta y cargo, «Vicedecana» si el nombre lleva un grado femenino) y va con copia a la analista del caso, a la dirección del programa y a
+Registro Curricular, además de las copias de `eventos_copia_rc`. No dice «por especial encargo», porque escribe el propio Vicedecano/a.
+
 **Rechazo propuesto (V°B° del Vicedecano/a antes del Comité).** Desde «En revisión de admisibilidad», «Admisible para análisis»,
 «Informe de Registro Curricular» y «Pronunciamiento del programa», la analista puede, en vez de rechazar directamente, «Proponer
 rechazo y solicitar V°B° al Vicedecano/a» (estado `vb_rechazo`, motivo obligatorio; correo `vb_rechazo` al Vicedecano/a con copia a la

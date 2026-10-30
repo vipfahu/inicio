@@ -1797,3 +1797,28 @@ test('rechazo propuesto: recordatorio automático al Vicedecano/a y filtro «Pen
   assert.ok(!mis.ruta.some(p => p.id === 'rechazada'));
   assert.equal(mis.ruta.find(p => p.situacion === 'actual').estudiante, 'En revisión por el Vicedecanato');
 });
+
+test('CAE rechazada tras el Comité: firma el Vicedecano/a y va con copia a analista, programa y Registro Curricular', () => {
+  const env = instalar(preparar());
+  const { ctx, estado } = env;
+  const cu = env.libro.getSheetByName('Cuentas');
+  cu.appendRow(['registro.curricular@usach.cl', 'Registro Curricular', 'Registro Curricular', 'sin_acceso', 'todos', 'SÍ', '', '', '', '']);
+  estado.usuario = 'analista.uno@usach.cl';
+  ctx.api_cambiarEstado('05/2026', 'vb', { campos: { propuesta_comite: 'No acoger' } });
+  estado.usuario = 'vice@usach.cl';
+  const n = estado.correos.length;
+  ctx.api_cambiarEstado('05/2026', 'rechazo_vb', {});
+  const m = estado.correos.slice(n).find(x => /CAE rechazada · resolución en tramitación/.test(x.subject));
+  assert.ok(m);
+  assert.equal(m.to, 'est4@usach.cl');
+  ['analista.uno@usach.cl', 'registro.curricular@usach.cl'].forEach(c => assert.match(m.cc, new RegExp(c.replace(/\./g, '\\.')), c));
+  assert.match(m.cc, /dir\d+@usach\.cl/, 'dirección del programa');
+  assert.doesNotMatch(m.body, /por especial encargo/, 'quien firma es el propio Vicedecano/a');
+  assert.match(m.body, /Atentamente,\nVice Decano\nVicedecano de Investigación y Postgrado\nFacultad de Humanidades · Universidad de Santiago de Chile$/);
+  assert.doesNotMatch(m.body, /\{\w+\}/);
+  // Con grado femenino, «Vicedecana»
+  const fv = cu.datos.findIndex(r => r[0] === 'vice@usach.cl');
+  cu.datos[fv][1] = 'Dra. Vice Decana';
+  const sol = tabla(env, 'Solicitudes').find(x => x.folio === '05/2026');
+  assert.match(ctx.componer_('cae_rechazada', sol, {}).cuerpo, /Atentamente,\nDra\. Vice Decana\nVicedecana de Investigación y Postgrado/);
+});

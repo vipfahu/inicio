@@ -39,6 +39,8 @@ function variables_(sol, campos, cuentas) {
     std_frase: (campos.n_std || sol.n_std) ? ' (trámite STD N° ' + String(campos.n_std || sol.n_std).trim() + ')' : '',
     vicedecano: vice,
     encargo_vicedecano: encargoDe(vice),
+    // Firma del Vicedecano/a: nombre de su cuenta y cargo (femenino si el nombre lleva un grado femenino, como «Dra.»).
+    firmante_vicedecano: (vice ? vice + '\n' + (encargoDe(vice).indexOf('de la ') === 0 ? 'Vicedecana' : 'Vicedecano') + ' de Investigación y Postgrado' : 'Vicedecano/a de Investigación y Postgrado') + '\nFacultad de Humanidades · Universidad de Santiago de Chile',
     motivo: campos.motivo || sol.motivo || '',
     // Aviso a la analista al registrar el V°B° (plantilla «vb_dado»)
     decision_vb: campos.decision_vb || '',

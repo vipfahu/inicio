@@ -162,7 +162,7 @@ Todos salen desde la cuenta institucional; las respuestas llegan a la analista d
 | V°B° · CAE admisible → «notificar a Registro Curricular» | *(sin correo)* | — | — |
 | Registro de la notificación a Registro Curricular (pide fecha y medio; pasos a seguir y pagos) | *(sin correo)* | — | — |
 | Notificar al estudiante: resolución en elaboración | CAE admisible · resolución en tramitación | Estudiante | Cuentas que lo marquen en «Recibe copia» (filtradas por programa) |
-| V°B° · CAE rechazada (sigue a Registro Curricular vía STD) | CAE rechazada · resolución en tramitación | Estudiante | — |
+| V°B° · CAE rechazada (sigue a Registro Curricular vía STD) | CAE rechazada · resolución en tramitación (firma el Vicedecano/a) | Estudiante | Analista, dirección de programa y Registro Curricular |
 | V°B° registrado (cualquiera de sus tres salidas) | V°B° registrado (automático) | Analista del caso (o quien pueda asignarla) | — |
 | Proyecto de resolución enviado a Decanato para firma (pide fecha y N° STD del despacho; en ambas ramas) | *(sin correo; el estudiante ve «Resolución en trámite de firma»)* | — | — |
 | Resolución numerada y despachada por Registro Curricular (pide N° y fecha; permite cargar el archivo de la resolución) | *(sin correo; el estudiante ve «Resolución emitida · despachada a su correo»)* | — | — |
