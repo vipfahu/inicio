@@ -695,6 +695,7 @@ class Component extends DCLogic {
     if (/invalid login credentials/i.test(t)) return "Correo o contraseña incorrectos.";
     if (/email not confirmed/i.test(t)) return "Debes confirmar tu correo antes de entrar.";
     if (/rate limit|too many/i.test(t)) return "Demasiados intentos. Espera unos minutos.";
+    if (/error sending|sending (confirmation|recovery|invite|magic link|email change)|smtp/i.test(t)) return "No se pudo enviar el correo en este momento. Inténtalo más tarde o escribe a viceinvestigacionfahu@usach.cl.";
     if (/could not find the table|schema cache|relation .* does not exist|does not exist/i.test(t)) return "Faltan las tablas de cursos: ejecuta data/supabase/setup-cursos.sql en Supabase.";
     if (/cf_programas|cf_asignaciones|cf_invit_programas|cf_puede/i.test(t) && /could not find|does not exist|schema cache/i.test(t)) return "Falta instalar el catálogo de programas: ejecuta data/supabase/migracion-programas-cuentas.sql en Supabase.";
     if (/row-level security|permission denied/i.test(t)) return "Tu cuenta no tiene permiso para esta operación (revisa el rol y los programas asignados).";

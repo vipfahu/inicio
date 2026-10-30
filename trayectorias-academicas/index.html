@@ -1494,6 +1494,7 @@ class Component extends DCLogic {
     if (/invalid login credentials/i.test(t)) return "Correo o contraseña incorrectos.";
     if (/email not confirmed/i.test(t)) return "Debes confirmar tu correo antes de entrar.";
     if (/rate limit|too many/i.test(t)) return "Demasiados intentos. Espera unos minutos.";
+    if (/error sending|sending (confirmation|recovery|invite|magic link|email change)|smtp/i.test(t)) return "No se pudo enviar el correo en este momento. Inténtalo más tarde o escribe a viceinvestigacionfahu@usach.cl.";
     if (/tr_personas|tr_eventos/i.test(t) && /could not find|does not exist|schema cache/i.test(t)) return "Faltan las tablas: ejecuta data/supabase/setup-trayectorias.sql en Supabase.";
     if (/tr_archivos/i.test(t) && /could not find|does not exist|schema cache/i.test(t)) return "Falta la tabla de documentos: ejecuta data/supabase/migracion-archivos.sql en Supabase.";
     if (/tr_unidades/i.test(t) && /could not find|does not exist|schema cache/i.test(t)) return "Falta el catálogo de unidades: ejecuta data/supabase/migracion-unidades.sql en Supabase.";

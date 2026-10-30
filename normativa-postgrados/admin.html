@@ -777,6 +777,7 @@ class Component extends DCLogic {
     if (/email not confirmed/i.test(t)) return "Debes confirmar tu correo antes de iniciar sesión.";
     if (/password/i.test(t) && /short|least/i.test(t)) return "La contraseña es demasiado corta.";
     if (/rate limit|too many/i.test(t)) return "Demasiados intentos. Espera unos minutos.";
+    if (/error sending|sending (confirmation|recovery|invite|magic link|email change)|smtp/i.test(t)) return "No se pudo enviar el correo en este momento. Inténtalo más tarde o escribe a viceinvestigacionfahu@usach.cl.";
     if (/signups? (are )?not allowed|signup is disabled/i.test(t)) return "El registro está desactivado en el servicio de datos. Una persona administradora debe activarlo en Supabase: Authentication → Sign In / Providers → Email → «Allow new users to sign up».";
     if (/could not find the '?[a-z_]+'? column|column .* does not exist|PGRST204/i.test(t)) return "Falta actualizar la base de datos: vuelve a ejecutar data/supabase/setup.sql (o data/supabase/migracion-vigencia.sql) en Supabase.";
     if (/could not find the table|schema cache|relation .* does not exist/i.test(t)) return "La base de datos aún no está instalada: ejecuta data/supabase/setup.sql en Supabase.";
