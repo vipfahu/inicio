@@ -446,3 +446,28 @@ test('renuncia: detección e indicación para el programa', () => {
   const ya = editado + ' toma de conocimiento';
   assert.equal(L.asegurarIndicacionRenuncia('recordatorio', ya, { tipo_catalogo: 'Renuncia' }, 'STD'), ya, 'no se duplica');
 });
+
+test('rechazo propuesto: transiciones, campos, correos y ruta', () => {
+  ['revision', 'aceptada', 'informe_rc', 'programa'].forEach(o => {
+    assert.ok(L.transicionValida(o, 'vb_rechazo'), o);
+    assert.deepEqual([...L.camposRequeridos(o, 'vb_rechazo')], ['motivo']);
+    assert.equal(L.eventoTransicion(o, 'vb_rechazo'), 'vb_rechazo');
+    assert.equal(L.eventoTransicion('vb_rechazo', o), '', 'volver al origen no repite el correo de ese paso');
+    assert.deepEqual([...L.camposRequeridos('vb_rechazo', o)], ['observacion']);
+  });
+  assert.ok(!L.transicionValida('vb', 'vb_rechazo'), 'después del Comité no hay rechazo propuesto');
+  assert.equal(L.eventoTransicion('vb_rechazo', 'rechazada'), 'rechazada');
+  assert.deepEqual([...L.camposRequeridos('vb_rechazo', 'rechazada')], ['motivo']);
+  assert.ok(L.requiereVicedecano('vb_rechazo'));
+  assert.equal(L.recordatorioManual('vb_rechazo'), 'recordatorio_vb_rechazo');
+  assert.equal(L.origenRechazoPropuesto(['recibida', 'revision', 'aceptada', 'informe_rc', 'vb_rechazo']), 'informe_rc');
+  assert.equal(L.origenRechazoPropuesto(['recibida', 'revision', 'vb_rechazo', 'revision', 'aceptada', 'vb_rechazo']), 'aceptada', 'cuenta la última propuesta');
+  assert.equal(L.origenRechazoPropuesto(['vb_rechazo']), 'revision');
+  const ids = r => [...r].map(p => p.id);
+  // Mientras se decide, la ruta no anticipa el rechazo
+  const r1 = L.rutaProceso('vb_rechazo', ['recibida', 'revision', 'aceptada', 'vb_rechazo']);
+  assert.deepEqual(ids(r1).slice(0, 5), ['recibida', 'revision', 'aceptada', 'vb_rechazo', 'informe_rc']);
+  assert.ok(!ids(r1).includes('rechazada'));
+  assert.equal(r1.find(p => p.id === 'vb_rechazo').estudiante, 'En revisión por el Vicedecanato');
+  assert.deepEqual(ids(L.rutaProceso('rechazada', ['recibida', 'revision', 'vb_rechazo', 'rechazada'])), ['recibida', 'revision', 'vb_rechazo', 'rechazada']);
+});

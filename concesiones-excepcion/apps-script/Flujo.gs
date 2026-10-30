@@ -162,10 +162,12 @@ function api_expediente(folio) {
   out.analistaNombre = s.analista ? nombreDe_(s.analista, cuentas) : '';
   out.estadoEtiqueta = (estadoPorId(s.estado) || {}).etiqueta || s.estado;
   out.esRenuncia = esRenuncia(s);
-  out.siguientes = ((estadoPorId(s.estado) || {}).siguientes || []).map(id => ({
+  out.bitacora = leer_(HOJAS.bitacora).filter(b => String(b.folio) === String(folio)).map(b => { const o = Object.assign({}, b); delete o._fila; return o; });
+  // Rechazo propuesto: las salidas son dar el V°B° (rechazar) o volver al paso desde el que se propuso.
+  const origen = s.estado === 'vb_rechazo' ? origenRechazoPropuesto(out.bitacora.filter(b => b.tipo === 'estado').map(b => b.estado_nuevo)) : '';
+  out.siguientes = ((estadoPorId(s.estado) || {}).siguientes || []).filter(id => !origen || id === 'rechazada' || id === origen).map(id => ({
     id: id, etiqueta: estadoPorId(id).etiqueta, evento: eventoTransicion(s.estado, id)
   }));
-  out.bitacora = leer_(HOJAS.bitacora).filter(b => String(b.folio) === String(folio)).map(b => { const o = Object.assign({}, b); delete o._fila; return o; });
   // Pasos por los que ya pasó (para «Volver a un paso anterior»), en el orden del flujo.
   const visitados = estadosVisitados_(out.bitacora);
   out.anteriores = ESTADOS.filter(e => e.id !== s.estado && visitados.indexOf(e.id) >= 0).map(e => ({ id: e.id, etiqueta: e.etiqueta }));
@@ -217,7 +219,9 @@ function api_retroceder(folio, hacia, motivo) {
     const bit = leer_(HOJAS.bitacora).filter(b => String(b.folio) === String(folio));
     const visitados = estadosVisitados_(bit);
     if (visitados.indexOf(hacia) < 0) throw new Error('Solo se puede volver a un paso por el que esta solicitud ya pasó.');
-    const vbDado = visitados.indexOf('aviso_rc') >= 0 || visitados.indexOf('rechazo_vb') >= 0;
+    // Un rechazo con V°B° del Vicedecano/a (cerrado tras «Rechazo propuesto») también es un V°B° dado.
+    const vbDado = visitados.indexOf('aviso_rc') >= 0 || visitados.indexOf('rechazo_vb') >= 0 ||
+      (s.estado === 'rechazada' && bit.filter(b => b.tipo === 'estado').slice(-2)[0] && bit.filter(b => b.tipo === 'estado').slice(-2)[0].estado_nuevo === 'vb_rechazo');
     const despuesDelVb = RUTA_PRINCIPAL.indexOf(hacia) > RUTA_PRINCIPAL.indexOf('vb') || RAMA_RECHAZO.indexOf(hacia) >= 0;
     const deshaceVb = vbDado && !despuesDelVb;
     if (deshaceVb && u.rol !== 'Vicedecano/a' && u.nivel !== 'administracion') throw new Error('Volver a un paso anterior al V°B° deshace el V°B° ya dado: solo puede hacerlo el Vicedecano/a o una cuenta de administración.');
@@ -335,6 +339,10 @@ function api_cambiarEstado(folio, hacia, envio) {
     const s = buscarSolicitud_(folio);
     if (!puedeVerSolicitud(u, s)) throw new Error('SIN_ACCESO: la solicitud no pertenece a sus programas.');
     if (!transicionValida(s.estado, hacia)) throw new Error('La solicitud cambió de estado mientras tanto (' + s.estado + '). Recargue el expediente.');
+    if (s.estado === 'vb_rechazo' && hacia !== 'rechazada') {
+      const origen = origenRechazoPropuesto(leer_(HOJAS.bitacora).filter(b => String(b.folio) === String(folio) && b.tipo === 'estado').map(b => b.estado_nuevo));
+      if (hacia !== origen) throw new Error('Si no aprueba el rechazo, la solicitud vuelve al paso desde el que se propuso («' + estadoPorId(origen).etiqueta + '»).');
+    }
     // V°B°: solo el Vicedecano/a, o la analista si el Vicedecano/a lo dio por otro medio (queda registrado cuál).
     let notaVb = '';
     if (requiereVicedecano(s.estado)) {
@@ -397,8 +405,14 @@ function api_cambiarEstado(folio, hacia, envio) {
       estado_nuevo: hacia
     }, registroCorreo));
     // V°B° registrado: aviso automático a la analista del caso (o a quien pueda asignarla), salvo que ella misma lo haya registrado.
-    if (requiereVicedecano(s.estado) && u.correo !== String(s.analista || '').toLowerCase()) {
-      avisoVb = { sol: buscarSolicitud_(folio), campos: {
+    if (s.estado === 'vb_rechazo' && u.correo !== String(s.analista || '').toLowerCase()) {
+      avisoVb = { evento: 'vb_rechazo_dado', sol: buscarSolicitud_(folio), campos: {
+        decision_vb: hacia === 'rechazada' ? 'rechazo de la presentación aprobado' : 'rechazo no aprobado',
+        paso_siguiente: hacia === 'rechazada' ? (sinCorreo ? 'el trámite quedó cerrado, sin correo al estudiante (decisión registrada en la bitácora)' : 'el correo de rechazo ya fue enviado al estudiante y el trámite quedó cerrado')
+          : 'continuar la tramitación desde «' + haciaEtiqueta + '»',
+        observacion: campos.observacion || '' } };
+    } else if (requiereVicedecano(s.estado) && u.correo !== String(s.analista || '').toLowerCase()) {
+      avisoVb = { evento: 'vb_dado', sol: buscarSolicitud_(folio), campos: {
         decision_vb: hacia === 'aviso_rc' ? 'CAE admisible' : hacia === 'rechazo_vb' ? 'CAE rechazada' : 'Devolución al programa con observación',
         paso_siguiente: hacia === 'aviso_rc' ? 'notificar a Registro Curricular (pasos a seguir y pagos) y luego informar al estudiante' : hacia === 'rechazo_vb' ? 'registrar la resolución cuando vuelva de Registro Curricular' : 'registrar la nueva solicitud de pronunciamiento al programa vía STD',
         observacion: campos.observacion || '' } };
@@ -406,7 +420,7 @@ function api_cambiarEstado(folio, hacia, envio) {
     return { ok: true, conCorreo: !!evento && !sinCorreo, sinCorreo: sinCorreo, pdfSolicitud: pdfSolicitud, avisoAnalista: !!avisoVb };
   } finally {
     lock.releaseLock();
-    if (avisoVb) enviarAutomatico_('vb_dado', avisoVb.sol, avisoVb.campos);
+    if (avisoVb) enviarAutomatico_(avisoVb.evento, avisoVb.sol, avisoVb.campos);
   }
 }
 

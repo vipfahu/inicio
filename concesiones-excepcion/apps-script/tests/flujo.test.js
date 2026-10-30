@@ -1147,7 +1147,7 @@ test('volver a un paso anterior: solo a pasos ya recorridos, con motivo, sin cor
   e = ctx.api_expediente('06/2026');
   assert.equal(e.estado, 'revision');
   assert.ok(e.bitacora.some(b => /Retroceso: Admisible para análisis → .*Motivo: Faltaba un antecedente/.test(b.texto) && b.estado_nuevo === 'revision'));
-  assert.deepEqual([...e.siguientes].map(x => x.id).sort(), ['aceptada', 'no_procede', 'rechazada']);
+  assert.deepEqual([...e.siguientes].map(x => x.id).sort(), ['aceptada', 'no_procede', 'rechazada', 'vb_rechazo']);
   // Tras un V°B° (aviso_rc), volver a «vb» lo deshace: la analista no puede; el Vicedecano/a sí.
   ctx.api_guardarGestion('06/2026', { n_std: '123' });
   ctx.api_cambiarEstado('06/2026', 'aceptada', { sinCorreo: true });
@@ -1719,4 +1719,81 @@ test('«Admisible para análisis» atribuye la resolución al Vicedecanato y su 
   const c = env.ctx.componer_('aceptada', sol).cuerpo;
   assert.match(c, /será elaborada por el Vicedecanato y, una vez firmada, la Unidad de Registro Curricular le asignará número y se la enviará\./);
   assert.doesNotMatch(c, /elaborada y enviada por la Unidad de Registro Curricular/);
+});
+
+test('rechazo propuesto al Vicedecano/a: propuesta con motivo, V°B° exclusivo, rechazo o regreso sin correo al estudiante', () => {
+  const env = instalar(preparar());
+  const { ctx, estado } = env;
+  estado.usuario = 'analista.uno@usach.cl';
+  ctx.api_guardarGestion('06/2026', { analista: 'analista.uno@usach.cl' });
+  ctx.api_cambiarEstado('06/2026', 'revision', {});
+  assert.throws(() => ctx.api_cambiarEstado('06/2026', 'vb_rechazo', { campos: {} }), /motivo/);
+  let n = estado.correos.length;
+  ctx.api_cambiarEstado('06/2026', 'vb_rechazo', { campos: { motivo: 'Fuera de plazo reglamentario' } });
+  let m = estado.correos.slice(n);
+  assert.equal(m.length, 1, 'solo al Vicedecano/a; al estudiante nada todavía');
+  assert.match(m[0].to, /vice@usach\.cl/);
+  assert.match(m[0].subject, /V°B° a rechazo de presentación · Solicitud CAE 06\/2026/);
+  assert.match(m[0].body, /Motivo propuesto: Fuera de plazo reglamentario/);
+  let e = ctx.api_expediente('06/2026');
+  assert.equal(e.estado, 'vb_rechazo');
+  assert.deepEqual([...e.siguientes.map(x => x.id)].sort(), ['rechazada', 'revision'], 'dar el V°B° o volver al paso de origen');
+  // La analista no decide (salvo «otro medio»); no puede volver a otro paso que el de origen
+  assert.throws(() => ctx.api_cambiarEstado('06/2026', 'rechazada', { campos: { motivo: 'x' } }), /lo registra el Vicedecano/);
+  estado.usuario = 'vice@usach.cl';
+  assert.throws(() => ctx.api_cambiarEstado('06/2026', 'aceptada', { campos: { observacion: 'x' } }), /vuelve al paso desde el que se propuso|cambió de estado/);
+  // No aprueba: vuelve a «En revisión», sin correo al estudiante; aviso a la analista
+  n = estado.correos.length;
+  assert.throws(() => ctx.api_cambiarEstado('06/2026', 'revision', { campos: {} }), /observacion/);
+  ctx.api_cambiarEstado('06/2026', 'revision', { campos: { observacion: 'Solicitar antes el certificado faltante' } });
+  m = estado.correos.slice(n);
+  assert.ok(!m.some(x => /est6@usach\.cl/.test(x.to)), 'el estudiante no recibe nada');
+  const av = m.find(x => x.to === 'analista.uno@usach.cl');
+  assert.ok(av, 'la analista recibe la decisión');
+  assert.match(av.subject, /V°B° a rechazo registrado · Solicitud CAE 06\/2026 · rechazo no aprobado/);
+  assert.match(av.body, /Motivo propuesto: Fuera de plazo reglamentario[\s\S]*Observación del Vicedecanato: Solicitar antes el certificado faltante[\s\S]*Paso siguiente: continuar la tramitación desde «En revisión de admisibilidad»/);
+  assert.equal(ctx.api_expediente('06/2026').estado, 'revision');
+  // Nueva propuesta, esta vez desde «Admisible», aprobada: correo de rechazo al estudiante con el motivo (ajustable) y aviso a la analista
+  estado.usuario = 'analista.uno@usach.cl';
+  ctx.api_cambiarEstado('06/2026', 'aceptada', { campos: {}, sinCorreo: true });
+  ctx.api_cambiarEstado('06/2026', 'vb_rechazo', { campos: { motivo: 'Antecedentes no acreditan la causal' } });
+  e = ctx.api_expediente('06/2026');
+  assert.deepEqual([...e.siguientes.map(x => x.id)].sort(), ['aceptada', 'rechazada']);
+  assert.equal(e.motivo, 'Antecedentes no acreditan la causal', 'el motivo propuesto queda disponible para el V°B°');
+  estado.usuario = 'vice@usach.cl';
+  n = estado.correos.length;
+  ctx.api_cambiarEstado('06/2026', 'rechazada', { campos: { motivo: 'Los antecedentes no acreditan la causal invocada' } });
+  m = estado.correos.slice(n);
+  const alumno = m.find(x => /est6@usach\.cl/.test(x.to));
+  assert.ok(alumno && /Resultado de admisibilidad/.test(alumno.subject) && /Motivo: Los antecedentes no acreditan la causal invocada/.test(alumno.body));
+  assert.ok(m.some(x => x.to === 'analista.uno@usach.cl' && /rechazo de la presentación aprobado/.test(x.subject)));
+  assert.equal(ctx.api_expediente('06/2026').estado, 'rechazada');
+  assert.match(tabla(env, 'Bitácora').filter(b => b.folio === '06/2026' && b.tipo === 'estado').pop().texto, /Rechazo propuesto · V°B° Vicedecano\/a → Presentación rechazada[\s\S]*V°B° registrado por el Vicedecano\/a/);
+  // Deshacer ese rechazo con V°B° exige Vicedecano/a o administración
+  estado.usuario = 'analista.uno@usach.cl';
+  assert.throws(() => ctx.api_retroceder('06/2026', 'aceptada', 'error'), /solo puede hacerlo el Vicedecano/);
+});
+
+test('rechazo propuesto: recordatorio automático al Vicedecano/a y filtro «Pendiente V°B°»', () => {
+  const env = instalar(preparar());
+  const { ctx, estado } = env;
+  estado.usuario = 'analista.uno@usach.cl';
+  ctx.api_cambiarEstado('06/2026', 'revision', {});
+  ctx.api_cambiarEstado('06/2026', 'vb_rechazo', { campos: { motivo: 'Fuera de plazo' } });
+  const h = env.libro.getSheetByName('Solicitudes'); const enc = h.datos[0];
+  const f = h.datos.findIndex(r => r[0] === '06/2026');
+  h.datos[f][enc.indexOf('estado_desde')] = new Date(Date.now() - 10 * 86400000);
+  estado.usuario = '';
+  const n = estado.correos.length;
+  ctx.tareaDiaria();
+  const r = estado.correos.slice(n).filter(m => /V°B° a rechazo de presentación pendiente · Solicitud CAE 06\/2026/.test(m.subject));
+  assert.equal(r.length, 1);
+  assert.match(r[0].to, /vice@usach\.cl/);
+  assert.match(r[0].body, /Motivo propuesto: Fuera de plazo/);
+  assert.doesNotMatch(r[0].body, /\{\w+\}/);
+  // El seguimiento del estudiante no anticipa el rechazo
+  estado.usuario = 'est6@usach.cl';
+  const mis = ctx.api_misSolicitudes().solicitudes.find(x => x.folio === '06/2026');
+  assert.ok(!mis.ruta.some(p => p.id === 'rechazada'));
+  assert.equal(mis.ruta.find(p => p.situacion === 'actual').estudiante, 'En revisión por el Vicedecanato');
 });

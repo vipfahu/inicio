@@ -46,3 +46,8 @@ Curricular «elaboraba» la resolución: Registro Curricular numera, devuelve y 
 Precisión 2026-10-27 (la analista): «primero confeccionamos, enviamos a Decana, Decana firma y envía a Registro, Registro pone folio,
 fecha y despacha por mail y finaliza STD». La resolución no «vuelve» al Vicedecanato: el paso `res_recibida` se llama «Resolución
 numerada y despachada por Registro Curricular» y registra número y fecha; el cierre pide verificar despacho y STD finalizado.
+
+Cambio 2026-10-30 (pedido de la persona): rechazo propuesto antes del Comité, opcional. Desde revisión, admisible, informe RC y
+programa: `vb_rechazo` (motivo; correo al Vicedecano/a; nada al estudiante, que ve «En revisión por el Vicedecanato»). Salidas: V°B° →
+`rechazada` (correo al estudiante) o no aprobado → paso de origen (observación; sin correo: `eventoTransicion` lo bloquea para no
+reenviar, p. ej., «Admisible para análisis»). Avisos `vb_rechazo_dado` a la analista; recordatorio `recordatorio_vb_rechazo`.

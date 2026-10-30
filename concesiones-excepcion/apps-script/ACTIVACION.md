@@ -155,6 +155,9 @@ Todos salen desde la cuenta institucional; las respuestas llegan a la analista d
 | Paso a Informe de Registro Curricular (exige N° STD registrado; genera el PDF del formulario de solicitud y lo ofrece para descarga) | *(sin correo)* | — | — |
 | Registro de solicitud de pronunciamiento al programa (STD) | *(sin correo)* | — | — |
 | Registro de devolución al programa vía STD (pide observación) | *(sin correo)* | — | — |
+| Proponer rechazo y solicitar V°B° (opcional, desde revisión, admisible, informe RC o programa; pide motivo) | V°B° a rechazo de presentación | Vicedecano/a | Analista |
+| Rechazo propuesto: el Vicedecano/a da el V°B° | Rechazada (motivo ajustable) + aviso a la analista | Estudiante | Dirección de programa |
+| Rechazo propuesto: el Vicedecano/a no lo aprueba (pide observación; vuelve al paso de origen) | Aviso a la analista (sin correo al estudiante) | Analista | — |
 | V°B° a respuesta del Comité (pide propuesta) | V°B° Comité | Vicedecano/a | — |
 | V°B° · CAE admisible → «notificar a Registro Curricular» | *(sin correo)* | — | — |
 | Registro de la notificación a Registro Curricular (pide fecha y medio; pasos a seguir y pagos) | *(sin correo)* | — | — |

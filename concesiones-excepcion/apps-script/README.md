@@ -206,6 +206,16 @@ en los tres puntos de entrada: formulario web (`validarSolicitud`), Formulario d
 migración (`solicitudDesdeFila_`). Los casos existentes se corrigieron una vez en la actualización automática (marca
 `nombres-capitalizados-1`). La verificación de la migración compara sin distinguir mayúsculas, así que no lo reporta como diferencia.
 
+**Rechazo propuesto (V°B° del Vicedecano/a antes del Comité).** Desde «En revisión de admisibilidad», «Admisible para análisis»,
+«Informe de Registro Curricular» y «Pronunciamiento del programa», la analista puede, en vez de rechazar directamente, «Proponer
+rechazo y solicitar V°B° al Vicedecano/a» (estado `vb_rechazo`, motivo obligatorio; correo `vb_rechazo` al Vicedecano/a con copia a la
+analista; al estudiante no se le envía nada y su seguimiento muestra «En revisión por el Vicedecanato»). El Vicedecano/a (o la analista
+con «aprueba por otro medio») decide: **V°B° · Rechazar la presentación** (correo de rechazo al estudiante con el motivo, precargado y
+ajustable) o **No aprobar el rechazo** (observación obligatoria; vuelve, sin correo al estudiante, al paso desde el que se propuso:
+`origenRechazoPropuesto`). Ambas decisiones avisan a la analista (`vb_rechazo_dado`). Cuenta en «Pendiente V°B°», tiene recordatorio
+automático y manual (`recordatorio_vb_rechazo`, plazo `plazo_vb_dias`), y deshacer un rechazo con V°B° exige Vicedecano/a o
+administración. El rechazo directo sigue disponible: la consulta al Vicedecano/a es opcional.
+
 **Renuncia.** Si el tipo de la solicitud es «Renuncia» (catálogo o texto libre; `esRenuncia` en Logica.gs), al programa no se le
 pide pronunciamiento del Comité, sino la toma de conocimiento y el registro de la situación, con devolución del STD para continuar la
 tramitación. El panel lo indica en «Gestión del trámite» (Admisible, Informe RC y Pronunciamiento del programa) y en el diálogo del

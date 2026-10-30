@@ -7,15 +7,19 @@
 /** Máquina de estados. `correo` = plantilla que se envía al entrar al estado ('' = sin correo). */
 const ESTADOS = [
   { id: 'recibida',   etiqueta: 'Recibida',                                  fase: 'Admisibilidad', correo: 'recepcion',  siguientes: ['revision'] },
-  { id: 'revision',   etiqueta: 'En revisión de admisibilidad',              fase: 'Admisibilidad', correo: '',           siguientes: ['aceptada', 'rechazada', 'no_procede'] },
+  { id: 'revision',   etiqueta: 'En revisión de admisibilidad',              fase: 'Admisibilidad', correo: '',           siguientes: ['aceptada', 'rechazada', 'no_procede', 'vb_rechazo'] },
   // El id se conserva («aceptada») para no alterar los datos guardados; lo visible es «Admisible para análisis».
   // Las salidas negativas de la admisibilidad (rechazada, no procede) siguen disponibles en los tres pasos de tramitación previos al
   // V°B° (2026-10-27: desistimiento, antecedentes que invalidan la presentación, trámite que corresponde a otra vía). Después del V°B°
   // la decisión negativa es la del Comité (rechazo_vb).
-  { id: 'aceptada',   etiqueta: 'Admisible para análisis',                   fase: 'Tramitación',   correo: 'aceptada',   siguientes: ['informe_rc', 'rechazada', 'no_procede'] },
-  { id: 'informe_rc', etiqueta: 'Informe de Registro Curricular',            fase: 'Tramitación',   correo: '',           siguientes: ['programa', 'rechazada', 'no_procede'] },
+  { id: 'aceptada',   etiqueta: 'Admisible para análisis',                   fase: 'Tramitación',   correo: 'aceptada',   siguientes: ['informe_rc', 'rechazada', 'no_procede', 'vb_rechazo'] },
+  { id: 'informe_rc', etiqueta: 'Informe de Registro Curricular',            fase: 'Tramitación',   correo: '',           siguientes: ['programa', 'rechazada', 'no_procede', 'vb_rechazo'] },
   // El pronunciamiento se solicita al programa por STD (Sistema de Trazabilidad Documental): aquí solo se registra, sin correo.
-  { id: 'programa',   etiqueta: 'Pronunciamiento del programa (solicitado vía STD)', fase: 'Tramitación', correo: '',     siguientes: ['vb', 'rechazada', 'no_procede'] },
+  { id: 'programa',   etiqueta: 'Pronunciamiento del programa (solicitado vía STD)', fase: 'Tramitación', correo: '',     siguientes: ['vb', 'rechazada', 'no_procede', 'vb_rechazo'] },
+  // Rechazo propuesto antes del Comité (2026-10-30, pedido de la persona): opcional; la analista propone el rechazo con su motivo y el
+  // Vicedecano/a da el V°B° (se envía el correo de rechazo) o no lo aprueba (vuelve, sin correo, al paso en que estaba).
+  { id: 'vb_rechazo', etiqueta: 'Rechazo propuesto · V°B° Vicedecano/a', fase: 'Admisibilidad', correo: 'vb_rechazo',
+    siguientes: ['rechazada', 'revision', 'aceptada', 'informe_rc', 'programa'], estudiante: 'En revisión por el Vicedecanato' },
   // Decisión del V°B°: CAE admisible o CAE rechazada (el Vicedecanato elabora la resolución, la Decana la firma y Registro Curricular la numera y
   // distribuye) con correo al estudiante que informa el estado; o devolución al programa. El cierre no envía correo.
   { id: 'vb',         etiqueta: 'V°B° Vicedecano/a a respuesta del Comité',  fase: 'Tramitación',   correo: 'vb',         siguientes: ['aviso_rc', 'rechazo_vb', 'programa'] },
@@ -54,6 +58,9 @@ const CAMPOS_REQUERIDOS = {
   'programa>no_procede': ['motivo'],
   'vb>programa': ['observacion'],
   vb: ['propuesta_comite'],
+  // Propuesta de rechazo: el motivo va al Vicedecano/a; si no lo aprueba, debe indicar por qué (sin correo al estudiante).
+  vb_rechazo: ['motivo'],
+  'vb_rechazo>revision': ['observacion'], 'vb_rechazo>aceptada': ['observacion'], 'vb_rechazo>informe_rc': ['observacion'], 'vb_rechazo>programa': ['observacion'],
   'aviso_rc>rc_notificado': ['notificacion_rc'],
   // Despacho del proyecto de resolución a Decanato para firma (vía STD): fecha y N° STD obligatorios.
   'resolucion>firma_decanato': ['envio_decanato'],
@@ -83,12 +90,18 @@ const RAMA_RECHAZO = ['rechazo_vb', 'rechazo_firma_decanato', 'res_rechazo_recib
 function rutaProceso(estado, visitados) {
   const hasta = id => RUTA_PRINCIPAL.slice(0, RUTA_PRINCIPAL.indexOf(id) + 1);
   let ruta;
-  if (estado === 'rechazada' || estado === 'no_procede') {
-    // Cierre negativo: la ruta llega hasta el último paso principal recorrido (como mínimo, la revisión de admisibilidad).
+  // Último paso principal recorrido antes de un cierre negativo o de una propuesta de rechazo (como mínimo, la revisión).
+  const ultimoAntesDelComite = () => {
     const recorridos = RUTA_PRINCIPAL.filter(id => (visitados || []).indexOf(id) >= 0 && RUTA_PRINCIPAL.indexOf(id) <= RUTA_PRINCIPAL.indexOf('programa'));
-    ruta = hasta(recorridos.length ? recorridos[recorridos.length - 1] : 'revision');
-    if (ruta.indexOf('revision') < 0) ruta = hasta('revision');
-    ruta = ruta.concat([estado]);
+    const u = recorridos.length ? recorridos[recorridos.length - 1] : 'revision';
+    return RUTA_PRINCIPAL.indexOf(u) < RUTA_PRINCIPAL.indexOf('revision') ? 'revision' : u;
+  };
+  if (estado === 'rechazada' || estado === 'no_procede') {
+    ruta = hasta(ultimoAntesDelComite()).concat(estado === 'rechazada' && (visitados || []).indexOf('vb_rechazo') >= 0 ? ['vb_rechazo', estado] : [estado]);
+  } else if (estado === 'vb_rechazo') {
+    // Mientras se decide, la ruta no anticipa el rechazo: el paso del Vicedecanato se intercala en el camino principal.
+    const o = ultimoAntesDelComite();
+    ruta = hasta(o).concat(['vb_rechazo'], RUTA_PRINCIPAL.slice(RUTA_PRINCIPAL.indexOf(o) + 1));
   }
   else if ((RAMA_RECHAZO.indexOf(estado) >= 0 && estado !== 'negado') || (estado === 'negado' && (visitados || []).indexOf('rechazo_vb') >= 0)) ruta = hasta('vb').concat(RAMA_RECHAZO);
   else if (estado === 'negado') ruta = hasta('res_recibida').concat(['negado']);
@@ -117,6 +130,8 @@ function transicionValida(desde, hacia) {
 /** Plantilla que dispara una transición. Devolver al programa desde el V°B° no reenvía la remisión inicial. */
 function eventoTransicion(desde, hacia) {
   if (desde === 'vb' && hacia === 'programa') return ''; // devolución al programa: también vía STD, solo se registra
+  // Rechazo no aprobado: vuelve al paso de origen sin repetir el correo de ese paso (p. ej., «Admisible para análisis» al estudiante).
+  if (desde === 'vb_rechazo' && hacia !== 'rechazada') return '';
   const e = estadoPorId(hacia);
   return e ? e.correo : '';
 }
@@ -482,17 +497,26 @@ function sumarDiasHabiles(desde, n, feriados) {
 const RECORDATORIOS = {
   recibida: { evento: 'recordatorio_admisibilidad', primero: 'primer_aviso_admisibilidad_dias', porDefecto: 1, alCumplir: true },
   programa: { evento: 'recordatorio', primero: 'plazo_programa_dias', porDefecto: 2, alCumplir: false },
-  vb: { evento: 'recordatorio_vb', primero: 'plazo_vb_dias', porDefecto: 2, alCumplir: false }
+  vb: { evento: 'recordatorio_vb', primero: 'plazo_vb_dias', porDefecto: 2, alCumplir: false },
+  vb_rechazo: { evento: 'recordatorio_vb_rechazo', primero: 'plazo_vb_dias', porDefecto: 2, alCumplir: false }
 };
 
 /** Pasos en que se espera una respuesta ajena y el equipo puede enviar un recordatorio a mano (misma plantilla que el automático, si existe). */
-const RECORDATORIO_MANUAL = { recibida: 'recordatorio_admisibilidad', programa: 'recordatorio', vb: 'recordatorio_vb', informe_rc: 'recordatorio_informe_rc',
+const RECORDATORIO_MANUAL = { recibida: 'recordatorio_admisibilidad', programa: 'recordatorio', vb: 'recordatorio_vb', vb_rechazo: 'recordatorio_vb_rechazo', informe_rc: 'recordatorio_informe_rc',
   resolucion: 'recordatorio_resolucion', firma_decanato: 'recordatorio_resolucion', rechazo_firma_decanato: 'recordatorio_resolucion' };
 function recordatorioManual(estado) { return RECORDATORIO_MANUAL[estado] || ''; }
 
 /** Las salidas del V°B° (admisible, rechazada, devolución) las registra solo el Vicedecano/a, salvo V°B° dado por otro medio. */
 function requiereVicedecano(desde) {
-  return desde === 'vb';
+  return desde === 'vb' || desde === 'vb_rechazo';
+}
+
+/** Paso desde el que se propuso el rechazo (al que vuelve si el Vicedecano/a no lo aprueba): el estado anterior al último «vb_rechazo». */
+function origenRechazoPropuesto(estadosBitacora) {
+  const l = (estadosBitacora || []).filter(Boolean);
+  const i = l.lastIndexOf('vb_rechazo');
+  for (let k = i - 1; k >= 0; k--) if (['revision', 'aceptada', 'informe_rc', 'programa'].indexOf(l[k]) >= 0) return l[k];
+  return 'revision';
 }
 
 /** Evento de recordatorio que corresponde enviar hoy, o '' si ninguno. */
@@ -627,7 +651,7 @@ function validarSolicitud(d, ctx) {
 }
 
 if (typeof module !== 'undefined') {
-  module.exports = { esRenuncia, textoRenunciaPrograma, asegurarIndicacionRenuncia, capitalizarNombre, rutaProceso, RUTA_PRINCIPAL, esRolRC, ROLES_RC, tipoVista, mimePorNombre, entradaZipUtil, encargoDe, requiereVicedecano, normalizarRun, normalizarPasaporte, feriadosDesdeEventos, OCULTOS_AL_ESTUDIANTE, sumarDiasHabiles, recordatorioPendiente, RECORDATORIOS, camposRequeridos,
+  module.exports = { origenRechazoPropuesto, esRenuncia, textoRenunciaPrograma, asegurarIndicacionRenuncia, capitalizarNombre, rutaProceso, RUTA_PRINCIPAL, esRolRC, ROLES_RC, tipoVista, mimePorNombre, entradaZipUtil, encargoDe, requiereVicedecano, normalizarRun, normalizarPasaporte, feriadosDesdeEventos, OCULTOS_AL_ESTUDIANTE, sumarDiasHabiles, recordatorioPendiente, RECORDATORIOS, camposRequeridos,
     ESTADOS, CAMPOS_REQUERIDOS, TIPOS_CATALOGO, NIVELES, ROLES, estadoPorId, esCierre, transicionValida, eventoTransicion,
     normalizarFolio, siguienteFolio, estadoMigrado, separarTipos, rellenar, variablesSinResolver, resolverDestinatarios,
     diasHabilesEntre, necesitaRecordatorio, nivelSuficiente, puedeVerSolicitud, validarCuenta, esSi, listaRoles, validarSolicitud, resumenCuenta, RECORDATORIO_MANUAL, recordatorioManual, VARIABLES_OPCIONALES, describirCambioTexto, ROTULOS_GESTION

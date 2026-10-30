@@ -189,10 +189,12 @@ const fechaHora = iso => { if (!iso) return 'sin fecha · migrado'; const d = ne
 const dias = iso => iso ? Math.max(0, Math.round((Date.now() - new Date(iso)) / 864e5)) : '';
 const etq = id => (S.ini.estados.find(e => e.id === id) || {}).etiqueta || id;
 const cierre = id => ['resuelto', 'rechazada', 'no_procede', 'negado'].indexOf(id) >= 0;
+/** Pasos que esperan el V°B° del Vicedecano/a: a la respuesta del Comité o a un rechazo propuesto. */
+const enVb = id => id === 'vb' || id === 'vb_rechazo';
 function clase(id) {
   if (id === 'resuelto') return 't-ok';
   if (['rechazada', 'no_procede', 'negado'].indexOf(id) >= 0) return 't-no';
-  if (id === 'vb') return 't-vb';
+  if (id === 'vb' || id === 'vb_rechazo') return 't-vb';
   if (id === 'rechazo_vb' || id === 'rechazo_firma_decanato' || id === 'res_rechazo_recibida') return 't-no';
   if (id === 'recibida' || id === 'revision') return 't-adm';
   return 't-tra';
@@ -281,7 +283,7 @@ function filtrar() {
   const f = S.filtro, q = f.q.trim().toLowerCase();
   return S.bandeja.filter(s => {
     if (f.grupo === 'curso' && cierre(s.estado)) return false;
-    if (f.grupo === 'vb' && s.estado !== 'vb') return false;
+    if (f.grupo === 'vb' && !enVb(s.estado)) return false;
     if (f.grupo === 'cerradas' && !cierre(s.estado)) return false;
     if (f.grupo === 'revisar' && s.revisar !== 'SÍ') return false;
     if (f.programa && s.programa !== f.programa) return false;
@@ -309,7 +311,7 @@ function ordenarPor(campo) {
   pintarFilas();
 }
 function pintarBandeja() {
-  const l = S.bandeja, curso = l.filter(s => !cierre(s.estado)).length, vb = l.filter(s => s.estado === 'vb').length, rev = l.filter(s => s.revisar === 'SÍ').length;
+  const l = S.bandeja, curso = l.filter(s => !cierre(s.estado)).length, vb = l.filter(s => enVb(s.estado)).length, rev = l.filter(s => s.revisar === 'SÍ').length;
   const progs = [...new Set(l.map(s => s.programa))].sort();
   const sel = (id, ops, val) => '<select id="' + id + '">' + ops.map(o => '<option value="' + h(o[0]) + '"' + (o[0] === val ? ' selected' : '') + '>' + h(o[1]) + '</option>').join('') + '</select>';
   $('app').innerHTML =
@@ -506,14 +508,16 @@ function retroceso(e) {
 }
 function panelGestion(e, edita) {
   if (!edita) return '<div class="tarjeta"><span class="et">Estado actual</span><div style="font:700 14px Archivo,sans-serif">' + h(e.estadoEtiqueta) + '</div><div class="sub">Analista: ' + h(e.analistaNombre || 'Sin asignar') + ' · STD ' + h(e.n_std || '—') + '</div></div>';
-  const esVice = S.ini.usuario.rol === 'Vicedecano/a' && e.estado === 'vb';
-  const vbAjeno = e.estado === 'vb' && !esVice; // el V°B° es del Vicedecano/a; la analista solo lo registra si se dio por otro medio
+  const esVice = S.ini.usuario.rol === 'Vicedecano/a' && enVb(e.estado);
+  const vbAjeno = enVb(e.estado) && !esVice; // el V°B° es del Vicedecano/a; la analista solo lo registra si se dio por otro medio
   const botones = e.siguientes.length ? (vbAjeno ? '<div class="aviso a-amb" style="margin-bottom:8px;white-space:normal">El V°B° lo registra el Vicedecano/a desde su cuenta. Si lo dio por otro medio (correo, reunión, STD), márquelo para registrarlo usted.</div>' +
     '<label class="chk" style="margin-bottom:8px"><input type="checkbox" id="otro_medio"> Vicedecano/a aprueba por otro medio</label>' : '') + e.siguientes.map(s => {
-    const prim = esVice && s.id === 'aviso_rc';
-    const amb = esVice && (s.id === 'programa' || s.id === 'rechazo_vb');
+    const prim = esVice && (s.id === 'aviso_rc' || (e.estado === 'vb_rechazo' && s.id === 'rechazada'));
+    const amb = esVice && (s.id === 'programa' || s.id === 'rechazo_vb' || (e.estado === 'vb_rechazo' && s.id !== 'rechazada'));
     // El programa se consulta por STD: aquí solo se registra que se solicitó (o que se devolvió con observación).
-    const txt = s.id === 'programa' ? (e.estado === 'vb' ? 'Registrar devolución al programa (vía STD) con observación' : e.esRenuncia ? 'Registrar solicitud de toma de conocimiento al programa (vía STD)' : 'Registrar solicitud de pronunciamiento al programa (vía STD)')
+    const txt = e.estado === 'vb_rechazo' ? (s.id === 'rechazada' ? 'V°B° · Rechazar la presentación (correo al estudiante)' : 'No aprobar el rechazo: volver a «' + s.etiqueta + '»')
+      : s.id === 'vb_rechazo' ? 'Proponer rechazo y solicitar V°B° al Vicedecano/a'
+      : s.id === 'programa' ? (e.estado === 'vb' ? 'Registrar devolución al programa (vía STD) con observación' : e.esRenuncia ? 'Registrar solicitud de toma de conocimiento al programa (vía STD)' : 'Registrar solicitud de pronunciamiento al programa (vía STD)')
       : e.estado === 'vb' && s.id === 'aviso_rc' ? 'V°B° · CAE admisible: notificar a Registro Curricular'
       : s.id === 'rc_notificado' ? 'Registrar notificación a Registro Curricular (pasos a seguir y pagos)'
       : e.estado === 'rc_notificado' && s.id === 'resolucion' ? 'Notificar al estudiante: resolución en elaboración'
@@ -697,7 +701,8 @@ function dialogo(hacia) {
     // «Se incluye en el correo» solo si el texto del correo lleva la marca del campo; si no, queda en el expediente y la bitácora.
     const enCorreo = k => pv.conCorreo && (pv.correo.cuerpo + ' ' + pv.correo.asunto).indexOf('{' + k + '}') >= 0;
     const rot = k => (ROT_CAMPO[k] || k).replace('(se incluye en el correo)', enCorreo(k) ? '(se incluye en el correo)' : '(queda en el expediente y la bitácora)');
-    html += req.map(k => '<label class="et" for="c_' + k + '">' + h(rot(k)) + ' *</label><textarea id="c_' + k + '" rows="2" style="margin-bottom:10px">' + h(k === 'propuesta_comite' ? e.propuesta_comite : k === 'resolucion' ? e.resolucion : '') + '</textarea>').join('');
+    html += req.map(k => '<label class="et" for="c_' + k + '">' + h(rot(k)) + ' *</label><textarea id="c_' + k + '" rows="2" style="margin-bottom:10px">' + h(k === 'propuesta_comite' ? e.propuesta_comite : k === 'resolucion' ? e.resolucion : k === 'motivo' && e.estado === 'vb_rechazo' ? e.motivo : '') + '</textarea>').join('');
+    if (hacia === 'vb_rechazo') html += '<div class="aviso a-teal" style="margin-bottom:10px;white-space:normal">La solicitud quedará pendiente del V°B° del Vicedecano/a, que recibirá este motivo. Al estudiante no se le envía nada todavía: si el Vicedecano/a aprueba, recibe el correo de rechazo; si no, la solicitud vuelve a este paso.</div>';
     const porOtroMedio = pv.requiereVicedecano && !pv.esVicedecano;
     if (porOtroMedio) html += '<div class="aviso a-amb" style="margin-bottom:10px">Registra el V°B° en nombre del Vicedecano/a, que lo dio por otro medio. Quedará registrado quién lo ingresó.</div>' +
       '<label class="et" for="c_otro_medio">¿Por qué medio y cuándo dio el V°B° el Vicedecano/a? *</label><textarea id="c_otro_medio" rows="2" style="margin-bottom:10px" placeholder="Ej.: correo del 10-10-2026; reunión de equipo del 09-10-2026"></textarea>';
