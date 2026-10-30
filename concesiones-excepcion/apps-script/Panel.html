@@ -15,6 +15,7 @@
   button:hover{border-color:var(--teal2);background:var(--fcampo)}
   button.prim{background:var(--teal);border-color:var(--teal);color:#fff} button.prim:hover{background:var(--naranja);border-color:var(--naranja)}
   button.ambar{background:#FCEBD9;border-color:#F5D3B0;color:#8A5A00}
+  button.rojo{background:var(--rojo);border-color:var(--rojo);color:#fff} button.rojo:hover{background:#6E2F23;border-color:#6E2F23;color:#fff}
   button:disabled{opacity:.5;cursor:default}
   input,select,textarea{font:400 13px Archivo,sans-serif;padding:10px 12px;border:1.5px solid var(--campo);border-radius:9px;background:var(--fcampo);color:var(--tinta);width:100%}
   textarea{font:400 14px/1.6 Spectral,serif;resize:vertical}
@@ -513,7 +514,9 @@ function panelGestion(e, edita) {
   const botones = e.siguientes.length ? (vbAjeno ? '<div class="aviso a-amb" style="margin-bottom:8px;white-space:normal">El V°B° lo registra el Vicedecano/a desde su cuenta. Si lo dio por otro medio (correo, reunión, STD), márquelo para registrarlo usted.</div>' +
     '<label class="chk" style="margin-bottom:8px"><input type="checkbox" id="otro_medio"> Vicedecano/a aprueba por otro medio</label>' : '') + e.siguientes.map(s => {
     const prim = esVice && (s.id === 'aviso_rc' || (e.estado === 'vb_rechazo' && s.id === 'rechazada'));
-    const amb = esVice && (s.id === 'programa' || s.id === 'rechazo_vb' || (e.estado === 'vb_rechazo' && s.id !== 'rechazada'));
+    // «CAE rechazada» en un color intenso (pedido de la persona): es la salida del V°B° de mayor consecuencia para el estudiante.
+    const rojo = esVice && e.estado === 'vb' && s.id === 'rechazo_vb';
+    const amb = esVice && (s.id === 'programa' || (e.estado === 'vb_rechazo' && s.id !== 'rechazada'));
     // El programa se consulta por STD: aquí solo se registra que se solicitó (o que se devolvió con observación).
     const txt = e.estado === 'vb_rechazo' ? (s.id === 'rechazada' ? 'V°B° · Rechazar la presentación (correo al estudiante)' : 'No aprobar el rechazo: volver a «' + s.etiqueta + '»')
       : s.id === 'vb_rechazo' ? 'Proponer rechazo y solicitar V°B° al Vicedecano/a'
@@ -528,7 +531,7 @@ function panelGestion(e, edita) {
       : s.etiqueta;
     const sinStd = s.id === 'informe_rc' && !String(e.n_std || '').trim();
     return (sinStd ? '<div class="aviso a-amb" style="margin-bottom:6px;white-space:normal">Para pasar a Informe de Registro Curricular, registre el <b>N° STD</b> (más abajo) y presione «Guardar cambios».</div>' : '') +
-      '<button data-hacia="' + s.id + '"' + (vbAjeno ? ' data-vb disabled' : '') + (sinStd ? ' disabled title="Falta registrar el N° STD"' : '') + ' class="' + (prim ? 'prim' : amb ? 'ambar' : '') + '" style="width:100%;text-align:left;display:flex;justify-content:space-between;margin-bottom:6px">' + h(txt) + (s.evento ? ' <span title="Envía correo" style="color:' + (prim ? '#fff' : 'var(--naranja)') + '">✉</span>' : '') + '</button>';
+      '<button data-hacia="' + s.id + '"' + (vbAjeno ? ' data-vb disabled' : '') + (sinStd ? ' disabled title="Falta registrar el N° STD"' : '') + ' class="' + (prim ? 'prim' : rojo ? 'rojo' : amb ? 'ambar' : '') + '" style="width:100%;text-align:left;display:flex;justify-content:space-between;margin-bottom:6px">' + h(txt) + (s.evento ? ' <span title="Envía correo" style="color:' + (prim || rojo ? '#fff' : 'var(--naranja)') + '">✉</span>' : '') + '</button>';
   }).join('') + '<div class="sub" style="font-style:italic;white-space:normal">✉ = el cambio envía un correo; verá la vista previa antes de confirmar.</div>'
     : '';
   // Estado final: no hay a qué pasar; se muestra el cierre con la resolución anotada (si la hay).

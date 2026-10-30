@@ -252,7 +252,7 @@ test('resolución: CAE admisible y CAE rechazada notifican al estudiante; el cie
     assert.equal(enviados[0].to, 'est4@usach.cl');
     assert.match(enviados[0].subject, etiqueta);
     assert.match(enviados[0].body, frase);
-    assert.match(enviados[0].body, /resolución correspondiente se encuentra en elaboración, para su distribución desde la Unidad de Registro Curricular/);
+    assert.match(enviados[0].body, /resolución correspondiente se encuentra en elaboración por el Vicedecanato de Investigación y Postgrado, para su distribución desde la Unidad de Registro Curricular/);
     const antes = estado.correos.length;
     // El estudiante ve el nuevo estado en su seguimiento
     estado.usuario = 'est4@usach.cl';
@@ -1371,8 +1371,8 @@ test('correos que aluden a un envío por STD incluyen el número cuando está re
   ctx.api_guardarGestion('03/2026', { n_std: '4521' });
   const s = ctx.buscarSolicitud_('03/2026');
   assert.match(ctx.componer_('aceptada', s, {}).cuerpo, /Registro Curricular \(trámite STD N° 4521\) para la emisión/);
-  assert.match(ctx.componer_('cae_admisible', s, {}).cuerpo, /en elaboración \(trámite STD N° 4521\), para su distribución/);
-  assert.match(ctx.componer_('cae_rechazada', s, {}).cuerpo, /en elaboración \(trámite STD N° 4521\), para su distribución/);
+  assert.match(ctx.componer_('cae_admisible', s, {}).cuerpo, /en elaboración por el Vicedecanato de Investigación y Postgrado \(trámite STD N° 4521\), para su distribución/);
+  assert.match(ctx.componer_('cae_rechazada', s, {}).cuerpo, /en elaboración por el Vicedecanato de Investigación y Postgrado \(trámite STD N° 4521\), para su distribución/);
   assert.match(ctx.componer_('recordatorio', s, {}).cuerpo, /Sistema de Trazabilidad Documental \(STD N° 4521\)/);
   assert.match(ctx.componer_('recordatorio_informe_rc', s, {}).cuerpo, /tramitada por STD N° 4521\./);
   assert.match(ctx.componer_('recordatorio_resolucion', s, {}).cuerpo, /\), STD N° 4521\./);
