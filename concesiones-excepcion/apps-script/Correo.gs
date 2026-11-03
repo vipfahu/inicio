@@ -9,6 +9,21 @@ function urlPanel_() {
   return ScriptApp.getService().getUrl() || '';
 }
 
+/**
+ * Enlace para los correos: pasa por la página intermedia del portal (parámetro url_puente), que pide elegir la cuenta USACH y
+ * luego abre la plataforma, en vez de que Google muestre «No se pudo abrir el archivo» a quien tiene varias cuentas abiertas.
+ * extra = { folio } o { v }. Sin url_puente, enlace directo.
+ */
+function enlaceCorreo_(extra, p) {
+  const url = urlPanel_();
+  if (!url) return '';
+  extra = extra || {};
+  const puente = String((p || parametros_()).url_puente || '').trim();
+  const q = extra.folio ? 'folio=' + encodeURIComponent(extra.folio) : extra.v ? 'v=' + extra.v : '';
+  if (!/^https:\/\//.test(puente)) return url + (q ? '?' + q : '');
+  return puente + '?' + (q ? q + '&' : '') + 'a=' + encodeURIComponent(url);
+}
+
 function variables_(sol, campos, cuentas) {
   const p = parametros_();
   const vice = vicedecano_(cuentas).nombre;
@@ -60,8 +75,8 @@ function variables_(sol, campos, cuentas) {
     fecha_solicitud_vb: sol.estado === 'vb' ? fechaCorta_(sol.estado_desde) : '',
     vence_admisibilidad: sol.fecha_recepcion ? fechaCorta_(sumarDiasHabiles(new Date(sol.fecha_recepcion), Number(p.plazo_admisibilidad_dias || 2), feriados_())) : '',
     enlace_rc: p.enlace_rc && p.enlace_rc !== 'COMPLETAR' ? p.enlace_rc : '',
-    enlace: urlPanel_() ? urlPanel_() + '?v=seguimiento' : '',
-    enlace_panel: urlPanel_() ? urlPanel_() + '?folio=' + encodeURIComponent(sol.folio) : ''
+    enlace: enlaceCorreo_({ v: 'seguimiento' }, p),
+    enlace_panel: enlaceCorreo_({ folio: sol.folio }, p)
   };
 }
 

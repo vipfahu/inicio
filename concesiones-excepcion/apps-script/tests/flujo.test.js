@@ -468,7 +468,7 @@ test('todo correo al estudiante lleva el enlace de seguimiento', () => {
   ctx.api_cambiarEstado('06/2026', 'no_procede', {});
   const m = estado.correos.pop();
   assert.equal(m.to, 'est6@usach.cl');
-  assert.match(m.body, /cuenta USACH con que envió el formulario, en: https:\/\/script\.google\.com\/.*\?v=seguimiento/);
+  assert.match(m.body, /cuenta USACH con que envió el formulario, en: https:\/\/vipfahu\.netlify\.app\/cae\/abrir\.html\?v=seguimiento&a=https%3A%2F%2Fscript\.google\.com%2F/);
 });
 
 test('si un correo automático falla, se avisa de inmediato a la analista y a la administración', () => {
@@ -1821,4 +1821,21 @@ test('CAE rechazada tras el Comité: firma el Vicedecano/a y va con copia a anal
   cu.datos[fv][1] = 'Dra. Vice Decana';
   const sol = tabla(env, 'Solicitudes').find(x => x.folio === '05/2026');
   assert.match(ctx.componer_('cae_rechazada', sol, {}).cuerpo, /Atentamente,\nDra\. Vice Decana\nVicedecana de Investigación y Postgrado/);
+});
+
+test('enlaces de los correos: pasan por la página intermedia del portal (elegir cuenta USACH); sin url_puente, enlace directo', () => {
+  const env = instalar(preparar());
+  const { ctx } = env;
+  const sol = tabla(env, 'Solicitudes').find(x => x.folio === '05/2026');
+  const exec = 'https://script.google.com/a/macros/usach.cl/s/PRUEBA/exec';
+  const c = ctx.componer_('recordatorio_vb', Object.assign({}, sol, { estado: 'vb', propuesta_comite: 'Acoger' }), {});
+  assert.ok(c.cuerpo.indexOf('https://vipfahu.netlify.app/cae/abrir.html?folio=05%2F2026&a=' + encodeURIComponent(exec)) >= 0, c.cuerpo);
+  // El destino que reconstruye la página es exactamente el enlace al expediente
+  const u = new URL(c.cuerpo.match(/https:\/\/vipfahu\.netlify\.app\/cae\/abrir\.html\?\S+/)[0]);
+  assert.equal(u.searchParams.get('a') + '?folio=' + encodeURIComponent(u.searchParams.get('folio')), exec + '?folio=05%2F2026');
+  // Parámetro vacío: enlace directo, como antes
+  const h = env.libro.getSheetByName('Parámetros');
+  const i = h.datos.findIndex(r => r[0] === 'url_puente');
+  h.datos[i][1] = '';
+  assert.ok(ctx.componer_('recordatorio_vb', Object.assign({}, sol, { estado: 'vb', propuesta_comite: 'Acoger' }), {}).cuerpo.indexOf(exec + '?folio=05%2F2026') >= 0);
 });

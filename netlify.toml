@@ -98,6 +98,12 @@
   to = "/trayectorias-academicas/index.html"
   status = 301
 
+# Página intermedia de los enlaces de correo de la plataforma CAE (elegir cuenta USACH antes de abrir el panel)
+[[redirects]]
+  from = "/cae/abrir"
+  to = "/cae/abrir.html"
+  status = 200
+
 [[redirects]]
   from = "/*"
   to = "/404.html"

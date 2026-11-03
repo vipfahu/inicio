@@ -229,6 +229,13 @@ para la Dirección de Programa» (`{nota_renuncia_programa}`), y el recordatorio
 (`{pendiente_programa}`, `{objeto_programa}`, `{peticion_programa}`). Si el equipo editó esas plantillas y no tienen las variables,
 `asegurarIndicacionRenuncia` inserta la indicación antes de «Atentamente».
 
+**Enlaces de los correos.** `{enlace_panel}` y `{enlace}` no apuntan directo a la Web App: pasan por la página del portal
+`https://vipfahu.netlify.app/cae/abrir.html` (parámetro `url_puente`; vacío = enlace directo, como antes). Esa página pide elegir la
+cuenta USACH (selector de cuentas de Google) y luego abre la ficha o el seguimiento; si Google igual muestra «No se pudo abrir el
+archivo en este momento» (falla de Google con varias cuentas abiertas, que ocurre antes de que corra el script), explica cómo abrirlo en
+incógnito y permite copiar el enlace. Solo acepta destinos de Apps Script del dominio usach.cl, así que no sirve para redirigir a otros
+sitios, y la dirección del panel viaja en el propio enlace, no queda en el repositorio.
+
 **Movimiento de la interfaz.** Tras una acción en la ficha (guardar, anotar, subir, cambiar de estado), la ficha se redibuja en su
 lugar: sin pantalla intermedia y en la misma posición de lectura (`abrir` detecta que ya está abierta), y se resaltan por 1,8 s el
 estado si cambió y las entradas nuevas de la bitácora y de archivos (`resaltarCambios`). Diálogos, visor y avisos entran con un fundido

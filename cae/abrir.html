@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Ingresar a la plataforma CAE · Vicedecanato de Investigación y Postgrado FAHU</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700;800&amp;family=Spectral:ital,wght@0,400;0,600;1,400&amp;display=swap" rel="stylesheet">
+<style>
+  :root{--tinta:#3A4450;--tinta2:#5A6470;--apagado:#8A8272;--borde:#E8E4DA;--teal:#007E80;--teal2:#00A0A0;--naranja:#EF7A00;--fondo:#F6F4EF}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--fondo);color:var(--tinta);font:400 15px/1.6 Spectral,Georgia,serif}
+  a{color:var(--teal)} a:hover{color:var(--naranja)}
+  header{background:var(--tinta);padding:14px clamp(16px,5vw,48px)}
+  header a{display:inline-block;line-height:0} header img{height:44px;filter:brightness(0) invert(1)}
+  main{max-width:560px;margin:clamp(20px,7vh,64px) auto;padding:0 16px}
+  .caja{background:#fff;border:1px solid var(--borde);border-radius:16px;padding:28px 26px 24px}
+  .kicker{font:600 11px Archivo,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--naranja)}
+  h1{font:800 22px Archivo,sans-serif;margin:8px 0 6px}
+  p{margin:0 0 14px;color:var(--tinta2)}
+  .boton{display:block;width:100%;text-align:center;font:600 14px Archivo,sans-serif;padding:13px;border-radius:10px;text-decoration:none;border:1.5px solid var(--teal);transition:background-color .12s ease-out,border-color .12s ease-out,color .12s ease-out}
+  .prim{background:var(--teal);color:#fff} .prim:hover{background:var(--naranja);border-color:var(--naranja);color:#fff}
+  .sec{background:#fff;color:var(--teal);margin-top:10px;border-color:#E0DCD0} .sec:hover{border-color:var(--teal2)}
+  .ayuda{margin-top:20px;border-top:1px solid #F0EDE4;padding-top:16px;font:400 13px/1.55 Archivo,sans-serif;color:var(--tinta2)}
+  .ayuda b{color:var(--tinta)} .ayuda ol{padding-left:20px;margin:8px 0}
+  .copiar{font:600 12px Archivo,sans-serif;background:#fff;color:var(--teal);border:1.5px solid #E0DCD0;border-radius:8px;padding:8px 12px;cursor:pointer}
+  .copiar:hover{border-color:var(--teal2)}
+  .error{background:#F9EBE8;color:#B0483A;border-radius:10px;padding:12px 14px;font:600 13px Archivo,sans-serif}
+  @media (prefers-reduced-motion:reduce){.boton,.copiar{transition:none}}
+</style>
+</head>
+<body>
+<header><a href="/" title="Ir al portal Gestión de Información VIP"><img src="/assets/logo-fahu.png" alt="Facultad de Humanidades · Universidad de Santiago de Chile"></a></header>
+<main>
+  <div class="caja" id="caja">
+    <div class="kicker">Concesiones Académicas de Excepción</div>
+    <h1 id="titulo">Ingresar con su cuenta USACH</h1>
+    <p id="texto">Para abrir la plataforma, elija su cuenta institucional <b>@usach.cl</b>. Si tiene varias cuentas de Google abiertas, Google podría usar otra y mostrar «No se pudo abrir el archivo en este momento».</p>
+    <a class="boton prim" id="elegir" href="#">Elegir mi cuenta USACH y continuar</a>
+    <a class="boton sec" id="directo" href="#">Ya tengo abierta solo mi cuenta USACH: abrir directamente</a>
+    <div class="ayuda">
+      <b>¿Igual aparece «No se pudo abrir el archivo en este momento»?</b>
+      <ol>
+        <li>Copie el enlace: <button class="copiar" id="copiar" type="button">Copiar enlace</button></li>
+        <li>Abra una ventana de incógnito (Ctrl+Mayús+N; en Mac, ⌘+Mayús+N).</li>
+        <li>Inicie sesión solo con su cuenta @usach.cl y pegue el enlace.</li>
+      </ol>
+      Para no repetirlo, use un perfil del navegador dedicado a su cuenta USACH.
+    </div>
+  </div>
+</main>
+<script>
+(function () {
+  // Página intermedia para los enlaces de los correos de la plataforma CAE (Apps Script de la cuenta institucional).
+  // Solo acepta destinos de Apps Script del dominio usach.cl: no sirve para redirigir a sitios ajenos.
+  var q = new URLSearchParams(location.search);
+  var a = q.get('a') || '';
+  var valido = /^https:\/\/script\.google\.com\/a\/(macros\/usach\.cl|usach\.cl\/macros)\/s\/[A-Za-z0-9_-]{20,}\/exec$/.test(a);
+  var folio = q.get('folio') || '';
+  var v = q.get('v') || '';
+  if (!valido || (folio && !/^\d{1,3}\/\d{4}$/.test(folio)) || (v && !/^(seguimiento|solicitud)$/.test(v))) {
+    document.getElementById('caja').innerHTML = '<div class="kicker">Concesiones Académicas de Excepción</div><h1>Enlace no válido</h1>' +
+      '<div class="error">Este enlace está incompleto o no corresponde a la plataforma. Ábralo desde el correo original o escriba a viceinvestigacionfahu@usach.cl.</div>';
+    return;
+  }
+  var destino = a + (folio ? '?folio=' + encodeURIComponent(folio) : v ? '?v=' + v : '');
+  if (folio) {
+    document.getElementById('titulo').textContent = 'Abrir la solicitud ' + folio;
+  } else if (v === 'seguimiento') {
+    document.getElementById('titulo').textContent = 'Seguimiento de su solicitud';
+  }
+  document.getElementById('elegir').href = 'https://accounts.google.com/AccountChooser?continue=' + encodeURIComponent(destino);
+  document.getElementById('directo').href = destino;
+  document.getElementById('copiar').onclick = function () {
+    var b = this;
+    var listo = function () { b.textContent = 'Enlace copiado'; setTimeout(function () { b.textContent = 'Copiar enlace'; }, 2500); };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(destino).then(listo, function () { prompt('Copie el enlace:', destino); });
+    else prompt('Copie el enlace:', destino);
+  };
+})();
+</script>
+</body>
+</html>
