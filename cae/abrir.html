@@ -64,6 +64,10 @@
       '<div class="error">Este enlace está incompleto o no corresponde a la plataforma. Ábralo desde el correo original o escriba a viceinvestigacionfahu@usach.cl.</div>';
     return;
   }
+  // Implementación vigente de la plataforma (la misma de la portada). Los correos antiguos traen en «a» la URL de una implementación
+  // anterior, que se archiva: todo enlace válido se lleva a la vigente. Si se publica una implementación nueva, actualizar aquí y en index.html.
+  var VIGENTE = 'https://script.google.com/a/macros/usach.cl/s/AKfycbwQaDOTEEptwgDHbJ5KHMrwofEA3lMegqa1KYD_8KuXf2By1QQ6quuyYh6fGgfOTOtpgA/exec';
+  a = VIGENTE;
   var destino = a + (folio ? '?folio=' + encodeURIComponent(folio) : v ? '?v=' + v : '');
   if (folio) {
     document.getElementById('titulo').textContent = 'Abrir la solicitud ' + folio;

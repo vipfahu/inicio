@@ -24,6 +24,7 @@ nuevo (una corrección o un enfoque confirmado), agregar o actualizar la nota co
 ## Comandos
 - Pruebas: `node --test tests/*.test.js` (lógica pura + simulador de Apps Script).
 - Subir y publicar en la misma URL: `node desplegar.js` (corre las pruebas antes; pide confirmación de cada comando a la persona).
+  Genera `Implementacion.gs` (URL vigente para correos; no va al repo) y lista otras implementaciones; `--archivar-antiguas` las archiva.
 - La planilla se actualiza sola en la primera visita tras publicar (`actualizarSiCorresponde_` en `Instalar.gs`).
 
 ## Flujo vigente (resumen)

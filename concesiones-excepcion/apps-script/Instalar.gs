@@ -228,6 +228,9 @@ function diagnostico() {
   const hs = ScriptApp.getProjectTriggers().map(t => t.getHandlerFunction());
   ['alRecibirFormulario', 'tareaDiaria'].forEach(h => { if (hs.indexOf(h) < 0) p.push('Falta el disparador «' + h + '» (ejecute el paso 2).'); });
   if (!urlPanel_()) p.push('El panel aún no está publicado como aplicación web.'); else ok.push('Panel: ' + urlPanel_());
+  const urlServicio = ScriptApp.getService().getUrl() || '';
+  if (typeof URL_IMPLEMENTACION !== 'string') p.push('La URL del panel no está fijada: los correos usan la que informa Google, que con varias implementaciones activas puede ser una antigua. Publique con actualizar.command (o node desplegar.js).');
+  else if (urlServicio && urlServicio.indexOf('/s/') > 0 && urlPanel_().indexOf(urlServicio.split('/s/')[1]) < 0) p.push('Hay otra implementación activa además de la vigente (Google informa ' + urlServicio + '). Archívela con: ./actualizar.command --archivar-antiguas');
   const fer = actualizarFeriados_(true);
   if (fer.error && !(fer.fechas || []).length) p.push('Feriados: no se pudo leer el calendario de feriados de Chile (' + fer.error + '). Los plazos cuentan solo de lunes a viernes.');
   else if (fer.error) p.push('Feriados: falló la última consulta (' + fer.error + '); se usa la lista guardada.');

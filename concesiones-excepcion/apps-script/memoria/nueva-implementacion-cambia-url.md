@@ -2,6 +2,6 @@
 
 Tipo: técnico
 
-Así cambió la URL de `AKfycby6…` a `AKfycbwQ…` (vigente). La antigua seguía activa y debe archivarse (`clasp deployments` / `clasp undeploy <id>`) tras confirmar que nadie la usa. CAE → Diagnóstico muestra la URL que usa el sistema.
+Así cambió la URL de `AKfycby6…` a `AKfycbwQ…` (vigente). La antigua seguía activa y `getUrl()` la devolvía en los correos; se corrigió fijando la URL al desplegar y se archiva con `./actualizar.command --archivar-antiguas` (ver `url-del-panel-fijada-al-desplegar.md`).
 
 **Por qué importa:** Con dos implementaciones activas, los enlaces de los correos pueden apuntar a la equivocada.

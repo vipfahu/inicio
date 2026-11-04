@@ -234,7 +234,12 @@ para la Dirección de Programa» (`{nota_renuncia_programa}`), y el recordatorio
 cuenta USACH (selector de cuentas de Google) y luego abre la ficha o el seguimiento; si Google igual muestra «No se pudo abrir el
 archivo en este momento» (falla de Google con varias cuentas abiertas, que ocurre antes de que corra el script), explica cómo abrirlo en
 incógnito y permite copiar el enlace. Solo acepta destinos de Apps Script del dominio usach.cl, así que no sirve para redirigir a otros
-sitios, y la dirección del panel viaja en el propio enlace, no queda en el repositorio.
+sitios. Cualquier enlace válido se lleva a la implementación vigente (constante `VIGENTE` de la página), de modo que los correos
+antiguos que traían la URL de una implementación ya archivada siguen abriendo.
+
+**URL del panel.** `urlPanel_()` usa `URL_IMPLEMENTACION`, que `desplegar.js` escribe en `Implementacion.gs` al subir (y borra
+después; no va al repositorio). `ScriptApp.getService().getUrl()` queda solo de respaldo: con más de una implementación activa
+devolvía la antigua. `desplegar.js` lista las demás implementaciones y las archiva con `--archivar-antiguas`.
 
 **Movimiento de la interfaz.** Tras una acción en la ficha (guardar, anotar, subir, cambiar de estado), la ficha se redibuja en su
 lugar: sin pantalla intermedia y en la misma posición de lectura (`abrir` detecta que ya está abierta), y se resaltan por 1,8 s el

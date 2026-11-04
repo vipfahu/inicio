@@ -1839,3 +1839,20 @@ test('enlaces de los correos: pasan por la página intermedia del portal (elegir
   h.datos[i][1] = '';
   assert.ok(ctx.componer_('recordatorio_vb', Object.assign({}, sol, { estado: 'vb', propuesta_comite: 'Acoger' }), {}).cuerpo.indexOf(exec + '?folio=05%2F2026') >= 0);
 });
+
+test('URL del panel: la fijada al desplegar (Implementacion.gs) manda sobre getUrl(), que puede devolver una implementación antigua', () => {
+  const env = instalar(preparar());
+  const { ctx } = env;
+  const vigente = 'https://script.google.com/a/macros/usach.cl/s/AKfycbVIGENTEvigenteVIGENTE123/exec';
+  env.estado.url = 'https://script.google.com/a/usach.cl/macros/s/AKfycbANTIGUAantiguaANTIGUA12/exec';
+  assert.equal(ctx.urlPanel_(), env.estado.url); // sin el archivo generado: respaldo getUrl()
+  ctx.URL_IMPLEMENTACION = vigente;
+  assert.equal(ctx.urlPanel_(), vigente);
+  const sol = tabla(env, 'Solicitudes').find(x => x.folio === '05/2026');
+  const cuerpo = ctx.componer_('recordatorio_vb', Object.assign({}, sol, { estado: 'vb', propuesta_comite: 'Acoger' }), {}).cuerpo;
+  assert.ok(cuerpo.indexOf('a=' + encodeURIComponent(vigente)) >= 0, cuerpo);
+  assert.equal(cuerpo.indexOf('ANTIGUA'), -1);
+  ctx.URL_IMPLEMENTACION = 'https://otro.sitio/exec'; // valor con formato inválido: se ignora
+  assert.equal(ctx.urlPanel_(), env.estado.url);
+  delete ctx.URL_IMPLEMENTACION;
+});

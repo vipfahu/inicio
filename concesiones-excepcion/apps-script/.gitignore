@@ -3,3 +3,6 @@
 
 # ID de la implementación publicada (lo guarda desplegar.js en cada computador)
 .despliegue.json
+
+# Lo genera desplegar.js al subir (URL de la implementación) y lo borra al terminar
+Implementacion.gs

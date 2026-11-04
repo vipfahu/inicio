@@ -5,7 +5,15 @@
 
 const MAX_MB_CORREO = 24; // Gmail admite 25 MB por mensaje; se deja margen.
 
+/**
+ * URL del panel para enlaces y correos. Usa la implementación que publica desplegar.js (constante URL_IMPLEMENTACION del archivo
+ * Implementacion.gs, que desplegar.js genera al subir y no va al repositorio). ScriptApp.getService().getUrl() queda solo de respaldo:
+ * con más de una implementación activa puede devolver otra (así los correos apuntaban a la antigua; ver
+ * memoria/url-del-panel-fijada-al-desplegar.md).
+ */
 function urlPanel_() {
+  const fija = typeof URL_IMPLEMENTACION === 'string' ? URL_IMPLEMENTACION : '';
+  if (/^https:\/\/script\.google\.com\/a\/macros\/usach\.cl\/s\/AKfycb[\w-]{20,}\/exec$/.test(fija)) return fija;
   return ScriptApp.getService().getUrl() || '';
 }
 
