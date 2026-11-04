@@ -38,7 +38,7 @@
 <main id="app"><p class="nota">Cargando…</p></main>
 
 <script type="module">
-import { conectar, esc, urlSegura, fechaLarga, hoyISO, avisar, traducir, modal, cerrarModal, verArchivo, nivelEn, anotar, rutaArchivo } from "../comun/vip.js?v=20261105";
+import { conectar, conReintento, esc, urlSegura, fechaLarga, hoyISO, avisar, traducir, modal, cerrarModal, verArchivo, nivelEn, anotar, rutaArchivo } from "../comun/vip.js?v=20261106";
 
 const PLATAFORMA = "grupos";
 const TIPOS_DOC = [["creacion","Resolución de creación"],["modificacion","Resolución de modificación"],["nombramiento","Designación de director/a"],["normativa_interna","Normativa interna"],["integrantes","Resolución de integrantes"],["otro","Otro documento"]];
@@ -100,13 +100,13 @@ function pantallaNuevaClave() {
 }
 
 async function cargar() {
-  const [i, d, r, a, p] = await Promise.all([
+  const [i, d, r, a, p] = await conReintento(() => Promise.all([
     sb.from("gi_instancias").select("*").order("nombre"),
     sb.from("gi_documentos").select("*").order("fecha", { ascending: false }),
     sb.from("gi_referencias").select("*").order("orden").order("titulo"),
     sb.from("actividad").select("*").like("accion", "GI:%").order("fecha", { ascending: false }).limit(50),
     sb.from("gi_integrantes").select("*").order("orden").order("nombre")
-  ]);
+  ]));
   const err = i.error || d.error || r.error || p.error;
   if (err) throw err;
   st.inst = i.data; st.docs = d.data; st.refs = r.data; st.ints = p.data; st.actividad = a.error ? [] : a.data;

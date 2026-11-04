@@ -7,7 +7,7 @@
 <meta name="description" content="Catálogo público de los grupos y programas centro de investigación de la Facultad de Humanidades USACH: objetivos, integrantes y resoluciones.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700;800&amp;family=Spectral:ital,wght@0,400;0,600;1,400&amp;family=IBM+Plex+Mono:wght@400;600&amp;display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../comun/vip.css?v=20261105">
+<link rel="stylesheet" href="../comun/vip.css?v=20261106">
 <style>
   :root{--acento:#7A4FA3;--acento-f:#F1EAF7}
   .filtros{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:20px 0 18px}
@@ -81,7 +81,7 @@
 <main id="app"><p class="nota">Cargando…</p></main>
 
 <script type="module">
-import { conectar, esc, urlSegura, fechaLarga, hoyISO, normalizar, verArchivo, traducir } from "../comun/vip.js?v=20261105";
+import { conectar, conReintento, esc, urlSegura, fechaLarga, hoyISO, normalizar, verArchivo, traducir } from "../comun/vip.js?v=20261106";
 
 const TIPO_DOC = { creacion: "Creación", modificacion: "Modificación", nombramiento: "Designación de dirección", normativa_interna: "Normativa interna", integrantes: "Integrantes", otro: "Otro" };
 const TIPO_REF = { reglamento: "Normativa", modelo: "Modelo de resolución", otro: "Documento de referencia" };
@@ -234,14 +234,16 @@ window.addEventListener("popstate", pintar);
 
 async function cargar() {
   try {
-    if (!sb) sb = (await conectar(new URL("./data/supabase/config.js?v=20261104", location.href).href)).sb;
-    const [i, d, p, r] = await Promise.all([
+    // Público: sin sesión. Vista previa (?previa=1): con la sesión del panel, para ver borradores.
+    const previa = !!new URLSearchParams(location.search).get("previa");
+    if (!sb) sb = (await conectar(new URL("./data/supabase/config.js?v=20261104", location.href).href, { anonimo: !previa })).sb;
+    const [i, d, p, r] = await conReintento(() => Promise.all([
       // ?previa=1: el equipo con acceso a «grupos» ve también los borradores (la base solo los entrega a esas cuentas)
       (new URLSearchParams(location.search).get("previa") ? sb.from("gi_instancias").select("*") : sb.from("gi_instancias").select("*").eq("publicado", true)).order("nombre"),
       sb.from("gi_documentos").select("*"),
       sb.from("gi_integrantes").select("*"),
       sb.from("gi_referencias").select("*").order("orden").order("titulo")
-    ]);
+    ]));
     const err = i.error || d.error || p.error || r.error;
     if (err) throw err;
     const ids = new Set(i.data.map(x => x.id));

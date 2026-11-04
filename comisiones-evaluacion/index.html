@@ -55,7 +55,7 @@
 <main id="app"><p class="nota">Cargando…</p></main>
 
 <script type="module">
-import { conectar, esc, urlSegura, fechaLarga, hoyISO, avisar, traducir, modal, cerrarModal, verArchivo, nivelEn, anotar, rutaArchivo } from "../comun/vip.js?v=20261104";
+import { conectar, conReintento, esc, urlSegura, fechaLarga, hoyISO, avisar, traducir, modal, cerrarModal, verArchivo, nivelEn, anotar, rutaArchivo } from "../comun/vip.js?v=20261106";
 
 const PLATAFORMA = "comisiones";
 const TIPO = {
@@ -118,11 +118,11 @@ function pantallaLogin(msg, sesion) {
 
 /* ---------- Datos ---------- */
 async function cargar() {
-  const [c, r, i] = await Promise.all([
+  const [c, r, i] = await conReintento(() => Promise.all([
     sb.from("ce_comisiones").select("*"),
     sb.from("ce_resoluciones").select("*").order("fecha", { ascending: false }),
     sb.from("ce_integrantes").select("*").order("desde", { ascending: false })
-  ]);
+  ]));
   const err = c.error || r.error || i.error;
   if (err) throw err;
   st.com = c.data.sort(ordenCom); st.res = r.data; st.int = i.data;

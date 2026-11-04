@@ -1,13 +1,33 @@
 // Utilidades compartidas de los módulos Grupos y Comisiones (portal VIP · FAHU USACH).
 // Módulo ES: se importa con <script type="module">. Sin dependencias salvo supabase-js (esm.sh), igual que los otros paneles.
 
-export async function conectar(configUrl) {
+/**
+ * opciones.anonimo: cliente sin sesión (catálogos públicos). No usa la sesión guardada por los paneles del mismo sitio,
+ * así un token recién emitido o vencido no puede impedir la lectura pública («JWT issued at future», «JWT expired»).
+ */
+export async function conectar(configUrl, opciones) {
   const [lib, cfg] = await Promise.all([
     import("https://esm.sh/@supabase/supabase-js@2"),
     import(configUrl)
   ]);
-  const sb = lib.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY, { auth: { persistSession: true, detectSessionInUrl: true } });
+  const auth = opciones && opciones.anonimo
+    ? { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false, storageKey: "vip-anonimo" }
+    : { persistSession: true, detectSessionInUrl: true };
+  const sb = lib.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY, { auth });
   return { sb, cfg };
+}
+
+/** Errores de token transitorios: el reloj del servicio va unos segundos atrás o el token venció. Se reintenta. */
+export const errorDeToken = m => /JWT (issued at future|expired)|PGRST30[13]/i.test(String(m || ""));
+export async function conReintento(fn, intentos) {
+  let r;
+  for (let i = 0; i < (intentos || 3); i++) {
+    r = await fn();
+    const e = Array.isArray(r) ? r.map(x => x && x.error).find(Boolean) : r && r.error;
+    if (!e || !errorDeToken(e.message)) return r;
+    await new Promise(ok => setTimeout(ok, 1500 * (i + 1)));
+  }
+  return r;
 }
 
 /** Escapa texto para insertarlo en HTML. */
@@ -92,6 +112,7 @@ export function traducir(m) {
   if (/violates foreign key|still referenced/i.test(t)) return "No se puede eliminar: tiene registros asociados. Elimínalos primero.";
   if (/duplicate key|already exists/i.test(t)) return "Ya existe un registro igual.";
   if (/ce_integrantes_fechas/i.test(t)) return "La fecha de término no puede ser anterior a la de inicio.";
+  if (/JWT (issued at future|expired)/i.test(t)) return "La sesión aún no está lista (diferencia de hora con el servidor). Recarga la página en unos segundos.";
   if (/failed to fetch|network/i.test(t)) return "Sin conexión con el servicio de datos. Revisa tu conexión e inténtalo de nuevo.";
   return t || "Error desconocido.";
 }
@@ -100,11 +121,13 @@ export function traducir(m) {
 export async function nivelEn(sb, plataforma) {
   const s = (await sb.auth.getSession()).data.session;
   if (!s) return { sesion: null, nivel: "ninguno", perfil: null };
-  const p = await sb.from("perfiles").select("id,nombre,correo,rol,activo").eq("id", s.user.id).maybeSingle();
+  const p = await conReintento(() => sb.from("perfiles").select("id,nombre,correo,rol,activo").eq("id", s.user.id).maybeSingle());
+  if (p.error) throw p.error; // un fallo de lectura no debe confundirse con «sin perfil»
   const perfil = p.data || null;
   if (!perfil || !perfil.activo) return { sesion: s, nivel: "ninguno", perfil };
   if (perfil.rol === "administrador") return { sesion: s, nivel: "administracion", perfil };
-  const a = await sb.from("accesos").select("nivel").eq("perfil", perfil.id).eq("plataforma", plataforma).maybeSingle();
+  const a = await conReintento(() => sb.from("accesos").select("nivel").eq("perfil", perfil.id).eq("plataforma", plataforma).maybeSingle());
+  if (a.error) throw a.error;
   return { sesion: s, nivel: (a.data && a.data.nivel) || "ninguno", perfil };
 }
 
