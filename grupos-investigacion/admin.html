@@ -241,6 +241,15 @@ function rutaDesdeUrl(url) {
   return m ? decodeURIComponent(m[1]) : null;
 }
 
+const MOTIVOS = ["Reemplazada por otra resolución", "Periodo de designación cumplido", "Derogada", "Modificada en su totalidad", "Cierre de la instancia"];
+const refDoc = d => d ? [d.tipo_acto, d.numero ? "N° " + d.numero : "", d.fecha ? "de " + fechaLarga(d.fecha) : ""].filter(Boolean).join(" ") || (d.titulo || "Resolución") : "";
+function etqVigencia(d) { return d.vigente ? '<span class="etq ok">Vigente</span>' : '<span class="etq gris">No vigente</span>'; }
+function textoVigencia(d) {
+  if (d.vigente) return "";
+  const r = st.docs.find(x => x.id === d.reemplazada_por);
+  return [d.vigente_hasta ? "rigió hasta el " + fechaLarga(d.vigente_hasta) : "", d.vigencia_motivo, r ? "reemplazada por " + refDoc(r) : ""].filter(Boolean).join(" · ");
+}
+
 function verDocumentos(id) {
   const i = st.inst.find(x => x.id === id);
   const ds = st.docs.filter(d => d.instancia === id);
@@ -248,7 +257,7 @@ function verDocumentos(id) {
     const dt = ds.filter(d => d.tipo === t);
     if (!dt.length && t === "otro") return "";
     return '<h3 style="margin-top:14px">' + rot + "</h3>" + (dt.length ? dt.map(d =>
-      '<div class="docfila"><span>' + esc(d.titulo || rot) + (d.vigente ? "" : ' <span class="etq gris">Anterior</span>') + "<br><small>" + esc([d.numero ? "N° " + d.numero : "", fechaLarga(d.fecha), d.nota].filter(Boolean).join(" · ")) + "</small></span>" +
+      '<div class="docfila"><span>' + esc(d.titulo || rot) + " " + etqVigencia(d) + "<br><small>" + esc([d.numero ? "N° " + d.numero : "", fechaLarga(d.fecha), textoVigencia(d), d.nota].filter(Boolean).join(" · ")) + "</small></span>" +
       '<span style="white-space:nowrap">' + (urlSegura(d.pdf) ? '<button class="btn sec chico" data-ver="' + esc(d.pdf) + '" data-titulo="' + esc(d.titulo || rot) + '">Ver</button> ' : urlSegura(d.enlace) ? '<a class="btn sec chico" href="' + esc(d.enlace) + '" target="_blank" rel="noopener">Abrir ↗</a> ' : "") +
       (puede() ? '<button class="btn sec chico" data-editar-doc="' + d.id + '">Editar</button>' : "") + "</span></div>").join("")
       : '<p class="nota" style="margin:4px 0">' + (t === "modificacion" ? "Sin modificaciones (si corresponde)." : "Sin registrar.") + "</p>");
@@ -274,15 +283,28 @@ function formDocumento(d) {
     '<div class="campo"><label for="archivo">Archivo PDF' + (urlSegura(d.pdf) ? " (ya cargado; sube otro solo para reemplazarlo)" : "") + '</label><input id="archivo" type="file" accept="application/pdf"></div>' +
     '<div class="campo"><label for="enlace">o enlace (https://…)</label><input id="enlace" type="url" value="' + esc(d.enlace) + '"></div>' +
     '<div class="campo"><label for="nota">Nota</label><input id="nota" value="' + esc(d.nota) + '"></div>' +
-    '<label class="check"><input type="checkbox" id="vigente"' + (d.vigente ? " checked" : "") + '> Vigente (desmarca cuando lo reemplace uno nuevo; queda como «Anterior»)</label>' +
+    '<fieldset style="border:1px solid var(--borde);border-radius:10px;padding:12px 14px;margin:0 0 12px"><legend style="font:700 12px Archivo,sans-serif;padding:0 6px">Vigencia</legend>' +
+    '<div style="display:flex;gap:18px;flex-wrap:wrap;margin-bottom:8px"><label class="check"><input type="radio" name="vig" value="si"' + (d.vigente !== false ? " checked" : "") + '> Vigente</label>' +
+    '<label class="check"><input type="radio" name="vig" value="no"' + (d.vigente === false ? " checked" : "") + "> No vigente</label></div>" +
+    '<div id="noVig"' + (d.vigente === false ? "" : " hidden") + '><div class="fila2"><div class="campo"><label for="vigente_hasta">Rigió hasta</label><input id="vigente_hasta" type="date" value="' + esc(d.vigente_hasta) + '"></div>' +
+    '<div class="campo"><label for="vigencia_motivo">Motivo</label><input id="vigencia_motivo" list="motivos" value="' + esc(d.vigencia_motivo) + '"><datalist id="motivos">' + MOTIVOS.map(x => "<option>" + x + "</option>").join("") + "</datalist></div></div>" +
+    '<div class="campo" style="margin-bottom:0"><label for="reemplazada_por">Reemplazada por (opcional)</label><select id="reemplazada_por"><option value="">—</option>' +
+      st.docs.filter(x => x.instancia === d.instancia && x.id !== d.id).sort((a, b) => String(b.fecha || "").localeCompare(String(a.fecha || ""))).map(x => '<option value="' + x.id + '"' + (x.id === d.reemplazada_por ? " selected" : "") + ">" + esc(rotDoc(x.tipo) + " · " + refDoc(x)) + "</option>").join("") + "</select></div></div>" +
+    "</fieldset>" +
     '<div class="pie">' + (d.id ? '<button class="btn peligro" type="button" id="borrar">Eliminar</button>' : "") + '<button class="btn sec" type="button" id="volver">Volver</button><button class="btn" type="submit" id="guardar">Guardar</button></div></form>');
   m.querySelector("#volver").onclick = () => verDocumentos(d.instancia);
+  m.querySelectorAll('[name="vig"]').forEach(r => r.onchange = () => { m.querySelector("#noVig").hidden = m.querySelector('[name="vig"]:checked').value === "si"; });
   m.querySelector("#fDoc").onsubmit = async e => {
     e.preventDefault();
     const g = m.querySelector("#guardar"); g.disabled = true; g.textContent = "Guardando…";
     try {
       const v = id => m.querySelector("#" + id).value.trim() || null;
-      const fila = { instancia: d.instancia, tipo: v("tipo"), titulo: v("titulo"), tipo_acto: v("tipo_acto"), numero: v("numero"), std: v("std"), fecha: v("fecha"), fecha_efecto: v("fecha_efecto"), enlace: v("enlace"), nota: v("nota"), vigente: m.querySelector("#vigente").checked, datos_personales: m.querySelector("#datos_personales").checked };
+      const fila = { instancia: d.instancia, tipo: v("tipo"), titulo: v("titulo"), tipo_acto: v("tipo_acto"), numero: v("numero"), std: v("std"), fecha: v("fecha"), fecha_efecto: v("fecha_efecto"), enlace: v("enlace"), nota: v("nota"), datos_personales: m.querySelector("#datos_personales").checked };
+      fila.vigente = m.querySelector('[name="vig"]:checked').value === "si";
+      fila.vigente_hasta = fila.vigente ? null : v("vigente_hasta");
+      fila.vigencia_motivo = fila.vigente ? null : v("vigencia_motivo");
+      fila.reemplazada_por = fila.vigente || !v("reemplazada_por") ? null : Number(v("reemplazada_por"));
+      if (!fila.vigente && fila.vigente_hasta && fila.fecha && fila.vigente_hasta < fila.fecha) throw new Error("«Rigió hasta» no puede ser anterior a la fecha de la resolución.");
       if (fila.enlace && !urlSegura(fila.enlace)) throw new Error("El enlace debe empezar con https://");
       const f = m.querySelector("#archivo").files[0];
       if (f) {

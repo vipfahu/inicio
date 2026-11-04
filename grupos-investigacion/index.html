@@ -49,6 +49,9 @@
   .hito::before{content:"";position:absolute;left:-19px;top:6px;width:10px;height:10px;border-radius:50%;background:var(--acento);border:2px solid #fff;box-shadow:0 0 0 1px var(--borde)}
   .hito .cab{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font:600 12px 'IBM Plex Mono',monospace;color:var(--tinta2)}
   .hito .tit{font:600 14px/1.4 Archivo,sans-serif;color:var(--tinta);margin:3px 0 2px}
+  .hito.no-vigente::before{background:#C9C2B2}
+  .hito.no-vigente .tit{color:var(--tinta2)}
+  .hito .num.vig{color:var(--aviso)}
   .hito .num{font:400 12px Archivo,sans-serif;color:var(--apagado)}
   .hito .acc{margin-top:6px}
   .refs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
@@ -181,13 +184,13 @@ function vistaFicha(k) {
         ((i.objetivos_especificos || []).length ? "<p><b>Específicos.</b></p><ul>" + i.objetivos_especificos.map(o => "<li>" + esc(o) + "</li>").join("") + "</ul>" : "") + "</section>" : "") +
       (i.lineas ? '<section><h2>Líneas de investigación</h2><ul>' + i.lineas.split(/;\s*/).filter(Boolean).map(l => "<li>" + esc(l) + "</li>").join("") + "</ul></section>" : "") +
       ((i.actividades || []).length ? '<section><h2>Actividades destacadas</h2><ul>' + i.actividades.map(a => "<li>" + esc(a) + "</li>").join("") + "</ul></section>" : "") +
-      '<section><h2>Resoluciones</h2>' + (docs.length ? '<div class="linea-t">' + docs.map(hito).join("") + "</div>" : '<p class="nota">Sin resoluciones publicadas.</p>') + "</section>" +
+      '<section><h2>Resoluciones</h2>' + (docs.length ? '<p class="nota" style="margin:-4px 0 12px">' + plural(docs.filter(x => x.vigente).length, "vigente", "vigentes") + " · " + plural(docs.filter(x => !x.vigente).length, "no vigente", "no vigentes") + "</p>" : "") + (docs.length ? '<div class="linea-t">' + docs.map(hito).join("") + "</div>" : '<p class="nota">Sin resoluciones publicadas.</p>') + "</section>" +
     '</div><aside><div class="caja">' +
       (dir ? '<div class="dato"><b>' + esc(dir.rol) + "</b>" + esc(dir.nombre) + "</div>" : "") +
       (i.unidad ? '<div class="dato"><b>Unidad</b>' + esc(i.unidad) + "</div>" : "") +
       (i.fecha_creacion ? '<div class="dato"><b>Creación</b>' + esc(fechaLarga(i.fecha_creacion)) + "</div>" : "") +
       (i.contacto ? '<div class="dato"><b>Contacto</b>' + esc(i.contacto) + "</div>" : "") +
-      '<h2 style="margin-top:16px">Integrantes</h2>' + (bloques || '<p class="nota">Sin integrantes registrados por resolución.</p>') +
+      '<h2 style="margin-top:16px">Integrantes</h2>' + (bloques || '<p class="nota">' + (dir ? "Aún no hay otros integrantes designados por resolución." : "Sin integrantes registrados por resolución.") + "</p>") +
       (declarados.length ? '<div class="rol">Declarados por la instancia</div><p class="nota" style="margin:0 0 4px">Informados por la propia instancia; aún sin resolución.</p>' + declarados.map(persona).join("") : "") +
     "</div></aside></div>";
   window.scrollTo(0, 0);
@@ -197,12 +200,21 @@ function persona(p) {
   return '<div class="persona">' + esc(p.nombre) + (p.rol && !/^integrante$/i.test(p.rol) ? " <small>" + esc(p.rol) + (p.linea ? " · " + esc(p.linea) : "") + "</small>" : p.linea ? "<small>" + esc(p.linea) + "</small>" : "") + "</div>";
 }
 
+const refDoc = d => d ? [d.tipo_acto, d.numero ? "N° " + d.numero : "", d.fecha ? "de " + fechaLarga(d.fecha) : ""].filter(Boolean).join(" ") : "";
 function hito(d) {
   const tit = d.titulo || TIPO_DOC[d.tipo] || "Resolución";
   const url = urlSegura(d.pdf), enl = urlSegura(d.enlace);
-  return '<div class="hito"><div class="cab"><span>' + esc(d.fecha ? fechaLarga(d.fecha) : "Sin fecha") + '</span><span class="etq gris">' + esc(TIPO_DOC[d.tipo] || d.tipo) + "</span>" + (d.vigente ? "" : '<span class="etq gris">Anterior</span>') + "</div>" +
+  const reemplazo = est.docs.find(x => x.id === d.reemplazada_por);
+  const reemplaza = est.docs.filter(x => x.reemplazada_por === d.id);
+  const vig = d.vigente
+    ? '<span class="etq ok">Vigente</span>'
+    : '<span class="etq gris">No vigente</span>';
+  const detalleVig = d.vigente ? "" : [d.vigente_hasta ? "Rigió hasta el " + fechaLarga(d.vigente_hasta) : "", d.vigencia_motivo, reemplazo ? "Reemplazada por " + refDoc(reemplazo) : ""].filter(Boolean).join(" · ");
+  return '<div class="hito' + (d.vigente ? "" : " no-vigente") + '"><div class="cab"><span>' + esc(d.fecha ? fechaLarga(d.fecha) : "Sin fecha") + '</span><span class="etq gris">' + esc(TIPO_DOC[d.tipo] || d.tipo) + "</span>" + vig + "</div>" +
     '<div class="tit">' + esc(tit) + "</div>" +
-    '<div class="num">' + esc([d.tipo_acto, d.numero ? "N° " + d.numero : ""].filter(Boolean).join(" ")) + "</div>" +
+    '<div class="num">' + esc([d.tipo_acto, d.numero ? "N° " + d.numero : ""].filter(Boolean).join(" ")) + (d.fecha_efecto && d.fecha_efecto !== d.fecha ? " · rige desde el " + esc(fechaLarga(d.fecha_efecto)) : "") + "</div>" +
+    (detalleVig ? '<div class="num vig">' + esc(detalleVig) + "</div>" : "") +
+    (reemplaza.length ? '<div class="num">Reemplaza a ' + reemplaza.map(x => esc(refDoc(x))).join("; ") + "</div>" : "") +
     (url ? '<div class="acc"><button class="btn sec chico" data-ver="' + esc(url) + '" data-titulo="' + esc(tit) + '">Ver resolución</button></div>'
       : enl ? '<div class="acc"><a class="btn sec chico" href="' + esc(enl) + '" target="_blank" rel="noopener">Abrir ↗</a></div>' : "") + "</div>";
 }
