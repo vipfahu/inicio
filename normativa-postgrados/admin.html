@@ -20,6 +20,9 @@ document.addEventListener('DOMContentLoaded',function(){g();new MutationObserver
 <style>
 body{margin:0;background:#F1EFE8}a{color:#007E80}a:hover{color:#EF7A00}input:focus,textarea:focus,select:focus{outline:none;border-color:#00A0A0}
 @media screen and (max-width:760px){
+  /* matriz de accesos (5 plataformas): desplazamiento horizontal */
+  div:has(> [style*="1.4fr) repeat(5"]){overflow-x:auto !important}
+  [style*="1.4fr) repeat(5"]{min-width:640px}
   /* dos columnas (listado + formulario) a una sola */
   [style*="360px"]{grid-template-columns:minmax(0,1fr) !important}
   /* pares de campos del formulario apilados */
@@ -229,14 +232,14 @@ body{margin:0;background:#F1EFE8}a{color:#007E80}a:hover{color:#EF7A00}input:foc
             </sc-if>
             <sc-if value="{{ accConMigrar }}" hint-placeholder-val="{{ true }}">
               <div style="background:#fff;border:1px solid #E8E4DA;border-radius:14px;overflow:hidden">
-                <div style="display:grid;grid-template-columns:minmax(0,1.4fr) repeat(3, minmax(0,1fr));gap:10px;padding:10px 20px;border-bottom:1px solid #E8E4DA;background:#FAF9F5">
+                <div style="display:grid;grid-template-columns:minmax(0,1.4fr) repeat(5, minmax(0,1fr));gap:10px;padding:10px 20px;border-bottom:1px solid #E8E4DA;background:#FAF9F5">
                   <span style="font:600 10.5px Archivo,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#8A8272">Cuenta</span>
                   <sc-for list="{{ accPlats }}" as="p" hint-placeholder-count="3">
                     <span style="font:600 10.5px Archivo,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#8A8272">{{ p.rot }}</span>
                   </sc-for>
                 </div>
                 <sc-for list="{{ accFilas }}" as="u" hint-placeholder-count="3">
-                  <div style="display:grid;grid-template-columns:minmax(0,1.4fr) repeat(3, minmax(0,1fr));gap:10px;align-items:center;padding:11px 20px;border-bottom:1px solid #F0EDE4">
+                  <div style="display:grid;grid-template-columns:minmax(0,1.4fr) repeat(5, minmax(0,1fr));gap:10px;align-items:center;padding:11px 20px;border-bottom:1px solid #F0EDE4">
                     <div style="min-width:0">
                       <div style="font:700 13px Archivo,sans-serif;color:#3A4450;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ u.nombre }}</div>
                       <div style="font:400 11px IBM Plex Mono,monospace;color:#8A8272;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ u.correo }}</div>
@@ -254,7 +257,7 @@ body{margin:0;background:#F1EFE8}a{color:#007E80}a:hover{color:#EF7A00}input:foc
                 <h3 style="font:800 14px Archivo,sans-serif;margin:16px 0 8px;color:#3A4450">Invitaciones pendientes: acceso reservado</h3>
                 <div style="background:#fff;border:1px solid #E8E4DA;border-radius:14px;overflow:hidden">
                   <sc-for list="{{ accInv }}" as="i" hint-placeholder-count="1">
-                    <div style="display:grid;grid-template-columns:minmax(0,1.4fr) repeat(3, minmax(0,1fr));gap:10px;align-items:center;padding:11px 20px;border-bottom:1px solid #F0EDE4">
+                    <div style="display:grid;grid-template-columns:minmax(0,1.4fr) repeat(5, minmax(0,1fr));gap:10px;align-items:center;padding:11px 20px;border-bottom:1px solid #F0EDE4">
                       <div style="font:400 11.5px IBM Plex Mono,monospace;color:#5A6470;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ i.correo }}</div>
                       <sc-for list="{{ i.plats }}" as="p" hint-placeholder-count="3">
                         <select value="{{ p.nivel }}" onChange="{{ p.set }}" disabled="{{ p.bloqueado }}" style="min-width:0;padding:7px 8px;border:1.5px solid #E0DCD0;border-radius:7px;font:600 11px Archivo,sans-serif;background:#FAF9F5;color:#3A4450">
@@ -284,7 +287,7 @@ body{margin:0;background:#F1EFE8}a{color:#007E80}a:hover{color:#EF7A00}input:foc
                 </div>
               </sc-for>
             </div>
-            <p style="font:italic 400 12px/1.5 Spectral,serif;color:#8A8272;margin-top:12px">El rol de esta lista es el <strong>rol general</strong> del sistema VIP: «Admin. general» gestiona cuentas y accesos de las tres plataformas y solo puede cambiarlo otra administración general. Lo que cada persona puede hacer en <em>esta</em> plataforma se fija arriba, en «Acceso por plataforma». Suspender conserva la cuenta pero bloquea el acceso en todo el sistema.</p>
+            <p style="font:italic 400 12px/1.5 Spectral,serif;color:#8A8272;margin-top:12px">El rol de esta lista es el <strong>rol general</strong> del sistema VIP: «Admin. general» gestiona cuentas y accesos de todas las plataformas y solo puede cambiarlo otra administración general. Lo que cada persona puede hacer en <em>esta</em> plataforma se fija arriba, en «Acceso por plataforma». Suspender conserva la cuenta pero bloquea el acceso en todo el sistema.</p>
           </section>
 
           <sc-if value="{{ hayInvitaciones }}" hint-placeholder-val="{{ false }}">
@@ -914,7 +917,7 @@ class Component extends DCLogic {
 
   // ---- Accesos por plataforma (migracion-accesos.sql) ----
   PLATAFORMA = "normativa";
-  PLATS = [["normativa","Normativa"],["cursos","Cursos"],["trayectorias","Trayectorias"]];
+  PLATS = [["normativa","Normativa"],["cursos","Cursos"],["trayectorias","Trayectorias"],["grupos","Grupos"],["comisiones","Comisiones"]];
   NIVELES = [["ninguno","Sin acceso"],["consulta","Consulta"],["edicion","Edición"],["administracion","Administración"]];
   // Devuelve el perfil con el rol EFECTIVO en esta plataforma; null si no tiene acceso.
   async resolverAcceso(perfil) {
@@ -993,7 +996,7 @@ class Component extends DCLogic {
       accPlats: this.PLATS.map(([id, rot]) => ({ rot, esta: id === this.PLATAFORMA })),
       accFilas: filas, accInv: inv, accHayInv: inv.length > 0,
       accNota: puedeGeneral
-        ? "Como administración general puedes fijar el nivel de cualquier persona en las tres plataformas."
+        ? "Como administración general puedes fijar el nivel de cualquier persona en todas las plataformas."
         : "Administras esta plataforma: solo puedes cambiar su columna. Las otras las fija la administración general.",
       accGeneralEsYo: puedeGeneral
     };

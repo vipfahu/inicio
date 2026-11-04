@@ -8,7 +8,11 @@ Carpeta `vipfahu/` = raíz del sitio. Sitio estático publicado en Netlify: http
 - `cursos-formacion/` — Cursos de Formación Multidisciplinar: `index.html` oferta pública por semestre + estadísticas, `admin.html` panel (programas, semestres, cuentas), `data/`, `support.js`, `assets/`.
 - `trayectorias-academicas/` — Trayectorias Académicas: `index.html` (todo requiere cuenta; sin vista pública), `data/supabase/config.js`, `support.js`, `assets/`.
 - `concesiones-excepcion/apps-script/` — Concesiones Académicas de Excepción: plataforma en Google Workspace (Apps Script sobre la planilla y el Formulario de la cuenta institucional). No se publica en el sitio; instalación en su `README.md`. En el portal, la tarjeta 05 y el acceso «Concesiones ↗» del encabezado enlazan al formulario (`URL?v=solicitud`) y al panel interno (Web App de Apps Script). **Esta tarjeta se editó directamente en el repositorio:** si el sitio se regenera desde el espacio de diseño, hay que llevar ahí el mismo cambio.
-- `netlify.toml` — cabeceras, caché y rutas cortas: `/normativa`, `/admin`, `/cursos`, `/cursos/admin`, `/trayectorias`.
+- `grupos-investigacion/` — Grupos y Programas Centro de Investigación: `index.html` catálogo **público** (instancias con sus resoluciones de creación, modificación, normativa interna e integrantes; reglamentos internos y modelos de resolución), `admin.html` panel (plataforma `grupos` en la matriz de accesos). Depósito público `grupos`.
+- `comisiones-evaluacion/` — Comisiones de Evaluación Académica (Procesos de Jerarquización): `index.html` único. Lectura para cuentas **@usach.cl que entran con Google** y para el equipo; edición para quien tenga Edición/Administración en la plataforma `comisiones`. Composición vigente por unidad (por puntaje), de Facultad (por criterios) y especial, consulta a una fecha, historial y resumen de la norma (D.U. 26/1986, 123/1987, 848/1988). No guarda evaluaciones. Depósito privado `comisiones` (URL firmadas).
+- `comun/` — `vip.css` y `vip.js`, compartidos por Grupos y Comisiones. **Estos dos módulos son HTML y JS simples, no salen del espacio de diseño**: no se regeneran desde ahí ni dependen de `support.js`.
+- `supabase/migraciones/` — SQL aplicado en el proyecto (registro; Netlify no lo publica). `2026-11-04-grupos-y-comisiones.sql`: tablas `gi_*` y `ce_*`, permisos, depósitos, plataformas `grupos` y `comisiones` en `accesos`, alta de cuentas @usach.cl con Google.
+- `netlify.toml` — cabeceras, caché y rutas cortas: `/normativa`, `/admin`, `/cursos`, `/cursos/admin`, `/trayectorias`, `/grupos`, `/grupos/admin`, `/comisiones`.
 - `404.html` — página de error propia.
 
 ## Datos (Supabase, un solo proyecto para los tres subsistemas)
@@ -29,6 +33,8 @@ Una sola tabla `perfiles` para todo el sistema; el rol se interpreta por subsist
 | editor         | carga y edita documentos      | cursos de sus programas asignados             | solo visión             |
 
 Alta siempre por invitación (pestaña Cuentas/Usuarios de cualquier panel); la persona crea su contraseña con «Primera vez». La primera cuenta registrada queda administradora.
+
+**Excepción (nov 2026):** una cuenta @usach.cl que entra **con Google** se crea sin invitación y sin perfil: solo puede leer Comisiones; no entra a ningún panel. Las cuentas con contraseña siguen exigiendo invitación, porque el proyecto no confirma correos (cualquiera podría registrar una dirección @usach.cl ajena). Para que el ingreso con Google funcione hay que habilitar el proveedor Google en Supabase (Authentication → Sign In / Providers → Google) con un cliente OAuth de Google Cloud y agregar `https://vipfahu.netlify.app/**` en Authentication → URL Configuration → Redirect URLs. Si se invita a alguien que ya entró con Google, su perfil se crea al invitarlo.
 
 ## Mantenimiento
 - Trayectorias ▸ **Sistema**: estado de migraciones, registro de actividad y depuración de archivos huérfanos del depósito privado.

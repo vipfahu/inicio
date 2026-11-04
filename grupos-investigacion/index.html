@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Grupos y Programas Centro de Investigación · FAHU USACH</title>
+<meta name="description" content="Catálogo público de los grupos y programas centro de investigación de la Facultad de Humanidades USACH, con sus resoluciones de creación, modificación, normativa interna e integrantes.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700;800&amp;family=Spectral:ital,wght@0,400;0,600;1,400&amp;family=IBM+Plex+Mono:wght@400;600&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../comun/vip.css?v=20261104">
+<style>
+  :root{--acento:#7A4FA3}
+  .filtros{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:20px 0 18px}
+  .filtros input{max-width:340px}
+  .filtros select{width:auto;min-width:170px}
+  .chips{display:flex;gap:6px;flex-wrap:wrap}
+  .chip{border:1.5px solid var(--borde2);background:#fff;border-radius:20px;padding:6px 13px;font:600 12px Archivo,sans-serif;color:var(--tinta2);cursor:pointer}
+  .chip[aria-pressed="true"]{background:var(--acento);border-color:var(--acento);color:#fff}
+  .resumen{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:18px 0 6px}
+  .resumen .caja{padding:14px 18px}
+  .cifra{font:600 26px 'IBM Plex Mono',monospace;color:var(--acento);line-height:1.1}
+  .lista{display:grid;gap:12px}
+  .inst{background:#fff;border:1px solid var(--borde);border-left:4px solid var(--acento);border-radius:12px}
+  .inst.grupo{border-left-color:var(--teal2)}
+  .inst > button{all:unset;box-sizing:border-box;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 16px;width:100%;padding:16px 20px;cursor:pointer}
+  .inst > button:focus-visible{outline:2px solid var(--teal2);outline-offset:-2px;border-radius:12px}
+  .inst .nombre{font:700 16px/1.3 Archivo,sans-serif;color:var(--tinta)}
+  .inst .meta{font:400 12.5px Archivo,sans-serif;color:var(--apagado)}
+  .inst .flecha{font:700 14px Archivo,sans-serif;color:var(--apagado);align-self:center;transition:transform .15s ease-out}
+  .inst[data-abierta] .flecha{transform:rotate(90deg)}
+  .ficha{padding:0 20px 20px;border-top:1px solid #F0EDE4}
+  .ficha p{margin:14px 0 8px;color:var(--tinta2)}
+  .datos{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px 18px;margin:10px 0 16px;font:400 13px Archivo,sans-serif}
+  .datos b{display:block;font:600 11px Archivo,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--apagado)}
+  .docs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .slot{border:1px solid var(--borde);border-radius:10px;padding:12px 14px;background:#FBFAF6}
+  .slot h3{font-size:12.5px;letter-spacing:.02em}
+  .doc{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:7px 0;border-top:1px dashed var(--borde)}
+  .doc:first-of-type{border-top:0}
+  .doc .t{font:400 13px/1.4 Archivo,sans-serif}
+  .doc .t small{display:block;color:var(--apagado);font-size:11.5px}
+  .falta{font:400 12.5px Archivo,sans-serif;color:var(--apagado);font-style:italic}
+  .refs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+  .ref{display:flex;justify-content:space-between;align-items:center;gap:12px;background:#fff;border:1px solid var(--borde);border-radius:10px;padding:12px 16px}
+  section{margin-top:40px}
+  @media screen and (max-width:760px){
+    .resumen{grid-template-columns:1fr}
+    .docs,.refs{grid-template-columns:1fr}
+    .filtros input,.filtros select{max-width:none;width:100%}
+    .ref,.doc{flex-direction:column;align-items:flex-start}
+  }
+</style>
+</head>
+<body>
+<div class="barra">
+  <a class="volver" href="/"><span aria-hidden="true">←</span>Gestión de Información VIP</a>
+  <span class="miga">/ Grupos y Programas Centro de Investigación</span>
+</div>
+<header class="cabeza">
+  <div>
+    <a href="/" title="Ir al portal Gestión de Información VIP" style="display:inline-block;line-height:0"><img src="assets/logo-fahu.png" alt="Facultad de Humanidades · Universidad de Santiago de Chile"></a>
+    <span class="titulo">Grupos y Programas Centro de Investigación</span>
+    <span class="sub">Vicedecanato de Investigación y Postgrado · FAHU USACH</span>
+  </div>
+  <div class="acciones">
+    <a class="btn nar" href="admin.html">Panel de actualización</a>
+  </div>
+</header>
+
+<main>
+  <div class="kicker">Catálogo público</div>
+  <h1>Grupos y Programas Centro de Investigación</h1>
+  <p class="lead">Instancias asociativas de investigación de la Facultad de Humanidades y sus resoluciones: creación, modificación, normativa interna e integrantes. Los <b>programas centro</b> se proyectan como centros de investigación; los <b>grupos</b> son instancias asociativas orientadas a promover actividades de investigación conjuntas.</p>
+
+  <div class="resumen" id="resumen" aria-live="polite"></div>
+
+  <div class="filtros" role="search">
+    <label class="sr" for="q">Buscar</label>
+    <input id="q" type="search" placeholder="Buscar por nombre, sigla, unidad, responsable o línea…">
+    <div class="chips" role="group" aria-label="Tipo de instancia">
+      <button class="chip" data-tipo="" aria-pressed="true">Todos</button>
+      <button class="chip" data-tipo="programa_centro" aria-pressed="false">Programas centro</button>
+      <button class="chip" data-tipo="grupo" aria-pressed="false">Grupos</button>
+    </div>
+    <label class="sr" for="unidad">Unidad</label>
+    <select id="unidad"><option value="">Todas las unidades</option></select>
+    <label class="check"><input type="checkbox" id="noVigentes"> Incluir no vigentes</label>
+  </div>
+
+  <div id="estado"></div>
+  <div class="lista" id="lista"></div>
+
+  <section aria-labelledby="t-ref">
+    <div class="kicker">Para crear o actualizar una instancia</div>
+    <h2 id="t-ref">Reglamentos internos y modelos de resolución</h2>
+    <p class="lead">Documentos de referencia del Vicedecanato para constituir grupos y programas centro y para redactar sus resoluciones.</p>
+    <div class="refs" id="refs"></div>
+    <p class="nota" style="margin-top:12px">Las versiones oficiales también se publican en la <a href="https://fahu.usach.cl/investigacion/" target="_blank" rel="noopener">página de Investigación de la Facultad ↗</a>.</p>
+  </section>
+</main>
+
+<script type="module">
+import { conectar, esc, urlSegura, fechaLarga, normalizar, verArchivo, avisar, traducir } from "../comun/vip.js?v=20261104";
+
+const TIPOS_DOC = [
+  ["creacion", "Resolución de creación"],
+  ["modificacion", "Resolución de modificación"],
+  ["normativa_interna", "Normativa interna"],
+  ["integrantes", "Resolución de integrantes"]
+];
+const TIPO_REF = { reglamento: "Reglamento interno", modelo: "Modelo de resolución", otro: "Documento de referencia" };
+const est = { inst: [], docs: [], refs: [], tipo: "", q: "", unidad: "", noVigentes: false, abiertas: new Set() };
+let sb;
+
+function etiquetaTipo(t) { return t === "programa_centro" ? '<span class="etq nar">Programa centro</span>' : '<span class="etq teal">Grupo</span>'; }
+
+function docHtml(d) {
+  const titulo = d.titulo || (TIPOS_DOC.find(x => x[0] === d.tipo) || [, "Documento"])[1];
+  const ref = [d.numero ? "N° " + d.numero : "", d.fecha ? fechaLarga(d.fecha) : ""].filter(Boolean).join(" · ");
+  const url = urlSegura(d.pdf) || urlSegura(d.enlace);
+  const boton = url
+    ? (urlSegura(d.pdf)
+        ? '<button class="btn sec chico" data-ver="' + esc(url) + '" data-titulo="' + esc(titulo) + '">Ver PDF</button>'
+        : '<a class="btn sec chico" href="' + esc(url) + '" target="_blank" rel="noopener">Abrir ↗</a>')
+    : '<span class="falta">Sin archivo</span>';
+  return '<div class="doc"><span class="t">' + esc(titulo) + (d.vigente ? "" : ' <span class="etq gris">Anterior</span>') +
+    (ref || d.nota ? "<small>" + esc([ref, d.nota].filter(Boolean).join(" · ")) + "</small>" : "") + "</span>" + boton + "</div>";
+}
+
+function fichaHtml(i) {
+  const docs = est.docs.filter(d => d.instancia === i.id).sort((a, b) => (b.vigente - a.vigente) || String(b.fecha || "").localeCompare(String(a.fecha || "")));
+  const slots = TIPOS_DOC.map(([t, rot]) => {
+    const ds = docs.filter(d => d.tipo === t);
+    const vacio = t === "modificacion" ? "Sin modificaciones registradas." : "Aún no registrada.";
+    return '<div class="slot"><h3>' + rot + "</h3>" + (ds.length ? ds.map(docHtml).join("") : '<div class="falta">' + vacio + "</div>") + "</div>";
+  }).join("");
+  const otros = docs.filter(d => d.tipo === "otro");
+  const datos = [["Unidad", i.unidad], ["Responsable", i.responsable], ["Líneas de trabajo", i.lineas], ["Contacto", i.contacto]]
+    .filter(x => x[1]).map(x => "<div><b>" + x[0] + "</b>" + esc(x[1]) + "</div>").join("");
+  const sitio = urlSegura(i.sitio);
+  return '<div class="ficha">' +
+    (i.descripcion ? "<p>" + esc(i.descripcion) + "</p>" : "") +
+    (datos ? '<div class="datos">' + datos + (sitio ? '<div><b>Sitio</b><a href="' + esc(sitio) + '" target="_blank" rel="noopener">' + esc(sitio.replace(/^https?:\/\//, "")) + " ↗</a></div>" : "") + "</div>" : "") +
+    '<div class="docs">' + slots + "</div>" +
+    (otros.length ? '<div class="slot" style="margin-top:10px"><h3>Otros documentos</h3>' + otros.map(docHtml).join("") + "</div>" : "") +
+    "</div>";
+}
+
+function pintar() {
+  const q = normalizar(est.q);
+  const visibles = est.inst.filter(i =>
+    (est.noVigentes || i.vigente) &&
+    (!est.tipo || i.tipo === est.tipo) &&
+    (!est.unidad || i.unidad === est.unidad) &&
+    (!q || normalizar([i.nombre, i.sigla, i.unidad, i.responsable, i.lineas, i.descripcion].join(" ")).includes(q)));
+  const vig = est.inst.filter(i => i.vigente);
+  document.getElementById("resumen").innerHTML =
+    '<div class="caja"><div class="cifra">' + vig.filter(i => i.tipo === "programa_centro").length + '</div><div class="nota">Programas centro vigentes</div></div>' +
+    '<div class="caja"><div class="cifra">' + vig.filter(i => i.tipo === "grupo").length + '</div><div class="nota">Grupos vigentes</div></div>' +
+    '<div class="caja"><div class="cifra">' + est.docs.length + '</div><div class="nota">Documentos publicados</div></div>';
+  const lista = document.getElementById("lista");
+  if (!est.inst.length) { lista.innerHTML = '<div class="vacio">Aún no hay grupos ni programas centro registrados.</div>'; return; }
+  if (!visibles.length) { lista.innerHTML = '<div class="vacio">Ninguna instancia coincide con la búsqueda.</div>'; return; }
+  lista.innerHTML = visibles.map(i => {
+    const abierta = est.abiertas.has(i.id);
+    const n = est.docs.filter(d => d.instancia === i.id).length;
+    return '<article class="inst' + (i.tipo === "grupo" ? " grupo" : "") + '"' + (abierta ? " data-abierta" : "") + '>' +
+      '<button aria-expanded="' + abierta + '" data-abrir="' + i.id + '">' +
+      '<span><span class="nombre">' + esc(i.nombre) + (i.sigla ? " (" + esc(i.sigla) + ")" : "") + '</span><br>' +
+      '<span class="meta">' + [i.unidad, i.responsable ? "Responsable: " + i.responsable : "", n + (n === 1 ? " documento" : " documentos")].filter(Boolean).map(esc).join(" · ") + "</span></span>" +
+      '<span style="display:flex;gap:8px;align-items:center">' + etiquetaTipo(i.tipo) + (i.vigente ? "" : ' <span class="etq gris">No vigente</span>') + '<span class="flecha" aria-hidden="true">›</span></span>' +
+      "</button>" + (abierta ? fichaHtml(i) : "") + "</article>";
+  }).join("");
+}
+
+function pintarRefs() {
+  const c = document.getElementById("refs");
+  if (!est.refs.length) { c.innerHTML = '<div class="vacio" style="grid-column:1/-1">Los reglamentos y modelos se publicarán aquí.</div>'; return; }
+  c.innerHTML = est.refs.map(r => {
+    const pdf = urlSegura(r.pdf), enl = urlSegura(r.enlace);
+    const accion = pdf ? '<button class="btn sec chico" data-ver="' + esc(pdf) + '" data-titulo="' + esc(r.titulo) + '">Ver</button>'
+      : enl ? '<a class="btn sec chico" href="' + esc(enl) + '" target="_blank" rel="noopener">Abrir ↗</a>' : "";
+    return '<div class="ref"><span><span class="etq ' + (r.tipo === "modelo" ? "nar" : "teal") + '">' + esc(TIPO_REF[r.tipo] || "") + '</span><br><b style="font:700 14px Archivo,sans-serif">' + esc(r.titulo) + "</b>" +
+      (r.descripcion ? '<br><span class="nota">' + esc(r.descripcion) + "</span>" : "") + "</span>" + accion + "</div>";
+  }).join("");
+}
+
+document.addEventListener("click", e => {
+  const ab = e.target.closest("[data-abrir]");
+  if (ab) { const id = Number(ab.dataset.abrir); est.abiertas.has(id) ? est.abiertas.delete(id) : est.abiertas.add(id); pintar(); return; }
+  const ver = e.target.closest("[data-ver]");
+  if (ver) { verArchivo(ver.dataset.ver, ver.dataset.titulo); return; }
+  const chip = e.target.closest("[data-tipo]");
+  if (chip) {
+    est.tipo = chip.dataset.tipo;
+    document.querySelectorAll("[data-tipo]").forEach(b => b.setAttribute("aria-pressed", String(b === chip)));
+    pintar();
+  }
+});
+document.getElementById("q").addEventListener("input", e => { est.q = e.target.value; pintar(); });
+document.getElementById("unidad").addEventListener("change", e => { est.unidad = e.target.value; pintar(); });
+document.getElementById("noVigentes").addEventListener("change", e => { est.noVigentes = e.target.checked; pintar(); });
+
+async function cargar() {
+  try {
+    if (!sb) sb = (await conectar(new URL("./data/supabase/config.js?v=20261104", location.href).href)).sb;
+    const [i, d, r] = await Promise.all([
+      sb.from("gi_instancias").select("*").order("nombre"),
+      sb.from("gi_documentos").select("*"),
+      sb.from("gi_referencias").select("*").order("orden").order("titulo")
+    ]);
+    const err = i.error || d.error || r.error;
+    if (err) throw err;
+    est.inst = i.data; est.docs = d.data; est.refs = r.data;
+    const unidades = [...new Set(est.inst.map(x => x.unidad).filter(Boolean))].sort((a, b) => a.localeCompare(b, "es"));
+    const sel = document.getElementById("unidad");
+    sel.innerHTML = '<option value="">Todas las unidades</option>' + unidades.map(u => '<option' + (u === est.unidad ? " selected" : "") + ">" + esc(u) + "</option>").join("");
+    document.getElementById("estado").innerHTML = "";
+    pintar(); pintarRefs();
+  } catch (e) {
+    document.getElementById("estado").innerHTML = '<div class="aviso err">No se pudo cargar el catálogo: ' + esc(traducir(e.message)) + "</div>";
+    pintar(); pintarRefs();
+  }
+}
+cargar();
+document.addEventListener("visibilitychange", () => { if (!document.hidden) cargar(); });
+</script>
+</body>
+</html>

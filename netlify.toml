@@ -26,6 +26,11 @@
     Cache-Control = "no-cache, must-revalidate"
 
 [[headers]]
+  for = "/comun/*"
+  [headers.values]
+    Cache-Control = "no-cache, must-revalidate"
+
+[[headers]]
   for = "/support.js"
   [headers.values]
     Cache-Control = "no-cache, must-revalidate"
@@ -97,6 +102,39 @@
   from = "/trayectorias-academicas"
   to = "/trayectorias-academicas/index.html"
   status = 301
+
+# Grupos y Programas Centro de Investigación (catálogo público + panel) y Comisiones de Evaluación Académica
+[[redirects]]
+  from = "/grupos"
+  to = "/grupos-investigacion/index.html"
+  status = 301
+
+[[redirects]]
+  from = "/grupos-investigacion"
+  to = "/grupos-investigacion/index.html"
+  status = 301
+
+[[redirects]]
+  from = "/grupos/admin"
+  to = "/grupos-investigacion/admin.html"
+  status = 301
+
+[[redirects]]
+  from = "/comisiones"
+  to = "/comisiones-evaluacion/index.html"
+  status = 301
+
+[[redirects]]
+  from = "/comisiones-evaluacion"
+  to = "/comisiones-evaluacion/index.html"
+  status = 301
+
+# Migraciones SQL: viven en el repo como registro, no se publican
+[[redirects]]
+  from = "/supabase/*"
+  to = "/404.html"
+  status = 404
+  force = true
 
 # Página intermedia de los enlaces de correo de la plataforma CAE (elegir cuenta USACH antes de abrir el panel)
 [[redirects]]

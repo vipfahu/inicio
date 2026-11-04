@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Comisiones de Evaluación Académica · FAHU USACH</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700;800&amp;family=Spectral:ital,wght@0,400;0,600;1,400&amp;family=IBM+Plex+Mono:wght@400;600&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../comun/vip.css?v=20261104">
+<style>
+  :root{--acento:#1F5F8B}
+  .login{max-width:460px;margin:clamp(16px,5vh,48px) auto}
+  .google{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:46px;border:1.5px solid var(--borde2);border-radius:10px;background:#fff;color:var(--tinta);font:700 14px Archivo,sans-serif;cursor:pointer}
+  .google:hover{border-color:var(--teal2)}
+  .google[disabled]{opacity:.55;cursor:default}
+  details.equipo{margin-top:16px;border-top:1px solid #F0EDE4;padding-top:12px}
+  details.equipo summary{cursor:pointer;font:600 12.5px Archivo,sans-serif;color:var(--tinta2)}
+  .grilla{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+  .com{background:#fff;border:1px solid var(--borde);border-top:4px solid var(--acento);border-radius:12px;padding:16px 18px}
+  .com.facultad,.com.especial{grid-column:1/-1;border-top-color:var(--naranja)}
+  .com header{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap;margin-bottom:8px}
+  .com .sub{font:400 12px Archivo,sans-serif;color:var(--apagado)}
+  .miembro{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;padding:9px 0;border-top:1px dashed var(--borde);font:400 13.5px Archivo,sans-serif}
+  .miembro:first-of-type{border-top:0}
+  .miembro small{display:block;color:var(--apagado);font-size:12px}
+  .res{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:7px 0;border-top:1px solid #F0EDE4;font:400 13px Archivo,sans-serif}
+  .controles{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  .linea{display:grid;grid-template-columns:120px minmax(0,1fr);gap:4px 14px;padding:10px 0;border-top:1px solid #F0EDE4;font:400 13px Archivo,sans-serif}
+  .linea .f{font:600 12px 'IBM Plex Mono',monospace;color:var(--tinta2)}
+  .norma h3{margin-top:18px}
+  .norma p,.norma li{color:var(--tinta2);font-size:14.5px}
+  .barra-fecha{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:0 0 16px}
+  .barra-fecha input,.barra-fecha select{width:auto}
+  @media screen and (max-width:760px){
+    .grilla{grid-template-columns:1fr}
+    .linea{grid-template-columns:1fr}
+    .miembro,.res{grid-template-columns:1fr;display:grid}
+  }
+</style>
+</head>
+<body>
+<div class="barra">
+  <a class="volver" href="/"><span aria-hidden="true">←</span>Gestión de Información VIP</a>
+  <span class="miga">/ Comisiones de Evaluación Académica</span>
+</div>
+<header class="cabeza">
+  <div>
+    <a href="/" title="Ir al portal Gestión de Información VIP" style="display:inline-block;line-height:0"><img src="assets/logo-fahu.png" alt="Facultad de Humanidades · Universidad de Santiago de Chile"></a>
+    <span class="titulo">Comisiones de Evaluación Académica</span>
+    <span class="sub">Procesos de Jerarquización · Vicedecanato de Investigación y Postgrado · FAHU USACH</span>
+  </div>
+  <div class="acciones" id="sesion"></div>
+</header>
+<main id="app"><p class="nota">Cargando…</p></main>
+
+<script type="module">
+import { conectar, esc, urlSegura, fechaLarga, hoyISO, avisar, traducir, modal, cerrarModal, verArchivo, nivelEn, anotar, rutaArchivo } from "../comun/vip.js?v=20261104";
+
+const PLATAFORMA = "comisiones";
+const TIPO = {
+  departamento: { nombre: "Comisión de Evaluación del Departamento o Escuela", modo: "Evaluación por puntaje", esperado: 3 },
+  facultad: { nombre: "Comisión de Evaluación de la Facultad", modo: "Evaluación por criterios", esperado: 3 },
+  especial: { nombre: "Comisión de evaluación especial", modo: "Evalúa por criterios a los miembros de la Comisión de la Facultad", esperado: 3 }
+};
+const JERARQUIAS = ["Profesor Titular", "Profesor Asociado", "Profesor Asistente", "Otra"];
+const ROLES = ["", "Presidente/a", "Secretario/a", "Integrante", "Suplente"];
+const app = document.getElementById("app");
+const st = { pestana: "vigente", com: [], res: [], int: [], unidades: [], nivel: "ninguno", fecha: hoyISO(), comHist: "" };
+let sb, cfg, googleActivo = false;
+const puede = () => st.nivel === "edicion" || st.nivel === "administracion";
+
+const nombreCom = c => c.tipo === "departamento" ? c.unidad : TIPO[c.tipo].nombre;
+const ordenCom = (a, b) => ({ facultad: 0, especial: 1, departamento: 2 }[a.tipo] - { facultad: 0, especial: 1, departamento: 2 }[b.tipo]) || String(a.unidad || "").localeCompare(String(b.unidad || ""), "es");
+const vigenteEn = (m, f) => m.desde <= f && (!m.hasta || m.hasta >= f);
+const resDe = id => st.res.find(r => r.id === id);
+function refRes(r) { return r ? [r.acto, r.numero ? "N° " + r.numero : "", r.fecha ? "de " + fechaLarga(r.fecha) : ""].filter(Boolean).join(" ") : ""; }
+
+/* ---------- Sesión ---------- */
+function barraSesion(s) {
+  const c = document.getElementById("sesion");
+  c.innerHTML = s ? '<span class="nota">' + esc(s.user.email) + '</span><button class="btn sec chico" id="salir">Cerrar sesión</button>' : "";
+  if (s) c.querySelector("#salir").onclick = async () => { await sb.auth.signOut(); iniciar(); };
+}
+
+async function revisarGoogle() {
+  try {
+    const r = await fetch(cfg.SUPABASE_URL + "/auth/v1/settings", { headers: { apikey: cfg.SUPABASE_ANON_KEY } });
+    const d = await r.json();
+    googleActivo = !!(d.external && d.external.google);
+  } catch (e) { googleActivo = false; }
+}
+
+function pantallaLogin(msg, sesion) {
+  barraSesion(sesion || null);
+  app.innerHTML = '<div class="login"><div class="caja">' +
+    '<div class="kicker">Acceso con cuenta institucional</div><h1 style="font-size:24px">Comisiones de Evaluación Académica</h1>' +
+    '<p class="lead" style="font-size:14px">Composición de las comisiones que evalúan los procesos de jerarquización en la Facultad de Humanidades, con sus resoluciones de respaldo y su historial. Disponible para cuentas <b>@usach.cl</b>. No contiene evaluaciones.</p>' +
+    (msg ? '<div class="aviso ' + (msg.tipo || "err") + '">' + esc(msg.texto) + "</div>" : "") +
+    '<button class="google" id="google"' + (googleActivo ? "" : " disabled") + '><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.6l6.7-6.7C35.6 2.4 30.2 0 24 0 14.6 0 6.6 5.4 2.7 13.3l7.8 6.1C12.4 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h12.4c-.5 2.9-2.2 5.3-4.6 6.9l7.4 5.7c4.3-4 6.9-9.9 6.9-16.6z"/><path fill="#FBBC05" d="M10.5 28.6A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.1.8-4.6l-7.8-6.1A24 24 0 0 0 0 24c0 3.9.9 7.5 2.7 10.7l7.8-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.4-5.7c-2.1 1.4-4.8 2.3-8.5 2.3-6.3 0-11.6-4.1-13.5-9.8l-7.8 6.1C6.6 42.6 14.6 48 24 48z"/></svg>Ingresar con mi cuenta USACH</button>' +
+    (googleActivo ? "" : '<p class="nota" style="margin-top:8px">El ingreso con cuenta USACH (Google) se está habilitando. Mientras tanto, solo el equipo del Vicedecanato puede entrar con su correo y contraseña.</p>') +
+    '<details class="equipo"' + (googleActivo ? "" : " open") + '><summary>Equipo del Vicedecanato: correo y contraseña</summary>' +
+    '<form id="fLogin" style="margin-top:12px"><div class="campo"><label for="correo">Correo</label><input id="correo" type="email" autocomplete="username" required></div>' +
+    '<div class="campo"><label for="clave">Contraseña</label><input id="clave" type="password" autocomplete="current-password" required></div>' +
+    '<button class="btn" type="submit">Ingresar</button></form></details>' +
+    "</div></div>";
+  document.getElementById("google").onclick = async () => {
+    const { error } = await sb.auth.signInWithOAuth({ provider: "google", options: { redirectTo: location.origin + location.pathname, queryParams: { hd: "usach.cl", prompt: "select_account" } } });
+    if (error) avisar(traducir(error.message), "err");
+  };
+  document.getElementById("fLogin").onsubmit = async e => {
+    e.preventDefault();
+    const { error } = await sb.auth.signInWithPassword({ email: document.getElementById("correo").value.trim(), password: document.getElementById("clave").value });
+    if (error) return pantallaLogin({ texto: traducir(error.message) });
+    iniciar();
+  };
+}
+
+/* ---------- Datos ---------- */
+async function cargar() {
+  const [c, r, i] = await Promise.all([
+    sb.from("ce_comisiones").select("*"),
+    sb.from("ce_resoluciones").select("*").order("fecha", { ascending: false }),
+    sb.from("ce_integrantes").select("*").order("desde", { ascending: false })
+  ]);
+  const err = c.error || r.error || i.error;
+  if (err) throw err;
+  st.com = c.data.sort(ordenCom); st.res = r.data; st.int = i.data;
+  if (puede() && !st.unidades.length) {
+    const u = await sb.from("tr_unidades").select("nombre,activo").order("nombre");
+    st.unidades = u.error ? [] : u.data.filter(x => x.activo).map(x => x.nombre);
+  }
+}
+
+/* ---------- Vistas ---------- */
+function pintar() {
+  const tabs = [["vigente", "Composición vigente"], ["historial", "Historial"], ["norma", "Norma aplicable"]];
+  app.innerHTML = '<div class="kicker">Procesos de Jerarquización</div><h1>Comisiones de Evaluación Académica</h1>' +
+    '<p class="lead">Integrantes de la Comisión de Evaluación de cada Departamento o Escuela (evaluación por puntaje), de la Comisión de Evaluación de la Facultad (evaluación por criterios) y de la comisión especial, con las resoluciones que los designan y su vigencia.</p>' +
+    (puede() ? '<div class="aviso ok">Tienes permiso de ' + (st.nivel === "administracion" ? "administración" : "edición") + ": puedes registrar integrantes y resoluciones.</div>" : "") +
+    '<div class="pestanas" role="tablist">' + tabs.map(([id, r]) => '<button role="tab" aria-selected="' + (st.pestana === id) + '" data-tab="' + id + '">' + r + "</button>").join("") + "</div><div id=\"contenido\"></div>";
+  app.querySelectorAll("[data-tab]").forEach(b => b.onclick = () => { st.pestana = b.dataset.tab; pintar(); });
+  const c = document.getElementById("contenido");
+  c.innerHTML = st.pestana === "vigente" ? vistaVigente() : st.pestana === "historial" ? vistaHistorial() : vistaNorma();
+  const f = document.getElementById("fechaConsulta");
+  if (f) f.onchange = e => { st.fecha = e.target.value || hoyISO(); pintar(); };
+  const sc = document.getElementById("comHist");
+  if (sc) sc.onchange = e => { st.comHist = e.target.value; pintar(); };
+}
+
+function advertencias(c, ms) {
+  if (!puede()) return "";
+  const a = [];
+  const esp = TIPO[c.tipo].esperado;
+  if (ms.length !== esp) a.push(ms.length + " de " + esp + " integrantes");
+  if (c.tipo === "departamento" && ms.length) {
+    const propios = ms.filter(m => m.unidad_origen && m.unidad_origen === c.unidad).length;
+    const externos = ms.filter(m => m.unidad_origen && m.unidad_origen !== c.unidad).length;
+    if (ms.every(m => m.unidad_origen) && (propios !== 2 || externos !== 1)) a.push("la norma pide dos integrantes de la unidad y uno de otra unidad");
+  }
+  if (ms.some(m => m.jerarquia && !/Titular|Asociado/.test(m.jerarquia))) a.push("hay integrantes que no son Titulares ni Asociados");
+  return a.length ? '<div class="aviso av" style="margin:8px 0 0">Revisar: ' + esc(a.join("; ")) + ".</div>" : "";
+}
+
+function miembroHtml(m, conFechas) {
+  const r = resDe(m.resolucion), rt = resDe(m.resolucion_termino);
+  return '<div class="miembro"><span><b>' + esc(m.nombre) + "</b>" + (m.rol ? ' <span class="etq gris">' + esc(m.rol) + "</span>" : "") +
+    "<small>" + esc([m.jerarquia, m.unidad_origen].filter(Boolean).join(" · ")) + "</small>" +
+    "<small>" + esc((conFechas ? "Desde " + fechaLarga(m.desde) + (m.hasta ? " hasta " + fechaLarga(m.hasta) : " · sin término registrado") : (m.hasta ? "Vigente hasta " + fechaLarga(m.hasta) : "Desde " + fechaLarga(m.desde)))) +
+    (r ? " · Nombrado por " + esc(refRes(r)) : "") + (rt ? " · Término: " + esc(refRes(rt)) : "") + "</small>" +
+    (m.nota ? "<small>" + esc(m.nota) + "</small>" : "") + "</span>" +
+    (puede() ? '<span><button class="btn sec chico" data-editar-int="' + m.id + '">Editar</button></span>' : "<span></span>") + "</div>";
+}
+
+function vistaVigente() {
+  const f = st.fecha;
+  const tarjeta = c => {
+    const ms = st.int.filter(m => m.comision === c.id && vigenteEn(m, f)).sort((a, b) => String(a.rol || "z").localeCompare(String(b.rol || "z")) || a.nombre.localeCompare(b.nombre, "es"));
+    const ultima = st.res.filter(r => r.comision === c.id)[0];
+    return '<article class="com ' + c.tipo + '"><header><div><h2>' + esc(nombreCom(c)) + '</h2><div class="sub">' + esc(c.tipo === "departamento" ? TIPO.departamento.nombre + " · " + TIPO.departamento.modo : TIPO[c.tipo].modo) + "</div></div>" +
+      (c.activa ? "" : '<span class="etq gris">Inactiva</span>') + "</header>" +
+      (ms.length ? ms.map(m => miembroHtml(m, false)).join("") : '<p class="nota">Sin integrantes registrados a esta fecha.</p>') +
+      advertencias(c, ms) +
+      (ultima ? '<div class="res"><span class="nota">Última resolución: ' + esc(refRes(ultima)) + (ultima.materia ? " · " + esc(ultima.materia) : "") + "</span>" + botonRes(ultima) + "</div>" : "") +
+      (puede() ? '<div class="controles"><button class="btn chico" data-nuevo-int="' + c.id + '">+ Integrante</button><button class="btn sec chico" data-nueva-res="' + c.id + '">+ Resolución</button></div>' : "") +
+      "</article>";
+  };
+  const visibles = st.com.filter(c => c.activa || puede());
+  return '<div class="barra-fecha"><label for="fechaConsulta" style="margin:0">Composición al</label><input type="date" id="fechaConsulta" value="' + esc(f) + '">' +
+    (f !== hoyISO() ? '<span class="etq nar">Consulta histórica</span>' : '<span class="nota">Cambia la fecha para ver la composición en otro momento.</span>') +
+    (puede() ? '<span style="flex:1"></span><button class="btn sec chico" data-nueva-com>+ Comisión de otra unidad</button>' : "") + "</div>" +
+    (visibles.length ? '<div class="grilla">' + visibles.map(tarjeta).join("") + "</div>" : '<div class="vacio">No hay comisiones registradas.</div>');
+}
+
+function botonRes(r) {
+  if (r.archivo) return '<button class="btn sec chico" data-ver-res="' + r.id + '">Ver resolución</button>';
+  if (urlSegura(r.enlace)) return '<a class="btn sec chico" href="' + esc(r.enlace) + '" target="_blank" rel="noopener">Abrir ↗</a>';
+  return "";
+}
+
+function vistaHistorial() {
+  const opciones = st.com.map(c => '<option value="' + c.id + '"' + (String(c.id) === st.comHist ? " selected" : "") + ">" + esc(nombreCom(c)) + "</option>").join("");
+  const sel = st.comHist ? st.com.filter(c => String(c.id) === st.comHist) : st.com;
+  const bloques = sel.map(c => {
+    const eventos = [];
+    st.int.filter(m => m.comision === c.id).forEach(m => {
+      eventos.push({ f: m.desde, html: "Ingresa <b>" + esc(m.nombre) + "</b>" + (m.jerarquia ? " (" + esc(m.jerarquia) + ")" : "") + (resDe(m.resolucion) ? " · " + esc(refRes(resDe(m.resolucion))) : "") });
+      if (m.hasta) eventos.push({ f: m.hasta, html: "Termina <b>" + esc(m.nombre) + "</b>" + (resDe(m.resolucion_termino) ? " · " + esc(refRes(resDe(m.resolucion_termino))) : "") });
+    });
+    st.res.filter(r => r.comision === c.id && r.fecha).forEach(r => eventos.push({ f: r.fecha, html: esc(refRes(r)) + (r.materia ? ": " + esc(r.materia) : "") + " " + botonRes(r), res: true }));
+    eventos.sort((a, b) => b.f.localeCompare(a.f));
+    const sinFecha = st.res.filter(r => r.comision === c.id && !r.fecha);
+    return '<div class="caja" style="margin-bottom:14px"><h2>' + esc(nombreCom(c)) + "</h2>" +
+      (eventos.length ? eventos.map(e => '<div class="linea"><span class="f">' + esc(e.f) + "</span><span>" + (e.res ? '<span class="etq teal">Resolución</span> ' : "") + e.html + "</span></div>").join("") : '<p class="nota">Sin historial registrado.</p>') +
+      (sinFecha.length ? '<p class="nota">Resoluciones sin fecha: ' + sinFecha.map(r => esc(refRes(r) || "sin número") + " " + botonRes(r)).join(" · ") + "</p>" : "") +
+      (puede() && st.res.some(r => r.comision === c.id) ? '<details style="margin-top:8px"><summary class="nota" style="cursor:pointer">Editar resoluciones</summary>' + st.res.filter(r => r.comision === c.id).map(r => '<div class="res"><span>' + esc(refRes(r) || "Sin número") + "</span><button class=\"btn sec chico\" data-editar-res=\"" + r.id + '">Editar</button></div>').join("") + "</details>" : "") +
+      "</div>";
+  }).join("");
+  return '<div class="barra-fecha"><label for="comHist" style="margin:0">Comisión</label><select id="comHist"><option value="">Todas</option>' + opciones + "</select></div>" + bloques;
+}
+
+function vistaNorma() {
+  return '<div class="caja norma">' +
+    '<div class="aviso av">Resumen de apoyo, no reemplaza el texto oficial. Se elaboró a partir de la copia escaneada del «Manual Proceso de Jerarquización Académica» (D.U. N° 26 de 1986, Reglamento de Carrera Académica, con las modificaciones de los D.U. N° 123 de 1987 y N° 848 de 1988). Algunos pasajes están tachados en la copia. Antes de conformar una comisión, verifique que no existan modificaciones posteriores.</div>' +
+    "<h3>Comisión de Evaluación del Departamento o Escuela · por puntaje</h3>" +
+    "<p>Evalúa los factores de formación y obra realizada mediante puntaje, que tiene el carácter de condición necesaria. Se integra con <b>tres académicos: dos del propio Departamento y un tercero de cualquiera otra unidad académica de la Universidad</b> (art. 34 N° 1).</p>" +
+    "<h3>Comisión de Evaluación de la Facultad · por criterios</h3>" +
+    "<p>Evalúa los factores de capacidad y prestigio mediante criterios, y puede aplicar criterios alternativos o complementarios dejando constancia en acta. Se integra con <b>tres académicos de la Facultad</b>. El mismo artículo regula la Comisión de Apelación de la Facultad, que conoce en primera instancia las apelaciones contra el puntaje del Departamento (art. 34 N° 2 y 3).</p>" +
+    "<h3>Comisión de evaluación especial</h3>" +
+    "<p>El Consejo de Facultad propone una comisión de <b>tres académicos de las dos más altas jerarquías</b> para evaluar por criterios a los miembros de la comisión de evaluación de la Facultad. Quienes el Rector designe en ella pueden integrar otras comisiones de evaluación, excepto la de la propia Facultad (art. 34 N° 6, agregado por el D.U. N° 123 de 1987).</p>" +
+    "<h3>Designación, renovación e incompatibilidades</h3><ul>" +
+    "<li>Los integrantes son <b>designados por el Rector</b> de entre los Profesores Titulares y Asociados de la Universidad, a proposición del respectivo Consejo de Facultad (art. 39).</li>" +
+    "<li>Cada año se renueva <b>por sorteo un miembro</b> de cada comisión (art. 39).</li>" +
+    "<li>No pueden integrar las comisiones de Departamento, de Facultad ni de Apelación quienes ejerzan funciones directivas, desde Director de Departamento hasta Rector, ni quienes sean miembros del Consejo de Facultad o del Consejo Académico (art. 40).</li>" +
+    "<li>Ningún académico puede participar en su propia evaluación, en ninguna instancia (art. 41).</li></ul>" +
+    '<p class="nota">El reglamento no regula cargos internos (presidente, secretario) ni suplentes; el campo «rol» de esta plataforma se completa solo si la resolución lo indica.</p>' +
+    "</div>";
+}
+
+/* ---------- Edición ---------- */
+function opcionesRes(cid, sel) {
+  return '<option value="">—</option>' + st.res.filter(r => r.comision === cid).map(r => '<option value="' + r.id + '"' + (r.id === sel ? " selected" : "") + ">" + esc(refRes(r) || "Sin número") + "</option>").join("");
+}
+
+function formIntegrante(m) {
+  const c = st.com.find(x => x.id === m.comision);
+  const uni = [...new Set(st.unidades.concat(st.com.map(x => x.unidad).filter(Boolean)))];
+  const dlg = modal('<div class="kicker">' + esc(nombreCom(c)) + "</div><h2>" + (m.id ? "Editar integrante" : "Agregar integrante") + '</h2><form id="fInt">' +
+    '<div class="campo"><label for="nombre">Nombre completo *</label><input id="nombre" required value="' + esc(m.nombre) + '"></div>' +
+    '<div class="fila2"><div class="campo"><label for="jerarquia">Jerarquía</label><select id="jerarquia">' + JERARQUIAS.map(j => "<option" + (j === m.jerarquia ? " selected" : "") + ">" + j + "</option>").join("") + "</select></div>" +
+    '<div class="campo"><label for="unidad_origen">Unidad de origen</label><input id="unidad_origen" list="uni" value="' + esc(m.unidad_origen || (c.tipo === "departamento" && !m.id ? c.unidad : "")) + '"><datalist id="uni">' + uni.map(u => "<option>" + esc(u) + "</option>").join("") + "</datalist></div></div>" +
+    '<div class="fila2"><div class="campo"><label for="desde">Desde *</label><input id="desde" type="date" required value="' + esc(m.desde) + '"></div>' +
+    '<div class="campo"><label for="hasta">Hasta (vacío = vigente)</label><input id="hasta" type="date" value="' + esc(m.hasta) + '"></div></div>' +
+    '<div class="fila2"><div class="campo"><label for="resolucion">Resolución de nombramiento</label><select id="resolucion">' + opcionesRes(c.id, m.resolucion) + "</select></div>" +
+    '<div class="campo"><label for="resolucion_termino">Resolución de término</label><select id="resolucion_termino">' + opcionesRes(c.id, m.resolucion_termino) + "</select></div></div>" +
+    '<div class="fila2"><div class="campo"><label for="rol">Rol (solo si la resolución lo indica)</label><select id="rol">' + ROLES.map(r => '<option value="' + r + '"' + (r === (m.rol || "") ? " selected" : "") + ">" + (r || "—") + "</option>").join("") + "</select></div>" +
+    '<div class="campo"><label for="nota">Nota</label><input id="nota" value="' + esc(m.nota) + '"></div></div>' +
+    '<p class="nota">¿Falta la resolución en la lista? Regístrala primero con «+ Resolución» en la tarjeta de la comisión.</p>' +
+    '<div class="pie">' + (m.id ? '<button class="btn peligro" type="button" id="borrar">Eliminar registro</button>' : "") + '<button class="btn sec" type="button" id="cancelar">Cancelar</button><button class="btn" type="submit">Guardar</button></div></form>');
+  dlg.querySelector("#cancelar").onclick = cerrarModal;
+  dlg.querySelector("#fInt").onsubmit = async e => {
+    e.preventDefault();
+    const v = id => dlg.querySelector("#" + id).value.trim() || null;
+    const fila = { comision: c.id, nombre: v("nombre"), jerarquia: v("jerarquia"), unidad_origen: v("unidad_origen"), desde: v("desde"), hasta: v("hasta"),
+      resolucion: v("resolucion") ? Number(v("resolucion")) : null, resolucion_termino: v("resolucion_termino") ? Number(v("resolucion_termino")) : null, rol: v("rol"), nota: v("nota") };
+    if (fila.hasta && fila.hasta < fila.desde) { avisar("La fecha de término no puede ser anterior a la de inicio.", "err"); return; }
+    const r = m.id ? await sb.from("ce_integrantes").update(fila).eq("id", m.id) : await sb.from("ce_integrantes").insert(fila);
+    if (r.error) { avisar(traducir(r.error.message), "err"); return; }
+    await anotar(sb, "CE: ", m.id ? "Integrante editado" : "Integrante agregado", nombreCom(c) + " · " + fila.nombre);
+    cerrarModal(); avisar("Guardado."); await recargar();
+  };
+  const b = dlg.querySelector("#borrar");
+  if (b) b.onclick = async () => {
+    if (!confirm("¿Eliminar este registro? Úsalo solo para corregir errores: para un término de funciones, registra la fecha «Hasta» y se conserva en el historial.")) return;
+    const r = await sb.from("ce_integrantes").delete().eq("id", m.id);
+    if (r.error) { avisar(traducir(r.error.message), "err"); return; }
+    await anotar(sb, "CE: ", "Integrante eliminado", nombreCom(c) + " · " + m.nombre);
+    cerrarModal(); avisar("Eliminado."); await recargar();
+  };
+}
+
+function formResolucion(r) {
+  const c = st.com.find(x => x.id === r.comision);
+  const dlg = modal('<div class="kicker">' + esc(nombreCom(c)) + "</div><h2>" + (r.id ? "Editar resolución" : "Registrar resolución") + '</h2><form id="fRes">' +
+    '<div class="fila3"><div class="campo"><label for="acto">Acto</label><select id="acto">' + ["Resolución", "Resolución exenta", "Decreto universitario"].map(a => "<option" + (a === r.acto ? " selected" : "") + ">" + a + "</option>").join("") + "</select></div>" +
+    '<div class="campo"><label for="numero">Número</label><input id="numero" value="' + esc(r.numero) + '"></div>' +
+    '<div class="campo"><label for="fecha">Fecha</label><input id="fecha" type="date" value="' + esc(r.fecha) + '"></div></div>' +
+    '<div class="campo"><label for="materia">Materia</label><input id="materia" placeholder="Ej.: designa integrantes; renueva un miembro por sorteo" value="' + esc(r.materia) + '"></div>' +
+    '<div class="campo"><label for="archivo">Archivo (PDF)' + (r.archivo ? " · ya cargado; sube otro solo para reemplazarlo" : "") + '</label><input id="archivo" type="file" accept="application/pdf"></div>' +
+    '<div class="campo"><label for="enlace">o enlace (https://…)</label><input id="enlace" type="url" value="' + esc(r.enlace) + '"></div>' +
+    '<div class="pie">' + (r.id ? '<button class="btn peligro" type="button" id="borrar">Eliminar</button>' : "") + '<button class="btn sec" type="button" id="cancelar">Cancelar</button><button class="btn" type="submit" id="guardar">Guardar</button></div></form>');
+  dlg.querySelector("#cancelar").onclick = cerrarModal;
+  dlg.querySelector("#fRes").onsubmit = async e => {
+    e.preventDefault();
+    const g = dlg.querySelector("#guardar"); g.disabled = true;
+    try {
+      const v = id => dlg.querySelector("#" + id).value.trim() || null;
+      const fila = { comision: c.id, acto: v("acto"), numero: v("numero"), fecha: v("fecha"), materia: v("materia"), enlace: v("enlace") };
+      if (fila.enlace && !urlSegura(fila.enlace)) throw new Error("El enlace debe empezar con https://");
+      const f = dlg.querySelector("#archivo").files[0];
+      if (f) {
+        if (f.type !== "application/pdf") throw new Error("El archivo debe ser PDF.");
+        if (f.size > 25 * 1024 * 1024) throw new Error("El PDF supera 25 MB.");
+        const ruta = rutaArchivo("comision-" + c.id, f.name);
+        const up = await sb.storage.from(cfg.BUCKET).upload(ruta, f, { contentType: "application/pdf", upsert: false });
+        if (up.error) throw up.error;
+        fila.archivo = ruta;
+      }
+      const q = r.id ? await sb.from("ce_resoluciones").update(fila).eq("id", r.id) : await sb.from("ce_resoluciones").insert(fila);
+      if (q.error) throw q.error;
+      if (f && r.archivo) await sb.storage.from(cfg.BUCKET).remove([r.archivo]);
+      await anotar(sb, "CE: ", r.id ? "Resolución editada" : "Resolución registrada", nombreCom(c) + " · " + refRes(fila));
+      cerrarModal(); avisar("Guardado."); await recargar();
+    } catch (err) { avisar(traducir(err.message), "err"); g.disabled = false; }
+  };
+  const b = dlg.querySelector("#borrar");
+  if (b) b.onclick = async () => {
+    if (!confirm("¿Eliminar esta resolución y su archivo? Los integrantes asociados quedarán sin resolución.")) return;
+    const q = await sb.from("ce_resoluciones").delete().eq("id", r.id);
+    if (q.error) { avisar(traducir(q.error.message), "err"); return; }
+    if (r.archivo) await sb.storage.from(cfg.BUCKET).remove([r.archivo]);
+    await anotar(sb, "CE: ", "Resolución eliminada", nombreCom(c) + " · " + refRes(r));
+    cerrarModal(); avisar("Eliminada."); await recargar();
+  };
+}
+
+function formComision() {
+  const existentes = st.com.filter(c => c.tipo === "departamento").map(c => c.unidad);
+  const libres = st.unidades.filter(u => !existentes.includes(u));
+  const dlg = modal('<h2>Comisión de otra unidad</h2><p class="nota">Las comisiones de Facultad, especial y de cada Departamento o Escuela activa ya están creadas. Agrega aquí una unidad nueva.</p><form id="fCom">' +
+    '<div class="campo"><label for="unidad">Nombre de la unidad *</label><input id="unidad" required list="libres"><datalist id="libres">' + libres.map(u => "<option>" + esc(u) + "</option>").join("") + "</datalist></div>" +
+    '<div class="pie"><button class="btn sec" type="button" id="cancelar">Cancelar</button><button class="btn" type="submit">Crear</button></div></form>');
+  dlg.querySelector("#cancelar").onclick = cerrarModal;
+  dlg.querySelector("#fCom").onsubmit = async e => {
+    e.preventDefault();
+    const unidad = dlg.querySelector("#unidad").value.trim();
+    const r = await sb.from("ce_comisiones").insert({ tipo: "departamento", unidad });
+    if (r.error) { avisar(traducir(r.error.message), "err"); return; }
+    await anotar(sb, "CE: ", "Comisión creada", unidad);
+    cerrarModal(); avisar("Comisión creada."); await recargar();
+  };
+}
+
+async function verResolucion(id) {
+  const r = resDe(id);
+  const { data, error } = await sb.storage.from(cfg.BUCKET).createSignedUrl(r.archivo, 3600);
+  if (error) { avisar(traducir(error.message), "err"); return; }
+  verArchivo(data.signedUrl, refRes(r) || "Resolución");
+}
+
+document.addEventListener("click", e => {
+  const t = e.target.closest("[data-nuevo-int],[data-editar-int],[data-nueva-res],[data-editar-res],[data-ver-res],[data-nueva-com]");
+  if (!t) return;
+  if (t.dataset.verRes) return verResolucion(Number(t.dataset.verRes));
+  if (!puede()) return;
+  if (t.dataset.nuevoInt) return formIntegrante({ comision: Number(t.dataset.nuevoInt), jerarquia: "Profesor Titular", desde: hoyISO() });
+  if (t.dataset.editarInt) return formIntegrante(st.int.find(x => x.id === Number(t.dataset.editarInt)));
+  if (t.dataset.nuevaRes) return formResolucion({ comision: Number(t.dataset.nuevaRes), acto: "Resolución" });
+  if (t.dataset.editarRes) return formResolucion(st.res.find(x => x.id === Number(t.dataset.editarRes)));
+  if ("nuevaCom" in t.dataset) return formComision();
+});
+
+async function recargar() {
+  try { await cargar(); pintar(); } catch (e) { avisar("No se pudo actualizar: " + traducir(e.message), "err"); }
+}
+
+async function iniciar() {
+  try {
+    if (!sb) { ({ sb, cfg } = await conectar(new URL("./data/supabase/config.js?v=20261104", location.href).href)); await revisarGoogle(); }
+    // Errores devueltos por el ingreso con Google (p. ej. cuenta que no es @usach.cl)
+    const q = new URLSearchParams(location.hash.slice(1) || location.search);
+    if (q.get("error_description")) {
+      history.replaceState(null, "", location.pathname);
+      return pantallaLogin({ texto: /invitaci/i.test(q.get("error_description")) ? "Solo pueden ingresar cuentas @usach.cl." : traducir(q.get("error_description")) });
+    }
+    const acc = await nivelEn(sb, PLATAFORMA);
+    if (!acc.sesion) return pantallaLogin();
+    barraSesion(acc.sesion);
+    st.nivel = acc.nivel;
+    await cargar();
+    if (!st.com.length && !puede()) {
+      const correo = String(acc.sesion.user.email || "");
+      return pantallaLogin({ tipo: "av", sesion: acc.sesion, texto: /@usach\.cl$/i.test(correo)
+        ? "Tu sesión (" + correo + ") no tiene acceso. Ingresa con el botón «Ingresar con mi cuenta USACH»; las cuentas con contraseña son solo del equipo."
+        : "Solo pueden ingresar cuentas @usach.cl. Cierra la sesión de " + correo + " e ingresa con tu cuenta USACH." }, acc.sesion);
+    }
+    pintar();
+  } catch (e) {
+    app.innerHTML = '<div class="aviso err">No se pudo cargar la plataforma: ' + esc(traducir(e.message)) + "</div>";
+  }
+}
+iniciar();
+</script>
+</body>
+</html>
