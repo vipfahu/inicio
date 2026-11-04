@@ -7,7 +7,7 @@
 <title>Panel · Grupos y Programas Centro · FAHU USACH</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700;800&amp;family=Spectral:ital,wght@0,400;0,600;1,400&amp;family=IBM+Plex+Mono:wght@400;600&amp;display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../comun/vip.css?v=20261104">
+<link rel="stylesheet" href="../comun/vip.css?v=20261105">
 <style>
   :root{--acento:#7A4FA3}
   body{background:#F1EFE8}
@@ -38,14 +38,17 @@
 <main id="app"><p class="nota">Cargando…</p></main>
 
 <script type="module">
-import { conectar, esc, urlSegura, fechaLarga, avisar, traducir, modal, cerrarModal, verArchivo, nivelEn, anotar, rutaArchivo } from "../comun/vip.js?v=20261104";
+import { conectar, esc, urlSegura, fechaLarga, hoyISO, avisar, traducir, modal, cerrarModal, verArchivo, nivelEn, anotar, rutaArchivo } from "../comun/vip.js?v=20261105";
 
 const PLATAFORMA = "grupos";
-const TIPOS_DOC = [["creacion","Resolución de creación"],["modificacion","Resolución de modificación"],["normativa_interna","Normativa interna"],["integrantes","Resolución de integrantes"],["otro","Otro documento"]];
+const TIPOS_DOC = [["creacion","Resolución de creación"],["modificacion","Resolución de modificación"],["nombramiento","Designación de director/a"],["normativa_interna","Normativa interna"],["integrantes","Resolución de integrantes"],["otro","Otro documento"]];
+const ROLES = ["Directora","Director","Coordinadora","Coordinador","Investigadora","Investigador","Investigadora asociada","Investigador asociado","Investigadora colaboradora","Investigador colaborador","Integrante fundadora","Integrante fundador","Integrante"];
+const esDireccion = r => /^(director|directora|coordinador|coordinadora)/i.test(r || "");
+const DIAS_AVISO = 60;
 const TIPO_REF = [["reglamento","Reglamento interno"],["modelo","Modelo de resolución"],["otro","Documento de referencia"]];
 const rotDoc = t => (TIPOS_DOC.find(x => x[0] === t) || [, t])[1];
 const app = document.getElementById("app");
-const st = { pestana: "inst", inst: [], docs: [], refs: [], actividad: [], nivel: "ninguno", perfil: null };
+const st = { pestana: "inst", inst: [], docs: [], ints: [], refs: [], actividad: [], nivel: "ninguno", perfil: null };
 let sb, cfg;
 const puede = () => st.nivel === "edicion" || st.nivel === "administracion";
 
@@ -97,19 +100,20 @@ function pantallaNuevaClave() {
 }
 
 async function cargar() {
-  const [i, d, r, a] = await Promise.all([
+  const [i, d, r, a, p] = await Promise.all([
     sb.from("gi_instancias").select("*").order("nombre"),
     sb.from("gi_documentos").select("*").order("fecha", { ascending: false }),
     sb.from("gi_referencias").select("*").order("orden").order("titulo"),
-    sb.from("actividad").select("*").like("accion", "GI:%").order("fecha", { ascending: false }).limit(50)
+    sb.from("actividad").select("*").like("accion", "GI:%").order("fecha", { ascending: false }).limit(50),
+    sb.from("gi_integrantes").select("*").order("orden").order("nombre")
   ]);
-  const err = i.error || d.error || r.error;
+  const err = i.error || d.error || r.error || p.error;
   if (err) throw err;
-  st.inst = i.data; st.docs = d.data; st.refs = r.data; st.actividad = a.error ? [] : a.data;
+  st.inst = i.data; st.docs = d.data; st.refs = r.data; st.ints = p.data; st.actividad = a.error ? [] : a.data;
 }
 
 function pintar() {
-  const tabs = [["inst", "Grupos y programas centro"], ["refs", "Reglamentos y modelos"], ["act", "Actividad"]];
+  const tabs = [["inst", "Grupos y programas centro"], ["estado", "Estado documental"], ["refs", "Normativa y modelos"], ["act", "Actividad"]];
   app.innerHTML =
     '<div class="kicker">Panel de actualización · ' + (puede() ? (st.nivel === "administracion" ? "Administración" : "Edición") : "Consulta") + '</div>' +
     '<h1>Grupos y Programas Centro de Investigación</h1>' +
@@ -119,29 +123,57 @@ function pintar() {
   app.querySelectorAll("[data-tab]").forEach(b => b.onclick = () => { st.pestana = b.dataset.tab; pintar(); });
   const c = document.getElementById("contenido");
   if (st.pestana === "inst") c.innerHTML = vistaInstancias();
+  else if (st.pestana === "estado") c.innerHTML = vistaEstado();
   else if (st.pestana === "refs") c.innerHTML = vistaRefs();
   else c.innerHTML = vistaActividad();
 }
 
+function direccionDe(id) {
+  return st.ints.filter(p => p.instancia === id && p.oficial && esDireccion(p.rol)).sort((a, b) => String(b.desde || "").localeCompare(String(a.desde || "")))[0] || null;
+}
+function diasHasta(f) { if (!f) return null; return Math.round((new Date(f + "T12:00:00") - new Date(hoyISO() + "T12:00:00")) / 864e5); }
+
 function vistaInstancias() {
-  const tiposCols = TIPOS_DOC.slice(0, 4);
   const filas = st.inst.map(i => {
-    const ds = st.docs.filter(d => d.instancia === i.id);
-    return "<tr><td><b>" + esc(i.nombre) + "</b>" + (i.sigla ? " (" + esc(i.sigla) + ")" : "") + '<br><span class="nota">' + esc(i.unidad || "") + "</span></td>" +
-      "<td>" + (i.tipo === "programa_centro" ? '<span class="etq nar">Programa centro</span>' : '<span class="etq teal">Grupo</span>') + (i.vigente ? "" : '<br><span class="etq gris">No vigente</span>') + "</td>" +
-      tiposCols.map(([t]) => { const n = ds.filter(d => d.tipo === t).length; return '<td class="ocultar-movil"><span class="marca ' + (n ? "si" : "no") + '">' + (n ? "✓ " + n : "—") + "</span></td>"; }).join("") +
-      '<td style="white-space:nowrap"><button class="btn sec chico" data-docs="' + i.id + '">Documentos</button> ' +
-      (puede() ? '<button class="btn sec chico" data-editar="' + i.id + '">Editar</button>' : "") + "</td></tr>";
+    const ds = st.docs.filter(d => d.instancia === i.id), n = st.ints.filter(p => p.instancia === i.id).length, dir = direccionDe(i.id);
+    return "<tr><td><b>" + esc(i.sigla || "—") + "</b></td><td><b>" + esc(i.nombre) + '</b><br><span class="nota">' + esc([dir ? dir.rol + ": " + dir.nombre : "Sin dirección registrada", i.unidad].filter(Boolean).join(" · ")) + "</span></td>" +
+      "<td>" + (i.tipo === "programa_centro" ? '<span class="etq nar">Programa centro</span>' : '<span class="etq teal">Grupo</span>') + "</td>" +
+      "<td>" + (i.publicado ? '<span class="etq ok">Publicada</span>' : '<span class="etq gris">Borrador</span>') + "</td>" +
+      '<td class="ocultar-movil marca">' + ds.length + " res. · " + n + " int.</td>" +
+      '<td style="white-space:nowrap"><a class="btn sec chico" href="index.html?i=' + encodeURIComponent(i.sigla || i.id) + '&previa=1" target="_blank" rel="noopener">Ver ficha</a> <button class="btn sec chico" data-docs="' + i.id + '">Resoluciones</button> <button class="btn sec chico" data-ints="' + i.id + '">Integrantes</button> ' +
+      (puede() ? '<button class="btn sec chico" data-editar="' + i.id + '">Editar</button> <button class="btn chico" data-publicar="' + i.id + '">' + (i.publicado ? "Retirar" : "Publicar") + "</button>" : "") + "</td></tr>";
   }).join("");
-  return '<div class="bar"><p class="nota" style="margin:0">' + st.inst.length + " instancias · " + st.docs.length + " documentos</p>" +
+  const borradores = st.inst.filter(i => !i.publicado).length;
+  return '<div class="bar"><p class="nota" style="margin:0">' + st.inst.length + " instancias (" + borradores + " en borrador) · " + st.docs.length + " resoluciones · " + st.ints.length + ' integrantes. Las instancias en borrador no se ven en el catálogo público; «Ver ficha» muestra la vista previa.</p>' +
     (puede() ? '<button class="btn" data-nueva>+ Nueva instancia</button>' : "") + "</div>" +
-    (st.inst.length
-      ? '<div class="tabla-scroll"><table><thead><tr><th>Nombre</th><th>Tipo</th>' + tiposCols.map(([, r]) => '<th class="ocultar-movil">' + r.replace("Resolución de ", "Res. ") + "</th>").join("") + "<th></th></tr></thead><tbody>" + filas + "</tbody></table></div>"
+    (st.inst.length ? '<div class="tabla-scroll"><table><thead><tr><th>Sigla</th><th>Nombre</th><th>Tipo</th><th>Estado</th><th class="ocultar-movil">Registro</th><th></th></tr></thead><tbody>' + filas + "</tbody></table></div>"
       : '<div class="vacio">Aún no hay instancias. ' + (puede() ? "Crea la primera con «Nueva instancia»." : "") + "</div>");
 }
 
+/* Estado documental: qué tiene y qué falta cada instancia, y periodos de dirección vencidos o por vencer (solo interno). */
+function vistaEstado() {
+  const tipos = [["creacion", "Creación"], ["modificacion", "Modificación"], ["nombramiento", "Dirección"], ["normativa_interna", "Normativa interna"], ["integrantes", "Integrantes"]];
+  const filas = st.inst.map(i => {
+    const ds = st.docs.filter(d => d.instancia === i.id), dir = direccionDe(i.id), dh = dir ? diasHasta(dir.hasta) : null;
+    const celdas = tipos.map(([t]) => {
+      const n = ds.filter(d => d.tipo === t || (t === "nombramiento" && d.tipo === "creacion" && dir && dir.documento === d.id)).length;
+      return '<td class="marca ' + (n ? "si" : "no") + '">' + (n ? "✓" + (n > 1 ? " " + n : "") : "—") + "</td>";
+    }).join("");
+    let dirTxt = '<span class="etq err">Sin designación</span>';
+    if (dir && dir.hasta && dh < 0) dirTxt = '<span class="etq err">Vencida el ' + esc(fechaLarga(dir.hasta)) + "</span>";
+    else if (dir && dir.hasta && dh <= DIAS_AVISO) dirTxt = '<span class="etq nar">Vence en ' + dh + " días</span>";
+    else if (dir && dir.hasta) dirTxt = '<span class="etq ok">Hasta ' + esc(fechaLarga(dir.hasta)) + "</span>";
+    else if (dir) dirTxt = '<span class="etq gris">Sin plazo registrado</span>';
+    return "<tr><td><b>" + esc(i.sigla || i.nombre) + "</b>" + (i.nota_interna ? '<br><span class="nota">' + esc(i.nota_interna) + "</span>" : "") + "</td>" + celdas + "<td>" + (dir ? esc(dir.nombre) + "<br>" : "") + dirTxt + "</td></tr>";
+  }).join("");
+  const conRut = st.docs.filter(d => d.datos_personales);
+  return '<p class="nota">Vista interna: no se publica. «Dirección» cuenta la resolución que designa al director/a (incluida la de creación cuando lo designa). Se avisa ' + DIAS_AVISO + " días antes del término del periodo.</p>" +
+    (st.inst.length ? '<div class="tabla-scroll"><table><thead><tr><th>Instancia</th>' + tipos.map(([, r]) => "<th>" + r + "</th>").join("") + "<th>Periodo de dirección</th></tr></thead><tbody>" + filas + "</tbody></table></div>" : '<div class="vacio">Sin instancias.</div>') +
+    (conRut.length ? '<p class="nota" style="margin-top:12px">' + conRut.length + " resoluciones marcadas con datos personales: se publica solo su versión tachada.</p>" : "");
+}
+
 function vistaRefs() {
-  return '<div class="bar"><p class="nota" style="margin:0">Se muestran en el catálogo público, en el orden indicado.</p>' + (puede() ? '<button class="btn" data-nueva-ref>+ Agregar documento de referencia</button>' : "") + "</div>" +
+  return '<div class="bar"><p class="nota" style="margin:0">Se muestran en el catálogo público, en el orden indicado.</p>' + (puede() ? '<button class="btn" data-nueva-ref>+ Agregar normativa o modelo</button>' : "") + "</div>" +
     (st.refs.length ? '<div class="tabla-scroll"><table><thead><tr><th>Orden</th><th>Documento</th><th>Tipo</th><th></th></tr></thead><tbody>' +
       st.refs.map(r => '<tr><td class="marca">' + r.orden + "</td><td><b>" + esc(r.titulo) + "</b>" + (r.descripcion ? '<br><span class="nota">' + esc(r.descripcion) + "</span>" : "") + "</td><td>" +
         esc((TIPO_REF.find(x => x[0] === r.tipo) || [, r.tipo])[1]) + '</td><td style="white-space:nowrap">' +
@@ -165,19 +197,27 @@ function formInstancia(i) {
     '<div class="campo"><label for="sigla">Sigla</label><input id="sigla" value="' + esc(i.sigla) + '"></div></div>' +
     '<div class="campo"><label for="nombre">Nombre *</label><input id="nombre" required value="' + esc(i.nombre) + '"></div>' +
     '<div class="fila2"><div class="campo"><label for="unidad">Unidad</label><input id="unidad" list="unidades" value="' + esc(i.unidad) + '"></div>' +
-    '<div class="campo"><label for="responsable">Responsable</label><input id="responsable" value="' + esc(i.responsable) + '"></div></div>' +
+    '<div class="campo"><label for="responsable">Responsable (si no hay dirección registrada en Integrantes)</label><input id="responsable" value="' + esc(i.responsable) + '"></div></div>' +
     '<datalist id="unidades">' + [...new Set(st.inst.map(x => x.unidad).filter(Boolean))].map(u => "<option>" + esc(u) + "</option>").join("") + "</datalist>" +
-    '<div class="campo"><label for="descripcion">Descripción</label><textarea id="descripcion">' + esc(i.descripcion) + "</textarea></div>" +
-    '<div class="campo"><label for="lineas">Líneas de trabajo</label><input id="lineas" value="' + esc(i.lineas) + '"></div>' +
+    '<div class="fila2"><div class="campo"><label for="fecha_creacion">Fecha de creación</label><input id="fecha_creacion" type="date" value="' + esc(i.fecha_creacion) + '"></div><div></div></div>' +
+    '<div class="campo"><label for="descripcion">Presentación (resumen público)</label><textarea id="descripcion">' + esc(i.descripcion) + "</textarea></div>" +
+    '<div class="campo"><label for="objetivo_general">Objetivo general</label><textarea id="objetivo_general">' + esc(i.objetivo_general) + "</textarea></div>" +
+    '<div class="campo"><label for="objetivos_especificos">Objetivos específicos (uno por línea)</label><textarea id="objetivos_especificos">' + esc((i.objetivos_especificos || []).join("\n")) + "</textarea></div>" +
+    '<div class="campo"><label for="lineas">Líneas de investigación (separadas por punto y coma)</label><input id="lineas" value="' + esc(i.lineas) + '"></div>' +
+    '<div class="campo"><label for="actividades">Actividades destacadas (una por línea, 3 a 5)</label><textarea id="actividades">' + esc((i.actividades || []).join("\n")) + "</textarea></div>" +
+    '<div class="campo"><label for="nota_interna">Nota interna (no se publica)</label><input id="nota_interna" value="' + esc(i.nota_interna) + '"></div>' +
     '<div class="fila2"><div class="campo"><label for="contacto">Contacto</label><input id="contacto" value="' + esc(i.contacto) + '"></div>' +
     '<div class="campo"><label for="sitio">Sitio web (https://…)</label><input id="sitio" type="url" value="' + esc(i.sitio) + '"></div></div>' +
     '<label class="check"><input type="checkbox" id="vigente"' + (i.vigente ? " checked" : "") + "> Vigente</label>" +
+    '<label class="check"><input type="checkbox" id="publicado"' + (i.publicado ? " checked" : "") + "> Publicada en el catálogo</label>" +
     '<div class="pie">' + (i.id ? '<button class="btn peligro" type="button" id="borrar">Eliminar</button>' : "") + '<button class="btn sec" type="button" id="cancelar">Cancelar</button><button class="btn" type="submit">Guardar</button></div></form>');
   m.querySelector("#cancelar").onclick = cerrarModal;
   m.querySelector("#fInst").onsubmit = async e => {
     e.preventDefault();
     const v = id => m.querySelector("#" + id).value.trim() || null;
-    const fila = { tipo: v("tipo"), nombre: v("nombre"), sigla: v("sigla"), unidad: v("unidad"), responsable: v("responsable"), descripcion: v("descripcion"), lineas: v("lineas"), contacto: v("contacto"), sitio: v("sitio"), vigente: m.querySelector("#vigente").checked };
+    const lista = id => (m.querySelector("#" + id).value || "").split("\n").map(x => x.trim()).filter(Boolean);
+    const fila = { tipo: v("tipo"), nombre: v("nombre"), sigla: v("sigla"), unidad: v("unidad"), responsable: v("responsable"), descripcion: v("descripcion"), lineas: v("lineas"), contacto: v("contacto"), sitio: v("sitio"), vigente: m.querySelector("#vigente").checked,
+      fecha_creacion: v("fecha_creacion"), objetivo_general: v("objetivo_general"), objetivos_especificos: lista("objetivos_especificos"), actividades: lista("actividades"), nota_interna: v("nota_interna"), publicado: m.querySelector("#publicado").checked };
     if (fila.sitio && !urlSegura(fila.sitio)) { avisar("El sitio debe empezar con https://", "err"); return; }
     const r = i.id ? await sb.from("gi_instancias").update(fila).eq("id", i.id) : await sb.from("gi_instancias").insert(fila);
     if (r.error) { avisar(traducir(r.error.message), "err"); return; }
@@ -186,7 +226,7 @@ function formInstancia(i) {
   };
   const b = m.querySelector("#borrar");
   if (b) b.onclick = async () => {
-    if (st.docs.some(d => d.instancia === i.id)) { avisar("Primero elimina sus documentos (o márcala como no vigente).", "err"); return; }
+    if (st.docs.some(d => d.instancia === i.id)) { avisar("Primero elimina sus resoluciones (o retírala del catálogo).", "err"); return; }
     if (!confirm("¿Eliminar «" + i.nombre + "»? No se puede deshacer.")) return;
     const r = await sb.from("gi_instancias").delete().eq("id", i.id);
     if (r.error) { avisar(traducir(r.error.message), "err"); return; }
@@ -225,8 +265,12 @@ function formDocumento(d) {
   const m = modal('<div class="kicker">' + esc(i.nombre) + "</div><h2>" + (d.id ? "Editar documento" : "Agregar documento") + '</h2><form id="fDoc">' +
     '<div class="campo"><label for="tipo">Tipo *</label><select id="tipo">' + TIPOS_DOC.map(([t, r]) => '<option value="' + t + '"' + (d.tipo === t ? " selected" : "") + ">" + r + "</option>").join("") + "</select></div>" +
     '<div class="campo"><label for="titulo">Título (opcional; si queda vacío se usa el tipo)</label><input id="titulo" value="' + esc(d.titulo) + '"></div>' +
-    '<div class="fila2"><div class="campo"><label for="numero">N° de resolución</label><input id="numero" value="' + esc(d.numero) + '"></div>' +
-    '<div class="campo"><label for="fecha">Fecha</label><input id="fecha" type="date" value="' + esc(d.fecha) + '"></div></div>' +
+    '<div class="fila3"><div class="campo"><label for="tipo_acto">Acto</label><select id="tipo_acto">' + ["Resolución exenta", "Resolución interna", "Decreto universitario"].map(a => "<option" + (a === d.tipo_acto ? " selected" : "") + ">" + a + "</option>").join("") + "</select></div>" +
+    '<div class="campo"><label for="numero">N°</label><input id="numero" value="' + esc(d.numero) + '"></div>' +
+    '<div class="campo"><label for="std">N° STD</label><input id="std" value="' + esc(d.std) + '"></div></div>' +
+    '<div class="fila2"><div class="campo"><label for="fecha">Fecha de la resolución</label><input id="fecha" type="date" value="' + esc(d.fecha) + '"></div>' +
+    '<div class="campo"><label for="fecha_efecto">Rige desde (si es distinta)</label><input id="fecha_efecto" type="date" value="' + esc(d.fecha_efecto) + '"></div></div>' +
+    '<label class="check" style="margin-bottom:10px"><input type="checkbox" id="datos_personales"' + (d.datos_personales ? " checked" : "") + '> El original trae RUT u otros datos personales: el PDF que subo es una versión con esos datos tapados</label>' +
     '<div class="campo"><label for="archivo">Archivo PDF' + (urlSegura(d.pdf) ? " (ya cargado; sube otro solo para reemplazarlo)" : "") + '</label><input id="archivo" type="file" accept="application/pdf"></div>' +
     '<div class="campo"><label for="enlace">o enlace (https://…)</label><input id="enlace" type="url" value="' + esc(d.enlace) + '"></div>' +
     '<div class="campo"><label for="nota">Nota</label><input id="nota" value="' + esc(d.nota) + '"></div>' +
@@ -238,7 +282,7 @@ function formDocumento(d) {
     const g = m.querySelector("#guardar"); g.disabled = true; g.textContent = "Guardando…";
     try {
       const v = id => m.querySelector("#" + id).value.trim() || null;
-      const fila = { instancia: d.instancia, tipo: v("tipo"), titulo: v("titulo"), numero: v("numero"), fecha: v("fecha"), enlace: v("enlace"), nota: v("nota"), vigente: m.querySelector("#vigente").checked };
+      const fila = { instancia: d.instancia, tipo: v("tipo"), titulo: v("titulo"), tipo_acto: v("tipo_acto"), numero: v("numero"), std: v("std"), fecha: v("fecha"), fecha_efecto: v("fecha_efecto"), enlace: v("enlace"), nota: v("nota"), vigente: m.querySelector("#vigente").checked, datos_personales: m.querySelector("#datos_personales").checked };
       if (fila.enlace && !urlSegura(fila.enlace)) throw new Error("El enlace debe empezar con https://");
       const f = m.querySelector("#archivo").files[0];
       if (f) {
@@ -266,6 +310,66 @@ function formDocumento(d) {
     await anotar(sb, "GI: ", "Documento eliminado", i.nombre + " · " + rotDoc(d.tipo));
     avisar("Eliminado."); await recargar(); verDocumentos(d.instancia);
   };
+}
+
+/* ---------- Integrantes ---------- */
+function verIntegrantes(id) {
+  const i = st.inst.find(x => x.id === id);
+  const ps = st.ints.filter(p => p.instancia === id).sort((a, b) => (b.oficial - a.oficial) || (esDireccion(b.rol) - esDireccion(a.rol)) || (a.orden - b.orden) || a.nombre.localeCompare(b.nombre, "es"));
+  const doc = did => { const d = st.docs.find(x => x.id === did); return d ? [d.tipo_acto, d.numero ? "N° " + d.numero : ""].filter(Boolean).join(" ") : ""; };
+  const m = modal('<div class="kicker">Integrantes</div><h2>' + esc(i.nombre) + "</h2>" +
+    '<p class="nota">Oficiales: designados por resolución. Declarados: informados por la instancia, sin resolución (se muestran aparte en la ficha).</p>' +
+    (ps.length ? ps.map(p => '<div class="docfila"><span><b>' + esc(p.nombre) + "</b> · " + esc(p.rol) + (p.oficial ? "" : ' <span class="etq gris">Declarado</span>') +
+      "<br><small>" + esc([p.linea, p.desde ? "desde " + fechaLarga(p.desde) : "", p.hasta ? "hasta " + fechaLarga(p.hasta) : "", doc(p.documento)].filter(Boolean).join(" · ")) + "</small></span>" +
+      (puede() ? '<span><button class="btn sec chico" data-editar-int="' + p.id + '">Editar</button></span>' : "<span></span>") + "</div>").join("") : '<p class="nota">Sin integrantes registrados.</p>') +
+    '<div class="pie">' + (puede() ? '<button class="btn" id="agregarInt">+ Agregar integrante</button>' : "") + '<button class="btn sec" id="cerrar">Cerrar</button></div>');
+  m.querySelector("#cerrar").onclick = cerrarModal;
+  const a = m.querySelector("#agregarInt");
+  if (a) a.onclick = () => formIntegrante({ instancia: id, rol: "Investigadora", oficial: true, orden: 0 });
+}
+
+function formIntegrante(p) {
+  const i = st.inst.find(x => x.id === p.instancia);
+  const docs = st.docs.filter(d => d.instancia === p.instancia);
+  const m = modal('<div class="kicker">' + esc(i.nombre) + "</div><h2>" + (p.id ? "Editar integrante" : "Agregar integrante") + '</h2><form id="fInt">' +
+    '<div class="campo"><label for="nombre">Nombre completo *</label><input id="nombre" required value="' + esc(p.nombre) + '"></div>' +
+    '<div class="fila2"><div class="campo"><label for="rol">Rol</label><input id="rol" list="roles" value="' + esc(p.rol) + '"><datalist id="roles">' + ROLES.map(r => "<option>" + r + "</option>").join("") + "</datalist></div>" +
+    '<div class="campo"><label for="orden">Orden (opcional)</label><input id="orden" type="number" value="' + esc(p.orden || 0) + '"></div></div>' +
+    '<div class="campo"><label for="linea">Línea de investigación</label><input id="linea" value="' + esc(p.linea) + '"></div>' +
+    '<div class="fila2"><div class="campo"><label for="desde">Desde</label><input id="desde" type="date" value="' + esc(p.desde) + '"></div>' +
+    '<div class="campo"><label for="hasta">Hasta (dirección: fin del periodo)</label><input id="hasta" type="date" value="' + esc(p.hasta) + '"></div></div>' +
+    '<div class="campo"><label for="documento">Resolución que lo designa</label><select id="documento"><option value="">—</option>' + docs.map(d => '<option value="' + d.id + '"' + (d.id === p.documento ? " selected" : "") + ">" + esc([d.tipo_acto, d.numero ? "N° " + d.numero : "", d.fecha ? "(" + fechaLarga(d.fecha) + ")" : ""].filter(Boolean).join(" ") || (d.titulo || "Resolución")) + "</option>").join("") + "</select></div>" +
+    '<label class="check"><input type="checkbox" id="oficial"' + (p.oficial ? " checked" : "") + "> Oficial (designado por resolución)</label>" +
+    '<div class="pie">' + (p.id ? '<button class="btn peligro" type="button" id="borrar">Eliminar</button>' : "") + '<button class="btn sec" type="button" id="volver">Volver</button><button class="btn" type="submit">Guardar</button></div></form>');
+  m.querySelector("#volver").onclick = () => verIntegrantes(p.instancia);
+  m.querySelector("#fInt").onsubmit = async e => {
+    e.preventDefault();
+    const v = id => m.querySelector("#" + id).value.trim() || null;
+    const fila = { instancia: p.instancia, nombre: v("nombre"), rol: v("rol") || "Integrante", linea: v("linea"), desde: v("desde"), hasta: v("hasta"), orden: Number(v("orden")) || 0,
+      documento: v("documento") ? Number(v("documento")) : null, oficial: m.querySelector("#oficial").checked };
+    if (fila.desde && fila.hasta && fila.hasta < fila.desde) { avisar("La fecha de término no puede ser anterior a la de inicio.", "err"); return; }
+    const r = p.id ? await sb.from("gi_integrantes").update(fila).eq("id", p.id) : await sb.from("gi_integrantes").insert(fila);
+    if (r.error) { avisar(traducir(r.error.message), "err"); return; }
+    await anotar(sb, "GI: ", p.id ? "Integrante editado" : "Integrante agregado", (i.sigla || i.nombre) + " · " + fila.nombre);
+    avisar("Guardado."); await recargar(); verIntegrantes(p.instancia);
+  };
+  const b = m.querySelector("#borrar");
+  if (b) b.onclick = async () => {
+    if (!confirm("¿Eliminar a " + p.nombre + "? Para registrar que dejó la instancia, usa «Hasta» y se conserva el historial.")) return;
+    const r = await sb.from("gi_integrantes").delete().eq("id", p.id);
+    if (r.error) { avisar(traducir(r.error.message), "err"); return; }
+    await anotar(sb, "GI: ", "Integrante eliminado", (i.sigla || i.nombre) + " · " + p.nombre);
+    avisar("Eliminado."); await recargar(); verIntegrantes(p.instancia);
+  };
+}
+
+async function alternarPublicacion(id) {
+  const i = st.inst.find(x => x.id === id);
+  if (!i.publicado && !confirm("¿Publicar «" + i.nombre + "» en el catálogo público? Revisa antes la vista previa («Ver ficha»).")) return;
+  const r = await sb.from("gi_instancias").update({ publicado: !i.publicado }).eq("id", id);
+  if (r.error) { avisar(traducir(r.error.message), "err"); return; }
+  await anotar(sb, "GI: ", i.publicado ? "Instancia retirada del catálogo" : "Instancia publicada", i.sigla || i.nombre);
+  avisar(i.publicado ? "Retirada del catálogo." : "Publicada."); await recargar();
 }
 
 /* ---------- Reglamentos y modelos ---------- */
@@ -315,10 +419,13 @@ function formRef(r) {
 }
 
 document.addEventListener("click", e => {
-  const t = e.target.closest("[data-nueva],[data-editar],[data-docs],[data-editar-doc],[data-nueva-ref],[data-editar-ref],[data-ver]");
+  const t = e.target.closest("[data-nueva],[data-editar],[data-docs],[data-editar-doc],[data-nueva-ref],[data-editar-ref],[data-ver],[data-ints],[data-editar-int],[data-publicar]");
   if (!t) return;
   if (t.dataset.ver) return verArchivo(t.dataset.ver, t.dataset.titulo);
+  if (t.dataset.ints) return verIntegrantes(Number(t.dataset.ints));
   if (!puede() && !t.dataset.docs) return;
+  if (t.dataset.publicar) return alternarPublicacion(Number(t.dataset.publicar));
+  if (t.dataset.editarInt) return formIntegrante(st.ints.find(x => x.id === Number(t.dataset.editarInt)));
   if ("nueva" in t.dataset) return formInstancia();
   if (t.dataset.editar) return formInstancia(st.inst.find(x => x.id === Number(t.dataset.editar)));
   if (t.dataset.docs) return verDocumentos(Number(t.dataset.docs));

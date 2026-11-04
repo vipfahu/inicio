@@ -8,3 +8,5 @@ Tipo: decisión de arquitectura del portal (2026-11-04)
 - Lo que se modela en Comisiones es la composición (integrantes con desde/hasta y resoluciones), nunca evaluaciones (pedido de la persona).
 
 **Por qué importa:** quien regenere el portal desde el diseño no debe borrar `grupos-investigacion/`, `comisiones-evaluacion/`, `comun/` ni los cambios de `PLATS`.
+
+**Grupos (2026-11-05):** instancias con `publicado` (borrador por defecto; el público solo ve lo publicado, `?previa=1` muestra borradores al equipo), integrantes en `gi_integrantes` (oficial = con resolución; declarados = del Excel de la instancia, se muestran aparte) y «Estado documental» interno con periodos de dirección vencidos. Las resoluciones con RUT se publican tachadas con PyMuPDF (`apply_redactions` quita el texto; verificar con `pdftotext`), marcadas `datos_personales`. Carga masiva sin clave de servicio: función de un solo uso con token aleatorio, llamada por RPC y eliminada después; subida de PDF con política temporal limitada a nombres exactos y retirada al terminar.
