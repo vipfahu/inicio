@@ -12,3 +12,5 @@ AccountChooser y luego abre la ficha, más instrucciones de incógnito. Solo ace
 la falla de Google con varias cuentas: por eso la página conserva la vía de incógnito.
 
 **Por qué importa:** Evita depurar código que no tiene el problema.
+
+**Diagnóstico confirmado (2026-11-04, «las fichas no cargan»):** si en Apps Script → Ejecuciones la función (`api_expediente`) aparece «Completada», el servidor respondió bien y el fallo está en el navegador. Antes de tocar código o implementaciones: abrir en incógnito solo con la cuenta USACH. Así se resolvió; las claves (`.clasp.json`, `.despliegue.json`, `clasp deployments`) estaban correctas. El aviso de consola «iframe … allow-scripts and allow-same-origin … can escape its sandboxing» lo produce el marco de Google en toda Web App: no es un error.

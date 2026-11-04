@@ -75,6 +75,10 @@ correr('npx', CLASP.concat(['push', '--force']), 'Subiendo el código a Apps Scr
 correr('npx', CLASP.concat(['redeploy', id, '-d', descripcion]), 'Publicando nueva versión en la misma URL');
 limpiar();
 
+// ID que enlaza el portal (index.html del repositorio): nunca se archiva la implementación que el portal usa.
+let idPortal = '';
+try { idPortal = (fs.readFileSync(path.join(aqui, '..', '..', 'index.html'), 'utf8').match(/\/s\/(AKfycb[\w-]{20,})\/exec/) || [])[1] || ''; } catch (e) { /* sin portal en esta copia */ }
+const otrasFiltro = x => x.id !== idPortal;
 // Otras implementaciones activas: con más de una, Google puede entregar la antigua. Se informan y, si se pide, se archivan.
 console.log('\n▶ Revisando otras implementaciones activas');
 const lista = ejecutar('npx', CLASP.concat(['deployments']), true);
@@ -83,9 +87,12 @@ if (lista.status !== 0) {
 } else {
   const otras = String(lista.stdout || '').split('\n')
     .map(l => ({ linea: l.trim(), id: (l.match(/AKfycb[\w-]{20,}/) || [])[0] }))
-    .filter(x => x.id && x.id !== id && !/@HEAD/i.test(x.linea));
+    .filter(x => x.id && x.id !== id && !/@HEAD/i.test(x.linea)).filter(otrasFiltro);
   if (!otras.length) console.log('  Solo está activa la vigente. Bien.');
-  else if (!archivar) {
+  else if (archivar && idPortal && idPortal !== id) {
+    console.log('  ✖ No se archivó nada: .despliegue.json guarda ' + id.slice(0, 12) + '…, pero el portal (index.html) enlaza ' + idPortal.slice(0, 12) + '….' +
+      '\n    Archivar ahora podría dejar sin panel al portal. Corrija el ID con: ./actualizar.command ' + idPortal);
+  } else if (!archivar) {
     console.log('  Hay ' + otras.length + ' implementación(es) además de la vigente:\n' + otras.map(x => '   ' + x.linea).join('\n') +
       '\n  Para archivarlas: ./actualizar.command --archivar-antiguas  (o node desplegar.js --archivar-antiguas)');
   } else {
