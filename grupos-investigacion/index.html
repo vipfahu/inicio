@@ -52,6 +52,10 @@
   .hito.no-vigente::before{background:#C9C2B2}
   .hito.no-vigente .tit{color:var(--tinta2)}
   .hito .num.vig{color:var(--aviso)}
+  .cat-res{margin:0 0 18px}
+  .cat-res h3{font:700 13px Archivo,sans-serif;letter-spacing:.04em;text-transform:uppercase;color:var(--tinta2);margin:0 0 10px;padding-bottom:6px;border-bottom:1px solid var(--borde)}
+  .cat-res .cuenta{font:600 11px 'IBM Plex Mono',monospace;color:var(--apagado);margin-left:4px}
+  .cat-res > .nota{margin:0 0 4px}
   .hito .num{font:400 12px Archivo,sans-serif;color:var(--apagado)}
   .hito .acc{margin-top:6px}
   .refs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
@@ -86,7 +90,14 @@
 <script type="module">
 import { conectar, conReintento, esc, urlSegura, fechaLarga, hoyISO, normalizar, verArchivo, traducir } from "../comun/vip.js?v=20261106";
 
-const TIPO_DOC = { creacion: "Creación", modificacion: "Modificación", nombramiento: "Designación de dirección", normativa_interna: "Normativa interna", integrantes: "Integrantes", otro: "Otro" };
+const TIPO_DOC = { creacion: "Creación", modificacion: "Modificación", nombramiento: "Designación de dirección", normativa_interna: "Norma interna", integrantes: "Integrantes", otro: "Otro" };
+// Resoluciones organizadas en cuatro tipos; la designación de dirección se muestra dentro de «Integrantes».
+const CATEGORIAS = [
+  ["Creación", ["creacion"], "Sin resolución de creación publicada."],
+  ["Modificación", ["modificacion"], "Sin modificaciones."],
+  ["Normas internas", ["normativa_interna"], "Sin normas internas publicadas."],
+  ["Integrantes", ["integrantes", "nombramiento"], "Sin resoluciones de integrantes publicadas."]
+];
 const TIPO_REF = { reglamento: "Normativa", modelo: "Modelo de resolución", otro: "Documento de referencia" };
 const est = { inst: [], docs: [], ints: [], refs: [], tipo: "", q: "", unidad: "", error: "" };
 const app = document.getElementById("app");
@@ -184,7 +195,12 @@ function vistaFicha(k) {
         ((i.objetivos_especificos || []).length ? "<p><b>Específicos.</b></p><ul>" + i.objetivos_especificos.map(o => "<li>" + esc(o) + "</li>").join("") + "</ul>" : "") + "</section>" : "") +
       (i.lineas ? '<section><h2>Líneas de investigación</h2><ul>' + i.lineas.split(/;\s*/).filter(Boolean).map(l => "<li>" + esc(l) + "</li>").join("") + "</ul></section>" : "") +
       ((i.actividades || []).length ? '<section><h2>Actividades destacadas</h2><ul>' + i.actividades.map(a => "<li>" + esc(a) + "</li>").join("") + "</ul></section>" : "") +
-      '<section><h2>Resoluciones</h2>' + (docs.length ? '<p class="nota" style="margin:-4px 0 12px">' + plural(docs.filter(x => x.vigente).length, "vigente", "vigentes") + " · " + plural(docs.filter(x => !x.vigente).length, "no vigente", "no vigentes") + "</p>" : "") + (docs.length ? '<div class="linea-t">' + docs.map(hito).join("") + "</div>" : '<p class="nota">Sin resoluciones publicadas.</p>') + "</section>" +
+      '<section><h2>Resoluciones</h2>' + (docs.length ? '<p class="nota" style="margin:-4px 0 12px">' + [plural(docs.filter(x => x.vigente).length, "vigente", "vigentes"), docs.some(x => !x.vigente) ? plural(docs.filter(x => !x.vigente).length, "no vigente", "no vigentes") : ""].filter(Boolean).join(" · ") + "</p>" : "") + CATEGORIAS.concat([["Otros documentos", ["otro"], ""]]).map(([rot, tipos, vacio]) => {
+        const ds = docs.filter(d => tipos.includes(d.tipo));
+        if (!ds.length && !vacio) return "";
+        return '<div class="cat-res"><h3>' + rot + (ds.length ? ' <span class="cuenta">' + ds.length + "</span>" : "") + "</h3>" +
+          (ds.length ? '<div class="linea-t">' + ds.map(hito).join("") + "</div>" : '<p class="nota">' + vacio + "</p>") + "</div>";
+      }).join("") + "</section>" +
     '</div><aside><div class="caja">' +
       (dir ? '<div class="dato"><b>' + esc(dir.rol) + "</b>" + esc(dir.nombre) + "</div>" : "") +
       (i.unidad ? '<div class="dato"><b>Unidad</b>' + esc(i.unidad) + "</div>" : "") +
@@ -210,7 +226,7 @@ function hito(d) {
     ? '<span class="etq ok">Vigente</span>'
     : '<span class="etq gris">No vigente</span>';
   const detalleVig = d.vigente ? "" : [d.vigente_hasta ? "Rigió hasta el " + fechaLarga(d.vigente_hasta) : "", d.vigencia_motivo, reemplazo ? "Reemplazada por " + refDoc(reemplazo) : ""].filter(Boolean).join(" · ");
-  return '<div class="hito' + (d.vigente ? "" : " no-vigente") + '"><div class="cab"><span>' + esc(d.fecha ? fechaLarga(d.fecha) : "Sin fecha") + '</span><span class="etq gris">' + esc(TIPO_DOC[d.tipo] || d.tipo) + "</span>" + vig + "</div>" +
+  return '<div class="hito' + (d.vigente ? "" : " no-vigente") + '"><div class="cab"><span>' + esc(d.fecha ? fechaLarga(d.fecha) : "Sin fecha") + '</span>' + (d.tipo === "nombramiento" ? '<span class="etq teal">Designación de dirección</span>' : "") + vig + "</div>" +
     '<div class="tit">' + esc(tit) + "</div>" +
     '<div class="num">' + esc([d.tipo_acto, d.numero ? "N° " + d.numero : ""].filter(Boolean).join(" ")) + (d.fecha_efecto && d.fecha_efecto !== d.fecha ? " · rige desde el " + esc(fechaLarga(d.fecha_efecto)) : "") + "</div>" +
     (detalleVig ? '<div class="num vig">' + esc(detalleVig) + "</div>" : "") +

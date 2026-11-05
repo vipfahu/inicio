@@ -41,7 +41,9 @@
 import { conectar, conReintento, esc, urlSegura, fechaLarga, hoyISO, avisar, traducir, modal, cerrarModal, verArchivo, nivelEn, anotar, rutaArchivo } from "../comun/vip.js?v=20261106";
 
 const PLATAFORMA = "grupos";
-const TIPOS_DOC = [["creacion","Resolución de creación"],["modificacion","Resolución de modificación"],["nombramiento","Designación de director/a"],["normativa_interna","Normativa interna"],["integrantes","Resolución de integrantes"],["otro","Otro documento"]];
+const TIPOS_DOC = [["creacion","Resolución de creación"],["modificacion","Resolución de modificación"],["normativa_interna","Norma interna"],["integrantes","Resolución de integrantes"],["nombramiento","Designación de director/a"],["otro","Otro documento"]];
+// Organización de las resoluciones en cuatro tipos (pedido 2026-11-05). La designación de dirección es parte de «Integrantes».
+const CATEGORIAS = [["creacion","Creación",["creacion"]],["modificacion","Modificación",["modificacion"]],["normas","Normas internas",["normativa_interna"]],["integrantes","Integrantes",["integrantes","nombramiento"]]];
 const ROLES = ["Directora","Director","Coordinadora","Coordinador","Investigadora","Investigador","Investigadora asociada","Investigador asociado","Investigadora colaboradora","Investigador colaborador","Integrante fundadora","Integrante fundador","Integrante"];
 const esDireccion = r => /^(director|directora|coordinador|coordinadora)/i.test(r || "");
 const DIAS_AVISO = 60;
@@ -152,7 +154,7 @@ function vistaInstancias() {
 
 /* Estado documental: qué tiene y qué falta cada instancia, y periodos de dirección vencidos o por vencer (solo interno). */
 function vistaEstado() {
-  const tipos = [["creacion", "Creación"], ["modificacion", "Modificación"], ["nombramiento", "Dirección"], ["normativa_interna", "Normativa interna"], ["integrantes", "Integrantes"]];
+  const tipos = [["creacion", "Creación"], ["modificacion", "Modificación"], ["normativa_interna", "Normas internas"], ["integrantes", "Integrantes"], ["nombramiento", "Dirección"]];
   const filas = st.inst.map(i => {
     const ds = st.docs.filter(d => d.instancia === i.id), dir = direccionDe(i.id), dh = dir ? diasHasta(dir.hasta) : null;
     const celdas = tipos.map(([t]) => {
@@ -253,17 +255,18 @@ function textoVigencia(d) {
 function verDocumentos(id) {
   const i = st.inst.find(x => x.id === id);
   const ds = st.docs.filter(d => d.instancia === id);
-  const lista = TIPOS_DOC.map(([t, rot]) => {
-    const dt = ds.filter(d => d.tipo === t);
-    if (!dt.length && t === "otro") return "";
-    return '<h3 style="margin-top:14px">' + rot + "</h3>" + (dt.length ? dt.map(d =>
-      '<div class="docfila"><span>' + esc(d.titulo || rot) + " " + etqVigencia(d) + "<br><small>" + esc([d.numero ? "N° " + d.numero : "", fechaLarga(d.fecha), textoVigencia(d), d.nota].filter(Boolean).join(" · ")) + "</small></span>" +
+  const grupos = CATEGORIAS.concat([["otro", "Otros documentos", ["otro"]]]);
+  const lista = grupos.map(([c, rotC, tipos]) => {
+    const dt = ds.filter(d => tipos.includes(d.tipo)).sort((a, b) => String(a.fecha || "").localeCompare(String(b.fecha || "")));
+    if (!dt.length && c === "otro") return "";
+    return '<h3 style="margin-top:14px">' + rotC + "</h3>" + (dt.length ? dt.map(d => { const rot = rotDoc(d.tipo); return (
+      '<div class="docfila"><span>' + esc(d.titulo || rot) + (d.tipo === "nombramiento" ? ' <span class="etq teal">Dirección</span>' : "") + " " + etqVigencia(d) + "<br><small>" + esc([d.numero ? "N° " + d.numero : "", fechaLarga(d.fecha), textoVigencia(d), d.nota].filter(Boolean).join(" · ")) + "</small></span>" +
       '<span style="white-space:nowrap">' + (urlSegura(d.pdf) ? '<button class="btn sec chico" data-ver="' + esc(d.pdf) + '" data-titulo="' + esc(d.titulo || rot) + '">Ver</button> ' : urlSegura(d.enlace) ? '<a class="btn sec chico" href="' + esc(d.enlace) + '" target="_blank" rel="noopener">Abrir ↗</a> ' : "") +
-      (puede() ? '<button class="btn sec chico" data-editar-doc="' + d.id + '">Editar</button>' : "") + "</span></div>").join("")
-      : '<p class="nota" style="margin:4px 0">' + (t === "modificacion" ? "Sin modificaciones (si corresponde)." : "Sin registrar.") + "</p>");
+      (puede() ? '<button class="btn sec chico" data-editar-doc="' + d.id + '">Editar</button>' : "") + "</span></div>"); }).join("")
+      : '<p class="nota" style="margin:4px 0">' + (c === "modificacion" ? "Sin modificaciones (si corresponde)." : c === "normas" ? "Sin normas internas registradas." : "Sin registrar.") + "</p>");
   }).join("");
-  const m = modal('<div class="kicker">Documentos</div><h2>' + esc(i.nombre) + "</h2>" + lista +
-    '<div class="pie">' + (puede() ? '<button class="btn" id="agregarDoc">+ Agregar documento</button>' : "") + '<button class="btn sec" id="cerrar">Cerrar</button></div>');
+  const m = modal('<div class="kicker">Resoluciones</div><h2>' + esc(i.nombre) + "</h2>" + lista +
+    '<div class="pie">' + (puede() ? '<button class="btn" id="agregarDoc">+ Agregar resolución</button>' : "") + '<button class="btn sec" id="cerrar">Cerrar</button></div>');
   m.querySelector("#cerrar").onclick = cerrarModal;
   const a = m.querySelector("#agregarDoc");
   if (a) a.onclick = () => formDocumento({ instancia: id, tipo: "creacion", vigente: true });
@@ -272,7 +275,7 @@ function verDocumentos(id) {
 function formDocumento(d) {
   const i = st.inst.find(x => x.id === d.instancia);
   const m = modal('<div class="kicker">' + esc(i.nombre) + "</div><h2>" + (d.id ? "Editar documento" : "Agregar documento") + '</h2><form id="fDoc">' +
-    '<div class="campo"><label for="tipo">Tipo *</label><select id="tipo">' + TIPOS_DOC.map(([t, r]) => '<option value="' + t + '"' + (d.tipo === t ? " selected" : "") + ">" + r + "</option>").join("") + "</select></div>" +
+    '<div class="campo"><label for="tipo">Tipo *</label><select id="tipo">' + CATEGORIAS.concat([["otro", "Otros", ["otro"]]]).map(([, rotC, tipos]) => '<optgroup label="' + rotC + '">' + tipos.map(t => '<option value="' + t + '"' + (d.tipo === t ? " selected" : "") + ">" + rotDoc(t) + "</option>").join("") + "</optgroup>").join("") + "</select></div>" +
     '<div class="campo"><label for="titulo">Título (opcional; si queda vacío se usa el tipo)</label><input id="titulo" value="' + esc(d.titulo) + '"></div>' +
     '<div class="fila3"><div class="campo"><label for="tipo_acto">Acto</label><select id="tipo_acto">' + ["Resolución exenta", "Resolución interna", "Decreto universitario"].map(a => "<option" + (a === d.tipo_acto ? " selected" : "") + ">" + a + "</option>").join("") + "</select></div>" +
     '<div class="campo"><label for="numero">N°</label><input id="numero" value="' + esc(d.numero) + '"></div>' +
