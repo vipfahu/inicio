@@ -471,3 +471,38 @@ test('rechazo propuesto: transiciones, campos, correos y ruta', () => {
   assert.equal(r1.find(p => p.id === 'vb_rechazo').estudiante, 'En revisión por el Vicedecanato');
   assert.deepEqual(ids(L.rutaProceso('rechazada', ['recibida', 'revision', 'vb_rechazo', 'rechazada'])), ['recibida', 'revision', 'vb_rechazo', 'rechazada']);
 });
+
+test('plazos de analistas: tarea por paso, situación y exclusión de los pasos del Vicedecano/a', () => {
+  const p = { plazo_admisibilidad_dias: '2', plazo_programa_dias: '2', plazo_analista_dias: '3', aviso_plazo_dias: '1' };
+  const lun = new Date(2026, 10, 2); // lunes 2 de noviembre de 2026
+  const dia = n => new Date(2026, 10, 2 + n);
+  const sol = (estado, extra) => Object.assign({ estado, estado_desde: lun, fecha_recepcion: lun }, extra || {});
+  // En plazo, por vencer, vence hoy, vencido (3 días hábiles; aviso 1)
+  assert.equal(L.plazoAnalista(sol('aceptada'), dia(1), p, []).situacion, 'en_plazo');
+  assert.equal(L.plazoAnalista(sol('aceptada'), dia(2), p, []).situacion, 'por_vencer');
+  assert.equal(L.plazoAnalista(sol('aceptada'), dia(3), p, []).situacion, 'vence_hoy');
+  const v = L.plazoAnalista(sol('aceptada'), dia(4), p, []);
+  assert.equal(v.situacion, 'vencido'); assert.equal(v.restantes, -1); assert.equal(v.plazo, 3);
+  // Los fines de semana y feriados no cuentan
+  assert.equal(L.plazoAnalista(sol('aceptada'), dia(6), p, []).transcurridos, 4, 'del lunes al domingo siguiente: 4 días hábiles');
+  assert.equal(L.plazoAnalista(sol('aceptada'), dia(4), p, ['2026-11-04']).transcurridos, 3, 'martes a viernes menos el feriado del miércoles');
+  // Plazo propio: «Recibida» cuenta desde la recepción con plazo_admisibilidad_dias; programa con plazo_programa_dias
+  assert.equal(L.plazoAnalista(sol('recibida', { estado_desde: dia(3) }), dia(3), p, []).situacion, 'vencido', 'desde la recepción, no desde el estado');
+  assert.equal(L.plazoAnalista(sol('programa'), dia(2), p, []).situacion, 'vence_hoy');
+  // Parámetro vacío: valor por defecto
+  assert.equal(L.plazoAnalista(sol('aceptada'), dia(1), {}, []).plazo, 3);
+  // Pasos del Vicedecano/a y cierres: sin plazo de analista
+  ['vb', 'vb_rechazo', 'resuelto', 'negado', 'rechazada'].forEach(e => assert.equal(L.plazoAnalista(sol(e), dia(9), p, []), null, e));
+  assert.equal(L.plazoAnalista({ estado: 'aceptada' }, dia(9), p, []), null, 'sin fecha no hay plazo');
+});
+
+test('plazos de analistas: lista del recordatorio, vencidos primero', () => {
+  const t = L.listaCasosAnalista([
+    { folio: '07/2026', programa: 'Magíster A', etiqueta: 'Informe', tarea: 'Tarea uno', situacion: 'por_vencer', restantes: 1, enlace: 'https://x/1' },
+    { folio: '03/2026', programa: 'Magíster B', etiqueta: 'Admisible', tarea: 'Tarea dos', situacion: 'vencido', restantes: -2, enlace: 'https://x/2' }
+  ]);
+  assert.ok(t.indexOf('03/2026') < t.indexOf('07/2026'));
+  assert.match(t, /plazo vencido hace 2 día\(s\) hábil\(es\)/);
+  assert.match(t, /quedan 1 día\(s\) hábil\(es\)/);
+  assert.match(t, /https:\/\/x\/2/);
+});

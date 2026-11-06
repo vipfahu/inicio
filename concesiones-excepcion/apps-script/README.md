@@ -241,6 +241,14 @@ antiguos que traían la URL de una implementación ya archivada siguen abriendo.
 después; no va al repositorio). `ScriptApp.getService().getUrl()` queda solo de respaldo: con más de una implementación activa
 devolvía la antigua. `desplegar.js` lista las demás implementaciones y las archiva con `--archivar-antiguas`.
 
+**Plazos de analistas (solo administración).** La pestaña «Plazos de analistas» muestra, agrupados por analista, los casos en pasos a
+su cargo con el plazo vencido o por vencer (`PLAZOS_ANALISTA` y `plazoAnalista` en `Logica.gs`): «Recibida» cuenta desde la recepción
+con `plazo_admisibilidad_dias`; el pronunciamiento del programa, con `plazo_programa_dias`; los demás pasos, con `plazo_analista_dias`
+(3) desde que el caso entró al paso; «por vencer» = quedan `aviso_plazo_dias` (1) días hábiles o menos. Los pasos de V°B° quedan fuera
+(son del Vicedecano/a). Con «Enviar recordatorio» la administración envía a cada analista un correo con los casos marcados
+(plantilla `recordatorio_analista`, vista previa editable, respuestas a quien envía) y queda en la bitácora de cada caso; la vista
+muestra la fecha del último recordatorio. Los casos sin analista aparecen aparte. Código en `Plazos.gs`.
+
 **Movimiento de la interfaz.** Tras una acción en la ficha (guardar, anotar, subir, cambiar de estado), la ficha se redibuja en su
 lugar: sin pantalla intermedia y en la misma posición de lectura (`abrir` detecta que ya está abierta), y se resaltan por 1,8 s el
 estado si cambió y las entradas nuevas de la bitácora y de archivos (`resaltarCambios`). Diálogos, visor y avisos entran con un fundido

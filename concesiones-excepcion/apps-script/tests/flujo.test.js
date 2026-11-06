@@ -1856,3 +1856,51 @@ test('URL del panel: la fijada al desplegar (Implementacion.gs) manda sobre getU
   assert.equal(ctx.urlPanel_(), env.estado.url);
   delete ctx.URL_IMPLEMENTACION;
 });
+
+test('plazos de analistas: solo administración; lista, vista previa y recordatorio con bitácora', () => {
+  const env = instalar(preparar());
+  const { ctx, estado } = env;
+  // Casos sintéticos: 03/2026 (aceptada) y 05/2026 (programa) a cargo de analista.uno, entraron al paso hace semanas
+  const h = env.libro.getSheetByName('Solicitudes');
+  const enc = h.datos[0];
+  const cF = enc.indexOf('folio'), cE = enc.indexOf('estado_desde'), cA = enc.indexOf('analista');
+  h.datos.forEach((r, i) => { if (i && ['03/2026', '05/2026', '06/2026'].indexOf(r[cF]) >= 0) r[cE] = new Date(2026, 0, 5); });
+  if (ctx.invalidarLecturas_) ctx.invalidarLecturas_('Solicitudes');
+  estado.usuario = 'analista.uno@usach.cl';
+  assert.throws(() => ctx.api_plazosAnalistas(), /nivel requerido/, 'una analista no ve la vista');
+  estado.usuario = 'vice@usach.cl';
+  const r = ctx.api_plazosAnalistas();
+  const a = r.analistas.find(x => x.correo === 'analista.uno@usach.cl');
+  assert.ok(a, 'agrupa por analista');
+  assert.deepEqual([...a.casos.map(c => c.folio)].sort(), ['03/2026', '05/2026']);
+  assert.ok(a.casos.every(c => c.situacion === 'vencido'));
+  assert.ok(r.sinAnalista.some(c => c.folio === '06/2026'), 'la recibida sin analista aparece aparte');
+  assert.ok(!a.casos.some(c => c.estado === 'resuelto' || c.estado === 'rechazada'), 'los cierres no tienen plazo');
+  // Vista previa: no envía; lista los casos con su tarea
+  const antes = estado.correos.length;
+  const pv = ctx.api_previsualizarRecordatorioAnalista('analista.uno@usach.cl', ['03/2026', '05/2026']);
+  assert.equal(estado.correos.length, antes);
+  assert.deepEqual([...pv.correo.para], ['analista.uno@usach.cl']);
+  assert.equal(pv.correo.replyTo, 'vice@usach.cl', 'las respuestas van a quien envía');
+  assert.match(pv.correo.asunto, /2 caso\(s\)/);
+  assert.match(pv.correo.cuerpo, /03\/2026[\s\S]*Registrar el N° STD/);
+  assert.match(pv.correo.cuerpo, /05\/2026[\s\S]*pronunciamiento del programa/);
+  assert.doesNotMatch(pv.correo.cuerpo, /\{\w+\}/, 'sin variables pendientes');
+  // Un folio ajeno o de otra analista se rechaza
+  assert.throws(() => ctx.api_previsualizarRecordatorioAnalista('analista.uno@usach.cl', ['01/2026']), /ya no están a cargo/);
+  assert.throws(() => ctx.api_previsualizarRecordatorioAnalista('analista.uno@usach.cl', []), /al menos un caso/);
+  // Envío (con texto editado): un correo y una entrada de bitácora por caso
+  const res = ctx.api_enviarRecordatorioAnalista('analista.uno@usach.cl', ['03/2026'], { asunto: 'Asunto editado', cuerpo: pv.correo.cuerpo });
+  assert.equal(res.casos, 1);
+  const m = estado.correos[estado.correos.length - 1];
+  assert.equal(m.to, 'analista.uno@usach.cl'); assert.equal(m.subject, 'Asunto editado'); assert.equal(m.replyTo, 'vice@usach.cl');
+  const b = tabla(env, 'Bitácora').filter(x => x.evento === 'recordatorio_analista');
+  assert.equal(b.length, 1); assert.equal(b[0].folio, '03/2026'); assert.equal(b[0].quien, 'vice@usach.cl'); assert.equal(b[0].editado, 'SÍ');
+  assert.match(b[0].texto, /plazo vencido/);
+  // La vista muestra la fecha del último recordatorio
+  const r2 = ctx.api_plazosAnalistas();
+  assert.ok(r2.analistas[0].casos.find(c => c.folio === '03/2026').ultimoRecordatorio);
+  // Una analista con edición no puede enviar
+  estado.usuario = 'analista.uno@usach.cl';
+  assert.throws(() => ctx.api_enviarRecordatorioAnalista('analista.uno@usach.cl', ['03/2026'], {}), /nivel requerido/);
+});

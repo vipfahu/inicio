@@ -506,6 +506,57 @@ const RECORDATORIO_MANUAL = { recibida: 'recordatorio_admisibilidad', programa: 
   resolucion: 'recordatorio_resolucion', firma_decanato: 'recordatorio_resolucion', rechazo_firma_decanato: 'recordatorio_resolucion' };
 function recordatorioManual(estado) { return RECORDATORIO_MANUAL[estado] || ''; }
 
+/**
+ * Plazos de las analistas (2026-11-06, pedido de la persona): en cada paso a cargo de la analista, la tarea pendiente y el plazo en
+ * días hábiles. La administración ve los casos por vencer o vencidos y puede enviar un recordatorio a cada analista.
+ * `desde` = campo de la solicitud desde el que se cuenta (por defecto, estado_desde). Los pasos de V°B° son del Vicedecano/a y no
+ * se incluyen (tienen su propio recordatorio). Admisibilidad y programa usan su plazo propio; el resto, plazo_analista_dias.
+ */
+const PLAZOS_ANALISTA = {
+  recibida: { tarea: 'Iniciar la revisión de admisibilidad', param: 'plazo_admisibilidad_dias', porDefecto: 2, desde: 'fecha_recepcion' },
+  revision: { tarea: 'Resolver la admisibilidad', param: 'plazo_analista_dias', porDefecto: 3 },
+  aceptada: { tarea: 'Registrar el N° STD y solicitar el informe de Registro Curricular', param: 'plazo_analista_dias', porDefecto: 3 },
+  informe_rc: { tarea: 'Obtener el informe de Registro Curricular y solicitar el pronunciamiento del programa', param: 'plazo_analista_dias', porDefecto: 3 },
+  programa: { tarea: 'Hacer seguimiento al pronunciamiento del programa', param: 'plazo_programa_dias', porDefecto: 2 },
+  aviso_rc: { tarea: 'Notificar a Registro Curricular', param: 'plazo_analista_dias', porDefecto: 3 },
+  rc_notificado: { tarea: 'Elaborar el proyecto de resolución', param: 'plazo_analista_dias', porDefecto: 3 },
+  resolucion: { tarea: 'Enviar el proyecto de resolución a Decanato para firma', param: 'plazo_analista_dias', porDefecto: 3 },
+  rechazo_vb: { tarea: 'Enviar el proyecto de resolución a Decanato para firma', param: 'plazo_analista_dias', porDefecto: 3 },
+  firma_decanato: { tarea: 'Hacer seguimiento a la firma y numeración de la resolución', param: 'plazo_analista_dias', porDefecto: 3 },
+  rechazo_firma_decanato: { tarea: 'Hacer seguimiento a la firma y numeración de la resolución', param: 'plazo_analista_dias', porDefecto: 3 },
+  res_recibida: { tarea: 'Registrar el cierre del caso', param: 'plazo_analista_dias', porDefecto: 3 },
+  res_rechazo_recibida: { tarea: 'Registrar el cierre del caso', param: 'plazo_analista_dias', porDefecto: 3 }
+};
+
+/**
+ * Situación del plazo de la analista en el paso actual, o null si el paso no está a su cargo o falta la fecha.
+ * situacion: 'vencido' (pasó el plazo) · 'vence_hoy' · 'por_vencer' (quedan aviso_plazo_dias días hábiles o menos) · 'en_plazo'.
+ */
+function plazoAnalista(sol, hoy, p, feriados) {
+  const d = PLAZOS_ANALISTA[sol.estado];
+  if (!d) return null;
+  const inicio = sol[d.desde || 'estado_desde'] || sol.estado_desde;
+  const fi = inicio ? new Date(inicio) : null;
+  if (!fi || isNaN(fi)) return null;
+  const num = (k, def) => { const v = p[k]; return v === undefined || v === null || String(v).trim() === '' || isNaN(Number(v)) ? def : Number(v); };
+  const plazo = num(d.param, d.porDefecto);
+  const aviso = num('aviso_plazo_dias', 1);
+  const transcurridos = diasHabilesEntre(fi, hoy, feriados);
+  const restantes = plazo - transcurridos;
+  const vence = sumarDiasHabiles(fi, plazo, feriados);
+  const situacion = restantes < 0 ? 'vencido' : restantes === 0 ? 'vence_hoy' : restantes <= aviso ? 'por_vencer' : 'en_plazo';
+  return { tarea: d.tarea, plazo: plazo, transcurridos: transcurridos, restantes: restantes, vence: vence, situacion: situacion, desde: fi };
+}
+
+/** Lista de casos en texto para el recordatorio a una analista (una línea por caso, vencidos primero). */
+function listaCasosAnalista(casos) {
+  const orden = { vencido: 0, vence_hoy: 1, por_vencer: 2, en_plazo: 3 };
+  const sit = c => c.situacion === 'vencido' ? 'plazo vencido hace ' + (-c.restantes) + ' día(s) hábil(es)'
+    : c.situacion === 'vence_hoy' ? 'el plazo vence hoy' : 'quedan ' + c.restantes + ' día(s) hábil(es)';
+  return casos.slice().sort((a, b) => (orden[a.situacion] - orden[b.situacion]) || (a.restantes - b.restantes))
+    .map(c => '• ' + c.folio + ' · ' + c.programa + ' · ' + c.etiqueta + '\n  Pendiente: ' + c.tarea + ' (' + sit(c) + ').\n  ' + c.enlace).join('\n\n');
+}
+
 /** Las salidas del V°B° (admisible, rechazada, devolución) las registra solo el Vicedecano/a, salvo V°B° dado por otro medio. */
 function requiereVicedecano(desde) {
   return desde === 'vb' || desde === 'vb_rechazo';
@@ -654,6 +705,6 @@ if (typeof module !== 'undefined') {
   module.exports = { origenRechazoPropuesto, esRenuncia, textoRenunciaPrograma, asegurarIndicacionRenuncia, capitalizarNombre, rutaProceso, RUTA_PRINCIPAL, esRolRC, ROLES_RC, tipoVista, mimePorNombre, entradaZipUtil, encargoDe, requiereVicedecano, normalizarRun, normalizarPasaporte, feriadosDesdeEventos, OCULTOS_AL_ESTUDIANTE, sumarDiasHabiles, recordatorioPendiente, RECORDATORIOS, camposRequeridos,
     ESTADOS, CAMPOS_REQUERIDOS, TIPOS_CATALOGO, NIVELES, ROLES, estadoPorId, esCierre, transicionValida, eventoTransicion,
     normalizarFolio, siguienteFolio, estadoMigrado, separarTipos, rellenar, variablesSinResolver, resolverDestinatarios,
-    diasHabilesEntre, necesitaRecordatorio, nivelSuficiente, puedeVerSolicitud, validarCuenta, esSi, listaRoles, validarSolicitud, resumenCuenta, RECORDATORIO_MANUAL, recordatorioManual, VARIABLES_OPCIONALES, describirCambioTexto, ROTULOS_GESTION
+    diasHabilesEntre, necesitaRecordatorio, nivelSuficiente, puedeVerSolicitud, validarCuenta, esSi, listaRoles, validarSolicitud, resumenCuenta, RECORDATORIO_MANUAL, recordatorioManual, PLAZOS_ANALISTA, plazoAnalista, listaCasosAnalista, VARIABLES_OPCIONALES, describirCambioTexto, ROTULOS_GESTION
   };
 }

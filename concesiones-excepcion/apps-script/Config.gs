@@ -68,6 +68,8 @@ const PARAMETROS_INICIALES = [
   ['primer_aviso_admisibilidad_dias', '1', 'Días hábiles desde la recepción hasta el primer recordatorio de admisibilidad (luego, cada recordatorio_cada_dias).'],
   ['plazo_programa_dias', '2', 'Días hábiles que tiene el programa para pronunciarse.'],
   ['plazo_vb_dias', '2', 'Días hábiles sin V°B° tras los cuales se recuerda al Vicedecano/a (luego, cada recordatorio_cada_dias).'],
+  ['plazo_analista_dias', '3', 'Días hábiles que tiene la analista para su tarea en cada paso a su cargo (salvo «Recibida», que usa plazo_admisibilidad_dias, y el pronunciamiento del programa, que usa plazo_programa_dias). Lo usa «Plazos de analistas».'],
+  ['aviso_plazo_dias', '1', 'Días hábiles antes del vencimiento desde los que un caso aparece «por vencer» en «Plazos de analistas».'],
   ['recordatorio_cada_dias', '2', 'Días hábiles entre recordatorios, una vez vencido el plazo.'],
   ['recordatorios_max', '3', 'Máximo de recordatorios por solicitud (0 = desactivados).'],
   ['max_mb_archivo', '20', 'Tamaño máximo por archivo subido desde el panel (MB). Gmail admite 25 MB por correo en total.'],
@@ -125,6 +127,8 @@ const PLANTILLAS_INICIALES = [
     'Estimada/o:\n\nJunto con saludar cordialmente, le recordamos que desde el {fecha_estado} se encuentra pendiente el informe de Registro Curricular sobre la solicitud CAE {folio} de {nombre} ({programa}), tramitada por {std_ref}.\n\nAgradeceremos remitirlo {destino_respuesta}.' + FIRMA],
   ['recordatorio_resolucion', 'Recordatorio a Registro Curricular (manual): resolución pendiente', 'Registro Curricular', 'Analista', 'Recordatorio · Solicitud CAE {folio} · resolución pendiente',
     'Estimada/o:\n\nJunto con saludar cordialmente, le recordamos que desde el {fecha_estado} se encuentra en tramitación la resolución de la solicitud CAE {folio} de {nombre} ({programa}), {std_ref}.\n\nAgradeceremos informar su estado {destino_respuesta}.' + FIRMA],
+  ['recordatorio_analista', 'Recordatorio a una analista (manual, administración): casos con plazo por vencer o vencido', 'Analista elegida', '', 'Recordatorio · {cantidad} caso(s) CAE con plazo por vencer o vencido',
+    'Estimada/o {analista}:\n\nJunto con saludar cordialmente, le recordamos que los siguientes casos de Concesiones Académicas de Excepción a su cargo tienen el plazo por vencer o vencido, sin registro de avance en la plataforma:\n\n{casos}\n\nAgradeceremos actualizar su estado en la plataforma o informar si existe algún impedimento.\n\nAtentamente,\n{remitente}'],
   ['vb_dado', 'V°B° registrado (automático): aviso a la analista del caso', 'Analista o equipo', '', 'V°B° registrado · Solicitud CAE {folio} · {decision_vb}',
     'El Vicedecano/a registró su V°B° a la respuesta del Comité en la solicitud CAE {folio} de {nombre} ({programa}).\n\nDecisión: {decision_vb}.\nPropuesta del Comité: {propuesta_comite}\n{observacion_frase}Paso siguiente: {paso_siguiente}.\n\nExpediente: {enlace_panel}']
 ];

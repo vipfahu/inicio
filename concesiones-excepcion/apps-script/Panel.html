@@ -39,6 +39,8 @@
   .t-adm{color:#5A6470;background:#EFECE4} .t-tra{color:#007E80;background:#E4F2F2} .t-vb{color:#8A5A00;background:#FCEBD9}
   .t-ok{color:#2F6B4F;background:#E7F3EB} .t-no{color:#8A3D2E;background:#F9EDE9}
   .tabla{background:#fff;border:1px solid var(--borde);border-radius:14px;overflow:hidden}
+  .plz-fila{display:grid;grid-template-columns:22px 72px minmax(0,1fr) 120px 150px;gap:10px;align-items:center;padding:9px 0;border-top:1px solid var(--fila)}
+  .plz-fila input[type=checkbox]{width:16px;height:16px;margin:0}
   .fila{display:grid;grid-template-columns:76px 1.3fr 1.1fr 170px 140px 96px 52px;gap:10px;padding:13px 20px;border-bottom:1px solid var(--fila);align-items:center;cursor:pointer}
   .fila:hover{background:var(--fcampo)} .fila.enc{cursor:default;background:var(--fcampo);font:600 10.5px Archivo,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--apagado)}
   .fila.enc .ord{cursor:pointer;user-select:none;border-radius:5px;padding:2px 4px;margin:-2px -4px} .fila.enc .ord:hover,.fila.enc .ord:focus-visible{color:var(--tinta);background:#fff;outline:none}
@@ -89,6 +91,7 @@
   .track i.n{background:#8A3D2E;border-color:#8A3D2E;width:14px;height:14px}
   .track b{flex:1;height:2px;background:#E0DCD0;min-width:4px} .track b.h{background:var(--teal2)}
   @media(max-width:760px){.prow{grid-template-columns:1fr;gap:6px}}
+  @media(max-width:760px){.plz-fila{grid-template-columns:22px 64px minmax(0,1fr)}.plz-fila>div:nth-child(4),.plz-fila>div:nth-child(5){grid-column:3}}
   .vars code{font:400 11px 'IBM Plex Mono',monospace;background:#EFECE4;border-radius:4px;padding:2px 5px;margin:2px;display:inline-block}
   .acciones{display:flex;gap:8px;flex-wrap:wrap}
   label.chk{display:flex;gap:8px;align-items:center;font:400 13px Archivo,sans-serif;margin:4px 0} label.chk input{width:auto}
@@ -261,7 +264,7 @@ function pintarNav() {
   const tabs = [['bandeja', 'Bandeja'], ['panorama', 'Panorama'], ['indicadores', 'Indicadores']];
   if (nivel('edicion')) tabs.push(['plantillas', 'Plantillas de correo']);
   tabs.push(['config', 'Configuración']);
-  if (nivel('administracion')) tabs.push(['cuentas', 'Cuentas']);
+  if (nivel('administracion')) { tabs.splice(2, 0, ['plazos', 'Plazos de analistas']); tabs.push(['cuentas', 'Cuentas']); }
   $('nav').innerHTML = tabs.map(t => '<button data-v="' + t[0] + '" class="' + (S.vista === t[0] || (S.vista === 'exp' && t[0] === 'bandeja') ? 'act' : '') + '">' + t[1] + '</button>').join('');
   $('nav').querySelectorAll('button').forEach(b => b.onclick = () => ir(b.dataset.v));
 }
@@ -273,6 +276,7 @@ function ir(v) {
   if (v === 'plantillas') return cargarPlantillas();
   if (v === 'cuentas') return cargarCuentas();
   if (v === 'config') return cargarConfig();
+  if (v === 'plazos') return cargarPlazos();
 }
 
 /* ── Bandeja ── */
@@ -822,6 +826,69 @@ function pintarIndicadores() {
 }
 
 /* ── Panorama: avance de cada caso en su ruta de pasos (Vicedecanato y Registro Curricular) ── */
+/* ── Plazos de analistas (solo administración) ──
+   Casos con plazo por vencer o vencido en pasos a cargo de la analista; recordatorio por correo a cada una, con vista previa. */
+function cargarPlazos() {
+  $('app').innerHTML = '<div class="cargando">Revisando plazos…</div>';
+  run('api_plazosAnalistas').then(r => { S.plz = r; pintarPlazos(); }).catch(fallo);
+}
+function sitPlazo(c) {
+  if (c.situacion === 'vencido') return '<span class="tag t-no">Vencido · ' + (-c.restantes) + ' d.h.</span>';
+  if (c.situacion === 'vence_hoy') return '<span class="tag t-vb">Vence hoy</span>';
+  return '<span class="tag t-vb">Por vencer · ' + c.restantes + ' d.h.</span>';
+}
+function pintarPlazos() {
+  const r = S.plz;
+  const filaCaso = (c, conCheck) => '<div class="plz-fila">' +
+    (conCheck ? '<input type="checkbox" class="plz-chk" data-folio="' + h(c.folio) + '" checked aria-label="Incluir ' + h(c.folio) + '">' : '<span></span>') +
+    '<a href="#" class="mono" data-abrir="' + h(c.folio) + '">' + h(c.folio) + '</a>' +
+    '<div style="min-width:0"><div class="nom" style="font-size:12.5px;white-space:normal">' + h(c.tarea) + '</div><div class="sub">' + h(c.etiqueta) + ' · ' + h(c.programa) + '</div></div>' +
+    '<div class="sub" style="white-space:normal">' + c.transcurridos + ' de ' + c.plazo + ' d.h.<br>vence ' + fecha(c.vence) + '</div>' +
+    '<div>' + sitPlazo(c) + (c.ultimoRecordatorio ? '<div class="sub" style="margin-top:4px">Recordado ' + fecha(c.ultimoRecordatorio) + '</div>' : '') + '</div></div>';
+  const tarjetas = r.analistas.map((a, i) => {
+    const venc = a.casos.filter(c => c.situacion === 'vencido').length;
+    const orden = { vencido: 0, vence_hoy: 1, por_vencer: 2 };
+    const casos = a.casos.slice().sort((x, y) => (orden[x.situacion] - orden[y.situacion]) || (x.restantes - y.restantes));
+    return '<div class="tarjeta" style="margin-top:14px" data-analista="' + i + '"><div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:8px">' +
+      '<div><div class="nom">' + h(a.nombre) + (a.activa ? '' : ' <span class="tag t-no">Cuenta inactiva</span>') + '</div><div class="sub">' + h(a.correo) + ' · ' + a.casos.length + ' caso(s)' + (venc ? ', ' + venc + ' vencido(s)' : '') + '</div></div>' +
+      '<button class="prim" data-recordar="' + i + '">Enviar recordatorio ✉</button></div>' +
+      casos.map(c => filaCaso(c, true)).join('') + '</div>';
+  }).join('');
+  const total = r.analistas.reduce((n, a) => n + a.casos.length, 0);
+  $('app').innerHTML = '<h2>Plazos de analistas</h2><div class="resumen" style="margin-top:4px">Casos en pasos a cargo de la analista con el plazo vencido o por vencer (' + r.aviso + ' día(s) hábil(es) o menos). ' +
+    'Plazos: «Recibida» según <b>plazo_admisibilidad_dias</b>, pronunciamiento del programa según <b>plazo_programa_dias</b> y los demás pasos <b>' + r.plazoAnalista + '</b> días hábiles (<b>plazo_analista_dias</b>), contados desde que el caso entró al paso. Se ajustan en Configuración → Parámetros. ' +
+    'Los pasos de V°B° no se incluyen: son del Vicedecano/a y tienen su propio recordatorio.</div>' +
+    (total ? tarjetas : '<div class="tarjeta" style="margin-top:14px"><div class="sub">No hay casos con plazo vencido ni por vencer.</div></div>') +
+    (r.sinAnalista.length ? '<div class="tarjeta" style="margin-top:14px;border-color:#E8C9BF"><div class="nom">Sin analista asignada</div><div class="sub" style="white-space:normal;margin-bottom:8px">No se puede enviar recordatorio: asigne analista desde el expediente.</div>' + r.sinAnalista.map(c => filaCaso(c, false)).join('') + '</div>' : '');
+  document.querySelectorAll('[data-abrir]').forEach(a => a.onclick = ev => { ev.preventDefault(); abrir(a.dataset.abrir); });
+  document.querySelectorAll('[data-recordar]').forEach(b => b.onclick = () => {
+    const a = r.analistas[Number(b.dataset.recordar)];
+    const folios = [...document.querySelectorAll('[data-analista="' + b.dataset.recordar + '"] .plz-chk:checked')].map(x => x.dataset.folio);
+    if (!folios.length) return toast('Marque al menos un caso para incluir en el recordatorio', true);
+    dialogoRecordatorioAnalista(a, folios);
+  });
+}
+function dialogoRecordatorioAnalista(a, folios) {
+  $('dlg').innerHTML = '<div class="cargando">Preparando vista previa…</div>'; $('fondo').style.display = 'flex';
+  run('api_previsualizarRecordatorioAnalista', a.correo, folios).then(pv => {
+    const c = pv.correo;
+    $('dlg').innerHTML = '<div class="kicker" style="color:var(--apagado)">Recordatorio a la analista · ' + folios.length + ' caso(s)</div><div style="font:800 18px Archivo,sans-serif;margin:6px 0 14px">' + h(a.nombre) + '</div>' +
+      (a.activa ? '' : '<div class="aviso a-rojo" style="margin-bottom:12px">La cuenta de esta analista está inactiva: quizá corresponde reasignar los casos.</div>') +
+      '<div class="aviso a-amb" style="margin-bottom:12px">✉ Al confirmar se enviará este correo (las respuestas llegarán a ' + h(c.replyTo) + '). Quedará en la bitácora de cada caso incluido.</div>' +
+      '<div style="border:1px solid var(--borde);border-radius:12px;padding:14px 16px"><div class="sub" style="white-space:normal">Para: <b>' + h(c.para.join(', ')) + '</b></div>' +
+      '<label class="et" style="margin-top:10px" for="ra_asunto">Asunto</label><input id="ra_asunto" value="' + h(c.asunto) + '">' +
+      '<label class="et" style="margin-top:10px" for="ra_cuerpo">Cuerpo (puede editarlo para este envío)</label><textarea id="ra_cuerpo" rows="14">' + h(c.cuerpo) + '</textarea></div>' +
+      '<div class="acciones" style="justify-content:flex-end;margin-top:16px"><button id="cancelar">Cancelar</button><button class="prim" id="confirmar">Enviar recordatorio</button></div>';
+    $('cancelar').onclick = cerrarDlg;
+    $('confirmar').onclick = () => {
+      $('confirmar').disabled = true; $('confirmar').textContent = 'Enviando…';
+      run('api_enviarRecordatorioAnalista', a.correo, folios, { asunto: $('ra_asunto').value, cuerpo: $('ra_cuerpo').value })
+        .then(x => { cerrarDlg(); toast('Recordatorio enviado a ' + x.para.join(', ') + ' (' + x.casos + ' caso(s))'); cargarPlazos(); })
+        .catch(err => { fallo(err); $('confirmar').disabled = false; $('confirmar').textContent = 'Enviar recordatorio'; });
+    };
+  }).catch(err => { cerrarDlg(); fallo(err); });
+}
+
 function cargarPanorama() {
   $('app').innerHTML = '<div class="cargando">Cargando panorama…</div>';
   run('api_panorama').then(r => { S.pan = r; S.panF = S.panF || { fase: '', programa: '', q: '', pagina: 1 }; pintarPanorama(); }).catch(fallo);
@@ -877,7 +944,9 @@ function cargarPlantillas() {
 }
 function pintarPlantillas() {
   const t = S.plantillas.find(x => x.evento === S.plSel) || {}, edita = nivel('edicion');
-  const VARS = ['nombre', 'folio', 'programa', 'tipo', 'analista', 'contacto', 'destino_respuesta', 'firmante', 'encargo_vicedecano', 'enlace', 'enlace_panel', 'std', 'vicedecano', 'motivo', 'observacion', 'propuesta_comite', 'resolucion', 'plazo', 'enlace_rc'];
+  // El recordatorio a una analista reúne varios casos: tiene sus propias variables (Plazos.gs).
+  const VARS = t.evento === 'recordatorio_analista' ? ['analista', 'cantidad', 'casos', 'remitente']
+    : ['nombre', 'folio', 'programa', 'tipo', 'analista', 'contacto', 'destino_respuesta', 'firmante', 'encargo_vicedecano', 'enlace', 'enlace_panel', 'std', 'vicedecano', 'motivo', 'observacion', 'propuesta_comite', 'resolucion', 'plazo', 'enlace_rc'];
   $('app').innerHTML = '<h2>Plantillas de correo</h2><div class="resumen" style="margin-bottom:16px">Los destinatarios son roles; el sistema los traduce a correos según Cuentas y Programas al momento de enviar.</div>' +
     '<div style="display:grid;grid-template-columns:320px minmax(0,1fr);gap:20px" class="grid-pl"><div class="tabla">' +
     S.plantillas.map(p => '<div class="lista-item' + (p.evento === S.plSel ? ' sel' : '') + '" data-ev="' + h(p.evento) + '"><div class="nom">' + h(p.descripcion) + '</div><div class="sub">Para: ' + h(p.para) + (p.cc ? ' · CC: ' + h(p.cc) : '') + '</div></div>').join('') +
