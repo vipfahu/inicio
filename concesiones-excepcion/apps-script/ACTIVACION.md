@@ -175,7 +175,7 @@ Todos salen desde la cuenta institucional; las respuestas llegan a la analista d
 | Falla un correo automático | Aviso de falla | Analista del caso, Administración, cuenta institucional | — |
 
 Las tres salidas del V°B° (CAE admisible, CAE rechazada, devolución) solo las registra la cuenta con rol Vicedecano/a. Si dio el V°B° por
-otro medio, la analista marca «Vicedecano/a aprueba por otro medio» e indica medio y fecha (queda en la bitácora con su nombre). Configuración
+otro medio, la analista elige la decisión en «Pasar a» e indica en el diálogo el medio y la fecha (queda en la bitácora con su nombre). Configuración
 → «Vicedecano/a» muestra el nombre y la cuenta del Vicedecano/a sin permitir editarlos: se cambian solo en «Cuentas» (nombre de la cuenta
 con rol Vicedecano/a; para un relevo, se activa la cuenta nueva con ese rol y se desactiva la anterior). El Diagnóstico avisa si hay
 más de una cuenta activa con ese rol o si no tiene nombre.

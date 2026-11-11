@@ -14,3 +14,5 @@ Tipo: enfoque confirmado (pedido de la persona, 2026-10-09)
 
 **Por qué importa:** una versión anterior con exclusividad (sin «otro medio») se revirtió el 2026-10-08; la diferencia que la persona
 aceptó es la válvula de escape para la analista. No quitarla sin pedirlo.
+
+**Corrección (2026-11-11, folio 36, analista):** se quitó la casilla «Vicedecano/a aprueba por otro medio» que habilitaba los botones. Era estado del navegador: al redibujar la ficha (p. ej., tras «Guardar cambios» en la misma tarjeta) quedaba desmarcada y los botones deshabilitados sin aviso, y la analista creía haber registrado el V°B°. Ahora los botones están siempre activos para quien no es Vicedecano/a; el diálogo exige el medio y la fecha y el servidor lo valida. La vista previa también bloquea «Confirmar» si el correo tiene variables sin completar (antes fallaba recién al confirmar). Lección: no condicionar una acción a un estado de interfaz que se pierde al redibujar; la validación debe vivir en el paso que confirma.

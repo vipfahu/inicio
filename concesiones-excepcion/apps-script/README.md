@@ -130,7 +130,7 @@ antiguo) y la misma ventana ofrece «Quitar copias» (`api_quitarPdfDuplicados`:
 
 **V°B° exclusivo del Vicedecano/a.** Las tres salidas del V°B° (CAE admisible, CAE rechazada, devolución al programa) solo las registra
 la cuenta con rol Vicedecano/a; el servidor rechaza a cualquier otra. Si el Vicedecano/a dio el V°B° por otro medio (correo, STD, en
-persona), una analista marca «Vicedecano/a aprueba por otro medio» e indica obligatoriamente el medio y la fecha; la bitácora deja
+persona), una analista elige la decisión en «Pasar a» e indica obligatoriamente en el diálogo el medio y la fecha (desde 2026-11-11 sin casilla previa, que se perdía al redibujar la ficha); la bitácora deja
 constancia de ese medio y de quién lo registró. Si el caso sigue en V°B° tras `plazo_vb_dias` (2) días hábiles, sale un recordatorio
 automático al Vicedecano/a con copia a la analista (luego cada `recordatorio_cada_dias`, hasta `recordatorios_max`). El nombre
 del Vicedecano/a ({vicedecano} en los correos) es el de su cuenta activa con rol Vicedecano/a en «Cuentas». Configuración → «Vicedecano/a»

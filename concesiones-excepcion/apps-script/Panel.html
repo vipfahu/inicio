@@ -464,7 +464,6 @@ function pintarExp() {
     run('api_retroceder', e.folio, hacia, motivo).then(r => { toast('Solicitud devuelta a «' + etq + '»' + (r.deshaceVb ? ' · se deshizo el V°B°' : '')); abrir(e.folio); })
       .catch(err => { fallo(err); if ($('rt_ok')) $('rt_ok').disabled = false; });
   };
-  if ($('otro_medio')) $('otro_medio').onchange = () => document.querySelectorAll('[data-vb]').forEach(b => { b.disabled = !$('otro_medio').checked; });
   if ($('asignarme')) $('asignarme').onclick = () => {
     $('asignarme').disabled = true;
     run('api_guardarGestion', S.exp.folio, { analista: S.ini.usuario.correo }).then(() => { toast('Solicitud asignada a usted'); abrir(S.exp.folio); }).catch(err => { fallo(err); $('asignarme').disabled = false; });
@@ -515,8 +514,10 @@ function panelGestion(e, edita) {
   if (!edita) return '<div class="tarjeta"><span class="et">Estado actual</span><div style="font:700 14px Archivo,sans-serif">' + h(e.estadoEtiqueta) + '</div><div class="sub">Analista: ' + h(e.analistaNombre || 'Sin asignar') + ' · STD ' + h(e.n_std || '—') + '</div></div>';
   const esVice = S.ini.usuario.rol === 'Vicedecano/a' && enVb(e.estado);
   const vbAjeno = enVb(e.estado) && !esVice; // el V°B° es del Vicedecano/a; la analista solo lo registra si se dio por otro medio
-  const botones = e.siguientes.length ? (vbAjeno ? '<div class="aviso a-amb" style="margin-bottom:8px;white-space:normal">El V°B° lo registra el Vicedecano/a desde su cuenta. Si lo dio por otro medio (correo, reunión, STD), márquelo para registrarlo usted.</div>' +
-    '<label class="chk" style="margin-bottom:8px"><input type="checkbox" id="otro_medio"> Vicedecano/a aprueba por otro medio</label>' : '') + e.siguientes.map(s => {
+  // V°B° dado por otro medio (2026-11-11): sin casilla previa. La casilla se perdía al redibujar la ficha (p. ej., tras «Guardar
+  // cambios») y dejaba los botones deshabilitados sin aviso; el diálogo ya exige el medio y la fecha, y el servidor lo valida.
+  const botones = e.siguientes.length ? (vbAjeno ? '<div class="aviso a-amb" style="margin-bottom:8px;white-space:normal">El V°B° lo registra el Vicedecano/a desde su cuenta. ' +
+    'Si ya lo dio por otro medio (correo, reunión, STD), elija aquí su decisión: se le pedirá indicar el medio y la fecha, y quedará registrado que usted lo ingresó.</div>' : '') + e.siguientes.map(s => {
     const prim = esVice && (s.id === 'aviso_rc' || (e.estado === 'vb_rechazo' && s.id === 'rechazada'));
     // «CAE rechazada» en un color intenso (pedido de la persona): es la salida del V°B° de mayor consecuencia para el estudiante.
     const rojo = esVice && e.estado === 'vb' && s.id === 'rechazo_vb';
@@ -535,7 +536,7 @@ function panelGestion(e, edita) {
       : s.etiqueta;
     const sinStd = s.id === 'informe_rc' && !String(e.n_std || '').trim();
     return (sinStd ? '<div class="aviso a-amb" style="margin-bottom:6px;white-space:normal">Para pasar a Informe de Registro Curricular, registre el <b>N° STD</b> (más abajo) y presione «Guardar cambios».</div>' : '') +
-      '<button data-hacia="' + s.id + '"' + (vbAjeno ? ' data-vb disabled' : '') + (sinStd ? ' disabled title="Falta registrar el N° STD"' : '') + ' class="' + (prim ? 'prim' : rojo ? 'rojo' : amb ? 'ambar' : '') + '" style="width:100%;text-align:left;display:flex;justify-content:space-between;margin-bottom:6px">' + h(txt) + (s.evento ? ' <span title="Envía correo" style="color:' + (prim || rojo ? '#fff' : 'var(--naranja)') + '">✉</span>' : '') + '</button>';
+      '<button data-hacia="' + s.id + '"' + (sinStd ? ' disabled title="Falta registrar el N° STD"' : '') + ' class="' + (prim ? 'prim' : rojo ? 'rojo' : amb ? 'ambar' : '') + '" style="width:100%;text-align:left;display:flex;justify-content:space-between;margin-bottom:6px">' + h(txt) + (s.evento ? ' <span title="Envía correo" style="color:' + (prim || rojo ? '#fff' : 'var(--naranja)') + '">✉</span>' : '') + '</button>';
   }).join('') + '<div class="sub" style="font-style:italic;white-space:normal">✉ = el cambio envía un correo; verá la vista previa antes de confirmar.</div>'
     : '';
   // Estado final: no hay a qué pasar; se muestra el cierre con la resolución anotada (si la hay).
@@ -711,6 +712,11 @@ function dialogo(hacia) {
     html += req.map(k => '<label class="et" for="c_' + k + '">' + h(rot(k)) + ' *</label><textarea id="c_' + k + '" rows="2" style="margin-bottom:10px">' + h(k === 'propuesta_comite' ? e.propuesta_comite : k === 'resolucion' ? e.resolucion : k === 'motivo' && e.estado === 'vb_rechazo' ? e.motivo : '') + '</textarea>').join('');
     if (hacia === 'vb_rechazo') html += '<div class="aviso a-teal" style="margin-bottom:10px;white-space:normal">La solicitud quedará pendiente del V°B° del Vicedecano/a, que recibirá este motivo. Al estudiante no se le envía nada todavía: si el Vicedecano/a aprueba, recibe el correo de rechazo; si no, la solicitud vuelve a este paso.</div>';
     const porOtroMedio = pv.requiereVicedecano && !pv.esVicedecano;
+    // Las marcas que este diálogo pide como campos ({motivo}, {observacion}, {propuesta_comite}, {resolucion}) se completan al
+    // enviar; cualquier otra {variable} sin valor (p. ej. {firmante_vicedecano}) haría fallar el envío en el servidor.
+    const MARCAS_DIALOGO = ['motivo', 'observacion', 'propuesta_comite', 'resolucion'];
+    const pendientesPv = pv.conCorreo ? [...new Set(((pv.correo.asunto + ' ' + pv.correo.cuerpo).match(/\{(\w+)\}/g) || []).map(x => x.slice(1, -1)))].filter(k => MARCAS_DIALOGO.indexOf(k) < 0 && req.indexOf(k) < 0) : [];
+    const bloqueado = pv.conCorreo && (pv.correo.faltantes.length > 0 || pendientesPv.length > 0);
     if (porOtroMedio) html += '<div class="aviso a-amb" style="margin-bottom:10px">Registra el V°B° en nombre del Vicedecano/a, que lo dio por otro medio. Quedará registrado quién lo ingresó.</div>' +
       '<label class="et" for="c_otro_medio">¿Por qué medio y cuándo dio el V°B° el Vicedecano/a? *</label><textarea id="c_otro_medio" rows="2" style="margin-bottom:10px" placeholder="Ej.: correo del 10-10-2026; reunión de equipo del 09-10-2026"></textarea>';
     // Al cerrar (Resuelto / Negado) se puede cargar la resolución emitida por Registro Curricular.
@@ -734,6 +740,7 @@ function dialogo(hacia) {
       html += '<div class="aviso a-amb" style="margin-bottom:12px">✉ Al confirmar se enviará este correo' + (c.replyTo ? ' (las respuestas llegarán a ' + h(c.replyTo) + ')' : '') + '.</div>';
       if ((c.omitidos || []).length) html += '<div class="aviso a-amb" style="margin-bottom:12px">Se enviará sin copia a: ' + h(c.omitidos.join('; ')) + ' (no está registrado). Puede completarlo en Configuración.</div>';
       if (c.faltantes.length) html += '<div class="aviso a-rojo" style="margin-bottom:12px">No se puede enviar: falta ' + h(c.faltantes.join('; ')) + '. Complételo en Configuración o Cuentas.</div>';
+      if (pendientesPv.length) html += '<div class="aviso a-rojo" style="margin-bottom:12px">No se puede enviar: el correo tiene datos sin completar (' + h(pendientesPv.map(k => '{' + k + '}').join(', ')) + '). Revise la cuenta del Vicedecano/a en Cuentas o la plantilla en Plantillas de correo.</div>';
       html += '<div style="border:1px solid var(--borde);border-radius:12px;padding:14px 16px"><div class="sub" style="white-space:normal">Para: <b>' + h(c.para.join(', ') || '—') + '</b>' + (c.cc.length ? '<br>CC: ' + h(c.cc.join(', ')) : '') + '</div>' +
         '<label class="et" style="margin-top:10px" for="c_asunto">Asunto</label><input id="c_asunto" value="' + h(c.asunto) + '">' +
         '<label class="et" style="margin-top:10px" for="c_cuerpo">Cuerpo (puede editarlo para este envío' + (req.length ? '; las marcas como {' + h(req[0]) + '} se completan con lo escrito arriba' : '') + ')</label><textarea id="c_cuerpo" rows="12">' + h(c.cuerpo) + '</textarea>' +
@@ -742,7 +749,7 @@ function dialogo(hacia) {
       if (arch.length) html += '<span class="et" style="margin-top:10px">Adjuntar</span>' + arch.map(a => '<label class="chk"><input type="checkbox" class="adj" value="' + h(a.id) + '" data-mb="' + h(a.tamano_mb) + '"> ' + h(a.nombre) + ' <span class="sub">(' + h(a.tamano_mb) + ' MB)</span></label>').join('') + '<div class="sub" id="totadj"></div>';
       html += '</div></div>';
     }
-    html += '<div class="acciones" style="justify-content:flex-end;margin-top:16px"><button id="cancelar">Cancelar</button><button class="prim" id="confirmar"' + (pv.conCorreo && pv.correo.faltantes.length ? ' disabled' : '') + '>' + (pv.conCorreo ? 'Confirmar y enviar correo' : 'Confirmar cambio') + '</button></div>';
+    html += '<div class="acciones" style="justify-content:flex-end;margin-top:16px"><button id="cancelar">Cancelar</button><button class="prim" id="confirmar"' + (bloqueado ? ' disabled' : '') + '>' + (pv.conCorreo ? 'Confirmar y enviar correo' : 'Confirmar cambio') + '</button></div>';
     $('dlg').innerHTML = html;
     $('cancelar').onclick = cerrarDlg;
     const textoConfirmar = () => pv.conCorreo && $('c_sincorreo') && $('c_sincorreo').checked ? 'Confirmar sin enviar correo' : pv.conCorreo ? 'Confirmar y enviar correo' : 'Confirmar cambio';
@@ -751,7 +758,7 @@ function dialogo(hacia) {
       $('c_sincorreo_caja').style.display = sin ? 'block' : 'none';
       $('c_bloque_correo').style.display = sin ? 'none' : '';
       $('confirmar').textContent = textoConfirmar();
-      $('confirmar').disabled = !sin && pv.correo.faltantes.length > 0;
+      $('confirmar').disabled = !sin && bloqueado;
     };
     // Los campos obligatorios se reflejan en vivo en la vista «Así se enviará»; el cuerpo editable conserva las marcas, de modo
     // que lo que la persona escriba en él no se pierde aunque cambie el motivo después (el servidor completa las marcas al enviar).

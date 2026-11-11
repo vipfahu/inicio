@@ -348,7 +348,7 @@ function api_cambiarEstado(folio, hacia, envio) {
     if (requiereVicedecano(s.estado)) {
       if (u.rol === 'Vicedecano/a') notaVb = ' · V°B° registrado por el Vicedecano/a';
       else {
-        if (!envio.otroMedio) throw new Error('El V°B° lo registra el Vicedecano/a. Si lo dio por otro medio, marque «Vicedecano/a aprueba por otro medio».');
+        if (!envio.otroMedio) throw new Error('El V°B° lo registra el Vicedecano/a. Si lo dio por otro medio, indique en el diálogo por qué medio y cuándo.');
         const medio = String(campos.otro_medio || '').trim();
         if (!medio) throw new Error('Indique por qué medio y cuándo dio el V°B° el Vicedecano/a.');
         notaVb = ' · V°B° del Vicedecano/a por otro medio (' + medio + '), registrado por ' + u.correo;
