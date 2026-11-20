@@ -36,6 +36,15 @@ Alta siempre por invitación (pestaña Cuentas/Usuarios de cualquier panel); la 
 
 **Excepción (nov 2026):** una cuenta @usach.cl que entra **con Google** se crea sin invitación y sin perfil: solo puede leer Comisiones; no entra a ningún panel. Las cuentas con contraseña siguen exigiendo invitación, porque el proyecto no confirma correos (cualquiera podría registrar una dirección @usach.cl ajena). Para que el ingreso con Google funcione hay que habilitar el proveedor Google en Supabase (Authentication → Sign In / Providers → Google) con un cliente OAuth de Google Cloud y agregar `https://vipfahu.netlify.app/**` en Authentication → URL Configuration → Redirect URLs. Si se invita a alguien que ya entró con Google, su perfil se crea al invitarlo.
 
+## Enlaces para compartir documentos (nov 2026)
+Cada PDF tiene «Copiar enlace» en la lista y en el visor. El enlace apunta a la plataforma, no al archivo, y abre el documento en el visor:
+- Normativa: `…/normativa-postgrados/index.html?doc=ID` (público).
+- Grupos: `…/grupos-investigacion/index.html?i=SIGLA&doc=ID` y `?ref=ID` para normativa y modelos (público).
+- Comisiones: `…/comisiones-evaluacion/index.html?res=ID`; exige iniciar sesión (depósito privado).
+- Trayectorias: `…/trayectorias-academicas/index.html?archivo=ID`; solo cuentas con acceso a Trayectorias (depósito privado, datos personales).
+Los depósitos privados nunca entregan un enlace directo al archivo: las URL firmadas vencen en una hora y no se copian. Cursos no tiene PDF y CAE queda fuera.
+**Normativa y Trayectorias se editaron directamente en el repositorio:** si se regeneran desde el espacio de diseño, hay que llevar ahí el cambio.
+
 ## Mantenimiento
 - Trayectorias ▸ **Sistema**: estado de migraciones, registro de actividad y depuración de archivos huérfanos del depósito privado.
 - Trayectorias ▸ **Respaldos**: migración manual de los enlaces de Drive al depósito (abrir → descargar → cargar).

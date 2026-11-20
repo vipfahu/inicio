@@ -86,17 +86,36 @@ export function cerrarModal() {
 }
 document.addEventListener("keydown", e => { if (e.key === "Escape") cerrarModal(); });
 
-/** Visor de PDF en modal, con abrir en pestaña nueva. */
-export function verArchivo(url, titulo) {
+/** Copia texto al portapapeles (con respaldo para navegadores sin la API moderna). Devuelve true si se copió. */
+export async function copiarTexto(t) {
+  try { await navigator.clipboard.writeText(t); return true; } catch (e) { /* respaldo abajo */ }
+  try {
+    const a = document.createElement("textarea"); a.value = t; a.style.cssText = "position:fixed;opacity:0";
+    document.body.appendChild(a); a.select(); const ok = document.execCommand("copy"); a.remove(); return ok;
+  } catch (e) { return false; }
+}
+/** Copia un enlace y avisa. `nota` se agrega al aviso (p. ej., que el enlace exige iniciar sesión). */
+export async function copiarEnlace(enlace, nota) {
+  const ok = await copiarTexto(enlace);
+  avisar(ok ? "Enlace copiado." + (nota ? " " + nota : "") : "No se pudo copiar el enlace.", ok ? "ok" : "err");
+  return ok;
+}
+
+/** Visor de PDF en modal, con abrir en pestaña nueva. `compartir` = { enlace, nota }: agrega «Copiar enlace». */
+export function verArchivo(url, titulo, compartir) {
   const u = urlSegura(url);
   if (!u) { avisar("El archivo no tiene una dirección válida.", "err"); return; }
-  modal(
+  const m = modal(
     '<div class="visor-cab"><div><div class="kicker">Documento</div><h2>' + esc(titulo || "Documento") + '</h2></div>' +
-    '<div class="acciones"><a class="btn sec chico" href="' + esc(u) + '" target="_blank" rel="noopener">Abrir en pestaña nueva ↗</a>' +
+    '<div class="acciones">' + (compartir && compartir.enlace ? '<button class="btn sec chico" type="button" data-copiar-visor>Copiar enlace</button>' : "") +
+    '<a class="btn sec chico" href="' + esc(u) + '" target="_blank" rel="noopener">Abrir en pestaña nueva ↗</a>' +
     '<button class="btn chico" type="button" data-cerrar>Cerrar</button></div></div>' +
     '<iframe src="' + esc(u) + '" title="' + esc(titulo || "Documento") + '"></iframe>',
     { ancho: true }
-  ).querySelector("[data-cerrar]").onclick = cerrarModal;
+  );
+  m.querySelector("[data-cerrar]").onclick = cerrarModal;
+  const c = m.querySelector("[data-copiar-visor]");
+  if (c) c.onclick = () => copiarEnlace(compartir.enlace, compartir.nota);
 }
 
 /** Mensajes de Supabase en español. */

@@ -7,7 +7,7 @@
 <title>Comisiones de Evaluación Académica · FAHU USACH</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700;800&amp;family=Spectral:ital,wght@0,400;0,600;1,400&amp;family=IBM+Plex+Mono:wght@400;600&amp;display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../comun/vip.css?v=20261104">
+<link rel="stylesheet" href="../comun/vip.css?v=20261120">
 <style>
   :root{--acento:#1F5F8B}
   .login{max-width:460px;margin:clamp(16px,5vh,48px) auto}
@@ -55,7 +55,7 @@
 <main id="app"><p class="nota">Cargando…</p></main>
 
 <script type="module">
-import { conectar, conReintento, esc, urlSegura, fechaLarga, hoyISO, avisar, traducir, modal, cerrarModal, verArchivo, nivelEn, anotar, rutaArchivo } from "../comun/vip.js?v=20261106";
+import { conectar, conReintento, copiarEnlace, esc, urlSegura, fechaLarga, hoyISO, avisar, traducir, modal, cerrarModal, verArchivo, nivelEn, anotar, rutaArchivo } from "../comun/vip.js?v=20261120";
 
 const PLATAFORMA = "comisiones";
 const TIPO = {
@@ -105,7 +105,7 @@ function pantallaLogin(msg, sesion) {
     '<button class="btn" type="submit">Ingresar</button></form></details>' +
     "</div></div>";
   document.getElementById("google").onclick = async () => {
-    const { error } = await sb.auth.signInWithOAuth({ provider: "google", options: { redirectTo: location.origin + location.pathname, queryParams: { hd: "usach.cl", prompt: "select_account" } } });
+    const { error } = await sb.auth.signInWithOAuth({ provider: "google", options: { redirectTo: location.origin + location.pathname + location.search, queryParams: { hd: "usach.cl", prompt: "select_account" } } });
     if (error) avisar(traducir(error.message), "err");
   };
   document.getElementById("fLogin").onsubmit = async e => {
@@ -193,7 +193,7 @@ function vistaVigente() {
 }
 
 function botonRes(r) {
-  if (r.archivo) return '<button class="btn sec chico" data-ver-res="' + r.id + '">Ver resolución</button>';
+  if (r.archivo) return '<span style="white-space:nowrap"><button class="btn sec chico" data-ver-res="' + r.id + '">Ver resolución</button> <button class="btn sec chico" data-copiar-res="' + r.id + '">Copiar enlace</button></span>';
   if (urlSegura(r.enlace)) return '<a class="btn sec chico" href="' + esc(r.enlace) + '" target="_blank" rel="noopener">Abrir ↗</a>';
   return "";
 }
@@ -345,12 +345,25 @@ async function verResolucion(id) {
   const r = resDe(id);
   const { data, error } = await sb.storage.from(cfg.BUCKET).createSignedUrl(r.archivo, 3600);
   if (error) { avisar(traducir(error.message), "err"); return; }
-  verArchivo(data.signedUrl, refRes(r) || "Resolución");
+  verArchivo(data.signedUrl, refRes(r) || "Resolución", { enlace: enlaceRes(id), nota: NOTA_ENLACE });
+}
+// El depósito es privado: el enlace apunta a la plataforma (?res=ID) y exige iniciar sesión; no entrega el archivo por sí solo.
+const NOTA_ENLACE = "Quien lo abra debe iniciar sesión con su cuenta @usach.cl.";
+const enlaceRes = id => location.origin + location.pathname + "?res=" + id;
+let compartidoAbierto = false;
+function abrirCompartido() {
+  if (compartidoAbierto) return;
+  const id = Number(new URLSearchParams(location.search).get("res"));
+  if (!id) return;
+  compartidoAbierto = true;
+  if (resDe(id) && resDe(id).archivo) verResolucion(id);
+  else avisar("La resolución del enlace ya no está disponible.", "err");
 }
 
 document.addEventListener("click", e => {
-  const t = e.target.closest("[data-nuevo-int],[data-editar-int],[data-nueva-res],[data-editar-res],[data-ver-res],[data-nueva-com]");
+  const t = e.target.closest("[data-nuevo-int],[data-editar-int],[data-nueva-res],[data-editar-res],[data-ver-res],[data-nueva-com],[data-copiar-res]");
   if (!t) return;
+  if (t.dataset.copiarRes) return copiarEnlace(enlaceRes(Number(t.dataset.copiarRes)), NOTA_ENLACE);
   if (t.dataset.verRes) return verResolucion(Number(t.dataset.verRes));
   if (!puede()) return;
   if (t.dataset.nuevoInt) return formIntegrante({ comision: Number(t.dataset.nuevoInt), jerarquia: "Profesor Titular", desde: hoyISO() });
@@ -385,6 +398,7 @@ async function iniciar() {
         : "Solo pueden ingresar cuentas @usach.cl. Cierra la sesión de " + correo + " e ingresa con tu cuenta USACH." }, acc.sesion);
     }
     pintar();
+    abrirCompartido();
   } catch (e) {
     app.innerHTML = '<div class="aviso err">No se pudo cargar la plataforma: ' + esc(traducir(e.message)) + "</div>";
   }

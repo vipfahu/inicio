@@ -178,6 +178,7 @@ body{margin:0;background:#F6F4EF}a{color:#007E80}a:hover{color:#EF7A00}input:foc
                 <div style="display:flex;gap:10px;flex-wrap:wrap">
                   <button onClick="{{ d.verPdf }}" style="cursor:pointer;border:none;font:600 12px Archivo,sans-serif;color:#fff;background:#007E80;border-radius:8px;padding:9px 14px">Ver PDF {{ d.vigVerbo }}</button>
                   <a href="{{ d.pdf }}" target="_blank" rel="noopener" style="font:600 12px Archivo,sans-serif;color:#007E80;background:#E4F2F2;border-radius:8px;padding:9px 14px;text-decoration:none">Descargar ↓</a>
+                  <button onClick="{{ d.copiar }}" title="Copia un enlace que abre este documento en la plataforma" style="cursor:pointer;border:1.5px solid #E0DCD0;font:600 12px Archivo,sans-serif;color:#007E80;background:#fff;border-radius:8px;padding:8px 14px">{{ d.copiarTxt }}</button>
                 </div>
                 <sc-if value="{{ d.conSecciones }}" hint-placeholder-val="{{ true }}">
                   <div>
@@ -222,6 +223,7 @@ body{margin:0;background:#F6F4EF}a{color:#007E80}a:hover{color:#EF7A00}input:foc
           <div style="font:400 12px Archivo,sans-serif;color:rgba(255,255,255,.65);margin-top:2px">{{ pdfRef }}</div>
         </div>
         <div style="display:flex;gap:10px;align-items:center">
+          <button onClick="{{ pdfCopiar }}" title="Copia un enlace que abre este documento en la plataforma" style="cursor:pointer;border:none;font:600 12px Archivo,sans-serif;color:#3A4450;background:#fff;border-radius:8px;padding:9px 14px;white-space:nowrap">{{ pdfCopiarTxt }}</button>
           <a href="{{ pdfUrl }}" target="_blank" rel="noopener" style="font:600 12px Archivo,sans-serif;color:#3A4450;background:#fff;border-radius:8px;padding:9px 14px;text-decoration:none;white-space:nowrap">Abrir en pestaña nueva ↗</a>
           <a href="{{ pdfUrl }}" download="{{ pdfArchivo }}" style="font:600 12px Archivo,sans-serif;color:#fff;background:#EF7A00;border-radius:8px;padding:9px 14px;text-decoration:none;white-space:nowrap">Descargar ↓</a>
           <button onClick="{{ cerrarPdf }}" style="cursor:pointer;border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.12);color:#fff;border-radius:8px;padding:9px 14px;font:600 12px Archivo,sans-serif;white-space:nowrap">Cerrar ✕</button>
@@ -247,6 +249,7 @@ class Component extends DCLogic {
       this.forceUpdate();
     } catch (e) { console.warn('No se pudo cargar el catálogo normativo', e); }
     await this.sincronizar();
+    this.abrirCompartido();
     // Las cifras del panorama se recalculan cuando la persona vuelve a la pestaña:
     // así un documento cargado desde el panel aparece sin recargar la página.
     this._vis = () => { if (!document.hidden) this.sincronizar(); };
@@ -282,6 +285,27 @@ class Component extends DCLogic {
         this.forceUpdate();
       }
     } catch (e) { console.info('Catálogo servido desde el archivo estático.'); }
+  }
+
+  // Copia un enlace al portapapeles (con respaldo para navegadores sin la API moderna).
+  async copiarTexto(t) {
+    try { await navigator.clipboard.writeText(t); return true; } catch (e) { /* respaldo abajo */ }
+    try { const a = document.createElement("textarea"); a.value = t; a.style.cssText = "position:fixed;opacity:0"; document.body.appendChild(a); a.select(); const ok = document.execCommand("copy"); a.remove(); return ok; } catch (e) { return false; }
+  }
+  enlaceDoc(id) { return location.origin + location.pathname + "?doc=" + encodeURIComponent(id); }
+  async copiarEnlace(id) {
+    const ok = await this.copiarTexto(this.enlaceDoc(id));
+    this.setState({ copiado: ok ? id : "error" }); clearTimeout(this._cp); this._cp = setTimeout(() => this.setState({ copiado: null }), 2500);
+  }
+  // Enlace compartido (?doc=ID): abre el visor de ese documento una sola vez.
+  abrirCompartido() {
+    if (this._compartido) return;
+    const id = new URLSearchParams(location.search).get("doc");
+    if (!id) return;
+    const d = this.docs.find(x => String(x.id) === String(id));
+    if (!d || !d.pdf) return;
+    this._compartido = true;
+    this.setState({ pdf: { url: d.pdf, titulo: d.titulo, ref: d.ref, id: d.id } });
   }
   componentWillUnmount() {
     window.removeEventListener('keydown', this._esc);
@@ -385,7 +409,8 @@ class Component extends DCLogic {
                    (this.state.vigencia==="Todas"||(d.vigencia||"Vigente")===this.state.vigencia) &&
                    (!q || norm(d.titulo+" "+d.resumen+" "+d.ambito+" "+d.tipo+" "+d.materia+" "+d.ref+" "+(d.programa||"")+" "+(d.secciones||[]).join(" ")).includes(q)))
       .map(d => ({...d, open: this.state.sel===d.id, arrow: this.state.sel===d.id ? "Cerrar ✕" : "Ver ficha →",
-                  verPdf: () => this.setState({pdf: {url: d.pdf, titulo: d.titulo, ref: d.ref}}),
+                  verPdf: () => this.setState({pdf: {url: d.pdf, titulo: d.titulo, ref: d.ref, id: d.id}}),
+                  copiar: () => this.copiarEnlace(d.id), copiarTxt: this.state.copiado === d.id ? "Enlace copiado ✓" : "Copiar enlace",
                   conSecciones: (d.secciones||[]).length > 0,
                   vigEstado: d.vigencia || "Vigente",
                   vigVerbo: {"Vencida":"con vigencia vencida", "Derogada":"derogado", "Sin definir":"sin vigencia determinada"}[d.vigencia] || "vigente",
@@ -468,6 +493,8 @@ class Component extends DCLogic {
       pdfRef: this.state.pdf ? this.state.pdf.ref : "",
       pdfArchivo: this.state.pdf ? this.state.pdf.url.split("/").pop() : "",
       cerrarPdf: () => this.setState({pdf: null}),
+      pdfCopiar: () => this.state.pdf && this.copiarEnlace(this.state.pdf.id),
+      pdfCopiarTxt: this.state.pdf && this.state.copiado === this.state.pdf.id ? "Enlace copiado ✓" : this.state.copiado === "error" ? "No se pudo copiar" : "Copiar enlace",
       filtrado: this.state.materia!=="Todas" || this.state.tipo!=="Todos" || this.state.ambito!=="Todos" || this.state.nivel!=="Todos" || this.state.programa!=="Todos" || this.state.vigencia!=="Todas" || !!this.state.q,
       noFiltrado: this.state.materia==="Todas" && this.state.tipo==="Todos" && this.state.ambito==="Todos" && this.state.nivel==="Todos" && this.state.programa==="Todos" && this.state.vigencia==="Todas" && !this.state.q,
       panAbierto: this.state.panorama, panCerrado: !this.state.panorama,

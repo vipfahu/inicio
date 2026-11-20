@@ -1080,6 +1080,7 @@ body{margin:0;background:#F1EFE8}a{color:#007E80}a:hover{color:#EF7A00}input:foc
               <div style="font:400 11.5px Archivo,sans-serif;color:#8A8272;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ visor.titulo }}</div>
             </div>
             <div style="display:flex;gap:8px;align-items:center;flex:none">
+              <button onClick="{{ visorCopiar }}" title="Copia un enlace a este respaldo. Solo podrán abrirlo las cuentas con acceso a Trayectorias, iniciando sesión." style="cursor:pointer;font:600 11.5px Archivo,sans-serif;color:#007E80;border:1.5px solid #E0DCD0;border-radius:7px;padding:7px 11px;background:#fff">{{ visorCopiarTxt }}</button>
               <a href="{{ visor.url }}" target="_blank" rel="noreferrer" style="font:600 11.5px Archivo,sans-serif;text-decoration:none;border:1.5px solid #E0DCD0;border-radius:7px;padding:7px 11px;background:#fff">Abrir en pestaña ↗</a>
               <button onClick="{{ cerrarVisor }}" style="cursor:pointer;border:none;background:#3A4450;color:#fff;border-radius:7px;padding:7px 12px;font:700 12px Archivo,sans-serif">Cerrar ✕</button>
             </div>
@@ -1270,6 +1271,7 @@ class Component extends DCLogic {
       archError: a.error ? (a.error.message || "") + (a.error.code ? " [" + a.error.code + "]" : "") : "",
       perfiles: admin ? (r[IDX.perfiles].data || []) : [], invitaciones: admin ? (r[IDX.invitaciones].data || []) : [],
       actividad: admin ? (r[IDX.actividad].data || []) : [], actError: admin && r[IDX.actividad].error ? this.traducir(r[IDX.actividad].error.message) : "" });
+    this.abrirCompartido(archivos);
   }
 
   CAMPOS = [["ap1", "Primer apellido", "text"], ["ap2", "Segundo apellido", "text"], ["nombres", "Nombres", "text"],
@@ -1622,7 +1624,30 @@ class Component extends DCLogic {
     const nombre = archivo.nombre || archivo.ruta.replace(/^.*\//, "");
     const esImg = /\.(png|jpe?g|gif|webp)$/i.test(nombre) || /^image\//.test(archivo.tipo || "");
     const esPdf = /\.pdf$/i.test(nombre) || /pdf/.test(archivo.tipo || "");
-    this.setState({ visor: { url: data.signedUrl, nombre, titulo: titulo || "", esImg, esPdf, otro: !esImg && !esPdf } });
+    this.setState({ visor: { url: data.signedUrl, nombre, titulo: titulo || "", esImg, esPdf, otro: !esImg && !esPdf, id: archivo.id } });
+  }
+
+  // Copia un enlace al portapapeles (con respaldo para navegadores sin la API moderna).
+  async copiarTexto(t) {
+    try { await navigator.clipboard.writeText(t); return true; } catch (e) { /* respaldo abajo */ }
+    try { const a = document.createElement("textarea"); a.value = t; a.style.cssText = "position:fixed;opacity:0"; document.body.appendChild(a); a.select(); const ok = document.execCommand("copy"); a.remove(); return ok; } catch (e) { return false; }
+  }
+  // Enlace a un respaldo: apunta a la plataforma (?archivo=ID), no al archivo. El depósito es privado: quien lo abra debe
+  // iniciar sesión con una cuenta con acceso a Trayectorias; el enlace por sí solo no entrega el documento.
+  async copiarEnlaceVisor() {
+    const v = this.state.visor;
+    if (!v || !v.id) return;
+    const ok = await this.copiarTexto(location.origin + location.pathname + "?archivo=" + encodeURIComponent(v.id));
+    this.avisar(ok ? "Enlace copiado. Solo podrán abrirlo las cuentas con acceso a Trayectorias, iniciando sesión." : "No se pudo copiar el enlace.", ok ? "ok" : "err");
+  }
+  abrirCompartido(archivos) {
+    if (this._compartido) return;
+    const id = new URLSearchParams(location.search).get("archivo");
+    if (!id) return;
+    this._compartido = true;
+    const a = (archivos || []).find(x => String(x.id) === String(id));
+    if (!a) { this.avisar("El respaldo del enlace ya no existe o no está disponible para su cuenta.", "err"); return; }
+    this.abrirVisor(a, "Respaldo compartido por enlace");
   }
 
   async borrarArchivo(archivo, evento) {
@@ -2251,6 +2276,7 @@ class Component extends DCLogic {
       })),
       sinSeleccion: !sel, haySeleccion: !!sel, sel: sel || {},
       visorAbierto: !!st.visor, visor: st.visor || {}, cerrarVisor: () => this.setState({ visor: null }),
+      visorCopiar: () => this.copiarEnlaceVisor(), visorCopiarTxt: "Copiar enlace",
       // src se asigna solo cuando existe la URL firmada: evita peticiones a un hueco sin resolver durante el streaming
       visorContenido: !st.visor ? null : st.visor.esPdf
         ? React.createElement("iframe", { src: st.visor.url, title: st.visor.nombre, style: { width: "100%", height: "100%", border: "none", display: "block", background: "#fff" } })

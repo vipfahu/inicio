@@ -7,7 +7,7 @@
 <meta name="description" content="Catálogo público de los grupos y programas centro de investigación de la Facultad de Humanidades USACH: objetivos, integrantes y resoluciones.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700;800&amp;family=Spectral:ital,wght@0,400;0,600;1,400&amp;family=IBM+Plex+Mono:wght@400;600&amp;display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../comun/vip.css?v=20261106">
+<link rel="stylesheet" href="../comun/vip.css?v=20261120">
 <style>
   :root{--acento:#7A4FA3;--acento-f:#F1EAF7}
   .filtros{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:20px 0 18px}
@@ -88,7 +88,7 @@
 <main id="app"><p class="nota">Cargando…</p></main>
 
 <script type="module">
-import { conectar, conReintento, esc, urlSegura, fechaLarga, hoyISO, normalizar, verArchivo, traducir } from "../comun/vip.js?v=20261106";
+import { conectar, conReintento, esc, urlSegura, fechaLarga, hoyISO, normalizar, verArchivo, copiarEnlace, traducir } from "../comun/vip.js?v=20261120";
 
 const TIPO_DOC = { creacion: "Creación", modificacion: "Modificación", nombramiento: "Designación de dirección", normativa_interna: "Norma interna", integrantes: "Integrantes", otro: "Otro" };
 // Resoluciones organizadas en cuatro tipos; la designación de dirección se muestra dentro de «Integrantes».
@@ -153,7 +153,7 @@ function marcoNormativo() {
     '<p class="lead">Normativa de la Facultad sobre grupos de investigación y programas centro, y modelos para redactar sus resoluciones.</p>' +
     (est.refs.length ? '<div class="refs">' + est.refs.map(r => {
       const pdf = urlSegura(r.pdf), enl = urlSegura(r.enlace);
-      const acc = pdf ? '<button class="btn sec chico" data-ver="' + esc(pdf) + '" data-titulo="' + esc(r.titulo) + '">Ver</button>' : enl ? '<a class="btn sec chico" href="' + esc(enl) + '" target="_blank" rel="noopener">Abrir ↗</a>' : "";
+      const acc = pdf ? '<span style="white-space:nowrap"><button class="btn sec chico" data-ver="' + esc(pdf) + '" data-titulo="' + esc(r.titulo) + '" data-enlace="' + esc(enlaceRef(r)) + '">Ver</button> <button class="btn sec chico" data-copiar="' + esc(enlaceRef(r)) + '">Copiar enlace</button></span>' : enl ? '<a class="btn sec chico" href="' + esc(enl) + '" target="_blank" rel="noopener">Abrir ↗</a>' : "";
       return '<div class="ref"><span><span class="etq ' + (r.tipo === "modelo" ? "nar" : "teal") + '">' + esc(TIPO_REF[r.tipo] || "") + '</span><br><b style="font:700 14px Archivo,sans-serif">' + esc(r.titulo) + "</b>" + (r.descripcion ? '<br><span class="nota">' + esc(r.descripcion) + "</span>" : "") + "</span>" + acc + "</div>";
     }).join("") + "</div>" : '<div class="vacio">La normativa y los modelos de resolución se publicarán aquí.</div>') +
     '<p class="nota" style="margin-top:12px">Las versiones oficiales también se publican en la <a href="https://fahu.usach.cl/investigacion/" target="_blank" rel="noopener">página de Investigación de la Facultad ↗</a>.</p></section>';
@@ -216,6 +216,10 @@ function persona(p) {
   return '<div class="persona">' + esc(p.nombre) + (p.rol && !/^integrante$/i.test(p.rol) ? " <small>" + esc(p.rol) + (p.linea ? " · " + esc(p.linea) : "") + "</small>" : p.linea ? "<small>" + esc(p.linea) + "</small>" : "") + "</div>";
 }
 
+// Enlaces para compartir: abren la plataforma con el documento en el visor (si el PDF se reemplaza, el enlace sigue sirviendo).
+const base = () => location.origin + location.pathname;
+function enlaceDoc(d) { const i = est.inst.find(x => x.id === d.instancia); return base() + "?i=" + encodeURIComponent(i ? clave(i) : "") + "&doc=" + d.id; }
+const enlaceRef = r => base() + "?ref=" + r.id;
 const refDoc = d => d ? [d.tipo_acto, d.numero ? "N° " + d.numero : "", d.fecha ? "de " + fechaLarga(d.fecha) : ""].filter(Boolean).join(" ") : "";
 function hito(d) {
   const tit = d.titulo || TIPO_DOC[d.tipo] || "Resolución";
@@ -231,7 +235,7 @@ function hito(d) {
     '<div class="num">' + esc([d.tipo_acto, d.numero ? "N° " + d.numero : ""].filter(Boolean).join(" ")) + (d.fecha_efecto && d.fecha_efecto !== d.fecha ? " · rige desde el " + esc(fechaLarga(d.fecha_efecto)) : "") + "</div>" +
     (detalleVig ? '<div class="num vig">' + esc(detalleVig) + "</div>" : "") +
     (reemplaza.length ? '<div class="num">Reemplaza a ' + reemplaza.map(x => esc(refDoc(x))).join("; ") + "</div>" : "") +
-    (url ? '<div class="acc"><button class="btn sec chico" data-ver="' + esc(url) + '" data-titulo="' + esc(tit) + '">Ver resolución</button></div>'
+    (url ? '<div class="acc"><button class="btn sec chico" data-ver="' + esc(url) + '" data-titulo="' + esc(tit) + '" data-enlace="' + esc(enlaceDoc(d)) + '">Ver resolución</button> <button class="btn sec chico" data-copiar="' + esc(enlaceDoc(d)) + '">Copiar enlace</button></div>'
       : enl ? '<div class="acc"><a class="btn sec chico" href="' + esc(enl) + '" target="_blank" rel="noopener">Abrir ↗</a></div>' : "") + "</div>";
 }
 
@@ -254,7 +258,9 @@ document.addEventListener("click", e => {
     pintar(); return;
   }
   const ver = e.target.closest("[data-ver]");
-  if (ver) { verArchivo(ver.dataset.ver, ver.dataset.titulo); return; }
+  if (ver) { verArchivo(ver.dataset.ver, ver.dataset.titulo, ver.dataset.enlace ? { enlace: ver.dataset.enlace } : null); return; }
+  const cop = e.target.closest("[data-copiar]");
+  if (cop) { copiarEnlace(cop.dataset.copiar); return; }
   const chip = e.target.closest("[data-tipo]");
   if (chip) { est.tipo = chip.dataset.tipo; vistaCatalogo(); }
 });
@@ -278,6 +284,17 @@ async function cargar() {
     est.inst = i.data; est.docs = d.data.filter(x => ids.has(x.instancia)); est.ints = p.data.filter(x => ids.has(x.instancia)); est.refs = r.data; est.error = "";
   } catch (e) { est.error = "No se pudo cargar el catálogo: " + traducir(e.message); }
   pintar();
+  abrirCompartido();
+}
+// Enlace compartido (?doc=ID o ?ref=ID): abre ese documento en el visor, una sola vez.
+let compartidoAbierto = false;
+function abrirCompartido() {
+  if (compartidoAbierto) return;
+  const q = new URLSearchParams(location.search);
+  const d = q.get("doc") && est.docs.find(x => String(x.id) === q.get("doc"));
+  const r = q.get("ref") && est.refs.find(x => String(x.id) === q.get("ref"));
+  if (d && urlSegura(d.pdf)) { compartidoAbierto = true; verArchivo(d.pdf, d.titulo || TIPO_DOC[d.tipo] || "Resolución", { enlace: enlaceDoc(d) }); }
+  else if (r && urlSegura(r.pdf)) { compartidoAbierto = true; verArchivo(r.pdf, r.titulo, { enlace: enlaceRef(r) }); }
 }
 cargar();
 </script>
