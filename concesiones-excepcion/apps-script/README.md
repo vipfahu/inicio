@@ -241,6 +241,14 @@ antiguos que traían la URL de una implementación ya archivada siguen abriendo.
 después; no va al repositorio). `ScriptApp.getService().getUrl()` queda solo de respaldo: con más de una implementación activa
 devolvía la antigua. `desplegar.js` lista las demás implementaciones y las archiva con `--archivar-antiguas`.
 
+**Solicitud sin cuenta @usach.cl (2026-11-20).** Quien no tiene cuenta institucional no puede abrir el formulario web (la Web App es
+solo para usach.cl). El portal ofrece la página pública `cae/sin-cuenta.html` (enlazada desde la tarjeta de Concesiones y desde
+`cae/abrir.html`): explica que debe escribir a viceinvestigacionfahu@usach.cl adjuntando el formulario `cae/formulario-solicitud-cae.pdf`
+(PDF rellenable con los mismos campos del formulario web) para que la Unidad de Análisis registre el caso. El PDF se genera con
+`herramientas/formulario_sin_cuenta.py` (reportlab); si cambia `TIPOS_CATALOGO`, actualizar la lista del script y regenerar. Registro por
+el equipo: una analista ingresa la solicitud en el formulario web con los datos del PDF y una cuenta de administración cambia el correo
+del estudiante al de contacto («Cambiar» en la ficha), con lo que recibe el aviso de registro; con correo externo no hay seguimiento en línea.
+
 **Plazos de analistas (solo administración).** La pestaña «Plazos de analistas» muestra, agrupados por analista, los casos en pasos a
 su cargo con el plazo vencido o por vencer (`PLAZOS_ANALISTA` y `plazoAnalista` en `Logica.gs`): «Recibida» cuenta desde la recepción
 con `plazo_admisibilidad_dias`; el pronunciamiento del programa, con `plazo_programa_dias`; los demás pasos, con `plazo_analista_dias`

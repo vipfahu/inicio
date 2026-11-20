@@ -142,6 +142,12 @@
   to = "/cae/abrir.html"
   status = 200
 
+# Procedimiento para solicitar una CAE sin cuenta @usach.cl (página pública + formulario PDF)
+[[redirects]]
+  from = "/cae/sin-cuenta"
+  to = "/cae/sin-cuenta.html"
+  status = 200
+
 [[redirects]]
   from = "/*"
   to = "/404.html"

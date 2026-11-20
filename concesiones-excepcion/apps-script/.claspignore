@@ -7,3 +7,4 @@ configurar-clasp.js
 desplegar.js
 .despliegue.json
 memoria/**
+herramientas/**
