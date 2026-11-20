@@ -287,6 +287,25 @@ function asegurarIndicacionRenuncia(evento, cuerpo, sol, stdRef) {
   const i = cuerpo.lastIndexOf('\n\nAtentamente');
   return i >= 0 ? cuerpo.slice(0, i) + '\n\n' + nota + cuerpo.slice(i) : cuerpo + '\n\n' + nota;
 }
+/**
+ * Seguimiento en línea: solo con cuenta @usach.cl (la Web App es del dominio). Una solicitud registrada por el equipo a partir de un
+ * correo, con un correo de contacto externo, no lo tiene: sus correos no deben invitar a «ingresar con su cuenta USACH».
+ */
+function sinSeguimientoEnLinea(sol) {
+  const c = String((sol || {}).correo_verificado || (sol || {}).correo || '').trim().toLowerCase();
+  return !!c && !/@usach\.cl$/.test(c);
+}
+const NOTA_SIN_SEGUIMIENTO = 'Para consultas sobre el avance de su solicitud, responda a este correo indicando su número de folio.';
+/** Reemplaza los párrafos que llevan el enlace de seguimiento ({enlace}) por la nota de consulta por correo (una sola vez). */
+function quitarSeguimiento(cuerpo) {
+  let puesto = false;
+  return String(cuerpo || '').split('\n\n').map(parr => {
+    if (!/\{enlace\}/.test(parr)) return parr;
+    if (puesto) return null;
+    puesto = true;
+    return NOTA_SIN_SEGUIMIENTO;
+  }).filter(x => x !== null).join('\n\n');
+}
 function rellenar(texto, vars) {
   return String(texto || '').replace(/\{(\w+)\}/g, (m, k) => (vars[k] !== undefined && vars[k] !== null && (vars[k] !== '' || VARIABLES_OPCIONALES[k])) ? String(vars[k]) : m);
 }
@@ -705,6 +724,6 @@ if (typeof module !== 'undefined') {
   module.exports = { origenRechazoPropuesto, esRenuncia, textoRenunciaPrograma, asegurarIndicacionRenuncia, capitalizarNombre, rutaProceso, RUTA_PRINCIPAL, esRolRC, ROLES_RC, tipoVista, mimePorNombre, entradaZipUtil, encargoDe, requiereVicedecano, normalizarRun, normalizarPasaporte, feriadosDesdeEventos, OCULTOS_AL_ESTUDIANTE, sumarDiasHabiles, recordatorioPendiente, RECORDATORIOS, camposRequeridos,
     ESTADOS, CAMPOS_REQUERIDOS, TIPOS_CATALOGO, NIVELES, ROLES, estadoPorId, esCierre, transicionValida, eventoTransicion,
     normalizarFolio, siguienteFolio, estadoMigrado, separarTipos, rellenar, variablesSinResolver, resolverDestinatarios,
-    diasHabilesEntre, necesitaRecordatorio, nivelSuficiente, puedeVerSolicitud, validarCuenta, esSi, listaRoles, validarSolicitud, resumenCuenta, RECORDATORIO_MANUAL, recordatorioManual, PLAZOS_ANALISTA, plazoAnalista, listaCasosAnalista, VARIABLES_OPCIONALES, describirCambioTexto, ROTULOS_GESTION
+    diasHabilesEntre, necesitaRecordatorio, nivelSuficiente, puedeVerSolicitud, validarCuenta, esSi, listaRoles, validarSolicitud, resumenCuenta, RECORDATORIO_MANUAL, recordatorioManual, PLAZOS_ANALISTA, plazoAnalista, listaCasosAnalista, sinSeguimientoEnLinea, quitarSeguimiento, NOTA_SIN_SEGUIMIENTO, VARIABLES_OPCIONALES, describirCambioTexto, ROTULOS_GESTION
   };
 }

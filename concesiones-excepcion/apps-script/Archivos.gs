@@ -14,6 +14,7 @@ const CATEGORIAS_ARCHIVO = {
   resolucion: 'Resolución',
   archivo_cae: 'Archivo CAE',
   formulario_solicitud: 'Formulario de solicitud (PDF)',
+  recibido_correo: 'Recibido por correo (formulario y antecedentes)',
   otro: 'Otro'
 };
 

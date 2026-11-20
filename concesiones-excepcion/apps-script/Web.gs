@@ -36,6 +36,8 @@ function api_inicio() {
     categorias: CATEGORIAS_ARCHIVO,
     analistas: cuentas.filter(c => c.rol === 'Analista' && esSi(c.activo)).map(c => ({ correo: c.correo, nombre: c.nombre })),
     programas: leer_(HOJAS.programas).map(p => p.programa),
+    programasActivos: leer_(HOJAS.programas).filter(p => esSi(p.activo)).map(p => p.programa).sort(),
+    tipos: TIPOS_CATALOGO,
     maxMb: Number(parametros_().max_mb_archivo || 20),
     urlSeguimiento: urlPanel_() + '?v=seguimiento'
   });

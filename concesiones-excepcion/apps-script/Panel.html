@@ -39,6 +39,7 @@
   .t-adm{color:#5A6470;background:#EFECE4} .t-tra{color:#007E80;background:#E4F2F2} .t-vb{color:#8A5A00;background:#FCEBD9}
   .t-ok{color:#2F6B4F;background:#E7F3EB} .t-no{color:#8A3D2E;background:#F9EDE9}
   .tabla{background:#fff;border:1px solid var(--borde);border-radius:14px;overflow:hidden}
+  .g2r{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px} @media(max-width:560px){.g2r{grid-template-columns:1fr}}
   .plz-fila{display:grid;grid-template-columns:22px 72px minmax(0,1fr) 120px 150px;gap:10px;align-items:center;padding:9px 0;border-top:1px solid var(--fila)}
   .plz-fila input[type=checkbox]{width:16px;height:16px;margin:0}
   .fila{display:grid;grid-template-columns:76px 1.3fr 1.1fr 170px 140px 96px 52px;gap:10px;padding:13px 20px;border-bottom:1px solid var(--fila);align-items:center;cursor:pointer}
@@ -321,17 +322,73 @@ function pintarBandeja() {
   const sel = (id, ops, val) => '<select id="' + id + '">' + ops.map(o => '<option value="' + h(o[0]) + '"' + (o[0] === val ? ' selected' : '') + '>' + h(o[1]) + '</option>').join('') + '</select>';
   $('app').innerHTML =
     '<div style="display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap"><div><h2>Bandeja de solicitudes <span class="mono" style="font-size:12px;color:var(--apagado)" id="cont"></span></h2>' +
-    '<div class="resumen">' + curso + ' en curso · ' + vb + ' pendientes de V°B° · ' + (l.length - curso) + ' cerradas' + (rev ? ' · <b style="color:#94571B">' + rev + ' por revisar (migración)</b>' : '') + '</div></div></div>' +
+    '<div class="resumen">' + curso + ' en curso · ' + vb + ' pendientes de V°B° · ' + (l.length - curso) + ' cerradas' + (rev ? ' · <b style="color:#94571B">' + rev + ' por revisar (migración)</b>' : '') + '</div></div>' +
+    (nivel('edicion') ? '<button id="reg_correo" title="Para solicitudes de personas sin cuenta @usach.cl, recibidas en el correo del Vicedecanato">＋ Registrar solicitud recibida por correo</button>' : '') + '</div>' +
     '<div class="tarjeta filtros" style="padding:14px 16px"><input id="fq" placeholder="Buscar por folio, nombre, RUN o tipo…" value="' + h(S.filtro.q) + '">' +
     sel('fg', [['todas', 'Todos los estados'], ['curso', 'En curso'], ['vb', 'Pendiente V°B°'], ['cerradas', 'Cerradas'], ['revisar', 'Por revisar']], S.filtro.grupo) +
     sel('fp', [['', 'Todos los programas']].concat(progs.map(p => [p, p])), S.filtro.programa) +
     sel('fa', [['', 'Todas las analistas'], ['__sin', 'Sin asignar']].concat(S.ini.analistas.map(a => [a.correo, a.nombre])), S.filtro.analista) + '</div>' +
     '<div class="tabla" id="tabla"></div>';
+  if ($('reg_correo')) $('reg_correo').onclick = dialogoRegistroCorreo;
   $('fq').oninput = e => { S.filtro.q = e.target.value; pintarFilas(); };
   $('fg').onchange = e => { S.filtro.grupo = e.target.value; pintarFilas(); };
   $('fp').onchange = e => { S.filtro.programa = e.target.value; pintarFilas(); };
   $('fa').onchange = e => { S.filtro.analista = e.target.value; pintarFilas(); };
   pintarFilas();
+}
+/* Registro de una solicitud recibida por correo (persona sin cuenta @usach.cl): la analista transcribe el formulario PDF y adjunta
+   lo recibido. Crea la solicitud (folio, analista, avisos) y luego sube los archivos a la ficha, uno por uno. */
+function dialogoRegistroCorreo() {
+  const hoy = new Date(), iso = hoy.getFullYear() + '-' + ('0' + (hoy.getMonth() + 1)).slice(-2) + '-' + ('0' + hoy.getDate()).slice(-2);
+  const c = (id, rot, extra) => '<div><label class="et" for="rc_' + id + '">' + rot + ' *</label><input id="rc_' + id + '"' + (extra || '') + '></div>';
+  $('dlg').innerHTML = '<div class="kicker" style="color:var(--apagado)">Persona sin cuenta @usach.cl</div><div style="font:800 18px Archivo,sans-serif;margin:6px 0 10px">Registrar solicitud recibida por correo</div>' +
+    '<div class="aviso a-teal" style="white-space:normal;margin-bottom:12px">Transcriba el formulario PDF que llegó al correo del Vicedecanato y adjunte ese formulario y los antecedentes. Al registrar se asigna el folio y se envían los avisos de siempre: recepción a la persona (a su correo de contacto), aviso al equipo y asignación a la analista.</div>' +
+    '<div style="max-height:58vh;overflow:auto;padding-right:4px">' +
+    '<div class="g2r">' + c('apellido1', 'Primer apellido') + c('apellido2', 'Segundo apellido') + '</div><div style="margin-top:10px">' + c('nombres', 'Nombres') + '</div>' +
+    '<div class="g2r"><div><label class="et" for="rc_tipo_documento">Documento *</label><select id="rc_tipo_documento"><option value="RUN">RUN (cédula chilena)</option><option value="Pasaporte">Pasaporte</option></select></div>' + c('run', 'Número de documento', ' class="mono" placeholder="12.345.678-5"') + '</div>' +
+    '<div class="g2r">' + c('correo', 'Correo de contacto', ' type="email" placeholder="correo de la persona"') + c('telefono', 'Teléfono', ' class="mono"') + '</div>' +
+    '<label class="et" for="rc_programa" style="margin-top:10px">Programa *</label><select id="rc_programa"><option value="">Seleccione un programa…</option>' + (S.ini.programasActivos || S.ini.programas).map(p => '<option>' + h(p) + '</option>').join('') + '</select>' +
+    '<div class="g2r"><div><label class="et" for="rc_anio">Año asociado *</label><input id="rc_anio" class="mono" type="number" value="' + hoy.getFullYear() + '"></div>' +
+      '<div><label class="et" for="rc_semestre">Semestre asociado *</label><select id="rc_semestre"><option value="">—</option><option>Semestre I</option><option>Semestre II</option></select></div></div>' +
+    '<span class="et" style="margin-top:10px">Solicita autorización para *</span>' + (S.ini.tipos || []).map(t => '<label class="chk"><input type="checkbox" class="rc_tp" value="' + h(t) + '"> ' + h(t) + '</label>').join('') +
+    '<label class="et" for="rc_otro" style="margin-top:8px">Otros</label><input id="rc_otro">' +
+    '<label class="et" for="rc_fundamentacion" style="margin-top:10px">Fundamentación *</label><textarea id="rc_fundamentacion" rows="6"></textarea>' +
+    '<div class="g2r"><div><label class="et" for="rc_fecha">Fecha en que llegó el correo *</label><input id="rc_fecha" type="date" max="' + iso + '" value="' + iso + '"><div class="sub" style="white-space:normal">Los plazos se cuentan desde esta fecha.</div></div>' +
+      '<div><label class="et" for="rc_archivos">Formulario PDF y antecedentes</label><input id="rc_archivos" type="file" multiple><div class="sub" style="white-space:normal">Máx. ' + h(S.ini.maxMb) + ' MB cada uno. Quedan en la ficha como «Recibido por correo».</div></div></div>' +
+    '</div><div class="acciones" style="justify-content:flex-end;margin-top:16px"><button id="cancelar">Cancelar</button><button class="prim" id="confirmar">Registrar solicitud</button></div>';
+  $('fondo').style.display = 'flex';
+  $('cancelar').onclick = cerrarDlg;
+  $('confirmar').onclick = () => {
+    const v = id => $('rc_' + id).value.trim();
+    const d = { tipos: [...document.querySelectorAll('.rc_tp:checked')].map(x => x.value), fecha_correo: v('fecha') };
+    ['apellido1', 'apellido2', 'nombres', 'tipo_documento', 'run', 'correo', 'telefono', 'programa', 'anio', 'semestre', 'otro', 'fundamentacion'].forEach(k => { d[k] = v(k); });
+    const archivos = [...$('rc_archivos').files];
+    const grande = archivos.find(f => f.size > S.ini.maxMb * 1048576);
+    if (grande) return toast('«' + grande.name + '» supera ' + S.ini.maxMb + ' MB', true);
+    if (!/^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(d.correo)) return toast('Revise el correo de contacto', true);
+    if (!confirm('Se registrará la solicitud y se enviará el correo de recepción a ' + d.correo + '. ¿Continuar?')) return;
+    const boton = $('confirmar'); boton.disabled = true; boton.textContent = 'Registrando…';
+    const registrar = extra => run('api_registrarPorCorreo', Object.assign({}, d, extra || {}));
+    registrar().catch(err => {
+      const m = String(err && err.message || err);
+      if (/REPETIDA:/.test(m) && confirm(m.replace(/^.*REPETIDA:\s*/, '') + '\n\n¿Registrar de todos modos?')) return registrar({ confirmarRepetida: true });
+      throw err;
+    }).then(r => {
+      // La solicitud ya existe: un fallo al subir un archivo no la deshace; se avisa cuál faltó para subirlo desde la ficha.
+      const fallidos = [];
+      const subirUno = f => new Promise(ok => {
+        const lector = new FileReader();
+        lector.onload = () => run('api_subirArchivo', r.folio, f.name, f.type, String(lector.result).split(',')[1], 'recibido_correo').then(ok, () => { fallidos.push(f.name); ok(); });
+        lector.onerror = () => { fallidos.push(f.name); ok(); };
+        lector.readAsDataURL(f);
+      });
+      return archivos.reduce((p, f, i) => p.then(() => { boton.textContent = 'Subiendo archivo ' + (i + 1) + ' de ' + archivos.length + '…'; return subirUno(f); }), Promise.resolve()).then(() => {
+        cerrarDlg();
+        toast('Solicitud ' + r.folio + ' registrada' + (fallidos.length ? ' · no se pudo subir: ' + fallidos.join(', ') + ' (súbalo desde la ficha)' : '') + (r.sinSeguimiento ? ' · sin seguimiento en línea' : ''), fallidos.length > 0);
+        return run('api_bandeja').then(l => { S.bandeja = l; abrir(r.folio); });
+      });
+    }).catch(err => { fallo(err); boton.disabled = false; boton.textContent = 'Registrar solicitud'; });
+  };
 }
 function pintarFilas() {
   const l = filtrar();
@@ -384,7 +441,7 @@ function pintarExp() {
   const cats = Object.keys(S.ini.categorias).filter(k => k !== 'antecedentes_formulario' && k !== 'formulario_solicitud');
   $('app').innerHTML =
     '<a href="#" id="volver" style="font:600 12px Archivo,sans-serif">← Volver a la bandeja</a>' +
-    '<div style="display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:12px 0 20px"><div><div class="kicker">Folio ' + h(e.folio) + '</div>' +
+    '<div style="display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:12px 0 20px"><div><div class="kicker">Folio ' + h(e.folio) + (/correo/i.test(e.origen || '') ? ' · <span style="color:var(--tinta2)">Recibida por correo</span>' : '') + '</div>' +
     '<h1 style="font:800 clamp(22px,3vw,28px) Archivo,sans-serif;margin:4px 0">' + h(nombre) + '</h1><div class="resumen">' + h(e.programa) + ' · ' + h(e.semestre) + ' ' + h(e.anio) + '</div></div>' +
     '<div style="text-align:right"><span id="exp_estado">' + tag(e.estado, true) + '</span><div class="mono" style="font-size:11.5px;color:var(--apagado);margin-top:8px">Recibida ' + fecha(e.fecha_recepcion) + (cierre(e.estado) ? '' : ' · ' + dias(e.estado_desde) + ' días en este estado') + '</div></div></div>' +
     (e.revisar === 'SÍ' ? '<div class="aviso a-amb" style="margin-bottom:16px">Revisar (migración): ' + h(e.nota_migracion) + '</div>' : '') +

@@ -246,8 +246,13 @@ solo para usach.cl). El portal ofrece la página pública `cae/sin-cuenta.html` 
 `cae/abrir.html`): explica que debe escribir a viceinvestigacionfahu@usach.cl adjuntando el formulario `cae/formulario-solicitud-cae.pdf`
 (PDF rellenable con los mismos campos del formulario web) para que la Unidad de Análisis registre el caso. El PDF se genera con
 `herramientas/formulario_sin_cuenta.py` (reportlab); si cambia `TIPOS_CATALOGO`, actualizar la lista del script y regenerar. Registro por
-el equipo: una analista ingresa la solicitud en el formulario web con los datos del PDF y una cuenta de administración cambia el correo
-del estudiante al de contacto («Cambiar» en la ficha), con lo que recibe el aviso de registro; con correo externo no hay seguimiento en línea.
+el equipo: en la Bandeja, «＋ Registrar solicitud recibida por correo» (nivel Edición; `api_registrarPorCorreo` en `Formulario.gs`). La
+analista transcribe el PDF, indica la fecha en que llegó el correo (los plazos corren desde ahí; máx. 30 días atrás) y adjunta el
+formulario y los antecedentes (categoría «Recibido por correo»). Se asigna folio y analista y salen los avisos habituales; el origen
+queda «Recibida por correo» y `correo_verificado` vacío. Si el correo de contacto no es @usach.cl no hay seguimiento en línea: en todos
+los correos a esa persona, el párrafo con `{enlace}` se reemplaza por «responda a este correo indicando su número de folio»
+(`sinSeguimientoEnLinea` y `quitarSeguimiento` en `Logica.gs`). Avisa si ya hay una solicitud en curso igual (misma persona, programa,
+tipo y periodo) y pide confirmación.
 
 **Plazos de analistas (solo administración).** La pestaña «Plazos de analistas» muestra, agrupados por analista, los casos en pasos a
 su cargo con el plazo vencido o por vencer (`PLAZOS_ANALISTA` y `plazoAnalista` en `Logica.gs`): «Recibida» cuenta desde la recepción

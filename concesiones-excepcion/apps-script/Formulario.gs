@@ -122,6 +122,51 @@ function api_enviarSolicitud(d, ids) {
   return { folio: sol.folio, correo: sol.correo, archivos: guardados };
 }
 
+/**
+ * Registro, por el equipo, de una solicitud recibida por correo (persona sin cuenta @usach.cl; ver cae/sin-cuenta.html en el portal).
+ * Mismas validaciones que el formulario web; el correo es el de contacto de la persona (no se verifica con Google, por eso
+ * `correo_verificado` queda vacío) y `fecha` es el día en que llegó el correo (los plazos corren desde ahí). Los archivos
+ * (formulario PDF y antecedentes) se suben después a la ficha con api_subirArchivo, categoría «recibido_correo».
+ */
+const MAX_DIAS_ATRAS_CORREO = 30;
+function api_registrarPorCorreo(d) {
+  const u = requiere_('edicion');
+  d = d || {};
+  const hoy = new Date();
+  const v = validarSolicitud(d, {
+    programas: leer_(HOJAS.programas).filter(x => esSi(x.activo)).map(x => x.programa),
+    anio: hoy.getFullYear()
+  });
+  if (v.error) throw new Error(v.error);
+  if (!puedeVerSolicitud(u, { programa: v.datos.programa })) throw new Error('SIN_ACCESO: ese programa no está entre los de su cuenta.');
+  let recepcion = hoy;
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(d.fecha_correo || ''));
+  if (m) {
+    const f = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]), 12, 0, 0);
+    const finHoy = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate(), 23, 59, 59);
+    if (isNaN(f) || f > finHoy) throw new Error('La fecha de recepción del correo no puede ser futura.');
+    if ((finHoy - f) / 86400000 > MAX_DIAS_ATRAS_CORREO + 1) throw new Error('La fecha de recepción del correo no puede tener más de ' + MAX_DIAS_ATRAS_CORREO + ' días.');
+    // El mismo día: se registra con la hora actual; días anteriores, al mediodía de ese día.
+    if (f.toDateString() !== hoy.toDateString()) recepcion = f;
+  } else if (d.fecha_correo) {
+    throw new Error('La fecha de recepción del correo no es válida.');
+  }
+  const sol = conCerrojo_(() => {
+    const repetida = leer_(HOJAS.solicitudes).find(s => !esCierre(s.estado) && String(s.run) === v.datos.run && s.programa === v.datos.programa &&
+      String(s.tipo_catalogo) === v.datos.tipo_catalogo && Number(s.anio) === v.datos.anio && s.semestre === v.datos.semestre);
+    if (repetida && !d.confirmarRepetida) throw new Error('REPETIDA: ya existe la solicitud ' + repetida.folio + ' en curso de la misma persona, programa, tipo y periodo.');
+    const creada = crearSolicitud_(Object.assign({}, v.datos, {
+      fila_respuesta: '', fecha_recepcion: recepcion, correo_verificado: '', origen: 'Recibida por correo'
+    }));
+    anexar_(HOJAS.bitacora, { fecha: new Date(), folio: creada.folio, tipo: 'gestion', quien: u.correo,
+      texto: 'Solicitud recibida por correo (persona sin cuenta @usach.cl), registrada por ' + (u.nombre || u.correo) + '. Correo de contacto: ' + v.datos.correo +
+        (sinSeguimientoEnLinea(creada) ? ' (sin seguimiento en línea: las consultas se responden por correo).' : '.') });
+    return creada;
+  });
+  avisosNuevaSolicitud_(sol);
+  return { folio: sol.folio, correo: sol.correo, sinSeguimiento: sinSeguimientoEnLinea(sol) };
+}
+
 /** Borra los antecedentes temporales que nadie usó (más de 2 días). */
 /** Marca de un antecedente que quedó en Temporal porque no se pudo mover al expediente de una solicitud ya registrada. */
 const PENDIENTE_EXPEDIENTE = 'Antecedente pendiente de mover · solicitud ';

@@ -116,7 +116,7 @@ function componer_(evento, sol, campos) {
     faltantes: dest.faltantes,
     omitidos: dest.omitidos || [],
     asunto: rellenar(t.asunto, v),
-    cuerpo: asegurarIndicacionRenuncia(evento, rellenar(t.cuerpo, v), sol, v.std_ref),
+    cuerpo: asegurarIndicacionRenuncia(evento, rellenar(sinSeguimientoEnLinea(sol) ? quitarSeguimiento(t.cuerpo) : t.cuerpo, v), sol, v.std_ref),
     replyTo: sol.analista || ''
   };
 }

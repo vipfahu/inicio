@@ -506,3 +506,14 @@ test('plazos de analistas: lista del recordatorio, vencidos primero', () => {
   assert.match(t, /quedan 1 día\(s\) hábil\(es\)/);
   assert.match(t, /https:\/\/x\/2/);
 });
+
+test('sin seguimiento en línea: solo correos externos; el párrafo del enlace se reemplaza por la nota', () => {
+  assert.equal(L.sinSeguimientoEnLinea({ correo: 'persona@gmail.com', correo_verificado: '' }), true);
+  assert.equal(L.sinSeguimientoEnLinea({ correo: 'persona@usach.cl', correo_verificado: '' }), false);
+  assert.equal(L.sinSeguimientoEnLinea({ correo: 'x@gmail.com', correo_verificado: 'est@usach.cl' }), false, 'manda el correo verificado');
+  assert.equal(L.sinSeguimientoEnLinea({}), false);
+  const t = L.quitarSeguimiento('Hola {nombre}:\n\nRecibimos su solicitud.\n\nPuede consultar el avance, con su cuenta USACH, en: {enlace}\n\nAtentamente,\n{firmante}\n\nPuede revisar el estado en: {enlace}');
+  assert.doesNotMatch(t, /\{enlace\}|cuenta USACH/);
+  assert.equal(t.split(L.NOTA_SIN_SEGUIMIENTO).length - 1, 1, 'la nota aparece una sola vez');
+  assert.match(t, /Recibimos su solicitud\.\n\nPara consultas[\s\S]*Atentamente,\n\{firmante\}$/);
+});

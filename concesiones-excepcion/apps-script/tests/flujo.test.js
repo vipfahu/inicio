@@ -1904,3 +1904,51 @@ test('plazos de analistas: solo administración; lista, vista previa y recordato
   estado.usuario = 'analista.uno@usach.cl';
   assert.throws(() => ctx.api_enviarRecordatorioAnalista('analista.uno@usach.cl', ['03/2026'], {}), /nivel requerido/);
 });
+
+test('solicitud recibida por correo: la registra el equipo; correos sin enlace de seguimiento; validaciones y duplicados', () => {
+  const env = instalar(preparar());
+  const { ctx, estado } = env;
+  const programa = tabla(env, 'Programas')[0].programa;
+  const hoy = new Date();
+  const iso = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  const d = { apellido1: 'PÉREZ', apellido2: 'soto', nombres: 'ana maría', tipo_documento: 'RUN', run: '11.111.111-1', telefono: '+56 9 1111 1111',
+    correo: 'Ana.Externa@Gmail.com', programa, anio: hoy.getFullYear(), semestre: 'Semestre I', tipos: ['Reincorporación Simple'], otro: '',
+    fundamentacion: 'Solicito reincorporación tras un periodo fuera de la Universidad.', fecha_correo: iso(hoy) };
+  estado.usuario = 'consulta@usach.cl';
+  assert.throws(() => ctx.api_registrarPorCorreo(d), /nivel requerido/, 'consulta no registra');
+  estado.usuario = 'analista.uno@usach.cl';
+  assert.throws(() => ctx.api_registrarPorCorreo(Object.assign({}, d, { run: '11.111.111-2' })), /RUN no es válido/);
+  const man = new Date(hoy.getTime() + 2 * 86400000);
+  assert.throws(() => ctx.api_registrarPorCorreo(Object.assign({}, d, { fecha_correo: iso(man) })), /no puede ser futura/);
+  assert.throws(() => ctx.api_registrarPorCorreo(Object.assign({}, d, { fecha_correo: iso(new Date(hoy.getTime() - 60 * 86400000)) })), /más de 30 días/);
+  const antes = estado.correos.length;
+  const r = ctx.api_registrarPorCorreo(d);
+  assert.match(r.folio, /^\d{2}\/\d{4}$/); assert.equal(r.sinSeguimiento, true);
+  const s = tabla(env, 'Solicitudes').find(x => x.folio === r.folio);
+  assert.equal(s.correo, 'ana.externa@gmail.com'); assert.equal(s.correo_verificado, ''); assert.equal(s.origen, 'Recibida por correo');
+  assert.equal(s.estado, 'recibida'); assert.equal(s.apellido1, 'Pérez'); assert.equal(s.analista, 'analista.uno@usach.cl');
+  // Correo de recepción a la persona: sin enlace ni «cuenta USACH», con la nota de consulta por correo
+  const rec = estado.correos.slice(antes).find(m => m.to === 'ana.externa@gmail.com');
+  assert.ok(rec, 'se envía la recepción al correo de contacto');
+  assert.doesNotMatch(rec.body, /cuenta USACH|abrir\.html|\{enlace\}/);
+  assert.match(rec.body, /responda a este correo indicando su número de folio/);
+  assert.ok(estado.correos.slice(antes).some(m => /nueva solicitud/i.test(m.subject)), 'aviso al equipo');
+  const b = tabla(env, 'Bitácora').filter(x => x.folio === r.folio);
+  assert.ok(b.some(x => /recibida por correo[\s\S]*registrada por/i.test(x.texto) && x.quien === 'analista.uno@usach.cl'));
+  // Archivos recibidos: categoría propia
+  ctx.api_subirArchivo(r.folio, 'formulario.pdf', 'application/pdf', Buffer.from('%PDF-1.4 prueba').toString('base64'), 'recibido_correo');
+  assert.equal(tabla(env, 'Archivos').filter(a => a.folio === r.folio && a.categoria === 'recibido_correo').length, 1);
+  // Un correo posterior al estudiante tampoco lleva el enlace
+  const c = ctx.componer_('aceptada', ctx.buscarSolicitud_(r.folio), {});
+  assert.doesNotMatch(c.cuerpo, /cuenta USACH con que envió|abrir\.html/);
+  // Duplicado en curso: avisa y solo registra si se confirma
+  assert.throws(() => ctx.api_registrarPorCorreo(d), /REPETIDA: ya existe la solicitud/);
+  const r2 = ctx.api_registrarPorCorreo(Object.assign({}, d, { confirmarRepetida: true }));
+  assert.notEqual(r2.folio, r.folio);
+  // Con correo @usach.cl sí hay seguimiento y el enlace se conserva
+  const r3 = ctx.api_registrarPorCorreo(Object.assign({}, d, { run: '22.222.222-2', correo: 'otra.persona@usach.cl' }));
+  assert.equal(r3.sinSeguimiento, false);
+  assert.match(ctx.componer_('recepcion', ctx.buscarSolicitud_(r3.folio), {}).cuerpo, /abrir\.html|exec/);
+  // Las solicitudes del formulario web no cambian
+  assert.match(ctx.componer_('recepcion', ctx.buscarSolicitud_('05/2026'), {}).cuerpo, /cuenta USACH/);
+});
