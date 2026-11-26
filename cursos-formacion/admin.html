@@ -50,15 +50,28 @@ body{margin:0;background:#F1EFE8}a{color:#007E80}a:hover{color:#EF7A00}input:foc
             <sc-if value="{{ modoRegistro }}" hint-placeholder-val="{{ false }}">
               <input value="{{ lNombre }}" onChange="{{ setLNombre }}" placeholder="Nombre y apellido" style="box-sizing:border-box;width:100%;padding:11px 14px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5">
             </sc-if>
-            <input value="{{ lCorreo }}" onChange="{{ setLCorreo }}" type="email" autoComplete="username" placeholder="correo@usach.cl" style="box-sizing:border-box;width:100%;padding:11px 14px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5">
+            <sc-if value="{{ pideCorreo }}" hint-placeholder-val="{{ true }}">
+              <input value="{{ lCorreo }}" onChange="{{ setLCorreo }}" type="email" autoComplete="username" placeholder="correo@usach.cl" style="box-sizing:border-box;width:100%;padding:11px 14px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5">
+            </sc-if>
             <input value="{{ lClave }}" onChange="{{ setLClave }}" onKeyDown="{{ enterAcceso }}" type="password" autoComplete="current-password" placeholder="Contraseña" style="box-sizing:border-box;width:100%;padding:11px 14px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5">
+            <sc-if value="{{ modoNuevaClave }}" hint-placeholder-val="{{ false }}">
+              <input value="{{ lClave2 }}" onChange="{{ setLClave2 }}" onKeyDown="{{ enterAcceso }}" type="password" autoComplete="new-password" placeholder="Repetir contraseña" style="box-sizing:border-box;width:100%;padding:11px 14px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5">
+            </sc-if>
             <sc-if value="{{ hayError }}" hint-placeholder-val="{{ false }}">
               <div style="font:600 12px/1.45 Archivo,sans-serif;color:#B0483A;background:#F9EBE8;border-radius:8px;padding:10px 12px">{{ err }}</div>
+            </sc-if>
+            <sc-if value="{{ hayMsg }}" hint-placeholder-val="{{ false }}">
+              <div style="font:600 12px/1.45 Archivo,sans-serif;color:#2F6B4F;background:#E7F3EB;border-radius:8px;padding:10px 12px">{{ msg }}</div>
             </sc-if>
             <button onClick="{{ acceder }}" style="cursor:pointer;border:none;background:#007E80;color:#fff;border-radius:9px;padding:13px;font:700 13.5px Archivo,sans-serif">{{ accesoBoton }}</button>
           </div>
           <div style="margin:16px 0 0;padding-top:15px;border-top:1px solid #F0EDE4;display:flex;flex-direction:column;gap:8px;align-items:flex-start">
-            <button onClick="{{ cambiarModo }}" style="cursor:pointer;border:none;background:none;padding:0;font:600 12px Archivo,sans-serif;color:#007E80">{{ cambiarModoLabel }}</button>
+            <sc-if value="{{ pideCorreo }}" hint-placeholder-val="{{ true }}">
+              <button onClick="{{ cambiarModo }}" style="cursor:pointer;border:none;background:none;padding:0;font:600 12px Archivo,sans-serif;color:#007E80">{{ cambiarModoLabel }}</button>
+            </sc-if>
+            <sc-if value="{{ modoLogin }}" hint-placeholder-val="{{ true }}">
+              <button onClick="{{ recuperar }}" style="cursor:pointer;border:none;background:none;padding:0;font:600 12px Archivo,sans-serif;color:#8A8272">Olvidé mi contraseña</button>
+            </sc-if>
             <p style="font:italic 400 11.5px/1.5 Spectral,serif;color:#8A8272;margin:0">Las cuentas las autoriza una persona administradora en la pestaña <strong>Cuentas</strong> de este panel (o en el de Normativa Postgrados).</p>
           </div>
         </div>
@@ -202,6 +215,9 @@ body{margin:0;background:#F1EFE8}a{color:#007E80}a:hover{color:#EF7A00}input:foc
               <h2 style="font:800 15px Archivo,sans-serif;margin:0;color:#3A4450">{{ formTitulo }}</h2>
               <sc-if value="{{ editando }}" hint-placeholder-val="{{ false }}"><button onClick="{{ cancelar }}" style="cursor:pointer;border:none;background:none;padding:0;font:600 12px Archivo,sans-serif;color:#8A8272">Cancelar</button></sc-if>
             </div>
+            <sc-if value="{{ semCerrado }}" hint-placeholder-val="{{ false }}">
+              <p style="font:400 13px/1.6 Spectral,serif;color:#5A6470;margin:0;background:#FBF6EC;border:1px solid #F0E4C8;border-radius:10px;padding:14px 16px">Este semestre está <strong>cerrado</strong>: queda como historial y solo la administración puede modificarlo. Si encuentras un error, escribe a viceinvestigacionfahu@usach.cl.</p>
+            </sc-if>
             <sc-if value="{{ noPuedeEditar }}" hint-placeholder-val="{{ false }}">
               <p style="font:400 13px/1.6 Spectral,serif;color:#5A6470;margin:0;background:#FBF6EC;border:1px solid #F0E4C8;border-radius:10px;padding:14px 16px">Tu cuenta todavía no tiene programas asignados, así que no puedes agregar ni editar cursos. Pide a una persona administradora que te asocie a un programa en la pestaña <strong>Cuentas</strong>.</p>
             </sc-if>
@@ -645,7 +661,7 @@ body{margin:0;background:#F1EFE8}a{color:#007E80}a:hover{color:#EF7A00}input:foc
 <script type="text/x-dc" data-dc-script>
 class Component extends DCLogic {
   VACIO = { nombre_curso: "", programa: "", unidad: "", nombre_asignatura: "", profesor: "", descriptor: "", tipo: "", jornada: "", modalidad: "", dia: "", hora_inicio: "", hora_fin: "", sala: "", cupos: "", sct: "", semestre_programa: "", codigo_plan: "", codigo_asignatura: "", resolucion: "", contacto: "", comentarios: "", vigente: true };
-  state = { fase: "cargando", modo: "login", perfil: null, login: { correo: "", clave: "", nombre: "" }, err: "", busy: false, tab: "oferta",
+  state = { fase: "cargando", modo: "login", perfil: null, login: { correo: "", clave: "", nombre: "" }, lClave2: "", msg: "", err: "", busy: false, tab: "oferta",
     periodos: [], cursos: [], actividad: [], actError: "", periodo: null, form: null, editId: null,
     bq: "", bPrograma: "Todos los programas", bTipo: "Todos los tipos", bVig: "Vigentes y no vigentes", pag: 1,
     aviso: "", avisoTipo: "ok", dupAbierto: false, dupOrigen: "", npAnio: String(new Date().getFullYear()), npSem: "1", npTocado: false,
@@ -660,8 +676,14 @@ class Component extends DCLogic {
     this.setState({ form: { ...this.VACIO } });
     try {
       const [lib, cfg] = await Promise.all([import("https://esm.sh/@supabase/supabase-js@2"), import("./data/supabase/config.js?v=1790277601612")]);
+      // Enlace de «Olvidé mi contraseña»: antes de entrar al panel se pide la contraseña nueva.
+      this.recuperando = /type=recovery/.test(location.hash);
+      if (this.recuperando) this.setState({ fase: "login", modo: "nuevaclave", err: "", msg: "" });
       this.sb = lib.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY);
-      this.sb.auth.onAuthStateChange((_e, s) => this.aplicarSesion(s));
+      this.sb.auth.onAuthStateChange((e, s) => {
+        if (e === "PASSWORD_RECOVERY") { this.recuperando = true; this.setState({ fase: "login", modo: "nuevaclave", err: "", msg: "" }); return; }
+        if (!this.recuperando) this.aplicarSesion(s);
+      });
       const { data } = await this.sb.auth.getSession();
       await this.aplicarSesion(data.session);
     } catch (e) { console.warn(e); this.setState({ fase: "error" }); }
@@ -669,6 +691,7 @@ class Component extends DCLogic {
   }
 
   async aplicarSesion(sesion) {
+    if (this.recuperando) return;
     if (!sesion) { this.setState({ fase: "login", perfil: null }); return; }
     const { data: perfil, error } = await this.sb.from("perfiles").select("*").eq("id", sesion.user.id).maybeSingle();
     if (error && /could not find the table|PGRST205|schema cache/i.test(error.message + " " + (error.code || ""))) { this.setState({ fase: "sininstalar" }); return; }
@@ -731,7 +754,37 @@ class Component extends DCLogic {
     return t;
   }
 
+  async recuperar() {
+    const correo = (this.state.login.correo || "").trim();
+    if (!correo) { this.setState({ err: "Escribe tu correo y vuelve a pulsar «Olvidé mi contraseña».", msg: "" }); return; }
+    this.setState({ busy: true, err: "", msg: "" });
+    const { error } = await this.sb.auth.resetPasswordForEmail(correo, { redirectTo: location.origin + location.pathname });
+    this.setState(error ? { busy: false, err: this.traducir(error.message) }
+      : { busy: false, msg: "Si ese correo tiene cuenta, te llegará un enlace para definir una contraseña nueva. Revisa también la carpeta de spam." });
+  }
+
+  async guardarNuevaClave() {
+    const a = this.state.login.clave || "", b = this.state.lClave2 || "";
+    if (a.length < 8) { this.setState({ err: "La contraseña debe tener al menos 8 caracteres." }); return; }
+    if (a !== b) { this.setState({ err: "Las dos contraseñas no coinciden." }); return; }
+    this.setState({ busy: true, err: "" });
+    const r = await this.sb.auth.updateUser({ password: a });
+    if (r.error) {
+      const m = /same password|different from the old/i.test(r.error.message) ? "La nueva contraseña debe ser distinta de la anterior."
+        : /session|jwt|expired|missing/i.test(r.error.message) ? "El enlace venció o ya se usó. Vuelve a pedir uno con «Olvidé mi contraseña»." : this.traducir(r.error.message);
+      this.setState({ busy: false, err: m }); return;
+    }
+    this.recuperando = false;
+    history.replaceState(null, "", location.pathname + location.search);
+    this.setState(s => ({ busy: false, modo: "login", lClave2: "", login: { ...s.login, clave: "" } }));
+    const { data } = await this.sb.auth.getSession();
+    await this.aplicarSesion(data.session);
+    if (this.state.perfil) await this.anota("Mi cuenta", "restableció su contraseña con el enlace de recuperación");
+    this.avisar("Contraseña actualizada.");
+  }
+
   async acceder() {
+    if (this.state.modo === "nuevaclave") { this.guardarNuevaClave(); return; }
     const { correo, clave, nombre } = this.state.login;
     if (!correo || !clave) { this.setState({ err: "Escribe tu correo y contraseña." }); return; }
     this.setState({ busy: true, err: "" });
@@ -844,6 +897,7 @@ class Component extends DCLogic {
     if (!fila.nombre_curso || !fila.programa) { this.avisar("El nombre del curso y el programa son obligatorios.", "err"); return; }
     if (!this.misProgramas().incluye(fila.programa)) { this.avisar("Solo puedes registrar cursos en los programas que tienes asignados.", "err"); return; }
     if (!st.periodo) { this.avisar("Selecciona un semestre.", "err"); return; }
+    if (this.cerradoParaMi(st.periodo)) { this.avisar("Este semestre está cerrado: es historial y solo la administración puede modificarlo.", "err"); return; }
     let r;
     if (st.editId) r = await this.sb.from("cf_cursos").update(fila).eq("id", st.editId);
     else r = await this.sb.from("cf_cursos").insert({ ...fila, periodo: st.periodo });
@@ -852,6 +906,11 @@ class Component extends DCLogic {
     this.avisar(st.editId ? "Curso actualizado." : "Curso agregado a la oferta.");
     this.setState({ form: { ...this.VACIO }, editId: null });
     this.cargar();
+  }
+
+  cerradoParaMi(id) {
+    const p = this.state.periodos.find(x => x.id === id), admin = this.state.perfil && this.state.perfil.rol === "administrador";
+    return !!p && p.estado === "cerrado" && !admin;
   }
 
   etiqueta(id) { const p = this.state.periodos.find(x => x.id === id); return p ? p.etiqueta : id; }
@@ -1157,6 +1216,7 @@ class Component extends DCLogic {
     const fmtFecha = d => { try { return new Date(d).toLocaleString("es-CL", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }); } catch (e) { return d; } };
     const pestañas = [["oferta", "Oferta por semestre"], admin && ["programas", "Programas"], admin && ["periodos", "Semestres"], admin && ["cuentas", "Cuentas"], ["stats", "Estadísticas"], ["act", "Actividad"]].filter(Boolean);
     const perObj = st.periodos.find(p => p.id === st.periodo);
+    const cerrado = this.cerradoParaMi(st.periodo);
 
     return {
       vistaAcceso: st.fase === "login", vistaPanel: st.fase === "panel",
@@ -1166,23 +1226,27 @@ class Component extends DCLogic {
       estadoConSalir: ["sinperfil", "suspendido", "sininstalar", "sinacceso"].includes(st.fase),
       lCorreo: st.login.correo, lClave: st.login.clave, lNombre: st.login.nombre,
       modoRegistro: st.modo === "registro",
-      accesoTitulo: st.modo === "registro" ? "Crear mi contraseña" : "Iniciar sesión",
-      accesoNota: st.modo === "registro" ? "Usa el mismo correo que autorizó el Vicedecanato y define una contraseña de al menos 8 caracteres." : "Usa la misma cuenta del sistema de Gestión de Información VIP.",
-      cambiarModo: () => this.setState(s => ({ modo: s.modo === "registro" ? "login" : "registro", err: "" })),
+      accesoTitulo: st.modo === "nuevaclave" ? "Definir una contraseña nueva" : st.modo === "registro" ? "Crear mi contraseña" : "Iniciar sesión",
+      accesoNota: st.modo === "nuevaclave" ? "Escribe tu nueva contraseña (al menos 8 caracteres) dos veces. Sirve para todas las plataformas del sistema VIP." : st.modo === "registro" ? "Usa el mismo correo que autorizó el Vicedecanato y define una contraseña de al menos 8 caracteres." : "Usa la misma cuenta del sistema de Gestión de Información VIP.",
+      cambiarModo: () => this.setState(s => ({ modo: s.modo === "registro" ? "login" : "registro", err: "", msg: "" })),
+      pideCorreo: st.modo !== "nuevaclave", modoLogin: st.modo === "login", modoNuevaClave: st.modo === "nuevaclave",
+      recuperar: () => this.recuperar(), hayMsg: !!st.msg, msg: st.msg,
+      lClave2: st.lClave2, setLClave2: e => this.setState({ lClave2: e.target.value }),
       cambiarModoLabel: st.modo === "registro" ? "← Ya tengo contraseña" : "Primera vez: crear mi contraseña",
       setLCorreo: e => this.setState(s => ({ login: { ...s.login, correo: e.target.value } })),
       setLClave: e => this.setState(s => ({ login: { ...s.login, clave: e.target.value } })),
       setLNombre: e => this.setState(s => ({ login: { ...s.login, nombre: e.target.value } })),
       enterAcceso: e => { if (e.key === "Enter") this.acceder(); },
-      acceder: () => this.acceder(), accesoBoton: st.busy ? "Un momento…" : st.modo === "registro" ? "Crear cuenta" : "Entrar",
+      acceder: () => this.acceder(), accesoBoton: st.busy ? "Un momento…" : st.modo === "nuevaclave" ? "Guardar contraseña y entrar" : st.modo === "registro" ? "Crear cuenta" : "Entrar",
       hayError: !!st.err, err: st.err,
       salir: () => this.sb.auth.signOut(),
       sesionEtiqueta: st.perfil ? `${st.perfil.nombre || st.perfil.correo} · ${admin ? "Administrador/a" : "Editor/a"}` : "",
       ...this.cuentaVals(),
       ...this.accesosVals(),
-      esAdmin: !!admin, puedeEditar, noPuedeEditar: !puedeEditar,
+      esAdmin: !!admin, puedeEditar: puedeEditar && !cerrado, noPuedeEditar: !puedeEditar, semCerrado: puedeEditar && cerrado,
       hayAlcance: !admin && !st.sinTablaProgramas,
-      alcanceTexto: alcance.nombres.length
+      alcanceTexto: cerrado ? "Este semestre está cerrado: es el historial de la oferta y solo se consulta. Elige un semestre en borrador o publicado para editar tus cursos."
+        : alcance.nombres.length
         ? `Puedes agregar, editar y eliminar cursos de ${alcance.nombres.length === 1 ? "tu programa" : "tus programas"}: ${alcance.nombres.join(" · ")}. El resto de la oferta aparece solo para consulta.`
         : "Tu cuenta aún no tiene programas asignados. Puedes consultar la oferta, pero no editarla: pide a una persona administradora que te asocie a un programa.",
       tabs: pestañas.map(([id, name]) => ({ name, fg: tabActual === id ? "#007E80" : "#8A8272", line: tabActual === id ? "#EF7A00" : "transparent", pick: () => this.setState({ tab: id }) })),
@@ -1276,7 +1340,7 @@ class Component extends DCLogic {
         programa: c.programa, tipo: c.tipo || "Sin tipo", noVigente: !c.vigente, nombre: c.nombre_curso,
         sub: [c.profesor, c.dia, c.hora_inicio ? c.hora_inicio + (c.hora_fin ? "–" + c.hora_fin : "") : null, c.sala].filter(Boolean).join(" · ") || "Sin horario informado",
         cupos: c.cupos != null ? c.cupos + " cupos" : "—", bg: st.editId === c.id ? "#FBF6EC" : "#fff",
-        puede: alcance.incluye(c.programa),
+        puede: alcance.incluye(c.programa) && !cerrado,
         editar: () => this.setState({ editId: c.id, form: { ...this.VACIO, ...Object.fromEntries(Object.keys(this.VACIO).map(k => [k, c[k] == null ? (k === "vigente" ? true : "") : c[k]])), programa: c.programa || "" } }),
         borrar: async () => {
           if (!confirm(`¿Eliminar «${c.nombre_curso}» de ${this.etiqueta(c.periodo)}?`)) return;
