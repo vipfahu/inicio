@@ -33,6 +33,10 @@ function correr(cmd, args, titulo) {
   if (r.status !== 0) {
     limpiar();
     console.error('\n✖ Falló: ' + titulo + '. No se continuó; la versión publicada sigue siendo la anterior.');
+    if (cmd === 'npx') {
+      console.error('\n  Si arriba dice «invalid_grant» o pide iniciar sesión, la sesión de clasp caducó. Renuévela con la cuenta institucional:\n' +
+        '      npx -y ' + CLASP[1] + ' login\n  y vuelva a ejecutar este comando. (clasp no está instalado como comando suelto: se usa siempre con npx.)');
+    }
     process.exit(r.status || 1);
   }
 }
