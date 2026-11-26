@@ -1978,3 +1978,36 @@ test('los correos al estudiante llevan copia a la analista asignada; una instala
   assert.equal(t.find(x => x.evento === 'aceptada').cuerpo, 'Texto editado por el equipo {folio}', 'conserva el texto editado');
   assert.equal(t.find(x => x.evento === 'recepcion').cc, 'Analista');
 });
+
+test('actualización desde el panel: solo administración, deja constancia y el fallo automático queda a la vista', () => {
+  const env = instalar(preparar());
+  const { ctx, estado, libro } = env;
+  estado.usuario = 'vice@usach.cl';
+  ctx.actualizarSiCorresponde_(); // lo que ocurre al abrir el panel
+  assert.equal(ctx.api_inicio().actualizacion.pendiente, false, 'tras abrir el panel, la planilla está al día');
+  // Código nuevo cuya actualización automática falla: antes quedaba solo en el registro de ejecuciones.
+  delete estado.props.huella_estructura;
+  const real = ctx.aplicarActualizacion_;
+  ctx.aplicarActualizacion_ = () => { throw new Error('hoja protegida'); };
+  ctx.actualizarSiCorresponde_();
+  let a = ctx.api_inicio().actualizacion;
+  assert.equal(a.pendiente, true); assert.match(a.error, /hoja protegida/);
+  assert.throws(() => ctx.api_aplicarActualizacion(), /No se pudo aplicar la actualización: hoja protegida/);
+  ctx.aplicarActualizacion_ = real;
+  estado.usuario = 'analista.uno@usach.cl';
+  assert.equal(ctx.api_inicio().actualizacion, null, 'una analista no recibe el estado de actualización');
+  assert.throws(() => ctx.api_aplicarActualizacion(), /nivel requerido/);
+  estado.usuario = 'vice@usach.cl';
+  // Una plantilla con destinatarios antiguos se pone al día al aplicar.
+  const h = libro.getSheetByName('Plantillas'), enc = h.datos[0];
+  const fila = h.datos.find(r => r[enc.indexOf('evento')] === 'recepcion');
+  fila[enc.indexOf('cc')] = '';
+  if (ctx.invalidarLecturas_) ctx.invalidarLecturas_('Plantillas');
+  const r = ctx.api_aplicarActualizacion();
+  assert.equal(r.ok, true); assert.ok(Array.isArray(r.cambios));
+  assert.match(String(fila[enc.indexOf('cc')]), /Analista/, 'la copia a la analista queda en la plantilla de recepción');
+  a = ctx.api_inicio().actualizacion;
+  assert.equal(a.pendiente, false); assert.equal(a.error, '');
+  const b = tabla(env, 'Bitácora').filter(x => /Actualización aplicada desde el panel/.test(x.texto));
+  assert.equal(b.length, 1); assert.equal(b[0].quien, 'vice@usach.cl');
+});

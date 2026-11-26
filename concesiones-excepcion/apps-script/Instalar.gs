@@ -346,13 +346,55 @@ function actualizarSiCorresponde_() {
       if (props.getProperty('huella_estructura') === huella) return;
       const cambios = aplicarActualizacion_();
       props.setProperty('huella_estructura', huella);
+      props.setProperty(PROP_ERROR_ACTUALIZACION, '');
       anexar_(HOJAS.bitacora, {
         fecha: new Date(), folio: '—', tipo: 'sistema', quien: 'Sistema',
         texto: 'Actualización automática tras código nuevo' + (cambios.length ? ': ' + cambios.join(' · ') : ' (sin cambios en la planilla).')
       });
     } finally { lock.releaseLock(); }
   } catch (err) {
-    console.error('Actualización automática no aplicada: ' + err.message); // se reintenta en la próxima visita; queda el menú manual
+    // Se reintenta en la próxima visita. El motivo queda guardado para mostrarlo a la administración en el panel (antes fallaba en
+    // silencio: 2026-11-26, las plantillas no se pusieron al día y nadie lo supo).
+    console.error('Actualización automática no aplicada: ' + err.message);
+    try { PropertiesService.getScriptProperties().setProperty(PROP_ERROR_ACTUALIZACION, fechaErrorActualizacion_() + ' · ' + err.message); } catch (e) { /* sin propiedades */ }
+  }
+}
+
+const PROP_ERROR_ACTUALIZACION = 'error_actualizacion';
+function fechaErrorActualizacion_() {
+  try { return Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'dd-MM-yyyy HH:mm'); } catch (e) { return new Date().toISOString().slice(0, 16); }
+}
+
+/** ¿La planilla está al día con el código publicado? `pendiente` = falta aplicar la actualización; `error` = por qué falló la automática. */
+function estadoActualizacion_() {
+  let pendiente = false;
+  try { pendiente = propiedad_('huella_estructura') !== huellaEstructura_(); } catch (e) { pendiente = true; }
+  return { pendiente: pendiente, error: pendiente ? propiedad_(PROP_ERROR_ACTUALIZACION) : '' };
+}
+
+/**
+ * Aplica la actualización desde el panel (administración). Hace lo mismo que el menú «CAE → Actualizar» de la planilla, sin
+ * exigir entrar con la cuenta institucional: la Web App ya se ejecuta como esa cuenta. Devuelve la lista de cambios o lanza el error.
+ */
+function api_aplicarActualizacion() {
+  const u = requiere_('administracion');
+  const lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+  try {
+    let cambios;
+    try { cambios = aplicarActualizacion_(); }
+    catch (err) {
+      PropertiesService.getScriptProperties().setProperty(PROP_ERROR_ACTUALIZACION, fechaErrorActualizacion_() + ' · ' + err.message);
+      throw new Error('No se pudo aplicar la actualización: ' + err.message);
+    }
+    const props = PropertiesService.getScriptProperties();
+    props.setProperty('huella_estructura', huellaEstructura_());
+    props.setProperty(PROP_ERROR_ACTUALIZACION, '');
+    anexar_(HOJAS.bitacora, { fecha: new Date(), folio: '—', tipo: 'sistema', quien: u.correo,
+      texto: 'Actualización aplicada desde el panel' + (cambios.length ? ': ' + cambios.join(' · ') : ' (sin cambios en la planilla).') });
+    return { ok: true, cambios: cambios };
+  } finally {
+    lock.releaseLock();
   }
 }
 

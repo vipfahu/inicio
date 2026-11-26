@@ -39,7 +39,9 @@ function api_inicio() {
     programasActivos: leer_(HOJAS.programas).filter(p => esSi(p.activo)).map(p => p.programa).sort(),
     tipos: TIPOS_CATALOGO,
     maxMb: Number(parametros_().max_mb_archivo || 20),
-    urlSeguimiento: urlPanel_() + '?v=seguimiento'
+    urlSeguimiento: urlPanel_() + '?v=seguimiento',
+    // Solo la administración ve si la planilla quedó sin actualizar tras publicar código nuevo.
+    actualizacion: nivelSuficiente(u.nivel, 'administracion') ? estadoActualizacion_() : null
   });
 }
 

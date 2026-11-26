@@ -148,6 +148,7 @@
   <div class="sesion-box"><div class="sesion" id="sesion"></div><button class="salir" id="salir" hidden>Cerrar sesión</button></div>
 </header>
 <nav id="nav"></nav>
+<div id="act_aviso" hidden style="background:#FBEEDD;color:#94571B;font:600 13px/1.5 Archivo,sans-serif;padding:10px clamp(16px,5vw,60px);border-bottom:1px solid #EBD3AE"></div>
 <main id="app"><div class="cargando">Cargando…</div></main>
 <div id="fondo"><div id="dlg" role="dialog" aria-modal="true"></div></div>
 <div id="toast" role="status"></div>
@@ -262,6 +263,7 @@ function dialogoSalir() {
 }
 
 function pintarNav() {
+  pintarAvisoActualizacion();
   const tabs = [['bandeja', 'Bandeja'], ['panorama', 'Panorama'], ['indicadores', 'Indicadores']];
   if (nivel('edicion')) tabs.push(['plantillas', 'Plantillas de correo']);
   tabs.push(['config', 'Configuración']);
@@ -1203,6 +1205,31 @@ function tarjetaFeriados(f) {
     (f.actualizado ? ' Última actualización: ' + h(fecha(f.actualizado)) + '.' : '') + '</div>' +
     (f.error ? '<div class="aviso a-amb" style="margin-top:8px">No se pudo consultar el calendario en el último intento' + (f.total ? '; se usa la lista guardada' : '') + '.</div>' : '') + '</div>';
 }
+/* Actualización de la planilla tras publicar código nuevo (administración). Normalmente ocurre sola al abrir el panel; si quedó
+   pendiente o falló, se avisa arriba y se puede aplicar desde aquí, sin entrar a la planilla con la cuenta institucional. */
+function pintarAvisoActualizacion() {
+  const a = S.ini && S.ini.actualizacion, caja = $('act_aviso');
+  if (!a || !a.pendiente || !nivel('administracion')) { caja.hidden = true; return; }
+  caja.hidden = false;
+  caja.innerHTML = 'La planilla no está al día con la última versión publicada' + (a.error ? ' (la actualización automática falló: ' + h(a.error) + ')' : '') +
+    '. <button id="act_ir" style="margin-left:8px;padding:5px 10px">Aplicar actualización</button>';
+  $('act_ir').onclick = aplicarActualizacion;
+}
+function aplicarActualizacion() {
+  document.querySelectorAll('#act_ir,#act_cfg').forEach(b => { b.disabled = true; b.textContent = 'Aplicando…'; });
+  run('api_aplicarActualizacion').then(r => {
+    S.ini.actualizacion = { pendiente: false, error: '' }; pintarAvisoActualizacion();
+    $('dlg').innerHTML = '<div class="kicker" style="color:var(--apagado)">Actualización de la planilla</div><div style="font:800 18px Archivo,sans-serif;margin:6px 0 12px">' + (r.cambios.length ? 'Actualización aplicada' : 'La planilla ya estaba al día') + '</div>' +
+      (r.cambios.length ? '<ul style="font:400 13.5px/1.55 Archivo,sans-serif;padding-left:20px;margin:0">' + r.cambios.map(c => '<li>' + h(c) + '</li>').join('') + '</ul>' : '<p class="resumen">No había nada que cambiar.</p>') +
+      '<div class="acciones" style="justify-content:flex-end;margin-top:16px"><button class="prim" id="cancelar">Cerrar</button></div>';
+    $('fondo').style.display = 'flex';
+    $('cancelar').onclick = () => { cerrarDlg(); if (S.vista === 'config') cargarConfig(); };
+  }).catch(err => {
+    fallo(err);
+    run('api_inicio').then(i => { if (i.acceso) { S.ini.actualizacion = i.actualizacion; pintarAvisoActualizacion(); } }).catch(() => {});
+    document.querySelectorAll('#act_cfg').forEach(b => { b.disabled = false; b.textContent = 'Aplicar actualización'; });
+  });
+}
 function cargarConfig() {
   $('app').innerHTML = '<div class="cargando">Cargando configuración…</div>';
   run('api_config').then(r => { S.config = r; pintarConfig(); }).catch(fallo);
@@ -1250,13 +1277,17 @@ function pintarConfig() {
     tarjetaVicedecano(r.vicedecano) +
     (adm ? '<div class="tarjeta" id="mig_tarjeta"><h3>Migración</h3><div class="sub" style="white-space:normal;margin-bottom:10px">Compara cada fila de la planilla original (hoja de respuestas) con su solicitud en el sistema: datos del formulario y datos de gestión.</div><button id="mig_ok" style="width:100%">Verificar migración</button>' +
       '<div style="margin-top:14px;border-top:1px solid var(--fila);padding-top:12px"><span class="et">Folios sin solicitud</span><div class="sub" style="white-space:normal;margin-bottom:8px">Rastros de pruebas o eliminaciones a medias: bitácora, archivos o carpeta de un folio que ya no tiene solicitud. Esos números no se reutilizan mientras existan.</div><button id="ras_ok" style="width:100%">Buscar rastros</button><div id="ras_lista"></div></div></div>' : '') +
-    tarjetaFeriados(r.feriados) + '</div></div>';
+    tarjetaFeriados(r.feriados) +
+    (adm ? '<div class="tarjeta"><h3>Actualización de la planilla</h3><div class="sub" style="white-space:normal;margin-bottom:10px">Tras publicar una versión nueva, la planilla se pone al día sola al abrir el panel (columnas, parámetros, plantillas de correo y sus destinatarios). Si algo no se ve actualizado, aplíquelo aquí: hace lo mismo que el menú «CAE → Actualizar» de la planilla y muestra qué cambió.' +
+      (S.ini.actualizacion && S.ini.actualizacion.pendiente ? ' <b style="color:#94571B">Hay una actualización pendiente' + (S.ini.actualizacion.error ? ': ' + h(S.ini.actualizacion.error) : '') + '.</b>' : '') +
+      '</div><button class="prim" id="act_cfg">Aplicar actualización</button></div>' : '') + '</div></div>';
   document.querySelectorAll('[data-gc]').forEach(b => b.onclick = () => {
     const i = b.dataset.gc, el = document.querySelector('[data-i="' + i + '"][data-k="correo_direccion"]');
     run('api_guardarCorreoPrograma', r.programas[i].programa, el.value).then(() => { toast('Correo de dirección guardado'); cargarConfig(); }).catch(fallo);
   });
   if (!adm) return;
   $('mig_ok').onclick = verificarMigracionPanel;
+  $('act_cfg').onclick = aplicarActualizacion;
   $('ras_ok').onclick = buscarRastros;
   document.querySelectorAll('select[data-rc]').forEach(sel => sel.onchange = () => {
     const caja = document.querySelector('[data-nueva="' + sel.dataset.i + '-' + sel.dataset.k + '"]');
