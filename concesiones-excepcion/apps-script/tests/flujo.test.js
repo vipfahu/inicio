@@ -1954,29 +1954,32 @@ test('solicitud recibida por correo: la registra el equipo; correos sin enlace d
   assert.match(ctx.componer_('recepcion', ctx.buscarSolicitud_('05/2026'), {}).cuerpo, /cuenta USACH/);
 });
 
-test('los correos al estudiante llevan copia a la analista asignada; una instalación anterior se pone al día', () => {
+test('los correos de resolución al estudiante llevan copia a la analista asignada; la recepción no (ella recibe el aviso de nueva solicitud); una instalación anterior se pone al día', () => {
   const env = instalar(preparar());
   const { ctx, estado } = env;
   const sol = tabla(env, 'Solicitudes').find(x => x.folio === '05/2026'); // analista.uno asignada
-  ['recepcion', 'aceptada', 'rechazada', 'no_procede', 'cae_admisible', 'cae_rechazada'].forEach(ev => {
+  ['aceptada', 'rechazada', 'no_procede', 'cae_admisible', 'cae_rechazada'].forEach(ev => {
     const c = ctx.componer_(ev, sol, { motivo: 'm', observacion: 'o', propuesta_comite: 'p', resolucion: 'r' });
     assert.ok(c.cc.indexOf('analista.uno@usach.cl') >= 0, ev + ' con copia a la analista');
     assert.ok(c.para.indexOf('analista.uno@usach.cl') < 0, ev);
   });
+  // La confirmación de recepción va solo al estudiante; la analista se entera por el aviso «Nueva solicitud», que llega a todo el panel
+  assert.deepEqual([...ctx.componer_('recepcion', sol, {}).cc], []);
+  assert.ok(ctx.componer_('nueva_solicitud', sol, {}).para.indexOf('analista.uno@usach.cl') >= 0, 'la analista recibe el aviso de nueva solicitud');
   // Los correos internos no cambian de destinatarios
   assert.deepEqual([...ctx.componer_('asignacion', sol, {}).cc], []);
   // Planilla instalada antes del cambio (plantilla editada por el equipo incluida): la actualización suma la copia y conserva el texto
   const h = env.libro.getSheetByName('Plantillas'); const enc = h.datos[0];
   const i = h.datos.findIndex(r => r[0] === 'aceptada');
   h.datos[i][enc.indexOf('cc')] = 'Dirección de programa'; h.datos[i][enc.indexOf('cuerpo')] = 'Texto editado por el equipo {folio}';
-  const j = h.datos.findIndex(r => r[0] === 'recepcion'); h.datos[j][enc.indexOf('cc')] = '';
+  const j = h.datos.findIndex(r => r[0] === 'recepcion'); h.datos[j][enc.indexOf('cc')] = 'Analista';
   if (ctx.invalidarLecturas_) ctx.invalidarLecturas_('Plantillas');
   estado.usuario = estado.duenia;
   ctx.aplicarActualizacion_();
   const t = tabla(env, 'Plantillas');
   assert.equal(t.find(x => x.evento === 'aceptada').cc, 'Analista, Dirección de programa');
   assert.equal(t.find(x => x.evento === 'aceptada').cuerpo, 'Texto editado por el equipo {folio}', 'conserva el texto editado');
-  assert.equal(t.find(x => x.evento === 'recepcion').cc, 'Analista');
+  assert.equal(t.find(x => x.evento === 'recepcion').cc, '', 'la recepción deja de copiar a la analista');
 });
 
 test('actualización desde el panel: solo administración, deja constancia y el fallo automático queda a la vista', () => {
@@ -2000,12 +2003,12 @@ test('actualización desde el panel: solo administración, deja constancia y el 
   estado.usuario = 'vice@usach.cl';
   // Una plantilla con destinatarios antiguos se pone al día al aplicar.
   const h = libro.getSheetByName('Plantillas'), enc = h.datos[0];
-  const fila = h.datos.find(r => r[enc.indexOf('evento')] === 'recepcion');
+  const fila = h.datos.find(r => r[enc.indexOf('evento')] === 'aceptada');
   fila[enc.indexOf('cc')] = '';
   if (ctx.invalidarLecturas_) ctx.invalidarLecturas_('Plantillas');
   const r = ctx.api_aplicarActualizacion();
   assert.equal(r.ok, true); assert.ok(Array.isArray(r.cambios));
-  assert.match(String(fila[enc.indexOf('cc')]), /Analista/, 'la copia a la analista queda en la plantilla de recepción');
+  assert.match(String(fila[enc.indexOf('cc')]), /Analista/, 'la copia a la analista queda en la plantilla de aceptación');
   a = ctx.api_inicio().actualizacion;
   assert.equal(a.pendiente, false); assert.equal(a.error, '');
   const b = tabla(env, 'Bitácora').filter(x => /Actualización aplicada desde el panel/.test(x.texto));
