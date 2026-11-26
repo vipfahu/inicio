@@ -292,8 +292,27 @@ body{margin:0;background:#F1EFE8}a{color:#007E80}a:hover{color:#EF7A00}input:foc
               <input value="{{ npAnio }}" onChange="{{ setNpAnio }}" type="number" placeholder="Año" style="box-sizing:border-box;width:100%;padding:10px 13px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5">
               <select value="{{ npSem }}" onChange="{{ setNpSem }}" style="padding:10px 12px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5;color:#3A4450"><option value="1">I Semestre</option><option value="2">II Semestre</option></select>
             </div>
-            <p style="font:400 12px/1.5 Spectral,serif;color:#8A8272;margin:0 0 12px">Se crea como <strong>borrador</strong>. Luego copia la oferta del semestre anterior, edítala y publícala.</p>
-            <button onClick="{{ crearPeriodo }}" style="cursor:pointer;border:none;background:#007E80;color:#fff;border-radius:9px;padding:12px;font:700 13.5px Archivo,sans-serif;width:100%">Crear semestre</button>
+            <div style="font:700 10px Archivo,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#8A8272;margin:4px 0 6px">Copiar información de</div>
+            <select value="{{ ncOrigen }}" onChange="{{ setNcOrigen }}" style="box-sizing:border-box;width:100%;margin-bottom:10px;padding:10px 12px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5;color:#3A4450">
+              <option value="">No copiar: semestre vacío</option>
+              <sc-for list="{{ ncOpciones }}" as="o" hint-placeholder-count="2"><option value="{{ o.id }}">{{ o.etiqueta }}</option></sc-for>
+            </select>
+            <sc-if value="{{ ncCopia }}" hint-placeholder-val="{{ false }}">
+              <div style="background:#FAF9F5;border:1px solid #E8E4DA;border-radius:10px;padding:12px 14px;margin-bottom:12px;display:flex;flex-direction:column;gap:8px">
+                <select value="{{ ncAlcance }}" onChange="{{ setNcAlcance }}" style="padding:10px 12px;border:1.5px solid #E0DCD0;border-radius:9px;font:400 13px Archivo,sans-serif;background:#FAF9F5;color:#3A4450;background:#fff">
+                  <option value="vigentes">Solo los cursos vigentes</option>
+                  <option value="todos">Todos los cursos (vigentes y no vigentes)</option>
+                </select>
+                <div style="font:400 12px/1.5 Spectral,serif;color:#5A6470">Siempre se copian nombre, programa, unidad, asignatura, descriptor, tipo, jornada, modalidad, créditos, códigos, resolución y contacto. Además:</div>
+                <label style="display:flex;gap:8px;align-items:center;font:400 12.5px Archivo,sans-serif;color:#3A4450;cursor:pointer"><input type="checkbox" checked="{{ ncProfesor }}" onChange="{{ setNcProfesor }}" style="width:16px;height:16px;accent-color:#007E80">Profesor/a</label>
+                <label style="display:flex;gap:8px;align-items:center;font:400 12.5px Archivo,sans-serif;color:#3A4450;cursor:pointer"><input type="checkbox" checked="{{ ncHorario }}" onChange="{{ setNcHorario }}" style="width:16px;height:16px;accent-color:#007E80">Día, horario y sala</label>
+                <label style="display:flex;gap:8px;align-items:center;font:400 12.5px Archivo,sans-serif;color:#3A4450;cursor:pointer"><input type="checkbox" checked="{{ ncCupos }}" onChange="{{ setNcCupos }}" style="width:16px;height:16px;accent-color:#007E80">Cupos</label>
+                <label style="display:flex;gap:8px;align-items:center;font:400 12.5px Archivo,sans-serif;color:#3A4450;cursor:pointer"><input type="checkbox" checked="{{ ncComentarios }}" onChange="{{ setNcComentarios }}" style="width:16px;height:16px;accent-color:#007E80">Comentarios</label>
+                <div style="font:600 12px Archivo,sans-serif;color:#007E80">{{ ncResumen }}</div>
+              </div>
+            </sc-if>
+            <p style="font:400 12px/1.5 Spectral,serif;color:#8A8272;margin:0 0 12px">Se crea como <strong>borrador</strong>: solo lo ve el equipo hasta que lo publiques. Los datos no marcados quedan en blanco para completarlos.</p>
+            <button onClick="{{ crearPeriodo }}" style="cursor:pointer;border:none;background:#007E80;color:#fff;border-radius:9px;padding:12px;font:700 13.5px Archivo,sans-serif;width:100%">{{ ncBoton }}</button>
           </aside>
         </div>
       </sc-if>
@@ -629,7 +648,8 @@ class Component extends DCLogic {
   state = { fase: "cargando", modo: "login", perfil: null, login: { correo: "", clave: "", nombre: "" }, err: "", busy: false, tab: "oferta",
     periodos: [], cursos: [], actividad: [], actError: "", periodo: null, form: null, editId: null,
     bq: "", bPrograma: "Todos los programas", bTipo: "Todos los tipos", bVig: "Vigentes y no vigentes", pag: 1,
-    aviso: "", avisoTipo: "ok", dupAbierto: false, dupOrigen: "", npAnio: String(new Date().getFullYear()), npSem: "1",
+    aviso: "", avisoTipo: "ok", dupAbierto: false, dupOrigen: "", npAnio: String(new Date().getFullYear()), npSem: "1", npTocado: false,
+    ncOrigen: "", ncOrigenTocado: false, ncAlcance: "vigentes", ncProfesor: true, ncHorario: true, ncCupos: true, ncComentarios: false,
     programas: [], sinTablaProgramas: false, progEditId: null, progNombre: "", progUnidad: "",
     npNombre: "", npUnidad: "",
     perfiles: [], invitaciones: [], asignaciones: [], invitProgramas: [],
@@ -683,7 +703,8 @@ class Component extends DCLogic {
       programas: pr.data || [], sinTablaProgramas: !!pr.error, asignaciones: asg.data || [],
       perfiles: admin ? (r[5].data || []) : [], invitaciones: admin ? (r[6].data || []) : [],
       invitProgramas: admin ? (r[7].data || []) : [],
-      periodo: s.periodo && periodos.some(x => x.id === s.periodo) ? s.periodo : ((periodos.find(x => x.vigente) || periodos[0] || {}).id || null) }));
+      periodo: s.periodo && periodos.some(x => x.id === s.periodo) ? s.periodo : ((periodos.find(x => x.vigente) || periodos[0] || {}).id || null),
+      ...this.propuestaNuevo(s, periodos, c.data || []) }));
   }
 
   async anota(accion, detalle) {
@@ -852,7 +873,7 @@ class Component extends DCLogic {
   async duplicar() {
     const st = this.state, origen = st.dupOrigen;
     if (!origen || origen === st.periodo) { this.avisar("Elige un semestre de origen distinto.", "err"); return; }
-    const filas = st.cursos.filter(c => c.periodo === origen).map(({ id, creado, actualizado, ...c }) => ({ ...c, periodo: st.periodo }));
+    const filas = this.filasCopia(origen, st.periodo, null);
     if (!filas.length) { this.avisar("El semestre de origen no tiene cursos.", "err"); return; }
     if (!confirm(`Se copiarán ${filas.length} cursos de ${this.etiqueta(origen)} a ${this.etiqueta(st.periodo)}. ¿Continuar?`)) return;
     const r = await this.sb.from("cf_cursos").insert(filas);
@@ -863,16 +884,72 @@ class Component extends DCLogic {
     this.cargar();
   }
 
+  // Propuesta para «Nuevo semestre»: el siguiente al más reciente y, como origen de la copia, el más reciente que tenga cursos.
+  // No pisa lo que la persona ya eligió en el formulario.
+  propuestaNuevo(s, periodos, cursos) {
+    const r = {};
+    const ult = periodos[0];
+    if (!s.npTocado && ult) { r.npAnio = String(ult.semestre === 2 ? ult.anio + 1 : ult.anio); r.npSem = ult.semestre === 2 ? "1" : "2"; }
+    if (!s.ncOrigenTocado || !periodos.some(p => p.id === s.ncOrigen)) {
+      const conCursos = periodos.find(p => cursos.some(c => c.periodo === p.id));
+      r.ncOrigen = conCursos ? conCursos.id : "";
+    }
+    return r;
+  }
+
+  // Cursos de `origen` listos para insertar en `destino`. `opc` decide qué datos variables se conservan (null = todos).
+  filasCopia(origen, destino, opc) {
+    const st = this.state;
+    return st.cursos
+      .filter(c => c.periodo === origen && (!opc || opc.alcance === "todos" || c.vigente !== false))
+      .map(({ id, creado, actualizado, ...c }) => {
+        const f = { ...c, periodo: destino };
+        if (opc) {
+          if (!opc.profesor) f.profesor = null;
+          if (!opc.horario) { f.dia = null; f.hora_inicio = null; f.hora_fin = null; f.sala = null; }
+          if (!opc.cupos) f.cupos = null;
+          if (!opc.comentarios) f.comentarios = null;
+          f.vigente = true; // en el semestre nuevo, lo copiado se ofrece; se desmarca curso a curso si no
+        }
+        return f;
+      });
+  }
+
+  opcionesCopia() {
+    const st = this.state;
+    return { alcance: st.ncAlcance, profesor: st.ncProfesor, horario: st.ncHorario, cupos: st.ncCupos, comentarios: st.ncComentarios };
+  }
+
   async crearPeriodo() {
-    const anio = parseInt(this.state.npAnio, 10), sem = parseInt(this.state.npSem, 10);
+    const st = this.state;
+    const anio = parseInt(st.npAnio, 10), sem = parseInt(st.npSem, 10);
     if (!anio || anio < 2000) { this.avisar("Indica un año válido.", "err"); return; }
     const id = `${anio}-${sem}`, etiqueta = `${sem === 1 ? "I" : "II"} Semestre ${anio}`;
-    const r = await this.sb.from("cf_periodos").insert({ id, anio, semestre: sem, etiqueta, estado: "borrador", vigente: false });
-    if (r.error) { this.avisar("No se pudo crear: " + this.traducir(r.error.message), "err"); return; }
-    await this.anota("Nuevo semestre", etiqueta);
-    this.avisar(`${etiqueta} creado como borrador.`);
-    this.setState({ periodo: id, tab: "oferta" });
-    this.cargar();
+    if (st.periodos.some(p => p.id === id)) { this.avisar(`${etiqueta} ya existe. Para copiarle cursos, ábrelo en «Oferta por semestre» y usa «Copiar desde otro semestre…».`, "err"); return; }
+    const origen = st.ncOrigen;
+    const filas = origen ? this.filasCopia(origen, id, this.opcionesCopia()) : [];
+    if (origen && !filas.length) { this.avisar(`${this.etiqueta(origen)} no tiene cursos ${st.ncAlcance === "todos" ? "" : "vigentes "}para copiar. Elige otro origen o «No copiar».`, "err"); return; }
+    if (filas.length && !confirm(`Se creará ${etiqueta} como borrador y se copiarán ${filas.length} cursos de ${this.etiqueta(origen)}. ¿Continuar?`)) return;
+    this.setState({ busy: true });
+    try {
+      const r = await this.sb.from("cf_periodos").insert({ id, anio, semestre: sem, etiqueta, estado: "borrador", vigente: false });
+      if (r.error) { this.avisar("No se pudo crear: " + this.traducir(r.error.message), "err"); return; }
+      await this.anota("Nuevo semestre", etiqueta);
+      if (filas.length) {
+        const rc = await this.sb.from("cf_cursos").insert(filas);
+        if (rc.error) {
+          this.avisar(`${etiqueta} se creó, pero no se pudieron copiar los cursos: ${this.traducir(rc.error.message)} Reintenta con «Copiar desde otro semestre…».`, "err");
+        } else {
+          const o = this.opcionesCopia(), sin = [!o.profesor && "profesor/a", !o.horario && "horario y sala", !o.cupos && "cupos", !o.comentarios && "comentarios"].filter(Boolean);
+          await this.anota("Copia de oferta", `${filas.length} cursos de ${this.etiqueta(origen)} → ${etiqueta}` + (o.alcance === "todos" ? "" : " (solo vigentes)") + (sin.length ? "; sin " + sin.join(", ") : ""));
+          this.avisar(`${etiqueta} creado como borrador con ${filas.length} cursos copiados de ${this.etiqueta(origen)}. Revísalos y publícalo cuando esté listo.`);
+        }
+      } else {
+        this.avisar(`${etiqueta} creado como borrador.`);
+      }
+      this.setState({ periodo: id, tab: "oferta", npTocado: false, ncOrigenTocado: false });
+      this.cargar();
+    } finally { this.setState({ busy: false }); }
   }
 
   async estadoPeriodo(p, cambios, texto) {
@@ -1237,7 +1314,20 @@ class Component extends DCLogic {
           if (r.error) { this.avisar("No se pudo eliminar: " + this.traducir(r.error.message), "err"); return; }
           await this.anota("Semestre eliminado", `${p.etiqueta} (${cs.length} cursos)`); this.cargar();
         } }; }),
-      npAnio: st.npAnio, setNpAnio: e => this.setState({ npAnio: e.target.value }), npSem: st.npSem, setNpSem: e => this.setState({ npSem: e.target.value }),
+      npAnio: st.npAnio, setNpAnio: e => this.setState({ npAnio: e.target.value, npTocado: true }), npSem: st.npSem, setNpSem: e => this.setState({ npSem: e.target.value, npTocado: true }),
+      ncOrigen: st.ncOrigen, setNcOrigen: e => this.setState({ ncOrigen: e.target.value, ncOrigenTocado: true }),
+      ncOpciones: st.periodos.map(p => {
+        const cs = st.cursos.filter(c => c.periodo === p.id), v = cs.filter(c => c.vigente !== false).length;
+        return { id: p.id, etiqueta: `${p.etiqueta} · ${cs.length} cursos` + (v !== cs.length ? ` (${v} vigentes)` : "") };
+      }),
+      ncCopia: !!st.ncOrigen,
+      ncAlcance: st.ncAlcance, setNcAlcance: e => this.setState({ ncAlcance: e.target.value }),
+      ncProfesor: st.ncProfesor, setNcProfesor: e => this.setState({ ncProfesor: e.target.checked }),
+      ncHorario: st.ncHorario, setNcHorario: e => this.setState({ ncHorario: e.target.checked }),
+      ncCupos: st.ncCupos, setNcCupos: e => this.setState({ ncCupos: e.target.checked }),
+      ncComentarios: st.ncComentarios, setNcComentarios: e => this.setState({ ncComentarios: e.target.checked }),
+      ncResumen: (() => { if (!st.ncOrigen) return ""; const n = this.filasCopia(st.ncOrigen, "", this.opcionesCopia()).length; return n ? `Se copiarán ${n} cursos.` : "No hay cursos que copiar con esta selección."; })(),
+      ncBoton: st.busy ? "Creando…" : (st.ncOrigen ? "Crear semestre y copiar cursos" : "Crear semestre"),
       crearPeriodo: () => this.crearPeriodo(),
 
       sKpis: [
