@@ -277,7 +277,7 @@ body{margin:0;background:#F1EFE8}a{color:#007E80}a:hover{color:#EF7A00}input:foc
         <div style="display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:26px;align-items:start">
           <section>
             <h2 style="font:800 19px Archivo,sans-serif;margin:0 0 6px;color:#3A4450">Semestres</h2>
-            <p style="font:400 13.5px/1.6 Spectral,serif;color:#5A6470;margin:0 0 16px">Cada semestre agrupa su oferta. <strong>Borrador</strong>: solo lo ve el equipo. <strong>Publicado</strong>: visible al público. <strong>Cerrado</strong>: queda como historial. Solo un semestre puede ser el <strong>vigente</strong> (el que se abre por defecto).</p>
+            <p style="font:400 13.5px/1.6 Spectral,serif;color:#5A6470;margin:0 0 16px">Cada semestre agrupa su oferta. <strong>Borrador</strong>: solo lo ve el equipo. <strong>Publicado</strong>: visible al público. <strong>Cerrado</strong>: queda como historial. Solo un semestre puede ser el <strong>vigente</strong> (la oferta en curso, destacada en la vista pública). Por omisión, la vista pública abre el semestre publicado más reciente y este panel, el más reciente.</p>
             <div style="background:#fff;border:1px solid #E8E4DA;border-radius:14px;overflow:hidden">
               <sc-for list="{{ perLista }}" as="p" hint-placeholder-count="2">
                 <div style="display:grid;grid-template-columns:minmax(0,1fr) 120px 90px;gap:14px;align-items:center;padding:14px 20px;border-bottom:1px solid #F0EDE4">
@@ -726,7 +726,8 @@ class Component extends DCLogic {
       programas: pr.data || [], sinTablaProgramas: !!pr.error, asignaciones: asg.data || [],
       perfiles: admin ? (r[5].data || []) : [], invitaciones: admin ? (r[6].data || []) : [],
       invitProgramas: admin ? (r[7].data || []) : [],
-      periodo: s.periodo && periodos.some(x => x.id === s.periodo) ? s.periodo : ((periodos.find(x => x.vigente) || periodos[0] || {}).id || null),
+      // Por omisión, el semestre más reciente (incluidos los borradores, que el equipo sí ve).
+      periodo: s.periodo && periodos.some(x => x.id === s.periodo) ? s.periodo : ((periodos[0] || {}).id || null),
       ...this.propuestaNuevo(s, periodos, c.data || []) }));
   }
 

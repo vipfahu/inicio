@@ -430,8 +430,11 @@ class Component extends DCLogic {
 
   aplicar(d, fuente) {
     const periodos = [...d.periodos].sort((a, b) => (b.anio - a.anio) || (b.semestre - a.semestre));
-    const vig = periodos.find(p => p.vigente) || periodos[0];
-    this.setState(s => ({ periodos, cursos: d.cursos, fuente, periodo: s.periodo && periodos.some(p => p.id === s.periodo) ? s.periodo : (vig ? vig.id : null) }));
+    // Se respeta el semestre que la persona eligió; si no eligió (p. ej., el catálogo estático cargó primero), por omisión se abre el último semestre a disposición del público (publicado o cerrado, nunca un borrador),
+    // con preferencia por el más reciente que ya tenga cursos.
+    const disp = periodos.filter(p => p.estado !== "borrador");
+    const ini = disp.find(p => d.cursos.some(c => c.periodo === p.id)) || disp[0] || periodos[0];
+    this.setState(s => ({ periodos, cursos: d.cursos, fuente, periodo: s.periodoElegido && periodos.some(p => p.id === s.periodo) ? s.periodo : (ini ? ini.id : null) }));
   }
 
   norm(t) { return (t || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""); }
@@ -447,7 +450,7 @@ class Component extends DCLogic {
       if (dim === "semestre") p = mismos.sort((a, b) => Math.abs(a.anio - anio) - Math.abs(b.anio - anio) || b.anio - a.anio)[0];
       else p = mismos.sort((a, b) => Math.abs(a.semestre - sem) - Math.abs(b.semestre - sem))[0];
     }
-    if (p) this.setState({ periodo: p.id, pag: 1, open: {}, programa: null, unidad: null, tipo: null, jornada: null, dia: null });
+    if (p) this.setState({ periodo: p.id, periodoElegido: true, pag: 1, open: {}, programa: null, unidad: null, tipo: null, jornada: null, dia: null });
   }
 
   renderVals() {
@@ -571,7 +574,7 @@ class Component extends DCLogic {
       facJornada: ["Diurna", "Vespertina"].map(t => chip(t, "jornada")),
       facDia: DIAS.filter(d => dias[d]).map(d => chip(d, "dia")),
       periodoEtiqueta: periodoObj ? periodoObj.etiqueta : "—",
-      panoramaNota: periodoObj ? (periodoObj.vigente ? "Oferta en curso · disponible para estudiantes de otros programas" : "Registro histórico de la oferta") : "",
+      panoramaNota: periodoObj ? (periodoObj.vigente ? "Oferta en curso · disponible para estudiantes de otros programas" : periodoObj.estado === "cerrado" ? "Registro histórico de la oferta" : "Oferta publicada · disponible para estudiantes de otros programas") : "",
       kpis: [
         { n: delPeriodo.length, label: "cursos ofrecidos", color: "#fff" },
         { n: sum(delPeriodo, "cupos"), label: "cupos para otros programas", color: NAR },
