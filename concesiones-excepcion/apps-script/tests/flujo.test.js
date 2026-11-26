@@ -366,7 +366,8 @@ test('cuentas con recibe_eventos reciben copia; sin correo de dirección, el cor
   ctx.api_cambiarEstado('06/2026', 'revision', {});
   const pv = ctx.api_previsualizar('06/2026', 'aceptada', {});
   assert.deepEqual([...pv.correo.faltantes], []);
-  assert.match(pv.correo.omitidos[0], /dirección de «Magíster en Prueba A»/);
+  assert.match(pv.correo.omitidos.join(' | '), /dirección de «Magíster en Prueba A»/);
+  assert.match(pv.correo.omitidos.join(' | '), /analista asignada/, 'sin analista asignada, su copia se omite sin bloquear');
   ctx.api_cambiarEstado('06/2026', 'aceptada', {});
   const m = estado.correos.pop();
   assert.match(m.to, /est6@usach\.cl/);
@@ -1951,4 +1952,29 @@ test('solicitud recibida por correo: la registra el equipo; correos sin enlace d
   assert.match(ctx.componer_('recepcion', ctx.buscarSolicitud_(r3.folio), {}).cuerpo, /abrir\.html|exec/);
   // Las solicitudes del formulario web no cambian
   assert.match(ctx.componer_('recepcion', ctx.buscarSolicitud_('05/2026'), {}).cuerpo, /cuenta USACH/);
+});
+
+test('los correos al estudiante llevan copia a la analista asignada; una instalación anterior se pone al día', () => {
+  const env = instalar(preparar());
+  const { ctx, estado } = env;
+  const sol = tabla(env, 'Solicitudes').find(x => x.folio === '05/2026'); // analista.uno asignada
+  ['recepcion', 'aceptada', 'rechazada', 'no_procede', 'cae_admisible', 'cae_rechazada'].forEach(ev => {
+    const c = ctx.componer_(ev, sol, { motivo: 'm', observacion: 'o', propuesta_comite: 'p', resolucion: 'r' });
+    assert.ok(c.cc.indexOf('analista.uno@usach.cl') >= 0, ev + ' con copia a la analista');
+    assert.ok(c.para.indexOf('analista.uno@usach.cl') < 0, ev);
+  });
+  // Los correos internos no cambian de destinatarios
+  assert.deepEqual([...ctx.componer_('asignacion', sol, {}).cc], []);
+  // Planilla instalada antes del cambio (plantilla editada por el equipo incluida): la actualización suma la copia y conserva el texto
+  const h = env.libro.getSheetByName('Plantillas'); const enc = h.datos[0];
+  const i = h.datos.findIndex(r => r[0] === 'aceptada');
+  h.datos[i][enc.indexOf('cc')] = 'Dirección de programa'; h.datos[i][enc.indexOf('cuerpo')] = 'Texto editado por el equipo {folio}';
+  const j = h.datos.findIndex(r => r[0] === 'recepcion'); h.datos[j][enc.indexOf('cc')] = '';
+  if (ctx.invalidarLecturas_) ctx.invalidarLecturas_('Plantillas');
+  estado.usuario = estado.duenia;
+  ctx.aplicarActualizacion_();
+  const t = tabla(env, 'Plantillas');
+  assert.equal(t.find(x => x.evento === 'aceptada').cc, 'Analista, Dirección de programa');
+  assert.equal(t.find(x => x.evento === 'aceptada').cuerpo, 'Texto editado por el equipo {folio}', 'conserva el texto editado');
+  assert.equal(t.find(x => x.evento === 'recepcion').cc, 'Analista');
 });
